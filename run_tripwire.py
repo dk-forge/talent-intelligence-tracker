@@ -72,35 +72,75 @@ def cycle_for(today: date, run_index: int) -> int:
     return today.timetuple().tm_yday * RUNS_PER_DAY + run_index
 
 
-def spend_guard() -> tuple[bool, str]:
+def spend_guard(*, month_total: float | None = None, month: str | None = None,
+                charged: dict | None = None,
+                fetch_error: str | None = None) -> tuple[bool, str]:
     """May this run spend anything at all?
 
-    Delegates to spend.py, which is the project's one budget mechanism: it reads
-    the real usage off the OpenRouter key and measures this calendar month
-    against the allowance the owner set. Inventing a second ceiling here would
-    mean two numbers to keep in step and one of them silently wrong.
+    Delegates to `budget.decide`, which is the project's one budget mechanism.
+    A missing key is not a failure of this check — the caller reports that
+    when it tries to ask. An unreachable spend API is: refusing to spend when
+    we cannot see the meter is the only safe direction.
 
-    A missing key is not a failure of this check — the caller reports that when
-    it tries to ask. An unreachable spend API is: refusing to spend when we
-    cannot see the meter is the only safe direction.
+    THIS FUNCTION USED TO INVENT ITS OWN CEILING, AND ITS OWN DOCSTRING SAID
+    WHY THAT WAS A BAD IDEA (fixed 2026-08-18). The old text read: "Inventing
+    a second ceiling here would mean two numbers to keep in step and one of
+    them silently wrong." It then compared the key's WHOLE-MONTH delta against
+    `MONTHLY_ALLOWANCE_USD * STOP_AT_FRACTION`, which was the one ceiling in
+    the project on 2026-07-30 and stopped being it on 2026-08-13, when
+    `budget.py` split the allowance into a committed pot and a catch-up pot.
+    `spend.py --gate` moved with the split. This did not.
+
+    What that cost: this run declares no `TIT_RUN_KIND`, so it is COMMITTED
+    work. Through August the committed pot held $3.20 of $7.11 and the
+    workflow's own `spend.py --gate` step answered `over=false`, so the paid
+    step ran — and then THIS guard, reading $12.18 against $7.20, returned
+    "not spending" and `main()` returned 0. Green run, nothing bought,
+    nothing written. The `over=true` marker step never fired, so
+    `writer_queue` filed the ticket as **landed**: work claimed that was never
+    done, which is the exact outcome that marker exists to prevent. One result
+    file since 2026-08-02, and a 384h STALE with every check green.
+
+    The fix is not a third number. It is asking `budget`, like everything else
+    that decides whether to spend. Now the two guards cannot disagree, so the
+    silent-green-and-landed state is unreachable by construction rather than
+    by a second marker.
+
+    The keyword arguments exist so a test can ask the question with no network
+    and no key. The divergence went unnoticed for weeks precisely because this
+    function always fetched, so nothing could assert on it.
     """
+    import budget
     import spend
 
-    try:
-        used = float(spend.fetch().get("usage") or 0)
-    except SystemExit as exc:                     # spend.fetch raises this
-        return False, f"cannot read spend ({exc})"
-    except Exception as exc:                      # network, DNS, timeout
-        return False, f"cannot read spend ({type(exc).__name__}: {exc})"
+    if fetch_error is None and month_total is None:
+        try:
+            used = float(spend.fetch().get("usage") or 0)
+        except SystemExit as exc:                 # spend.fetch raises this
+            fetch_error = str(exc)
+        except Exception as exc:                  # network, DNS, timeout
+            fetch_error = f"{type(exc).__name__}: {exc}"
+        else:
+            month_total, month = spend.month_delta(used)
 
-    this_month, month = spend.month_delta(used)
-    ceiling = spend.MONTHLY_ALLOWANCE_USD * spend.STOP_AT_FRACTION
-    if this_month >= ceiling:
-        return False, (f"${this_month:.2f} spent in {month} is at or past "
-                       f"{int(spend.STOP_AT_FRACTION * 100)}% of the "
-                       f"${spend.MONTHLY_ALLOWANCE_USD:.0f} allowance")
-    return True, (f"${this_month:.2f} spent in {month} of "
-                  f"${spend.MONTHLY_ALLOWANCE_USD:.0f}")
+    if fetch_error is not None:
+        return False, f"cannot read spend ({fetch_error})"
+
+    if charged is None:
+        charged = budget.charge(budget.ledger_spend(), month_total=month_total)
+    kind = budget.run_kind()
+    decision = budget.decide(kind=kind,
+                             allowance=spend.MONTHLY_ALLOWANCE_USD,
+                             charged=charged,
+                             stop_at_fraction=spend.STOP_AT_FRACTION)
+    spent = float(charged.get(kind, 0.0))
+    pot = budget.pots(spend.MONTHLY_ALLOWANCE_USD)[kind]
+    where = (f"${spent:.2f} of the ${pot:.2f} {kind} pot in "
+             f"{month or 'this month'} (${month_total or 0:.2f} across the "
+             f"whole ${spend.MONTHLY_ALLOWANCE_USD:.2f} allowance)")
+    if decision.over:
+        return False, f"{where} is at or past its stop line"
+    return True, where
 
 
 def _offline_replies(path: str) -> dict:

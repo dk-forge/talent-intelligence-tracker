@@ -348,17 +348,37 @@ def pipeline_stopped(collectors: dict, now: datetime,
 # --------------------------------------------------------------------------
 
 def spend_line():
-    """This month's spend, or None when it cannot be read.
+    """This month's spend, PER POT, or None when it cannot be read.
 
     spend.py imports cleanly (module scope is constants and an import), so this
     borrows its month-delta logic rather than restating the arithmetic. Any
     failure here is reported as absent, never as zero: a digest that says
     "$0.00 spent" when the key lookup failed is worse than one that says
     nothing.
+
+    PER POT SINCE 2026-08-18, and the reason is an outage that never happened.
+    This function used to ask one question -- is the month's TOTAL past 90% of
+    the allowance -- and call the answer `at_ceiling`. Since budget.py split
+    the allowance on 2026-08-13, that total has not been the thing that stops
+    collection: the scheduled collectors are measured against the COMMITTED
+    pot alone, precisely so a backfill campaign cannot degrade them.
+
+    On 2026-08-17 the difference was the whole story. The month read $12.18 of
+    $8.00, well past the old line, so the digest mailed "collection will not
+    run until the month rolls over". The committed pot at that moment held
+    $3.20 of $7.11 against a $6.40 stop line; the collectors had filed priced
+    health rows on each of the four preceding days and went on filing them.
+    What had actually stopped was the catch-up walkers, which is the two pots
+    working as designed.
+
+    So `at_ceiling` now means the one thing every reader took it to mean: THE
+    SCHEDULED COLLECTORS ARE DEGRADED. `total_over` carries the old question
+    for anyone who wants the whole-allowance number.
     """
     if not (os.environ.get("OPENROUTER_API_KEY") or "").strip():
         return None
     try:
+        import budget as budget_mod
         import spend as spend_module
 
         data = spend_module.fetch()
@@ -366,11 +386,29 @@ def spend_line():
         month_spend, month = spend_module.month_delta(used)
         allowance = spend_module.MONTHLY_ALLOWANCE_USD
         ceiling = allowance * spend_module.STOP_AT_FRACTION
+
+        charged = budget_mod.charge(budget_mod.ledger_spend(),
+                                    month_total=month_spend)
+        pots = budget_mod.pots(allowance)
+        committed = budget_mod.decide(
+            kind=budget_mod.COMMITTED, allowance=allowance, charged=charged,
+            stop_at_fraction=spend_module.STOP_AT_FRACTION)
+        catchup = budget_mod.decide(
+            kind=budget_mod.DISCRETIONARY, allowance=allowance,
+            charged=charged, stop_at_fraction=spend_module.STOP_AT_FRACTION)
         return {
             "month": month,
             "spent": month_spend,
             "allowance": allowance,
-            "at_ceiling": month_spend >= ceiling,
+            "committed_spent": charged[budget_mod.COMMITTED],
+            "committed_pot": pots[budget_mod.COMMITTED],
+            "committed_over": committed.over,
+            "discretionary_spent": charged[budget_mod.DISCRETIONARY],
+            "discretionary_pot": pots[budget_mod.DISCRETIONARY],
+            "discretionary_over": catchup.over,
+            # The collectors, and nothing else. See the docstring.
+            "at_ceiling": committed.over,
+            "total_over": month_spend >= ceiling,
             "lifetime": used,
             "limit": data.get("limit"),
         }
@@ -585,11 +623,38 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
         else:
             lines += ["", "Spend in %s: $%.2f of the $%.2f monthly allowance."
                       % (spend["month"], spend["spent"], spend["allowance"])]
+            # The allowance is TWO POTS and only one of them can stop
+            # collection. Saying which is the difference between a real
+            # outage and a backfill campaign finishing its money, and until
+            # 2026-08-18 this block could not tell them apart.
+            if "committed_pot" in spend:
+                lines.append(
+                    "  Collectors (committed pot): $%.2f of $%.2f. "
+                    "Catch-up walkers: $%.2f of $%.2f."
+                    % (spend.get("committed_spent") or 0.0,
+                       spend.get("committed_pot") or 0.0,
+                       spend.get("discretionary_spent") or 0.0,
+                       spend.get("discretionary_pot") or 0.0))
             if spend.get("at_ceiling"):
                 lines.append(
-                    "  AT THE CEILING. spend.py --enforce now exits 1, so "
-                    "collection will not run until the month rolls over or the "
-                    "allowance in spend.py changes.")
+                    "  AT THE COLLECTION CEILING. The committed pot is past "
+                    "its stop line, so spend.py --degrade has switched PAID "
+                    "reads off for the scheduled collectors. The job does not "
+                    "fail and does not stop: the free collectors, the free "
+                    "prefilter, deterministic extraction and both dedup "
+                    "layers keep running, and every candidate that would have "
+                    "cost money defers UNMARKED for a later run. This costs "
+                    "depth for the rest of the month, never coverage.")
+            elif spend.get("total_over"):
+                lines.append(
+                    "  The month TOTAL is past the line, and collection is "
+                    "UNAFFECTED. The overspend is in the catch-up pot, which "
+                    "the backfill walkers draw on and which cannot degrade a "
+                    "scheduled collector: that separation is what budget.py "
+                    "exists for. The collectors are inside their own pot and "
+                    "still buying paid reads. Nothing here needs a human "
+                    "unless you want the walkers funded again, which is a "
+                    "decision and not a fault.")
 
     lines += ["", PASTE_LEAD, ""]
 
@@ -643,10 +708,13 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             % ", ".join(names))
     elif spend and spend.get("at_ceiling"):
         lines.append(
-            '  "The health digest says LLM spend has hit the monthly ceiling '
-            'and collection is blocked. Read spend.py, confirm the month-delta '
-            'snapshot in data/spend_month.json is correct, and tell me whether '
-            'to wait for the month to roll over or raise the allowance."')
+            '  "The health digest says the COMMITTED pot has hit its stop '
+            'line, so the scheduled collectors are running with paid reads '
+            'off. Run python3 budget.py and python3 cost_projection.py, '
+            'confirm the month-delta snapshot in data/spend_month.json is '
+            'correct, and tell me what the collectors actually cost per day '
+            'before we discuss the allowance. Do not raise the number to make '
+            'the message stop."')
     elif archive_stalled:
         # Deliberately points at the runs rather than at the script. The script
         # is fine every time this fires: what breaks is the path to it, and the

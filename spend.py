@@ -364,6 +364,39 @@ def month_delta(lifetime_used: float) -> tuple[float, str]:
     return max(0.0, lifetime_used - float(snap["usage_at_start"])), month
 
 
+def publish_month_total(spent_this_month: float) -> None:
+    """Hand the authoritative month total to every later step of this job.
+
+    This function reads the key. Nothing else in the job should have to, and
+    until 2026-08-18 nothing else could: the backfill walkers computed their
+    ration from `budget.ledger_spend()`, which is the committed cost ledger,
+    which NO WALKER HAS EVER WRITTEN A ROW TO. So the catch-up pot read as
+    untouched on a month that had spent $8.98 of its $0.89, and the walker
+    printed a live ration into its own run log while saying so.
+
+    The number was already in this process. It is written to `$GITHUB_ENV`
+    beside `TIT_PAID_READS` so `budget.decide()` can reconcile with it, and a
+    failure to write it is loud and harmless: the ledger then stands alone as
+    a FLOOR and `budget` says UNMEASURED rather than pretending to a reading.
+    """
+    import budget
+
+    name = budget.MONTH_SPEND_ENV
+    os.environ[name] = f"{spent_this_month:.6f}"
+    print(f"\n  Month total published as {name}={spent_this_month:.6f} for the "
+          f"rest of this job.")
+    github_env = os.environ.get("GITHUB_ENV")
+    if not github_env:
+        return
+    try:
+        with open(github_env, "a") as fh:
+            fh.write(f"{name}={spent_this_month:.6f}\n")
+    except OSError as exc:
+        print(f"  COULD NOT PUBLISH the month total: {exc} — later steps will "
+              f"read the committed cost ledger alone, which is a FLOOR and "
+              f"says so")
+
+
 def degrade(over: bool) -> None:
     """Switch PAID reads off for the rest of the job, and say so.
 
@@ -511,6 +544,7 @@ def main() -> int:
     # workflow that gains --degrade without losing --enforce cannot go red by
     # accident. --gate is softer still, and sits alongside for the same reason.
     if args.degrade:
+        publish_month_total(spent_this_month)
         degrade(over)
         apply_forward_first()
         return 0

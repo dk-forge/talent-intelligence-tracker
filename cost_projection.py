@@ -64,13 +64,69 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # collector demands. `reads` is what it was allowed to buy. The difference is
 # the coverage gap, and for national_press on that run it was 49 stories in
 # Hebrew, German, Serbian, Vietnamese and Korean.
+#: Which workflow's cron decides how often each collector runs. The cadence is
+#: DERIVED from that file rather than typed into the table below, because the
+#: typed version went stale the first time the schedule moved and nothing said
+#: so: on 2026-08-14 the owner cut `collect.yml` from two crons to one
+#: (e60ce7f, then df0efdf), the FUNNEL rows kept `runs_per_day = 2`, and every
+#: figure this script printed for the four days after was DOUBLE the measured
+#: spend. The committed cost ledger read $0.38/day; section [4] said
+#: $23.08/month. A projection nobody can reconcile with the meter is worse
+#: than no projection — and this is the same defect as `health_digest` still
+#: describing `--enforce`, and `run_tripwire` still measuring the whole
+#: allowance: a change landed, and the things that quote numbers about it were
+#: not brought along.
+COLLECTOR_WORKFLOW = {
+    "national_press": "collect-press.yml",
+    "google_news":    "collect.yml",
+    "gdelt":          "collect.yml",
+    "sec_edgar":      "collect.yml",
+    "sec_form_d":     "collect.yml",
+}
+
+WORKFLOWS_DIR = Path(__file__).resolve().parent / ".github" / "workflows"
+
+#: The cadence the FUNNEL seeds were captured at. Used only when the workflow
+#: file cannot be read at all, so the fallback is the measurement's own basis
+#: rather than an invented number.
+SEEDED_RUNS_PER_DAY = 2
+
+
+def runs_per_day(workflow: str, workflows_dir: Path | None = None) -> int:
+    """How many times a day that workflow's schedule fires it.
+
+    Counts live `- cron:` lines and ignores commented-out ones: commenting the
+    schedule out is how this repo disarms a job, so a commented cron is not a
+    run. A disarmed workflow returns 0, which correctly projects no recurring
+    spend from it.
+    """
+    path = (workflows_dir or WORKFLOWS_DIR) / workflow
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return SEEDED_RUNS_PER_DAY
+    crons = 0
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        if stripped.startswith("- cron:"):
+            crons += 1
+    return crons
+
+
 FUNNEL = {
-    # collector:      (candidates, gate_calls, survivors, reads, runs_per_day)
-    "national_press": (1148, 627, 249, 200, 2),
-    "google_news":    (640, 498, 153, 153, 2),
-    "gdelt":          (74, 40, 26, 26, 2),
-    "sec_edgar":      (10, 2, 2, 2, 2),
-    "sec_form_d":     (7, 1, 1, 1, 2),
+    # collector: (candidates, gate_calls, survivors, reads, runs_per_day)
+    # The first four are PER RUN and do not move with the cadence. The fifth
+    # is derived from the owning workflow's live crons, see COLLECTOR_WORKFLOW.
+    coll: seed + (runs_per_day(COLLECTOR_WORKFLOW[coll]),)
+    for coll, seed in {
+        "national_press": (1148, 627, 249, 200),
+        "google_news":    (640, 498, 153, 153),
+        "gdelt":          (74, 40, 26, 26),
+        "sec_edgar":      (10, 2, 2, 2),
+        "sec_form_d":     (7, 1, 1, 1),
+    }.items()
 }
 
 DAYS = 30

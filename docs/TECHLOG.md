@@ -13,6 +13,120 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-18 - the outage that was an alarm, and three clocks that never moved
+
+The weekly digest mailed: "Spend in 2026-08: $12.18 of the $8.00 monthly
+allowance. AT THE CEILING. spend.py --enforce now exits 1, so collection will
+not run until the month rolls over or the allowance in spend.py changes."
+
+It was read as a live outage. **Collection was never stopped.** On each of the
+four days before that email the scheduled collectors filed priced health rows
+and bought paid reads: 08-14 $0.4249, 08-15 $0.3755, 08-16 $0.2871, 08-17
+$0.4333. They went on doing it after.
+
+Every clause after the first line was false, and each one for the same reason:
+a change landed and the things that quote numbers about it were not brought
+along.
+
+### 1. No workflow runs `--enforce`
+
+It was removed on 2026-07-30 (`--degrade` exits 0 and switches paid reads off
+while every free collector keeps running). `health_digest.build_email` still
+carried the old sentence, word for word, six weeks later.
+
+### 2. The line that stops collection is the COMMITTED pot, not the allowance
+
+`budget.py` split the allowance on 2026-08-13. `health_digest.spend_line()`
+kept asking the pre-split question — is the month TOTAL past 90% of $8.00 —
+and called the answer `at_ceiling`. Reconciled at $12.18 the split is:
+
+| pot | spent | pot size | stop line | verdict |
+|---|---|---|---|---|
+| committed (the collectors) | $3.20 | $7.11 | $6.40 | **inside, paid reads ON** |
+| catch-up (the walkers) | $8.98 | $0.89 | — | overdrawn, correctly skipping |
+
+So the thing that had stopped was the backfill walkers, which is the two pots
+working exactly as designed. `at_ceiling` now means the one thing every reader
+took it to mean: the scheduled collectors are degraded. `total_over` carries
+the old question.
+
+### 3. `run_tripwire.spend_guard` was a SECOND ceiling, and its own docstring said why that was a bad idea
+
+The old text: "Inventing a second ceiling here would mean two numbers to keep
+in step and one of them silently wrong." It then compared the key's whole-month
+delta against `MONTHLY_ALLOWANCE_USD * 0.9`. `spend.py --gate` moved to the two
+pots on 08-13. This did not.
+
+The failure mode is worse than a red run. The workflow's gate step answered
+`over=false` (committed pot, $3.20 of $7.11) so the paid step RAN; then this
+guard, reading $12.18 against $7.20, printed "NOT SPENDING" and returned **0**.
+Green run, nothing bought, nothing written, and because the `over=true` marker
+step never fired, `writer_queue` filed the ticket as **landed** — work claimed
+that was never done, which is precisely what that marker exists to prevent.
+One tripwire result file since 2026-08-02, STALE at 384h, every check green.
+
+It now asks `budget.decide`, like everything else that decides whether to
+spend, so the two guards cannot disagree and the silent-green-and-landed state
+is unreachable by construction rather than by a second marker.
+
+### 4. `cost_projection.py` was still projecting two collect runs a day
+
+The owner cut `collect.yml` to a single daily cron on 2026-08-14 (e60ce7f,
+df0efdf). `FUNNEL` kept `runs_per_day = 2`, so section [4] reported
+**$23.08/month** against a ledger measuring **$0.38/day = $11.57/month**, and
+nobody could reconcile the two. The cadence is now counted off the workflow's
+own live crons; the per-run funnel figures are untouched because they do not
+move with cadence. Section [4] now reads **$11.54/month**, which agrees with
+the meter.
+
+That stale 2 is also where the "this repo runs at ~$0.75/day, about $23/month"
+inference came from. It was true of a twice-daily August; it has not been true
+since 08-14.
+
+### The measured answer, for the record
+
+* Committed steady state, today's caps and cadence: **$0.38/day, $11.57/month**
+  measured off the ledger; **$11.54/month** modelled by `cost_projection.py`.
+  Two independent methods, agreeing.
+* What actually spent August's $12.18: the backfill walkers, 195 slices across
+  2026-08-01 to 08-05, of which 90 gnews slices on 08-03 alone. $8.98 of
+  $12.18, 74% of the month, in three days. That overspend PREDATES the two
+  pots; it is the incident the two pots were built to answer, and they now
+  answer it.
+
+### What is still not measured, and now says so
+
+The catch-up pot has no meter of its own. No walker files a priced health row
+— `backfill_gdelt_2026.py`, `backfill_gnews_2026.py` and
+`backfill_press_2026.py` print `classify.STATS` to the run log and persist none
+of it — so `budget.ledger_spend()` has reported `discretionary: 0.0` in every
+month there has ever been, and a walker asking `walker_ration` for its share
+read a pot that was full BY CONSTRUCTION.
+
+`spend.py` already knew the true figure and reconciled it before deciding
+whether to degrade; it just dropped it afterwards. It now publishes it as
+`TIT_MONTH_SPEND_USD` into `$GITHUB_ENV`, and `budget.decide()` reconciles the
+ledger against it. Absence of that variable is **UNMEASURED**, not zero: the
+run proceeds on the ledger floor, because failing closed would stop catch-up
+work over a missing environment variable and `spend.py --degrade` is the brake
+that actually holds — but the disclosure now says the pot was never measured,
+so nobody reads the printed ration as a measurement.
+
+The durable fix is for the walkers to file priced health rows. That is not done
+here: it needs a health entry that cannot then manufacture staleness noise for
+a dispatch-only job, which is its own decision.
+
+### Guard
+
+`tests/test_spend_alarm_is_per_pot.py`, 16 assertions, all four defects RED
+before the change. Two existing tests were updated deliberately rather than
+weakened: `test_forward_first` was anchored on statement ORDER inside the
+`--degrade` branch and is now anchored on what the branch does;
+`test_health_digest.test_spend_at_the_ceiling_is_stated` pinned the old banner
+text and now pins the new meaning.
+
+---
+
 ## 2026-08-17 - a stated range was two different bugs wearing one row
 
 A `national_press` row stored QpiAI (YourStory) with `funding_amount`

@@ -93,6 +93,50 @@ KINDS = (COMMITTED, DISCRETIONARY)
 #: fail toward the protected pot.
 KIND_ENV = "TIT_RUN_KIND"
 
+#: The environment variable `spend.py --degrade` publishes the authoritative
+#: month total into, so every later step of the same job can reconcile the
+#: ledger without a second key read.
+#:
+#: WHY IT HAD TO EXIST (2026-08-18). The catch-up pot has no meter of its own.
+#: No backfill walker files a priced health row — `backfill_gdelt_2026.py`,
+#: `backfill_gnews_2026.py` and `backfill_press_2026.py` print
+#: `classify.STATS` to the run log and persist none of it — so
+#: `ledger_spend()` has reported `discretionary: 0.0` in every month there has
+#: ever been. A walker asking `walker_ration` for its share therefore read a
+#: pot that was full BY CONSTRUCTION, and said so in its own run log, on a
+#: month where the real figure was $8.98 of a $0.89 pot.
+#:
+#: `spend.py` already knew the true number: it reads the key's own month delta
+#: and reconciles it with `charge()` before deciding whether to degrade. It
+#: simply dropped it afterwards. Publishing it here is the whole fix — no new
+#: key read, no new health row, and no new way for a walker to be wrong about
+#: how much is left.
+#:
+#: Absence of this variable is UNMEASURED, not zero. The run still proceeds on
+#: the ledger floor (failing closed would stop catch-up work over a missing
+#: environment variable, and `spend.py --degrade` is the real brake either
+#: way), but the disclosure says the pot was never measured, so nobody reads
+#: the printed ration as a measurement.
+MONTH_SPEND_ENV = "TIT_MONTH_SPEND_USD"
+
+
+def published_month_total(env: dict | None = None) -> float | None:
+    """The authoritative month total this job was handed, or None.
+
+    None is UNKNOWN and never zero: an unreadable or absent value means the
+    ledger stands alone as a FLOOR, which is what `charge()` already does with
+    `month_total=None`.
+    """
+    src = os.environ if env is None else env
+    raw = (src.get(MONTH_SPEND_ENV, "") or "").strip()
+    if not raw:
+        return None
+    try:
+        value = float(raw)
+    except ValueError:
+        return None
+    return value if value >= 0 else None
+
 
 # ---------------------------------------------------------------------------
 # THE TARGET, AND THIS REPO'S SHARE OF IT
@@ -418,6 +462,7 @@ class Decision:
 
 def decide(*, kind: str | None = None, allowance: float | None = None,
            charged: dict[str, float] | None = None,
+           ledger: dict[str, float] | None = None,
            today: datetime.date | None = None,
            stop_at_fraction: float = 0.9) -> Decision:
     """This run's ceiling, from what is left and how long is left.
@@ -430,6 +475,15 @@ def decide(*, kind: str | None = None, allowance: float | None = None,
     DISCRETIONARY work gets `remaining / days left`, so it SLOWS as the month
     tightens rather than stopping — and reaches zero only when the pot is
     genuinely gone, which is a skip, not a failure.
+
+    TWO WAYS TO SUPPLY THE SPEND, and the difference is who reconciled it.
+    `charged` is a split somebody has ALREADY reconciled against an
+    authoritative total (`spend.py` does this) and is used verbatim. `ledger`
+    — or nothing at all — is the raw committed cost ledger, which this
+    function then reconciles itself against `MONTH_SPEND_ENV` if the job
+    published one. That default is what the walkers hit, and until 2026-08-18
+    it silently handed them a catch-up pot that no walker has ever written a
+    row to and which therefore reads as untouched forever.
     """
     kind = kind or run_kind()
     allowance = monthly_allowance() if allowance is None else allowance
@@ -443,7 +497,16 @@ def decide(*, kind: str | None = None, allowance: float | None = None,
                    "policy, and the key's own hard cap is the only backstop "
                    "left.")
 
-    charged = ledger_spend() if charged is None else charged
+    # A caller that passed `charged` reconciled it itself. Everyone else gets
+    # the ledger reconciled against whatever total this job was handed, and an
+    # explicit note when it was handed none.
+    measured = charged is not None
+    if charged is None:
+        month_total = published_month_total()
+        measured = month_total is not None
+        charged = charge(ledger_spend() if ledger is None else ledger,
+                         month_total=month_total)
+
     _, _, days_left = month_bounds(today)
     pot = pots(allowance)[kind]
     spent = float(charged.get(kind, 0.0))
@@ -487,7 +550,17 @@ def decide(*, kind: str | None = None, allowance: float | None = None,
                f"budget working is not a red run."
                if skip else
                "The run goes ahead SMALLER rather than not at all, and must "
-               "report what the ceiling made it drop.")))
+               "report what the ceiling made it drop.")
+            + ("" if measured else
+               f" NOTE: this pot is UNMEASURED. No walker files a priced "
+               f"health row, so the committed cost ledger attributes $0.00 to "
+               f"catch-up work in every month there has ever been, and this "
+               f"job published no authoritative total in "
+               f"{MONTH_SPEND_ENV}. The figure above is a FLOOR read off a "
+               f"ledger that cannot see this kind of work at all — treat it "
+               f"as an unread meter, not as a full pot. `spend.py --degrade` "
+               f"runs first in every walker workflow and is the brake that "
+               f"actually holds.")))
 
 
 def walker_ration(*, monthly_walker_budget_usd: float, usd_per_unit: float,

@@ -315,8 +315,8 @@
   "prompt": 8e-07
  },
  "deepseek/deepseek-v3.1-terminus": {
-  "cache_read": 1.3e-07,
-  "completion": 9.5e-07,
+  "cache_read": null,
+  "completion": 1e-06,
   "prompt": 2.7e-07
  },
  "deepseek/deepseek-v3.2": {
@@ -330,9 +330,9 @@
   "prompt": 2.7e-07
  },
  "deepseek/deepseek-v4-flash": {
-  "cache_read": 2.8e-08,
-  "completion": 2.8e-07,
-  "prompt": 1.4e-07
+  "cache_read": 1.652e-08,
+  "completion": 1.652e-07,
+  "prompt": 8.26e-08
  },
  "deepseek/deepseek-v4-flash-0731": {
   "cache_read": 2.8e-08,
@@ -340,14 +340,19 @@
   "prompt": 1.4e-07
  },
  "deepseek/deepseek-v4-pro": {
-  "cache_read": 9.855e-08,
-  "completion": 2.336e-06,
-  "prompt": 1.168e-06
+  "cache_read": 4.4e-08,
+  "completion": 3.96e-06,
+  "prompt": 1.32e-06
  },
  "deepseek/deepseek-v4-pro-0813": {
-  "cache_read": 3.625e-09,
-  "completion": 8.7e-07,
-  "prompt": 4.35e-07
+  "cache_read": 4.4e-08,
+  "completion": 3.96e-06,
+  "prompt": 1.32e-06
+ },
+ "dots-studio/dots-3-note-preview:free": {
+  "cache_read": null,
+  "completion": 0.0,
+  "prompt": 0.0
  },
  "google/gemini-2.5-flash": {
   "cache_read": 3e-08,
@@ -525,9 +530,9 @@
   "prompt": 6e-08
  },
  "google/gemma-4-26b-a4b-it": {
-  "cache_read": 5e-08,
-  "completion": 4e-07,
-  "prompt": 1.2e-07
+  "cache_read": null,
+  "completion": 3.4e-07,
+  "prompt": 7e-08
  },
  "google/gemma-4-26b-a4b-it:free": {
   "cache_read": null,
@@ -608,11 +613,6 @@
   "cache_read": 1.5e-07,
   "completion": 2.96e-06,
   "prompt": 7.4e-07
- },
- "liquid/lfm-2.5-2.6b:free": {
-  "cache_read": null,
-  "completion": 0.0,
-  "prompt": 0.0
  },
  "mancer/weaver": {
   "cache_read": null,
@@ -845,9 +845,9 @@
   "prompt": 5.7e-07
  },
  "moonshotai/kimi-k2.6": {
-  "cache_read": 9.44e-08,
-  "completion": 2.36e-06,
-  "prompt": 5.605e-07
+  "cache_read": 1.6e-07,
+  "completion": 4e-06,
+  "prompt": 9.5e-07
  },
  "moonshotai/kimi-k2.7-code": {
   "cache_read": 1.5e-07,
@@ -905,7 +905,7 @@
   "prompt": 1.3e-07
  },
  "nvidia/nemotron-3-nano-30b-a3b": {
-  "cache_read": 2.5e-08,
+  "cache_read": 3e-08,
   "completion": 2e-07,
   "prompt": 5e-08
  },
@@ -950,9 +950,9 @@
   "prompt": 0.0
  },
  "nvidia/nemotron-3.5-lightning": {
-  "cache_read": 5e-08,
-  "completion": 2.5e-07,
-  "prompt": 1e-07
+  "cache_read": 4e-08,
+  "completion": 2e-07,
+  "prompt": 8e-08
  },
  "nvidia/nemotron-3.5-lightning:free": {
   "cache_read": null,
@@ -1260,14 +1260,14 @@
   "prompt": 2.5e-06
  },
  "openai/gpt-5.6-luna": {
-  "cache_read": 1e-08,
-  "completion": 6e-07,
-  "prompt": 1e-07
+  "cache_read": 2e-08,
+  "completion": 1.2e-06,
+  "prompt": 2e-07
  },
  "openai/gpt-5.6-luna-pro": {
-  "cache_read": 1e-08,
-  "completion": 6e-07,
-  "prompt": 1e-07
+  "cache_read": 2e-08,
+  "completion": 1.2e-06,
+  "prompt": 2e-07
  },
  "openai/gpt-5.6-luna-pro:batch": {
   "cache_read": 1e-08,
@@ -1280,34 +1280,34 @@
   "prompt": 1e-07
  },
  "openai/gpt-5.6-sol": {
-  "cache_read": 5e-07,
-  "completion": 3e-05,
-  "prompt": 5e-06
+  "cache_read": 2.5e-07,
+  "completion": 1.5e-05,
+  "prompt": 2.5e-06
  },
  "openai/gpt-5.6-sol-pro": {
-  "cache_read": 5e-07,
-  "completion": 3e-05,
-  "prompt": 5e-06
+  "cache_read": 2.5e-07,
+  "completion": 1.5e-05,
+  "prompt": 2.5e-06
  },
  "openai/gpt-5.6-sol-pro:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.5e-05,
-  "prompt": 2.5e-06
+  "cache_read": 1.25e-07,
+  "completion": 7.5e-06,
+  "prompt": 1.25e-06
  },
  "openai/gpt-5.6-sol:batch": {
-  "cache_read": 2.5e-07,
-  "completion": 1.5e-05,
-  "prompt": 2.5e-06
+  "cache_read": 1.25e-07,
+  "completion": 7.5e-06,
+  "prompt": 1.25e-06
  },
  "openai/gpt-5.6-terra": {
-  "cache_read": 1e-07,
-  "completion": 6e-06,
-  "prompt": 1e-06
+  "cache_read": 2e-07,
+  "completion": 1.2e-05,
+  "prompt": 2e-06
  },
  "openai/gpt-5.6-terra-pro": {
-  "cache_read": 1e-07,
-  "completion": 6e-06,
-  "prompt": 1e-06
+  "cache_read": 2e-07,
+  "completion": 1.2e-05,
+  "prompt": 2e-06
  },
  "openai/gpt-5.6-terra-pro:batch": {
   "cache_read": 1e-07,
@@ -1546,13 +1546,13 @@
  },
  "qwen/qwen-plus-2025-07-28:thinking": {
   "cache_read": null,
-  "completion": 1.2e-06,
-  "prompt": 4e-07
+  "completion": 7.8e-07,
+  "prompt": 2.6e-07
  },
  "qwen/qwen2.5-vl-72b-instruct": {
-  "cache_read": null,
-  "completion": 7.5e-07,
-  "prompt": 2.5e-07
+  "cache_read": 4e-07,
+  "completion": 1e-06,
+  "prompt": 8e-07
  },
  "qwen/qwen3-14b": {
   "cache_read": null,
@@ -1576,8 +1576,8 @@
  },
  "qwen/qwen3-30b-a3b": {
   "cache_read": null,
-  "completion": 5e-07,
-  "prompt": 1.2e-07
+  "completion": 5.2e-07,
+  "prompt": 1.3e-07
  },
  "qwen/qwen3-30b-a3b-instruct-2507": {
   "cache_read": null,
@@ -1645,9 +1645,9 @@
   "prompt": 1.5e-07
  },
  "qwen/qwen3-vl-235b-a22b-instruct": {
-  "cache_read": null,
-  "completion": 1.04e-06,
-  "prompt": 2.6e-07
+  "cache_read": 1e-07,
+  "completion": 1.9e-06,
+  "prompt": 2.1e-07
  },
  "qwen/qwen3-vl-235b-a22b-thinking": {
   "cache_read": null,
@@ -1681,8 +1681,8 @@
  },
  "qwen/qwen3.5-122b-a10b": {
   "cache_read": null,
-  "completion": 2.4e-06,
-  "prompt": 2.9e-07
+  "completion": 2.08e-06,
+  "prompt": 2.6e-07
  },
  "qwen/qwen3.5-27b": {
   "cache_read": null,
@@ -1727,7 +1727,7 @@
  "qwen/qwen3.6-35b-a3b": {
   "cache_read": 5e-08,
   "completion": 1e-06,
-  "prompt": 1.5e-07
+  "prompt": 1.4e-07
  },
  "qwen/qwen3.6-flash": {
   "cache_read": null,
@@ -1763,6 +1763,11 @@
   "cache_read": 2.5e-07,
   "completion": 6e-06,
   "prompt": 2e-06
+ },
+ "qwen/qwen3.8-27b": {
+  "cache_read": 5e-08,
+  "completion": 3.2e-06,
+  "prompt": 4.5e-07
  },
  "qwen/qwen3.8-max": {
   "cache_read": 2.5e-07,
@@ -1835,9 +1840,9 @@
   "prompt": 1.32e-07
  },
  "tencent/hy3-preview": {
-  "cache_read": 2.1e-08,
-  "completion": 2.1e-07,
-  "prompt": 6.3e-08
+  "cache_read": 6e-08,
+  "completion": 6e-07,
+  "prompt": 1.8e-07
  },
  "thedrummer/cydonia-24b-v4.1": {
   "cache_read": 1.5e-07,
@@ -1950,9 +1955,9 @@
   "prompt": 6e-07
  },
  "z-ai/glm-4.6": {
-  "cache_read": 1.1e-07,
-  "completion": 2.2e-06,
-  "prompt": 5.5e-07
+  "cache_read": 1e-07,
+  "completion": 2e-06,
+  "prompt": 5e-07
  },
  "z-ai/glm-4.6v": {
   "cache_read": 5.5e-08,
@@ -1980,19 +1985,24 @@
   "prompt": 1.2e-06
  },
  "z-ai/glm-5.1": {
-  "cache_read": 2.6e-07,
-  "completion": 4.4e-06,
-  "prompt": 1.4e-06
+  "cache_read": 1.794e-07,
+  "completion": 3.036e-06,
+  "prompt": 9.66e-07
  },
  "z-ai/glm-5.2": {
-  "cache_read": 2.21e-07,
-  "completion": 3.74e-06,
-  "prompt": 1.19e-06
+  "cache_read": 1.15e-07,
+  "completion": 3.15e-06,
+  "prompt": 5e-07
  },
  "z-ai/glm-5.2:batch": {
   "cache_read": 1.3e-07,
   "completion": 2.2e-06,
   "prompt": 7e-07
+ },
+ "z-ai/glm-5.2:free": {
+  "cache_read": null,
+  "completion": 0.0,
+  "prompt": 0.0
  },
  "z-ai/glm-5v-turbo": {
   "cache_read": 2.4e-07,
@@ -2020,9 +2030,9 @@
   "prompt": 2e-06
  },
  "~deepseek/deepseek-v4-flash-latest": {
-  "cache_read": 1.596e-08,
-  "completion": 1.596e-07,
-  "prompt": 7.98e-08
+  "cache_read": 1.57192e-08,
+  "completion": 1.57192e-07,
+  "prompt": 7.8596e-08
  },
  "~google/gemini-flash-latest": {
   "cache_read": 3.75e-08,
@@ -2036,13 +2046,13 @@
  },
  "~moonshotai/kimi-latest": {
   "cache_read": 2.9e-07,
-  "completion": 1.4e-05,
-  "prompt": 2.8e-06
+  "completion": 1.3e-05,
+  "prompt": 2.6e-06
  },
  "~openai/gpt-latest": {
-  "cache_read": 5e-07,
-  "completion": 3e-05,
-  "prompt": 5e-06
+  "cache_read": 2.5e-07,
+  "completion": 1.5e-05,
+  "prompt": 2.5e-06
  },
  "~openai/gpt-mini-latest": {
   "cache_read": 7.5e-08,
