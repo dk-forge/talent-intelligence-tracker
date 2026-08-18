@@ -19,6 +19,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import ci_alert
 import self_heal
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,17 +37,69 @@ def test_a_branch_failure_is_never_healed():
     assert "main" in reason
 
 
-def test_an_eviction_or_self_timeout_is_never_healed():
-    # Both arrive as conclusion `cancelled`; ci_alert and ops_status [2b]
-    # already own them.
-    heal, reason = self_heal.classify("collect", "cancelled", "")
+# Verbatim shape of the annotation a self-killed job leaves behind.
+SELF_TIMEOUT_ANNOTATION = (
+    "The job has exceeded the maximum execution time of 20m0s")
+
+
+@pytest.mark.parametrize("cause", ["", "The operation was canceled.",
+                                   "##[error]The operation was canceled."])
+def test_a_cancellation_from_outside_the_job_is_never_healed(cause):
+    # An eviction from the talent-collect lock, a superseded push, a human:
+    # routine, and ops_status [2b] owns evictions.
+    heal, reason = self_heal.classify("collect", "cancelled", cause)
     assert not heal
-    assert "cancelled" in reason
+    assert "OUTSIDE the job" in reason
+
+
+def test_a_self_timeout_IS_healed():
+    # THE BLIND SPOT OF 2026-08-18. A job killed by its own `timeout-minutes`
+    # is reported `cancelled`, not `timed_out` or `failure`. ci_alert.py knew
+    # and mailed it CI SELF-TIMEOUT; this gate refused `cancelled` wholesale
+    # and skipped every one of them.
+    cause = ci_alert.self_timeout_cause(SELF_TIMEOUT_ANNOTATION)
+    assert cause is not None and "20m0s" in cause
+    heal, reason = self_heal.classify("collect", "cancelled", cause)
+    assert heal, reason
+
+
+def test_the_cause_line_round_trips_back_to_a_self_timeout_verdict():
+    # The gate is handed the cause STRING, not the annotation, so the verdict
+    # must survive the trip. Re-matching the regex would NOT have worked: the
+    # annotation says "has exceeded", the cause line says "it exceeded".
+    cause = ci_alert.self_timeout_cause(SELF_TIMEOUT_ANNOTATION)
+    assert ci_alert.is_self_timeout_cause(cause)
+    assert not ci_alert.is_self_timeout_cause("")
+    assert not ci_alert.is_self_timeout_cause("The operation was canceled.")
+
+
+def test_a_self_timeout_on_a_branch_is_still_that_branch_s_problem():
+    cause = ci_alert.self_timeout_cause(SELF_TIMEOUT_ANNOTATION)
+    heal, reason = self_heal.classify("collect", "cancelled", cause,
+                                      branch="some-branch")
+    assert not heal
+    assert "main" in reason
+
+
+def test_the_discrimination_is_ci_alerts_and_is_not_copied():
+    # ONE definition. A second copy of "was this a real failure" is the drift
+    # that produced this bug in the first place.
+    src = (ROOT / "self_heal.py").read_text(encoding="utf-8")
+    assert "exceeded the maximum" not in src
+    assert "ci_alert.is_self_timeout_cause" in src
+    assert "ci_alert.self_timeout_of_run" in src
+
+
+def test_the_job_condition_admits_a_cancelled_run():
+    # A workflow expression cannot read check-run annotations, so `cancelled`
+    # must reach the gate STEP, which can.
+    assert "github.event.workflow_run.conclusion == 'cancelled'" in WORKFLOW
+    assert "github.event.workflow_run.conclusion == 'failure'" in WORKFLOW
 
 
 @pytest.mark.parametrize("conclusion", ["success", "timed_out",
                                         "startup_failure", ""])
-def test_only_a_plain_failure_is_healable(conclusion):
+def test_no_other_conclusion_is_healable(conclusion):
     heal, _ = self_heal.classify("tests", conclusion, "whatever")
     assert not heal
 

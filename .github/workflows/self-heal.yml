@@ -13,9 +13,11 @@ name: Self-heal
 # THE GATE COMES FIRST: most reds here are alarms working as designed —
 # drain-writers' red-once needs-a-human signal, the Rendered contrast audit
 # measuring the live site between a merge and the manual deploy, landmarks /
-# recall measuring the corpus, evictions and self-timeouts (arrive as
-# `cancelled`, not admitted here), budget stops, host outages, and branch/PR
-# reds that have an author. self_heal.py classify() is the one list, offline-
+# recall measuring the corpus, evictions (arrive as `cancelled` and are skipped
+# in the gate STEP, which unlike a workflow expression can read the check-run
+# annotations that tell an eviction from a job that ran past its own
+# `timeout-minutes` — the latter IS healed), budget stops, host outages, and
+# branch/PR reds that have an author. self_heal.py classify() is the one list, offline-
 # tested in tests/test_self_heal.py.
 #
 # DORMANT UNTIL THE OWNER ADDS A SECRET (CLAUDE_CODE_OAUTH_TOKEN or
@@ -61,11 +63,12 @@ jobs:
     if: >-
       vars.SELF_HEAL_DISABLED != 'true' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.conclusion == 'failure' &&
+       ((github.event.workflow_run.conclusion == 'failure' ||
+         github.event.workflow_run.conclusion == 'cancelled') &&
         github.event.workflow_run.head_branch == 'main' &&
         github.event.workflow_run.name != 'Self-heal' &&
         github.event.workflow_run.name != 'CI failure alert' &&
-        github.event.workflow_run.name != 'host-watch'))
+        github.event.workflow_run.name != 'host-watch')))
     runs-on: ubuntu-latest
     timeout-minutes: 40
     outputs:

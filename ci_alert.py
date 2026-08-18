@@ -132,6 +132,15 @@ _SELF_TIMEOUT = re.compile(
     r"has exceeded the maximum (?:execution|operation) time of\s*(.+?)\.?$",
     re.IGNORECASE)
 
+#: The opening of every cause line this module writes for a self-killed job.
+#: A CONSTANT because a second reader has to recognise the verdict without
+#: re-deriving it: self_heal.py's gate is handed the cause STRING and must know
+#: where it came from. Re-matching `_SELF_TIMEOUT` against the line below does
+#: not work and must not be attempted — the annotation says "has exceeded", the
+#: line says "it exceeded", and that near-miss is exactly the second-copy drift
+#: that left the healer blind to self-timeouts until 2026-08-18.
+SELF_TIMEOUT_MARKER = "the job cancelled ITSELF on timeout-minutes"
+
 # Actions log lines arrive as "<job>\t<step>\t<ISO timestamp> <content>".
 _TS = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?")
 
@@ -377,9 +386,31 @@ def self_timeout_cause(text: str) -> str | None:
     for raw in (text or "").splitlines():
         found = _SELF_TIMEOUT.search(strip_prefix(raw))
         if found:
-            return ("the job cancelled ITSELF on timeout-minutes: it exceeded "
+            return (f"{SELF_TIMEOUT_MARKER}: it exceeded "
                     f"the maximum execution time of {found.group(1).strip()}")
     return None
+
+
+def is_self_timeout_cause(cause: str | None) -> bool:
+    """Was this cause line produced by self_timeout_cause()? The read side of
+    SELF_TIMEOUT_MARKER, for a caller holding the cause rather than the run."""
+    return bool(cause) and SELF_TIMEOUT_MARKER in cause
+
+
+# THE ONE ANSWER to "is this `cancelled` run a real failure?", for every caller.
+# It is a function, and it is exported, because it was not: this alerter learned
+# that a self-timeout hides inside `cancelled` and self_heal.py did not, so the
+# healer's gate refused `cancelled` wholesale and skipped every self-timeout the
+# alerter had just emailed. Two components reading one event with two
+# vocabularies. Anything that needs to tell an eviction or a superseded push
+# from a job that ran past its own wall calls THIS.
+def self_timeout_of_run(repo: str, run_id: str) -> str | None:
+    """-> the timeout cause line for a run that killed itself, else None.
+
+    None means the cancellation came from OUTSIDE the job (an eviction from the
+    talent-collect lock, a superseded push, a human) and is routine.
+    """
+    return self_timeout_cause(fetch_annotations(repo, run_id))
 
 
 def build_alert(*, repo: str, workflow: str, branch: str, event: str,
@@ -698,8 +729,7 @@ def main(argv=None) -> int:
         # itself, in which case nothing outside the job cancelled it: it ran
         # past a wall this repository set, and on a schedule that is permanent
         # and was, until now, invisible in both channels.
-        timeout_cause = self_timeout_cause(
-            fetch_annotations(args.repo, args.run_id))
+        timeout_cause = self_timeout_of_run(args.repo, args.run_id)
         if not timeout_cause:
             print("cancelled by something outside the job (an eviction from the "
                   "talent-collect lock, a superseded push, or a human): "

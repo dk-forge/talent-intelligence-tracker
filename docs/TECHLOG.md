@@ -13,6 +13,46 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+
+## 2026-08-18 — the healer could not see a self-timeout (found in the sibling repo)
+
+`ci_alert.py` has known since 2026-08-12 that a job killed by its own
+`timeout-minutes` reports `cancelled`, not `timed_out`, and alerts on the
+check-run annotation rather than the conclusion string. **`self_heal.py` did
+not.** Its gate refused `cancelled` wholesale, so every self-timeout the
+alerter mailed as CI SELF-TIMEOUT was skipped by the healer. Two components
+reading one event with two vocabularies.
+
+Found in the layoff tracker, where `Tests` self-killed at 15m0s on main and six
+Self-heal runs in the next half hour were `skipped` with no PR opened. This
+repo had the identical gate and the identical blind spot, so it carries the
+identical fix — fixing one of two would have implied the other was covered.
+
+**One definition, called twice.** `ci_alert.py` now exports
+`SELF_TIMEOUT_MARKER`, `is_self_timeout_cause(cause)` and
+`self_timeout_of_run(repo, run_id)`. `self_heal.classify()` calls them and
+carries no timeout string of its own (a test asserts `"exceeded the maximum"
+not in` its source). Evictions from the talent-collect lock, superseded pushes
+and human cancellations are still skipped — that is the whole point of doing it
+by evidence rather than by conclusion.
+
+The workflow's `if:` now admits `cancelled`, because **a workflow expression
+cannot read check-run annotations** and that is the only place the distinction
+lives (a self-killed job has no failed STEP, so `--log-failed` is empty). The
+gate STEP does the discriminating, by name, in the log.
+
+**A near-miss worth recording:** re-running the `_SELF_TIMEOUT` regex over the
+cause string does NOT work — the annotation says "has exceeded", the composed
+cause line says "it exceeded" — so it would have answered "ordinary
+cancellation" for every self-timeout. Hence the explicit marker constant and a
+round-trip test.
+
+**Proved, not assumed.** This repo's `ci_alert.self_timeout_of_run` was run
+against the sibling's real self-timeout run and returned the cause; `classify`
+returned healable. `self_heal.py gate` against a real evicted run here still
+returns `heal: no`. 109 tests green in `tests/test_self_heal.py` +
+`tests/test_ci_alert.py`.
+
 ## 2026-08-18 - the outage that was an alarm, and three clocks that never moved
 
 The weekly digest mailed: "Spend in 2026-08: $12.18 of the $8.00 monthly

@@ -19,9 +19,15 @@ THIS MODULE IS THE PART THAT SAYS NO
 ------------------------------------
 Most red runs here are alarms working as designed, with an owner already:
 
-  * anything not conclusion `failure` — evictions and self-timeouts arrive as
-    `cancelled`; ci_alert.py already tells them apart and mails the one that
-    matters, and ops_status [2b] owns evictions.
+  * a cancellation from OUTSIDE the job — an eviction from the talent-collect
+    lock, a superseded push, a human. Routine here by design; ops_status [2b]
+    owns evictions. But a job that ran past its own `timeout-minutes` ALSO
+    arrives as `cancelled`, and that one IS healed: it is a real, repeating,
+    permanent failure that this gate refused wholesale until 2026-08-18, while
+    ci_alert.py mailed the same event as CI SELF-TIMEOUT. The two are told
+    apart by `ci_alert.is_self_timeout_cause()`, CALLED here and never
+    re-implemented. The healer's hard limit against widening a ceiling is what
+    keeps that fix honest: make the job fit, do not move the wall.
   * a red on any branch but main — that branch has an author (dependabot or
     a session), and the fix belongs on the branch, not in a healer draft.
   * `drain-writers` — its red-once design means a red IS the deliberate
@@ -150,11 +156,26 @@ def classify(workflow: str, conclusion: str, cause: str,
                        "branch red has an author (a session or dependabot) "
                        "and the fix belongs there — the healer only heals "
                        "unattended breakage on main.")
-    if (conclusion or "").lower() != "failure":
+    conc = (conclusion or "").lower()
+    if conc == "cancelled":
+        # `cancelled` is TWO events wearing one word, and in this repo it is
+        # three: an eviction from the talent-collect lock, a superseded push,
+        # or a job that ran past its own `timeout-minutes`. Only the last is a
+        # failure, and GitHub reports it as `cancelled` rather than
+        # `timed_out`. ci_alert.py has always known that; this gate did not,
+        # and skipped the whole class until 2026-08-18.
+        if not ci_alert.is_self_timeout_cause(cause):
+            return False, ("cancelled by something OUTSIDE the job (an "
+                           "eviction from the talent-collect lock, a "
+                           "superseded push, a human). Routine, and not a "
+                           "failure; ops_status [2b] owns evictions. Only a "
+                           "run that killed itself on its own timeout-minutes "
+                           "is healable here.")
+        # fall through: a self-timeout IS a failure, and a code-shaped one.
+    elif conc != "failure":
         return False, (f"conclusion '{conclusion}' is not healable: only a "
-                       "plain failure is. Evictions and self-timeouts arrive "
-                       "as 'cancelled' and ci_alert/ops_status already own "
-                       "them; success needs nothing.")
+                       "plain failure, or a `cancelled` that is really a "
+                       "self-timeout, is. Success needs nothing.")
     if (workflow or "").strip().lower() in NEVER_HEAL:
         return False, (f"'{workflow}' is never healed: it is the alarm "
                        "channel, a live-site measurement, or a red that IS "
@@ -270,9 +291,15 @@ def gate(args) -> int:
             return 0
 
     cause = ""
-    if (conclusion or "").lower() == "failure":
+    conc = (conclusion or "").lower()
+    if conc == "failure":
         cause, _context = ci_alert.extract_cause(
             ci_alert.fetch_failed_log(repo, args.run_id))
+    elif conc == "cancelled":
+        # A self-killed job has NO failed step, so --log-failed returns nothing;
+        # the distinguishing line lives in the job's check-run annotations. The
+        # same call the alerter makes, so the two cannot disagree about one run.
+        cause = ci_alert.self_timeout_of_run(repo, args.run_id) or ""
 
     heal, reason = classify(workflow, conclusion, cause, branch or "main")
     if not heal:

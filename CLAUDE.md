@@ -81,9 +81,14 @@ manufacturing four extra red runs while it was. Three things now hold:
 **A NEW code-shaped red on main can also propose its own fix — as a DRAFT a
 human merges.** `.github/workflows/self-heal.yml` + `self_heal.py`: the gate
 refuses every red that is an alarm working as designed (drain-writers' red-once
-signal, the live contrast audit, landmarks/recall, evictions/self-timeouts,
-budget stops, guardrail findings awaiting adjudication, host outages, branch
-reds); for the rest, the pinned
+signal, the live contrast audit, landmarks/recall, evictions, budget stops,
+guardrail findings awaiting adjudication, host outages, branch reds). **A
+SELF-TIMEOUT IS NOT in that list and is healed** — it wears the same
+`cancelled` conclusion an eviction does, and until 2026-08-18 this gate refused
+`cancelled` wholesale while `ci_alert.py` was mailing the very same events as CI
+SELF-TIMEOUT. One definition now serves both: `ci_alert.self_timeout_of_run()` /
+`is_self_timeout_cause()`, called by the gate, never re-implemented. For the
+rest, the pinned
 claude-code-action reproduces the failure from the run log and opens a draft PR
 with red-before/green-after evidence, an adversarial second pass posts a review
 comment, and the `guard` job re-diffs the branch against `self_heal.FORBIDDEN`
