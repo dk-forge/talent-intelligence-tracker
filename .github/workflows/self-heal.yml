@@ -68,7 +68,7 @@ jobs:
         github.event.workflow_run.head_branch == 'main' &&
         github.event.workflow_run.name != 'Self-heal' &&
         github.event.workflow_run.name != 'CI failure alert' &&
-        github.event.workflow_run.name != 'host-watch')))
+        github.event.workflow_run.name != 'host-watch'))
     runs-on: ubuntu-latest
     timeout-minutes: 40
     outputs:

@@ -47,6 +47,15 @@ cause line says "it exceeded" — so it would have answered "ordinary
 cancellation" for every self-timeout. Hence the explicit marker constant and a
 round-trip test.
 
+**And the first attempt shipped an invalid workflow.** The new condition went
+out with ONE closing paren too many. PyYAML parses it - to YAML the condition is
+just a string - so every local check was green, and **GitHub refused to load the
+whole workflow**: in the sibling repo, no Self-heal run at all for fifteen
+minutes, on a healer that had just been fixed to catch more. An invalid workflow
+does not fail loudly; it stops existing, and the only trace is a run named after
+the file with `event: push`. `tests/test_self_heal.py` now balances the parens
+in every `if:` in this file (red-before verified by putting the paren back).
+
 **Proved, not assumed.** This repo's `ci_alert.self_timeout_of_run` was run
 against the sibling's real self-timeout run and returned the cause; `classify`
 returned healable. `self_heal.py gate` against a real evicted run here still

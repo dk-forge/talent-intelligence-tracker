@@ -330,6 +330,27 @@ def test_the_action_is_pinned_to_a_full_commit_sha():
             "maintainer can move")
 
 
+def test_every_job_condition_is_a_balanced_expression():
+    """PyYAML is not a validator for these, and this cost a real outage.
+
+    On 2026-08-18 the sibling repo shipped this same `heal` condition with ONE
+    closing paren too many. The file parsed as YAML - the condition is only a
+    string to YAML - so every local check was green, and GitHub refused to load
+    the whole workflow: no Self-heal run at all, on a healer that had just been
+    fixed to catch more. An invalid workflow does not fail loudly; it stops
+    existing.
+    """
+    conditions = re.findall(r"^\s*if: >-\n((?:^\s{6,}.*\n)+)", WORKFLOW, re.M)
+    conditions += re.findall(r"^\s*if: (?!>-)(.+)$", WORKFLOW, re.M)
+    assert len(conditions) >= 4, "the `if:` conditions stopped being findable"
+    for cond in conditions:
+        depth = 0
+        for ch in cond:
+            depth += (ch == "(") - (ch == ")")
+            assert depth >= 0, f"closes a paren it never opened:\n{cond}"
+        assert depth == 0, f"unbalanced parens:\n{cond}"
+
+
 def test_one_healer_at_a_time_and_never_the_writer_lock():
     assert "group: self-heal" in WORKFLOW
     assert "cancel-in-progress: false" in WORKFLOW
