@@ -116,13 +116,19 @@ analysis/     measurement, never collection: recall/ grades what we hold,
               tripwire/ finds what we are missing (run_tripwire.py, DORMANT)
 ```
 
-GitHub Actions cron collects 2x/day, commits the database back, and POSTs to a
+GitHub Actions cron collects daily, commits the database back, and POSTs to a
 keyed WordPress endpoint that renders the dashboard. The plugin exists and is
 deployed; `wordpress-plugin/` is it.
 
-**Collection is ARMED.** `collect.yml` runs at 06:00 and 18:00 UTC. Disarm by
-commenting the two schedule lines out again; nothing else changes. `ops_status.py`
-is the authority on this, not this file.
+**Collection is ARMED.** `collect.yml` runs ONCE daily at 16:00 UTC (noon US
+Eastern in summer) and `collect-press.yml` an hour behind it. It was 06:00 and
+18:00 until 2026-08-14, when the owner traded the second run for its cost: the
+product updates daily, a 24h freshness window is acceptable, and the second run
+measured ~$0.43/day. Disarm by commenting the schedule line out again; nothing
+else changes. `ops_status.py` is the authority on this, not this file — and
+neither is any tool that hard-codes a cadence. `cost_projection.py` did, kept
+saying 2, and printed double the real bill for four days
+(TECHLOG 2026-08-18); it now counts the workflow's own live crons.
 
 **The plugin deploy is NOT armed.** The push trigger in `deploy-plugin.yml` is
 still commented out, so a merged commit does not reach the site. After any
@@ -438,28 +444,33 @@ the authoritative total from the key and reconciles; the unattributed remainder
 is charged to DISCRETIONARY first, deliberately, because that errs toward
 protecting the collectors.
 
-**$8.00 STILL DOES NOT FUND FULL COVERAGE AS CONFIGURED, and that is the
-honest state of this project rather than a bug to tune away.** Measured
-committed demand at today's read caps is **$24.06/month**, so the committed pot
-($7.11) funds about 30% of today's depth; the two pots stop a *backfill*
-starving the collectors, they do not make $8.00 buy what $24.06 buys. Bringing
-the committed set inside its pot is a read-cap decision
-(`classify.BINDING_READ_BUDGET`, 217 reads/run) and it is the owner's.
-`cost_projection.py [4]/[5]` measured 2026-08-14:
+**$8.00 STILL DOES NOT FUND TODAY'S CONFIGURATION, and that is the honest
+state of this project rather than a bug to tune away.** What it costs to run
+as configured is **$11.54/month** (`cost_projection.py [4]`, "today's caps"),
+against a committed pot of $7.11. The MEASURED figure agrees: the committed
+cost ledger reads **$0.38/day = $11.57/month** over 2026-08-14..17, the first
+four un-degraded once-daily days. Two independent methods, and they now agree
+because the projection stopped assuming two collect runs a day (TECHLOG
+2026-08-18). Do not quote the older $24.06 — it was the same configuration at
+twice the cadence.
+
+Bringing the committed set inside its pot is a read-cap decision
+(`classify.BINDING_READ_BUDGET`) and it is the owner's.
+`cost_projection.py [4]/[5]`, re-measured 2026-08-18 at the real cadence:
 
 | configuration | cost/month |
 |---|---|
-| FULL coverage, second pass conditional (as configured today) | **$40.79** |
-| ... extraction on gemini-2.5-flash-lite | $13.20 |
-| ... leadership offloaded + free extraction takes 33% of funding | $18.01 |
-| ... all of it, on the cheapest models | **$6.30** |
+| **today's caps, as configured and running** | **$11.54** |
+| FULL coverage, second pass conditional | $18.86 |
+| ... extraction on gemini-2.5-flash-lite | $6.17 |
+| ... all of it, on the cheapest models | **$2.93** |
 
-**The last row now FITS inside the collection allowance ($6.82) for the first
-time** — at $6.04 it did not. That is what the raise bought, and it is bounded:
-**$3.68 of that $6.30 is the LLM gate**, which is 58% of the floor and is not
-reachable by any model swap. `[5]`: the gate costs $3.68/month, leaving $3.14
-for reads = 80 reads/day against a demand of 948/day, **8% of full coverage**.
-Tuning caps cannot close a gap the gate has already spent.
+**FULL worldwide coverage on gemini-2.5-flash-lite extraction now FITS inside
+the collection allowance ($6.82)** — $6.17 against $6.82, for the first time,
+and that is a coverage decision the owner has never been offered before because
+until 08-18 the tool reported it as $13.20. It is bounded by the gate: **$1.73
+of every figure above is the LLM gate**, which no model swap reaches. Tuning
+caps cannot close a gap the gate has already spent.
 
 So the road under $5 is **making the gate free**, not rationing reads: replace
 the paid LLM gate with a trained classifier (`docs/PLAN-gate-to-five-dollars.md`,

@@ -319,12 +319,24 @@ class TestEmail(unittest.TestCase):
         self.assertIn("collect.yml", body)
 
     def test_spend_at_the_ceiling_is_stated(self):
+        """`at_ceiling` means THE COLLECTORS ARE DEGRADED, since 2026-08-18.
+
+        It used to mean "the month total is past 90% of the whole allowance",
+        which stopped being the line that governs collection when budget.py
+        split the allowance into two pots on 2026-08-13. The banner text moved
+        with the meaning: "AT THE CEILING. spend.py --enforce now exits 1"
+        described a flag no workflow has run since 2026-07-30, and on
+        2026-08-17 it mailed the owner a collection outage on a month where
+        the collectors were funded and running. See
+        tests/test_spend_alarm_is_per_pot.py.
+        """
         buckets = health_digest.classify({"google_news": entry(2)}, NOW)
         spend = {"month": "2026-07", "spent": 9.4, "allowance": 10.0,
                  "at_ceiling": True}
         _, body = health_digest.build_email(buckets, False, 2, spend, "local")
         self.assertIn("9.40", body)
-        self.assertIn("AT THE CEILING", body)
+        self.assertIn("AT THE COLLECTION CEILING", body)
+        self.assertIn("degrade", body)
 
     def test_a_quarantined_row_leads_the_subject_and_carries_its_instruction(self):
         """A quarantine outranks a stale scraper: one costs coverage, the other

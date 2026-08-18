@@ -85,10 +85,22 @@ class FundingUsdParser(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertIsNone(vocab.parse_funding_usd(text))
 
-    def test_a_range_takes_the_first_number(self):
-        """Same rule the sibling tracker uses for headcounts: parse the first
-        number, never average a range into a figure nobody printed."""
-        self.assertEqual(vocab.parse_funding_usd("$5M to $10M"), 5_000_000)
+    def test_a_range_follows_the_stated_policy(self):
+        """This used to assert 5,000,000 and call it "the same rule the sibling
+        uses for headcounts". The rule was real; it just was not what the parser
+        did. It held for '$5M to $10M', where the first end carries its own
+        scale word, and not for '$20-25 million', where the scale word sits at
+        the far end and the first end therefore read as twenty dollars. One
+        stored a low end nothing marked as a low end, the other hit the
+        plausibility floor, and nobody chose either.
+
+        A range is now one named outcome across every typography
+        (vocab.FUNDING_RANGE_POLICY, default 'refuse' — a summed column should
+        not carry an unmarked low end). tests/test_funding_amount_parsing.py
+        holds every shape; this keeps the sibling-facing case honest.
+        """
+        expected = 5_000_000 if vocab.FUNDING_RANGE_POLICY == "low_end" else None
+        self.assertEqual(vocab.parse_funding_usd("$5M to $10M"), expected)
 
     def test_implausible_values_are_rejected(self):
         self.assertIsNone(vocab.parse_funding_usd("$0"))

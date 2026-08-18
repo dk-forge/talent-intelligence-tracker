@@ -360,19 +360,16 @@ FLOOR_REFUSALS = {
                "string we hold does not finish the word, and reading a "
                "truncated stem as a known scale would be a guess. Refusing "
                "is correct.",
-    "$20–25 million": "QpiAI, YourStory, arrived 2026-08-17. Not a truncation: "
-                      "a RANGE. The publisher states no single figure, the "
-                      "reader reaches '20' and the scale word belongs to the "
-                      "other end, so the uncapped read is twenty dollars and "
-                      "the floor refuses it. Nothing is stored and the row "
-                      "keeps its verbatim amount, which is right. NOTE this is "
-                      "the first of a CLASS, not a one-off: every '$X to $Y "
-                      "million' headline lands here and will need its own line "
-                      "until somebody decides what a range means. Which end is "
-                      "the raise is a data-correctness call for the owner, not "
-                      "a parser tweak, and guessing one would be the model "
-                      "inventing a number.",
 }
+
+# QpiAI's '$20–25 million' (YourStory, 2026-08-17) was here for one day and is
+# deliberately gone. It was never a truncation or an unknown scale word — it was
+# a RANGE, and it only landed under the floor because the reader took '20' while
+# the scale word sat at the far end. Documenting it here would have made this
+# dict a treadmill: every '$X to $Y million' headline needs its own line, and a
+# list everybody appends to is a list nobody reads. Ranges are detected before
+# the number now (vocab.FUNDING_RANGE_POLICY) and cannot reach the floor at all,
+# which test_a_range_never_arrives_as_a_floor_refusal holds.
 
 
 @pytest.mark.skipif(not DB.exists(), reason="the committed database is the fixture")
@@ -411,3 +408,143 @@ def test_the_plausibility_floor_is_not_allowed_to_stand_in_for_the_guard():
         f"small round: {swallowed}. This is how a scale word we do not know "
         "arrives: read the string, find the language, add the word."
     )
+
+
+# --- A stated range is a named outcome, not an accident ----------------------
+#
+# Every string below is a shape a publisher actually writes. The point of the
+# block is not which answer they get — that is FUNDING_RANGE_POLICY and it is
+# the owner's line to change — it is that they all get the SAME one. Before
+# 2026-08-17 they did not: four of them stored a low end nothing marked as a low
+# end, the rest hit the plausibility floor, and which half a headline landed in
+# depended on whether its writer repeated the scale word.
+RANGE_SHAPES = [
+    ("$20–25 million", 20_000_000),        # QpiAI/YourStory, the live row
+    ("$20-25 million", 20_000_000),        # the same, with an ASCII hyphen
+    ("$20 to 25 million", 20_000_000),
+    ("between $20 and $25 million", 20_000_000),
+    ("USD 20-25 millones", 20_000_000),    # the scale word in another language
+    ("$1.5-2 billion", 1_500_000_000),
+    ("$5M to $10M", 5_000_000),            # first end carries its own scale
+    ("$5M-$10M", 5_000_000),
+    ("$20M–$25M", 20_000_000),
+    ("$20 million to $25 million", 20_000_000),
+    # The joiner is a word in 43 languages, not just 'to'.
+    ("USD 20 a 25 millones", 20_000_000),      # Spanish
+    ("$20 bis 25 Millionen", 20_000_000),      # German
+    ("$20 ile 25 milyon", 20_000_000),         # Turkish
+]
+
+#: Shapes that are NOT ranges however much they look like one. A dash between a
+#: number and its scale word is BetaKit's house style, and a parenthetical year
+#: span is not a second end.
+NOT_RANGES = [
+    ("$20-million USD", 20_000_000),
+    ("$1,500 million", 1_500_000_000),
+    ("$1,000.0 million", 1_000_000_000),
+    ("$600,000", 600_000),
+    # A short joiner word with no second NUMBER behind it is not a range. This
+    # is what keeps 'a', 'e' and 'do' from eating ordinary sentences.
+    ("$5 million a year", 5_000_000),
+    ("$12 milyon dolarlık", 12_000_000),
+]
+
+
+@pytest.mark.parametrize("text,low_end", RANGE_SHAPES)
+def test_a_range_answers_the_same_whatever_its_typography(text, low_end):
+    from pipeline import vocab
+
+    if vocab.FUNDING_RANGE_POLICY == "refuse":
+        assert vocab.parse_funding_usd(text) is None, text
+    elif vocab.FUNDING_RANGE_POLICY == "low_end":
+        assert vocab.parse_funding_usd(text) == low_end, text
+    else:  # pragma: no cover - the constant documents its two values
+        pytest.fail(f"unknown FUNDING_RANGE_POLICY {vocab.FUNDING_RANGE_POLICY!r}")
+
+
+@pytest.mark.parametrize("text,expected", NOT_RANGES)
+def test_a_hyphen_before_a_scale_word_is_not_a_range(text, expected):
+    """The regression half. '$20-million USD' was the 2026-07-29 defect that
+    added hyphen-attached multipliers; a range detector that ate it again would
+    put that round back to twenty dollars, which is the failure this whole file
+    exists about."""
+    assert parse_funding_usd(text) == expected, text
+
+
+def test_both_policies_are_typography_independent():
+    """The property, checked against the OTHER policy too.
+
+    Whichever line the owner picks, it has to mean the same thing for every
+    shape in RANGE_SHAPES. Flipping the constant and re-reading is how this test proves the
+    unchosen branch has not rotted, because the day it is chosen is the day
+    nobody is looking at the branch that was not.
+    """
+    from pipeline import vocab
+
+    original = vocab.FUNDING_RANGE_POLICY
+    try:
+        vocab.FUNDING_RANGE_POLICY = "low_end"
+        for text, low_end in RANGE_SHAPES:
+            assert vocab.parse_funding_usd(text) == low_end, text
+        vocab.FUNDING_RANGE_POLICY = "refuse"
+        for text, _ in RANGE_SHAPES:
+            assert vocab.parse_funding_usd(text) is None, text
+        for text, expected in NOT_RANGES:
+            assert vocab.parse_funding_usd(text) == expected, text
+    finally:
+        vocab.FUNDING_RANGE_POLICY = original
+
+
+def test_a_range_never_arrives_as_a_floor_refusal():
+    """FLOOR_REFUSALS is for a language we cannot read, not for a shape we can.
+
+    The allowlist above stays a signal only while every entry in it is a string
+    somebody has to go and understand. A range is understood; it needs a policy,
+    not a line. If a range can reach the floor again, the treadmill is back.
+    """
+    from pipeline.vocab import read_funding_figure
+
+    for text, _ in RANGE_SHAPES:
+        figure = read_funding_figure(text)
+        assert figure is None or figure >= 1_000, (
+            f"{text!r} reads as {figure}, which lands under the plausibility "
+            "floor and would need a FLOOR_REFUSALS entry. Ranges are decided by "
+            "vocab.FUNDING_RANGE_POLICY before the number is read; a range that "
+            "reaches the floor means that detection missed a typography."
+        )
+
+
+@pytest.mark.skipif(not DB.exists(), reason="the committed database is the fixture")
+def test_no_stored_range_is_carrying_a_figure_the_publisher_did_not_state():
+    """The corpus half, and the one that would have caught the silent shapes.
+
+    The floor guard above can only see a range that parses ABSURDLY SMALL, which
+    is the accidental half. '$20M to $25M' parses to a perfectly plausible
+    twenty million and would never have appeared anywhere. This reads the stored
+    strings, finds the ones that state two ends, and holds them to the policy.
+    """
+    from pipeline import vocab
+
+    with sqlite3.connect(f"file:{DB}?mode=ro", uri=True) as conn:
+        rows = conn.execute(
+            "SELECT DISTINCT funding_amount FROM signals "
+            " WHERE is_current = 1 AND funding_amount IS NOT NULL "
+            "   AND funding_amount <> ''").fetchall()
+    assert rows, "fixture check: the corpus should hold funding amounts"
+
+    stored_ranges = []
+    for (text,) in rows:
+        normalised = str(text).strip()
+        match = vocab._NUMBER.search(normalised)
+        if not match or vocab._range_far_end(normalised, match) is None:
+            continue
+        if vocab.parse_funding_usd(text) is not None:
+            stored_ranges.append((text, vocab.parse_funding_usd(text)))
+
+    if vocab.FUNDING_RANGE_POLICY == "refuse":
+        assert not stored_ranges, (
+            "stored amount(s) that state a RANGE and are nonetheless carrying a "
+            f"single figure: {stored_ranges}. Under FUNDING_RANGE_POLICY "
+            "'refuse' a range has no figure, and one that has acquired one is a "
+            "typography the detector does not recognise."
+        )

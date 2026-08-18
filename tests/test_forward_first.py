@@ -274,8 +274,14 @@ def test_the_cap_is_unchanged_and_is_a_utc_calendar_month():
 
 
 def test_degrade_still_exits_zero_with_the_policy_on_the_same_path():
+    # Anchored on `if args.degrade:` alone since 2026-08-18. It used to pin
+    # the next line too (`degrade(over)`), which made this a test of statement
+    # ORDER inside the branch rather than of what the branch does, and it went
+    # red the moment `publish_month_total()` was added ahead of it. What has
+    # to hold is that this path degrades, applies the policy, and exits ZERO.
     src = (ROOT / "spend.py").read_text()
-    block = src[src.index("    if args.degrade:\n        degrade(over)"):]
+    block = src[src.index("    if args.degrade:\n"):]
     block = block[:block.index("if args.gate:")]
+    assert "degrade(over)" in block
     assert "apply_forward_first()" in block
     assert "return 0" in block
