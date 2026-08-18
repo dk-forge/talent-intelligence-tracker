@@ -14,6 +14,124 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-18 — three reds on main, and only one of them was a defect
+
+`tests`, `drain-writers` and `enrich` were all red within seven hours of each
+other. They looked like one bad afternoon. They were three different kinds of
+thing, and treating them alike would have got two of them wrong.
+
+### enrich: the host, not the code
+
+`enrich` (run 32126391985) died with
+`pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 504`
+after fourteen minutes of trying. The window is documented from three sides:
+
+* 10:22:14 the step starts; 10:37:08 it raises, so earlier batches DID land and
+  one batch exhausted its four attempts.
+* 10:38:13 and 10:38:32 `ci_alert.py` gets **504 from `/alert`** for both the
+  enrich failure and the drain-writers failure, holds them in
+  `data/alert_outbox.json`, and exits 0. Exactly the design from 2026-07-31.
+* 11:03:39 the outbox drains: both delivered, owner emailed.
+
+So the host was refusing writes for roughly forty minutes and then stopped. **No
+retry policy reaches that.** Four attempts spans about four minutes inside a
+thirty-minute job ceiling; riding out a forty-minute degradation is not
+something a loop can be tuned to do, and the retry that actually worked was the
+next day's scheduled run. `enrich_published` re-derives its whole row set from
+the database each time and `/enrich` is idempotent, so a lost run costs nothing
+but a day of latency on derived columns. The retry count is right. It was left
+alone.
+
+**What the window did expose: `host-watch` could not see it.** At 10:33:27,
+between the first failed enrich batch and the 504 from `/alert`, `host_watch.py`
+probed and logged `host is UP — HTTP 200 in 1061ms`. `data/host_status.json`
+therefore records `state: up, consecutive_failures: 0` across a window in which
+two jobs were being 504'd, and `ops_status.py [2f]` still reports one outage in
+fourteen days. The watchdog GETs one cheap public REST route; the host was
+answering cheap GETs and timing out on writes. That is a real blind spot in the
+one channel that is meant to be independent of the host, and it is left as the
+owner's call rather than widened unilaterally — a watchdog that POSTs is a
+watchdog that writes.
+
+### drain-writers: the queue asking, exactly as designed
+
+The drainer's red carried one item and one only:
+`enrich.yml FAILED (20260818T100121Z-enrich)`. That is the same incident seen
+from the other side, not a second one. Nothing was accepted and nothing was
+cleared: an accepted item never asks again, and this one has not been answered.
+
+It is also already self-limiting in both directions. The red-once mute worked —
+every tick since 10:37 has been green and says so in the log
+("already went red once, so this tick stays green rather than repeating the same
+email"). And `superseded_by()` will retire the item **on evidence**: when the
+next scheduled enrich ticket lands, this failure joins `recovered` alongside the
+two already there and stops being a reason to go red, with no human keystroke.
+The honest reading is that the queue is red because nobody has looked, and that
+looking is the whole action.
+
+Checked for the 2026-08-13 shape — a guard that returns 0 while buying nothing,
+filing a ticket as `landed` for work never done. Nothing in the queue is that
+shape: 54 landed, 6 failed, 1 queued, no `deferred` tickets at all, and the
+cause of that one (`run_tripwire.spend_guard`) now asks `budget.decide`.
+
+### tests: the only defect, and it was never a flake
+
+`tests` run 32152450241:
+`cdp.CDPUnavailable: Chrome never exposed a debug target: timed out`, on
+`test_a_drawing_keeps_its_scroll_box_on_a_phone`. Infrastructure, not an
+assertion — so the first question was whether it is frequent, because a browser
+that intermittently refuses to start makes seven rendered test files unreliable
+at once.
+
+**Measured before deciding.** Over the last 200 `tests` runs (2026-08-13 05:03
+to 2026-08-18 16:02) there are 23 failures: 19 are the `dashboard FAILED` streak
+of 08-17, 3 are branch reds of 08-13, and **exactly one** is this. Not frequent.
+
+**And it is not the sibling's problem either.** The sibling repo had just split
+its suite because a saturated runner was self-killing the job, and the same
+split was the obvious candidate here. It does not fit: `python -m pytest -q` is
+serial so exactly one Chrome exists at a time, every PHP step has completed
+before pytest starts, and the job lands at 7m36s against a 15-minute ceiling.
+Nothing was starved. Raising the CDP deadline was the other obvious move and is
+worse: one launch measures **1.1s against a 30s deadline**, so the margin is
+27x, and 27x does not run out on a browser that is merely slow. It runs out on
+one that is not coming up at all.
+
+Which the code could not distinguish, for two reasons, both now fixed in
+`cdp.py`:
+
+* **It never looked at the process.** A Chrome that has already exited was
+  waited out for the rest of the deadline and then reported as a timeout — a
+  description of the wait with the cause discarded. `_wait_for_target` polls
+  `poll()` and fails at once, naming the exit status.
+* **It threw Chrome's account away.** stderr went to `DEVNULL`, so the one run
+  that needed explaining had nothing to explain it with. It is captured into the
+  profile directory and its tail is appended to every `CDPUnavailable`.
+
+**And one concrete cause is now gone.** `_free_port()` bound port 0 in Python,
+read the number, closed the socket, and handed that number to Chrome. Anything
+else on the machine can take the port between the close and Chrome's bind, and a
+shared runner recycling ephemeral ports is precisely where that happens. Chrome
+that cannot bind its debug port exits — and what the caller saw was "timed out".
+Chrome picks its own port now (`--remote-debugging-port=0`) and publishes it in
+`DevToolsActivePort`. The helper is deleted, with a comment where it was so
+nobody reintroduces a reserve-then-release for this.
+
+**No retry was added, deliberately.** Relaunching would have converted the next
+occurrence back into silence, which is the evidence this change exists to keep.
+One red in 200 runs is not a browser that fails often; it is one that failed
+once, unexplained, and now it cannot fail unexplained.
+
+`tests/test_cdp_launch.py` holds all three properties, each verified red first:
+the dead-Chrome case took 30s and said "timed out" before the fix and takes
+under a second and names status 3 after; the stderr case produced
+`<urlopen error [Errno 61] Connection refused>` and now carries Chrome's own
+line; the port case was re-run against a hard-coded 9222 to prove the assertion
+bites.
+
+---
+
+
 ## 2026-08-18 — the healer could not see a self-timeout (found in the sibling repo)
 
 `ci_alert.py` has known since 2026-08-12 that a job killed by its own
