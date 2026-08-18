@@ -27,7 +27,7 @@ on:
     # (~$13/month) at today's caps. Revisit after the model migration lands -
     # at migrated prices the second run costs ~$0.10/day and buys same-day
     # capture of morning announcements. This comment is the measured reason.
-    - cron: '0 16 * * *'   # 16:00 UTC = noon US Eastern (summer), once daily, after the morning news cycle
+    - cron: '0 22 * * *'   # 22:00 UTC = 6 PM US Eastern (summer), once daily, AFTER the 4 PM close
   workflow_dispatch:
     inputs:
       dry_run:
