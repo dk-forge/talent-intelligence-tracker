@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "attempts": 1,
+      "key": "enrich:main:fbb64a7bbc65fd0f",
+      "kind": "alert",
+      "last_attempt_at": "2026-08-18T10:38:13+00:00",
+      "last_error": "HTTP 504 from /alert: error code: 504\n",
+      "payload": {
+        "body": "The workflow 'enrich' failed on GitHub Actions and nothing else would have told you.\n\n  repo:     dk-forge/talent-intelligence-tracker\n  workflow: enrich\n  branch:   main\n  trigger:  workflow_dispatch\n  run:      https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32126391985\n\nWHAT FAILED:\n  pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 504: <!DOCTYPE html>\n\nWhat to do: open a Claude Code session in the talent-intelligence-tracker repo and paste this line:\n  \"The GitHub Actions workflow 'enrich' is failing on main with: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 504: <!DOCTYPE html>. The run is https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32126391985. Reproduce it locally with `.venv/bin/pytest -q`, find the root cause, and fix it.\"\n\nYou will get ONE more email about this workflow: a RECOVERED notice on its next green run. We suppress repeats of this same failure deliberately. An alarm that mails eight times in an afternoon is one you learn to filter, and a filtered alarm is how a wrong number stays live for hours.",
+        "dedupe_key": "enrich:main:fbb64a7bbc65fd0f",
+        "subject": "CI RED: enrich: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 504: <!DOCTYPE html>"
+      },
+      "raised_at": "2026-08-18T10:38:13+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32126391985",
+      "scope": "enrich:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -159,6 +175,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-15T07:37:03+00:00",
+  "updated_at": "2026-08-18T10:38:13+00:00",
   "version": 1
 }
