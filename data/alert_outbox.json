@@ -17,6 +17,22 @@
       "state": "pending"
     },
     {
+      "attempts": 1,
+      "key": "drain-writers:main:2e81661ce7c364f0",
+      "kind": "alert",
+      "last_attempt_at": "2026-08-18T10:38:32+00:00",
+      "last_error": "HTTP 504 from /alert: error code: 504\n",
+      "payload": {
+        "body": "The workflow 'drain-writers' failed on GitHub Actions and nothing else would have told you.\n\n  repo:     dk-forge/talent-intelligence-tracker\n  workflow: drain-writers\n  branch:   main\n  trigger:  workflow_run\n  run:      https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32127646783\n\nWHAT FAILED:\n  reconcile step above, or run: python writer_queue.py status\n\nContext from the failed step:\n  the writer queue has NEW items that need a human \u2014 see the\n\nWhat to do: open a Claude Code session in the talent-intelligence-tracker repo and paste this line:\n  \"The GitHub Actions workflow 'drain-writers' is failing on main with: reconcile step above, or run: python writer_queue.py status. The run is https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32127646783. Reproduce it locally with `.venv/bin/pytest -q`, find the root cause, and fix it.\"\n\nYou will get ONE more email about this workflow: a RECOVERED notice on its next green run. We suppress repeats of this same failure deliberately. An alarm that mails eight times in an afternoon is one you learn to filter, and a filtered alarm is how a wrong number stays live for hours.",
+        "dedupe_key": "drain-writers:main:2e81661ce7c364f0",
+        "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
+      },
+      "raised_at": "2026-08-18T10:38:32+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32127646783",
+      "scope": "drain-writers:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -175,6 +191,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-18T10:38:13+00:00",
+  "updated_at": "2026-08-18T10:38:32+00:00",
   "version": 1
 }
