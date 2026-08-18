@@ -2,6 +2,85 @@
 
 ---
 
+## 2026-08-18: the digest reported a collection outage that never happened. Nothing here needs a deploy.
+
+**Merged to main as a67c887 (PR #65). Tests green on that SHA. No plugin change, so nothing to deploy.**
+
+### Collection is RUNNING and was never stopped
+
+The digest mailed `AT THE CEILING. spend.py --enforce now exits 1, so
+collection will not run until the month rolls over`. Three separate claims,
+all false. The collectors filed priced health rows and bought paid reads on
+08-14 ($0.4249), 08-15 ($0.3755), 08-16 ($0.2871) and 08-17 ($0.4333).
+
+Reconciled at the reported $12.18: committed pot $3.20 of $7.11 against a
+$6.40 stop line, INSIDE; catch-up pot $8.98 of $0.89, overdrawn and correctly
+skipping. What had stopped was the backfill walkers. That is the two pots
+working.
+
+### The honest cost, measured two ways
+
+| method | figure |
+|---|---|
+| committed cost ledger, 08-14..17 (once-daily, un-degraded) | **$0.38/day = $11.57/month** |
+| `cost_projection.py [4]`, today's caps | **$11.54/month** |
+
+So **$8.00 does not fund this repo as configured; about $12 does.** The
+$8.00 was set without measuring, and the "~$0.75/day, ~$23/month" figure
+inferred from the sibling was true of a TWICE-daily August and has not been
+true since 08-14. **No allowance was changed. That is the owner's call.**
+
+### Four clocks that never moved when something under them changed
+
+1. `--enforce` was removed 2026-07-30; the digest still described it.
+2. The two pots landed 2026-08-13; `spend_line()` kept asking the pre-split
+   question and called the answer `at_ceiling`.
+3. `run_tripwire.spend_guard` was a SECOND ceiling, and its own docstring said
+   why that was a bad idea. The workflow gate said OPEN, the guard said "NOT
+   SPENDING" and returned 0: green run, nothing bought, no `over=true` marker,
+   ticket filed as **landed** -- work claimed that was never done. One result
+   file since 08-02, STALE at 384h, every check green. **This is why the
+   tripwire stopped.** It now asks `budget.decide`.
+4. `cost_projection.py` still assumed two collect runs a day after the owner
+   cut `collect.yml` to one on 08-14, so it printed double the real bill.
+
+### Still open, deliberately, for the owner
+
+* **The allowance.** $8.00 against a measured $11.57. Options are in the
+  session report and in `cost_projection.py [4]`: extraction on
+  gemini-2.5-flash-lite now buys FULL worldwide coverage for $6.17, inside the
+  $6.82 collection allowance, for the first time.
+* **Two quarantined amounts, both the same class defect.** Lovable
+  $13.3bn is a VALUATION ("Sweden's Lovable valued at $13.3bn") stored in
+  `funding_amount_usd`; Nvidia $150bn is money Nvidia is SPENDING on an OpenAI
+  data centre, not money Nvidia raised. Both figures are correctly transcribed
+  and both are the wrong KIND of figure. Neither was accepted or rejected:
+  adjudication is the owner's. The sibling already has
+  `sec_form_d.money_raised_exclusion` for exactly this on the filing path; the
+  news path has no equivalent.
+* **The catch-up pot still has no meter of its own.** No walker files a priced
+  health row, so `ledger_spend()` reports `discretionary: 0.00` in every month
+  there has ever been. `spend.py` now publishes `TIT_MONTH_SPEND_USD` so
+  `budget.decide` can reconcile, and absence of it reads UNMEASURED rather
+  than zero. The durable fix is walkers filing priced rows, which needs a
+  health entry that cannot then manufacture staleness noise for a
+  dispatch-only job.
+* **`archive_sources`: the DEGRADED in the digest was a stale snapshot** of
+  the 08-17T09:14 run (Wayback's availability API refused 12 consecutive
+  calls, `blinded` rule); it recovered at 17:40 with 73 archived. The REAL
+  defect is separate and unfixed: `archive_candidates()` orders tier 2
+  newest-capture-first and truncates to 600, so the queue's head is re-served
+  every run and the older 1,459 URLs are never reached. All 1,052 URLs
+  breaching the printed 7-day re-check promise are outside the window; last
+  attempt on 07-31 to 08-03. `build_archive_promise.py`'s capacity gate cannot
+  see it because it assumes the window SWEEPS the queue.
+* **`collect` is red on main**, and it is not spend: `sec_edgar` rejected its
+  one new candidate on the 08-17 sweep (`every candidate rejected`), which
+  reds the sweep by design. Collection stored 90 signals on that same run and
+  pushed them.
+
+---
+
 ## 2026-08-16: the dark dashboard's signup form was a light form. 1.83.2 is PUSHED, NOT DEPLOYED.
 
 The scheduled contrast audit went red on main with `RESULT: FAIL, 40 contrast
