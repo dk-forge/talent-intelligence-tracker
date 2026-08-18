@@ -2530,6 +2530,134 @@ _MAX_PLAUSIBLE_USD = 10_000_000_000_000
 _MIN_PLAUSIBLE_USD = 1_000
 
 
+# --- A stated RANGE is not a figure -----------------------------------------
+#
+# '$20-25 million' (QpiAI/YourStory, 2026-08-17) states no single number, and
+# until this existed the parser had no opinion about that at all. What it had
+# was an ACCIDENT, and the accident disagreed with itself by typography:
+#
+#   '$20 million to $25 million'  -> 20,000,000 stored, silently, as the low end
+#   '$20M-$25M'                   -> 20,000,000 stored, silently, as the low end
+#   '$20-25 million'              -> the reader takes '20', the scale word
+#                                    belongs to the OTHER end, the uncapped
+#                                    figure is twenty dollars, and
+#                                    _MIN_PLAUSIBLE_USD refuses it
+#
+# Same fact, opposite handling, decided by whether a publisher happened to
+# repeat the word 'million'. Only the third shape made any noise, and it made
+# it in the wrong place — as an unexplained entry under the plausibility floor,
+# which is where a language whose scale word we do not know is supposed to
+# arrive. Documenting each one in FLOOR_REFUSALS turns that signal into a
+# treadmill: every '$X to $Y million' headline needs its own line, and a list
+# everybody adds to is a list nobody reads.
+#
+# So a range is detected BEFORE the number is read, and lands in a named
+# outcome that is the same for all three shapes above.
+#
+# WHICH outcome is a data-correctness decision, not a parser detail, so it is
+# one literal rather than a rewrite:
+#
+#   'refuse'  — no figure. The row keeps its verbatim amount, the reader still
+#               sees '$20-25 million', and funding_amount_usd is visibly
+#               absent. This is the default because that column is SUMMED into
+#               a headline total and feeds the implausibility guardrail: a low
+#               end is biased low, in one direction, on rows nothing marks as
+#               estimated. The house rule is that NULL is visibly missing while
+#               a wrong-looking-right number is not.
+#   'low_end' — store the first end, which the source did state, and which is
+#               the rule the sibling tracker uses for headcounts. Defensible;
+#               it does not invent a number. If it is chosen, it applies to all
+#               three shapes — including the one that reads its scale word off
+#               the far end of the range, which today produces twenty dollars.
+#
+# Do not add a third value that computes a midpoint. Nobody printed it.
+FUNDING_RANGE_POLICY = "refuse"
+
+#: What may join the two ends of a range: a dash of any width, or the word a
+#: publisher used instead of one. The second end may restate the currency
+#: ('$20M to $25M'), and by this point _USD_PREFIX/_USD_CODE have already
+#: rewritten 'US$'/'USD', so only a bare '$' can still be sitting there.
+#:
+#: The words are not English-only, because the corpus is not: 575 feeds in 43
+#: languages, and 'USD 20 a 25 millones' is the same headline as '$20-25
+#: million'. Requiring a DIGIT after the joiner is what makes the short ones
+#: safe — '$5 million a year' has no second number, so 'a' cannot fire there.
+#: The asymmetry is deliberate: a false positive here refuses a figure, which
+#: is visibly absent, and a miss stores an unmarked low end, which is not.
+_RANGE_JOIN = re.compile(
+    r"[\s  ]*(?:[-‐‑‒–—―−]"
+    r"|to\b|and\b|or\b"          # English
+    r"|a\b|à\b|até\b|hasta\b"    # Spanish, Portuguese, French, Italian
+    r"|und\b|bis\b|tot\b|en\b"  # German, Dutch
+    r"|ile\b|do\b)"              # Turkish, Polish
+    r"[\s  ]*\$?[\s  ]*(?=\d)",
+    re.I)
+
+
+def _range_far_end(text: str, first):
+    """Index just past the SECOND number, if `first` is one end of a range.
+
+    Returns None when the string states a single figure. The join has to sit
+    immediately after the first number and be followed by another number, which
+    is what keeps '$20-million USD' (a hyphenated scale word, BetaKit) and
+    '$5M (2026-2027)' out of here.
+    """
+    tail = text[first.end():]
+    # The join sits after the first number, and after that number's OWN scale
+    # word when it has one: '$20-25 million' joins at the digits, '$5M to $10M'
+    # joins past the 'M'. Both are one range and must not answer differently.
+    starts = [0]
+    scale_end = _scale_word_span(tail)
+    if scale_end is not None:
+        starts.append(scale_end)
+
+    for start in starts:
+        join = _RANGE_JOIN.match(tail, start)
+        if not join:
+            continue
+        second = _NUMBER.match(tail, join.end())
+        if second:
+            return first.end() + second.end()
+    return None
+
+
+def _scale_word_span(tail: str):
+    """Length of the scale word sitting at the head of `tail`, or None.
+
+    Only a word `_scale_after` would act on counts — a known multiplier or one
+    it deliberately refuses. Anything else is not a scale word standing between
+    a number and a range join, it is the rest of the sentence.
+    """
+    if not tail:
+        return None
+    gap = _SCALE_GAP.match(tail)
+    start = gap.end() if gap else 0
+    rest = tail[start:]
+
+    for token, _multiplier, _convention in _GLUED_SCALE:
+        if rest.startswith(token):
+            return start + len(token)
+
+    match = _LETTER_RUN.match(rest)
+    if not match:
+        return None
+    word = match.group(0).lower()
+    known = word in _SCALE or word in _AMBIGUOUS_SCALE
+    if not known:
+        for prefix in _CLITIC_PREFIXES:
+            stem = word[len(prefix):] if word.startswith(prefix) else None
+            if stem and (stem in _SCALE or stem in _AMBIGUOUS_SCALE):
+                known = True
+                break
+    if not known:
+        return None
+    end = start + match.end()
+    # `mio.`, `mln.`, `млн.` are written with their abbreviation dot.
+    if tail[end:end + 1] == ".":
+        end += 1
+    return end
+
+
 def read_funding_figure(value: str):
     """The figure a funding string states, in US dollars, BEFORE plausibility.
 
@@ -2563,10 +2691,26 @@ def read_funding_figure(value: str):
     if not m:
         return None
 
+    # A range is decided before the number is read, so that all three of its
+    # typographies get the same answer rather than three different accidents.
+    far_end = _range_far_end(text, m)
+    if far_end is not None and FUNDING_RANGE_POLICY == "refuse":
+        return None
+
     try:
-        multiplier, convention = _scale_after(text[m.end():]) or (1, None)
+        scale = _scale_after(text[m.end():])
     except _Refuse:
         return None
+    if scale is None and far_end is not None:
+        # 'low_end' on '$20-25 million': the first end is the figure, but the
+        # scale word is written once, after the second. Reading it there is not
+        # a guess — it is the only scale the string states, and it is what makes
+        # this shape agree with '$20M to $25M' instead of parsing to twenty.
+        try:
+            scale = _scale_after(text[far_end:])
+        except _Refuse:
+            return None
+    multiplier, convention = scale or (1, None)
 
     try:
         number = _read_number(m.group(0), convention)
@@ -2581,9 +2725,13 @@ def parse_funding_usd(value: str):
     None means "we will not guess", and covers: no digits at all, NO STATED US
     DOLLAR, a currency that is not the US dollar, a scale word that means
     different things in different languages, and anything that parses to an
-    implausible number. Only the FIRST number is read, so a range ('$5M to
-    $10M') stores its low end, matching how headcounts are parsed on the sibling
-    tracker.
+    implausible number.
+
+    A stated RANGE ('$20-25 million') is its own outcome and not a small figure:
+    see FUNDING_RANGE_POLICY, which decides whether it refuses or stores its low
+    end. This docstring claimed the low end unconditionally until 2026-08-17,
+    and that was only ever true of the shapes where the publisher repeated the
+    scale word.
     """
     amount = read_funding_figure(value)
     if amount is None:

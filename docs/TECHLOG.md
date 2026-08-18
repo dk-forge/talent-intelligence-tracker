@@ -13,6 +13,89 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-08-17 - a stated range was two different bugs wearing one row
+
+A `national_press` row stored QpiAI (YourStory) with `funding_amount`
+`$20–25 million`. That is a RANGE, and the parser had no opinion about ranges
+at all. `test_the_plausibility_floor_is_not_allowed_to_stand_in_for_the_guard`
+went red on it and was unblocked by adding a `FLOOR_REFUSALS` entry, which was
+documentation rather than a fix: every `$X to $Y million` headline lands in the
+same place and would need its own line, and a list everybody appends to is a
+list nobody reads.
+
+### The defect was not the allowlist. It was that the answer depended on typography
+
+The parser did not refuse ranges and did not store their low end. It did both,
+and which one a headline got was decided by whether its writer repeated the
+scale word:
+
+| string | before |
+|---|---|
+| `$20 million to $25 million` | **20,000,000 stored**, silently, as a low end |
+| `$20M–$25M` | **20,000,000 stored**, silently, as a low end |
+| `$5M to $10M` | **5,000,000 stored**, silently, as a low end |
+| `$20–25 million` | reader takes `20`, the scale word is at the far end, uncapped read is **twenty dollars**, `_MIN_PLAUSIBLE_USD` refuses it |
+
+Two places had written the low-end rule down as settled — the `parse_funding_usd`
+docstring ("a range ('$5M to $10M') stores its low end, matching how headcounts
+are parsed on the sibling tracker") and
+`test_durable_fields.py::test_a_range_takes_the_first_number`. Both were true of
+exactly the shapes where the publisher repeated the word "million", and neither
+noticed. The shape that made noise, `$20–25 million`, made it in the wrong
+channel: as an unexplained entry under the plausibility floor, which is where a
+language whose scale word we do not know is supposed to arrive. So the one
+range the repo ever looked at was the one that failed by accident, and the three
+that stored an unmarked low end were invisible.
+
+### What changed
+
+`vocab._range_far_end` detects a range BEFORE the number is read, at the join
+after the first number **or** after that number's own scale word, so every
+typography reaches one outcome. Which outcome is `vocab.FUNDING_RANGE_POLICY`,
+a single literal, because "what does a stated range mean" is a data-correctness
+call and not a parser detail. It ships `"refuse"`: `funding_amount_usd` is
+SUMMED into a headline total and feeds the implausibility guardrail, so a low
+end is a bias in one direction on rows nothing marks as estimated, and this
+project's standing rule is that NULL is visibly missing while a
+wrong-looking-right number is not. `"low_end"` is the other value and is
+defensible — the source did state that end — and if it is chosen it now applies
+to every shape rather than to the four that repeat their scale word.
+
+The joiner vocabulary is not English-only: 575 feeds in 43 languages, and
+`USD 20 a 25 millones` is the same headline. A digit is required after the
+joiner, which is what keeps `a`, `e` and `do` from eating `$5 million a year`.
+
+### Scope, measured rather than assumed
+
+Two range-shaped strings in the whole corpus (5,875 rows including revisions;
+4,497 current): the QpiAI row, and `Rs2-3 billion` (Business Recorder), which
+is refused for currency and would be regardless. **Zero stored figures change
+and the summed total moves by $0**, so no `correct-funding-amount` run is
+needed. The change buys the next range, not this one.
+
+### Guards
+
+- `test_a_range_answers_the_same_whatever_its_typography` — thirteen shapes
+  in four languages, one answer, read off the policy constant.
+- `test_both_policies_are_typography_independent` — flips the constant and
+  re-reads, so the unchosen branch cannot rot before the day it is chosen.
+- `test_a_hyphen_before_a_scale_word_is_not_a_range` — `$20-million USD` is
+  BetaKit's house style and was the 2026-07-29 defect; a range detector that ate
+  it again would put that round back to twenty dollars.
+- `test_a_range_never_arrives_as_a_floor_refusal` — the treadmill guard. A range
+  that reaches `_MIN_PLAUSIBLE_USD` means a typography the detector missed.
+- `test_no_stored_range_is_carrying_a_figure_the_publisher_did_not_state` — the
+  corpus half, and the only one that can see the silent shapes: `$20M to $25M`
+  parses to a plausible twenty million and would never have surfaced anywhere.
+
+All five fail when the detector is taken back out (verified by sabotage: 8
+failures, restored to green).
+
+The QpiAI `FLOOR_REFUSALS` entry is deleted, with a comment saying why, so that
+dict stays what it is for — a language we cannot read, not a shape we can.
+
+---
+
 ## 2026-08-17 - the dashboard budget was measuring the calendar, and the alert about it said nothing
 
 `tests` went red on main, run 32059349793, step "Render the dashboard and count
