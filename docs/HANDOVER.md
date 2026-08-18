@@ -58,6 +58,23 @@ true since 08-14. **No allowance was changed. That is the owner's call.**
   adjudication is the owner's. The sibling already has
   `sec_form_d.money_raised_exclusion` for exactly this on the filing path; the
   news path has no equivalent.
+* **One writer-queue item is waiting on the owner and nothing else.**
+  `enrich.yml FAILED (20260818T100121Z-enrich)` — a Bluehost 504 on 08-18
+  between roughly 10:22 and 11:03 (TECHLOG 2026-08-18). Not accepted, not
+  cleared: an accepted item never asks again, and the data question is whose to
+  answer. It costs a day of latency on derived columns and nothing else, and
+  `superseded_by()` retires it by itself once the next scheduled enrich ticket
+  lands. Re-queue it early if the delay matters:
+  `gh workflow run drain-writers.yml -f enqueue=enrich.yml
+  -f inputs_json='{"dry_run":"false"}' -f reason='504 on 08-18'`.
+* **`host-watch` cannot see a host that only fails writes.** At 10:33:27 on
+  08-18 it logged `host is UP — HTTP 200 in 1061ms`, between a 504 to `/enrich`
+  and a 504 to `/alert`. `data/host_status.json` therefore reads `up`,
+  `consecutive_failures: 0` across a forty-minute degradation, and
+  `ops_status.py [2f]` still counts one outage in fourteen days. The probe is a
+  cheap public GET and the host was serving cheap GETs. Widening it means the
+  watchdog writes, which is a decision about the one channel that is meant to
+  be independent of the host. Left for the owner.
 * **The catch-up pot still has no meter of its own.** No walker files a priced
   health row, so `ledger_spend()` reports `discretionary: 0.00` in every month
   there has ever been. `spend.py` now publishes `TIT_MONTH_SPEND_USD` so

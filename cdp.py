@@ -19,6 +19,7 @@ import shutil
 import socket
 import struct
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.request
@@ -159,6 +160,7 @@ class Browser:
         self._ws = None
         self._id = 0
         self._profile = None
+        self._stderr = None
 
     def __enter__(self):
         chrome = find_chrome()
@@ -166,7 +168,6 @@ class Browser:
             raise CDPUnavailable(
                 'no Chrome/Chromium found. Set CHROME_BIN, or install Chrome. '
                 'This is UNKNOWN, not a pass.')
-        port = _free_port()
         self._profile = tempfile.mkdtemp(prefix='tit-cdp-')
         args = [
             chrome,
@@ -179,37 +180,104 @@ class Browser:
             '--no-default-browser-check',
             '--disable-extensions',
             '--disable-background-networking',
-            '--remote-debugging-port=%d' % port,
+            # CHROME PICKS THE PORT, WE DO NOT HAND IT ONE.
+            #
+            # This used to bind port 0 in Python, read the number back, close
+            # the socket and pass that number here. Between the close and
+            # Chrome's own bind, anything else on the machine can take it, and
+            # a shared CI runner recycling ephemeral ports is exactly the
+            # machine where that happens. Chrome that cannot bind its debug
+            # port exits, and the caller saw "Chrome never exposed a debug
+            # target: timed out" -- a description of the wait, with the cause
+            # discarded. `0` means Chrome chooses and writes the real port to
+            # DevToolsActivePort in the profile directory, which removes the
+            # window rather than shrinking it.
+            '--remote-debugging-port=0',
             '--user-data-dir=%s' % self._profile,
             '--window-size=%d,%d' % (self.width, self.height),
             '--user-agent=%s' % BROWSER_UA,
             'about:blank',
         ]
+        # Chrome's stderr is kept, not discarded. It is noisy on a healthy
+        # launch and nobody reads it then; it is the only account of an
+        # unhealthy one, and DEVNULL meant the one run that needed explaining
+        # had nothing to explain it with.
+        self._stderr = open(os.path.join(self._profile, 'chrome-stderr.log'),
+                            'w+b')
         self._proc = subprocess.Popen(
-            args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        ws_url = self._wait_for_target(port)
-        self._ws = _WS(ws_url, timeout=self.timeout)
-        self.call('Page.enable')
-        self.call('Runtime.enable')
-        self.call('Emulation.setDeviceMetricsOverride', {
-            'width': self.width, 'height': self.height,
-            'deviceScaleFactor': 1, 'mobile': self.width < 768})
+            args, stdout=subprocess.DEVNULL, stderr=self._stderr)
+        # A launch that raises never reaches __exit__, so it cleans up after
+        # itself. A suite that opens dozens of browsers must not leak a profile
+        # directory, a file handle and possibly a live Chrome per failure.
+        try:
+            ws_url = self._wait_for_target()
+            self._ws = _WS(ws_url, timeout=self.timeout)
+            self.call('Page.enable')
+            self.call('Runtime.enable')
+            self.call('Emulation.setDeviceMetricsOverride', {
+                'width': self.width, 'height': self.height,
+                'deviceScaleFactor': 1, 'mobile': self.width < 768})
+        except BaseException:
+            self.__exit__(*sys.exc_info())
+            raise
         return self
 
-    def _wait_for_target(self, port, deadline=30):
+    def _chrome_said(self, limit=600):
+        """The tail of Chrome's stderr, for an error message. Never raises:
+        this only ever runs while something else has already gone wrong."""
+        try:
+            self._stderr.flush()
+            self._stderr.seek(0)
+            text = self._stderr.read().decode('utf-8', 'replace').strip()
+        except Exception:
+            return 'Chrome left no readable stderr.'
+        if not text:
+            return 'Chrome wrote nothing to stderr.'
+        return 'Chrome said: %s' % text[-limit:]
+
+    def _wait_for_target(self, deadline=30):
+        """Wait for Chrome to publish a page target, or say why it never will.
+
+        A DEAD CHROME IS NOT A SLOW CHROME. Waiting the rest of the deadline
+        out for a process that has already exited cannot succeed, and calling
+        the result a timeout names the wait instead of the cause. That is what
+        made the 2026-08-18 red (run 32152450241) undiagnosable: one launch
+        measures 1.1s against this 30s deadline, so the margin is 27x, and a
+        27x margin does not run out on a browser that is merely slow.
+        """
         end = time.time() + deadline
+        port_file = os.path.join(self._profile, 'DevToolsActivePort')
+        port = None
         last = None
         while time.time() < end:
-            try:
-                raw = urllib.request.urlopen(
-                    'http://127.0.0.1:%d/json/list' % port, timeout=2).read()
-                for t in json.loads(raw):
-                    if t.get('type') == 'page' and t.get('webSocketDebuggerUrl'):
-                        return t['webSocketDebuggerUrl']
-            except Exception as exc:  # chrome is still booting
-                last = exc
+            status = self._proc.poll()
+            if status is not None:
+                raise CDPUnavailable(
+                    'Chrome exited with status %s before it exposed a debug '
+                    'target. %s' % (status, self._chrome_said()))
+            if port is None:
+                # Chrome writes the port it actually bound on the first line.
+                try:
+                    with open(port_file, encoding='utf-8') as handle:
+                        first = handle.readline().strip()
+                    port = int(first) if first else None
+                except Exception as exc:  # not written yet
+                    last = exc
+            if port:
+                try:
+                    raw = urllib.request.urlopen(
+                        'http://127.0.0.1:%d/json/list' % port,
+                        timeout=2).read()
+                    for t in json.loads(raw):
+                        if (t.get('type') == 'page'
+                                and t.get('webSocketDebuggerUrl')):
+                            return t['webSocketDebuggerUrl']
+                except Exception as exc:  # chrome is still booting
+                    last = exc
             time.sleep(0.25)
-        raise CDPUnavailable('Chrome never exposed a debug target: %s' % last)
+        raise CDPUnavailable(
+            'Chrome ran for %ds without exposing a debug target: %s. %s'
+            % (deadline, last, self._chrome_said()))
 
     def call(self, method, params=None, timeout=None):
         self._id += 1
@@ -267,14 +335,17 @@ class Browser:
                 self._proc.wait(timeout=10)
             except Exception:
                 self._proc.kill()
+        if self._stderr:
+            try:
+                self._stderr.close()
+            except Exception:
+                pass
         if self._profile:
             shutil.rmtree(self._profile, ignore_errors=True)
         return False
 
 
-def _free_port():
-    s = socket.socket()
-    s.bind(('127.0.0.1', 0))
-    port = s.getsockname()[1]
-    s.close()
-    return port
+# _free_port() lived here. It bound port 0, read the number, closed the socket
+# and handed the number to Chrome, which is a race the loser of cannot be told
+# from a slow start. Chrome picks its own port now (see __enter__). Nothing
+# should reintroduce a reserve-then-release helper for this.
