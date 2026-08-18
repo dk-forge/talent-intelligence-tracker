@@ -125,8 +125,14 @@ GitHub Actions cron collects daily, commits the database back, and POSTs to a
 keyed WordPress endpoint that renders the dashboard. The plugin exists and is
 deployed; `wordpress-plugin/` is it.
 
-**Collection is ARMED.** `collect.yml` runs ONCE daily at 16:00 UTC (noon US
-Eastern in summer) and `collect-press.yml` an hour behind it. It was 06:00 and
+**Collection is ARMED.** `collect.yml` runs ONCE daily at 22:00 UTC (6 PM US
+Eastern in summer, AFTER the 4 PM close) and `collect-press.yml` an hour behind
+it at 23:00. It was 16:00 until 2026-08-18 ("collect: run after the close, not
+before it"), and this paragraph still said 16:00 afterwards while
+`data/ingest-schedule.json` said the same, which is what put `tests` red on
+main and printed the wrong "Next run" time to every reader. The generated file
+is the reader-facing copy of this cron: change one and run
+`python3 generate_ingest_schedule.py` in the SAME commit. It was 06:00 and
 18:00 until 2026-08-14, when the owner traded the second run for its cost: the
 product updates daily, a 24h freshness window is acceptable, and the second run
 measured ~$0.43/day. Disarm by commenting the schedule line out again; nothing
