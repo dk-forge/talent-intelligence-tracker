@@ -17,6 +17,22 @@
       "state": "pending"
     },
     {
+      "attempts": 1,
+      "key": "resolve:host-watch:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-19T12:03:34+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d90404fcdde63b',t:'MTc4NzE0MTAxMw=='",
+      "payload": {
+        "body": "'host-watch' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250643236\n\nWhatever was failing is no longer failing. Nothing to do.",
+        "resolve_scope": "host-watch:main",
+        "subject": "RECOVERED: host-watch is green again"
+      },
+      "raised_at": "2026-08-19T12:03:34+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250643236",
+      "scope": "host-watch:main",
+      "state": "pending"
+    },
+    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -201,6 +217,6 @@
       "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-19T12:03:14+00:00",
+  "updated_at": "2026-08-19T12:03:34+00:00",
   "version": 1
 }
