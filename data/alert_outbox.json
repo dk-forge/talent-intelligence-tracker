@@ -1,54 +1,6 @@
 {
   "entries": [
     {
-      "attempts": 2,
-      "key": "resolve:drain-writers:main",
-      "kind": "resolve",
-      "last_attempt_at": "2026-08-19T12:03:14+00:00",
-      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d9038dbcf8cf22',t:'MTc4NzE0MDk5NA=='",
-      "payload": {
-        "body": "'drain-writers' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250350980\n\nWhatever was failing is no longer failing. Nothing to do.",
-        "resolve_scope": "drain-writers:main",
-        "subject": "RECOVERED: drain-writers is green again"
-      },
-      "raised_at": "2026-08-19T12:00:14+00:00",
-      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250350980",
-      "scope": "drain-writers:main",
-      "state": "pending"
-    },
-    {
-      "attempts": 1,
-      "key": "resolve:host-watch:main",
-      "kind": "resolve",
-      "last_attempt_at": "2026-08-19T12:03:34+00:00",
-      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d90404fcdde63b',t:'MTc4NzE0MTAxMw=='",
-      "payload": {
-        "body": "'host-watch' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250643236\n\nWhatever was failing is no longer failing. Nothing to do.",
-        "resolve_scope": "host-watch:main",
-        "subject": "RECOVERED: host-watch is green again"
-      },
-      "raised_at": "2026-08-19T12:03:34+00:00",
-      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250643236",
-      "scope": "host-watch:main",
-      "state": "pending"
-    },
-    {
-      "attempts": 1,
-      "key": "resolve:tests:main",
-      "kind": "resolve",
-      "last_attempt_at": "2026-08-19T12:07:46+00:00",
-      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d90a2bac9615e0',t:'MTc4NzE0MTI2NQ=='",
-      "payload": {
-        "body": "'tests' on main passed again.\n\n  run: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250373854\n\nWhatever was failing is no longer failing. Nothing to do.",
-        "resolve_scope": "tests:main",
-        "subject": "RECOVERED: tests is green again"
-      },
-      "raised_at": "2026-08-19T12:07:46+00:00",
-      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250373854",
-      "scope": "tests:main",
-      "state": "pending"
-    },
-    {
       "attempts": 0,
       "key": "ci-noise:2026-w32",
       "kind": "alert",
@@ -231,8 +183,47 @@
       "settled_at": "2026-08-18T11:03:40+00:00",
       "settled_because": "delivered late: emailed the owner",
       "state": "delivered"
+    },
+    {
+      "attempts": 2,
+      "key": "resolve:drain-writers:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-19T12:03:14+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d9038dbcf8cf22',t:'MTc4NzE0MDk5NA=='",
+      "raised_at": "2026-08-19T12:00:14+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250350980",
+      "scope": "drain-writers:main",
+      "settled_at": "2026-08-19T13:10:38+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:host-watch:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-19T12:03:34+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d90404fcdde63b',t:'MTc4NzE0MTAxMw=='",
+      "raised_at": "2026-08-19T12:03:34+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250643236",
+      "scope": "host-watch:main",
+      "settled_at": "2026-08-19T13:10:38+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "resolve:tests:main",
+      "kind": "resolve",
+      "last_attempt_at": "2026-08-19T12:07:46+00:00",
+      "last_error": "HTTP 409 from /alert: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a2d90a2bac9615e0',t:'MTc4NzE0MTI2NQ=='",
+      "raised_at": "2026-08-19T12:07:46+00:00",
+      "run_url": "https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/32250373854",
+      "scope": "tests:main",
+      "settled_at": "2026-08-19T13:10:40+00:00",
+      "settled_because": "delivered late: not emailed: nothing was open for this scope",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-19T12:07:46+00:00",
+  "updated_at": "2026-08-19T13:10:40+00:00",
   "version": 1
 }
