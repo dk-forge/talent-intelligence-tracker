@@ -14,6 +14,93 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-18 — the public search box returned 45% of the database for a two-letter company name
+
+The owner handed over four real industry items as a recall probe. Checking the
+fourth found this:
+
+    GET /wp-json/talent/v1/query?q=EY   ->  total: 13934   (of 30,986)
+    GET /wp-json/talent/v1/query?q=GE   ->  total: 22854
+
+The top three hits for **EY** were Neospace (a Brazilian space startup), the
+Bolivian national statistics agency and a debt-collection company. `q=` was a
+SQL `LIKE '%EY%'` across headline, summary, talent_readthrough and company, and
+"money", "survey", "Monterrey", "key" and "attorney" all contain the letters. A
+reader searching a real firm on the public dashboard was handed most of the
+database back and told it was a result.
+
+The same endpoint was correct the whole time on `Workday` (4), `OpenRouter`
+(1), `Stripe` (4) and `Expedia` (2). **That is why it survived every spot
+check:** the defect only bites on short all-caps names, and this domain is made
+of them — EY, PwC, IBM, SAP, BT, GE, HP, KPMG, UBS, ING.
+
+**It is a known class in this family of products.** The sibling's `/query`
+returned 1,968 of 65,441 for the same term and is fixed in the same shape
+(2.20.96); its ingest gate was bitten by it on 08-17 when `layoff` matched
+`playoff` and six of ten gated items turned out to be football fixtures; and
+its `keyword=` endpoint had it recorded on 08-05 and **worked around rather
+than fixed** — a gold-set sampler drew with a word-boundary regex in Python
+because the endpoint could not be trusted to. All three now take the same
+answer.
+
+### Three fixes this deliberately is not
+
+`tit_freetext_clause()` in `includes/api.php` serves both public free-text
+paths (`q` and `company`) and a test asserts no third one can bypass it.
+
+- **NOT a minimum query length.** It makes every count above look fixed and
+  returns an honest-looking zero for every real two-letter employer. An empty
+  result nobody can tell is wrong is worse than a noisy one that obviously is.
+- **NOT a case-sensitive search.** `EY` versus `ey` inside a word is most of
+  the signal, but a reader typing `workday` must still find `Workday`. REGEXP
+  follows the column collation, which is `_ci`: match the token, not the case
+  of the string.
+- **NOT a boundary on scripts that do not have one.** A boundary needs a
+  non-word character on the far side of the term. Japanese and Chinese are
+  written without one, so `\b退任\b` matches nothing in a real headline; Korean
+  has the spaces but glues particles on, so `삼성` would stop finding `삼성전자`.
+  The corpus really holds those rows — **145 Korean and 434 Japanese on the day
+  of the fix**, and one of the owner's four probe items was reachable only
+  through a Korean headline. Any term carrying a non-Latin letter keeps the
+  substring search, stated as a positive `\p{Latin}` rule rather than as a list
+  of scripts somebody has to remember to extend, so a script nobody thought of
+  keeps the old behaviour and cannot regress.
+
+### The dialect is proven on the server, never assumed
+
+There is no portable word-boundary syntax and guessing wrong is silent. MySQL 8
+runs ICU and takes `\b` while **rejecting** the POSIX `[[:<:]]` it used to
+require; MySQL 5.7 and its Spencer engine take `[[:<:]]` and read `\b` as a
+literal `b` — which matches nothing, so the wrong guess does not error, it
+empties the search box. `tit_regexp_boundary_syntax()` probes with **both a
+positive and a negative** (`'EY LLP'` must match, `'money survey key'` must
+not) and caches for a day. Neither passing is a third state and is not a pass:
+the caller falls back to substring, which is the honest degraded answer.
+
+### The index situation, and why the LIKE stayed
+
+`wp_tit_signals` has fourteen indexes and **not one can serve this query**. No
+B-tree answers a leading wildcard and there is no FULLTEXT column, so `q=` was
+already a full scan of 30,986 rows and always has been. The regex is therefore
+ANDed **behind** the LIKE rather than replacing it: the cheap substring stays
+the first pass and the regex runs only on the rows it already admitted. The
+scan is the one we were already paying for; the precision is new.
+`test_the_table_still_has_no_fulltext_index_to_prefer` fails the day a FULLTEXT
+index lands, which is the day `MATCH ... AGAINST` becomes the better answer.
+
+### What proves it
+
+`tests/php/search_boundary.php` runs the **real** `tit_build_where` as **real
+SQL over real rows**, with a REGEXP operator registered on SQLite and four
+actual stored Korean and Japanese headlines in the corpus, and asserts which
+companies come back. A source read can prove the word `REGEXP` appears; it
+cannot prove that `q=EY` stopped returning the Bolivian census.
+`tests/test_search_word_boundary.py` holds the shape properties a future change
+could satisfy row-by-row while still being the wrong fix.
+
+1.83.3.
+
+
 ## 2026-08-18 — three reds on main, and only one of them was a defect
 
 `tests`, `drain-writers` and `enrich` were all red within seven hours of each
