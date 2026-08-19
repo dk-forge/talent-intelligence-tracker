@@ -65,6 +65,7 @@ function esc_js($s) { return (string) $s; }
 function wp_json_encode($v, $flags = 0) { return json_encode($v, $flags); }
 function number_format_i18n($n, $d = 0) { return number_format((float) $n, (int) $d); }
 function date_i18n($f, $t = null) { return gmdate($f, $t === null ? time() : $t); }
+function wp_date($f, $t = null) { return gmdate($f, $t === null ? time() : $t); }
 function human_time_diff($a, $b = null) { return '1 hour'; }
 function sanitize_text_field($s) { return trim((string) $s); }
 function _n($single, $plural, $count, $domain = '') { return $count == 1 ? $single : $plural; }
