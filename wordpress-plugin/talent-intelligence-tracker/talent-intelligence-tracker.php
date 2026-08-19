@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.83.4
+ * Version: 1.83.5
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.83.4');
+define('TIT_VERSION', '1.83.5');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -150,6 +150,43 @@ function tit_render_header() {
     block_template_part('header');
     // Named so the skip link has somewhere to land, matching the theme.
     echo '<main id="wp--skip-link--target" class="tit-main">';
+}
+
+/**
+ * ONE server-rendered, pasteable citation, for the pages a citer lands on.
+ *
+ * Ported from the sibling layoff tracker (its 2.20.97), where an audit fetched
+ * the live site with a crawler User-Agent and found the citation affordance did
+ * not survive being read by a machine. The same shape of gap was here: the
+ * company profiles and the place pages carry a `tit-cite` note that states the
+ * CC BY 4.0 licence and links onward, which is a provenance note and not a
+ * reference. Nothing on them could be pasted into a piece, and neither the
+ * access date nor the page's own URL appeared anywhere a reader or an answer
+ * engine could take them from.
+ *
+ * Built in PHP, on the server, with no JavaScript in the path -- which is the
+ * whole point, since the readers that matter for citation are the ones that do
+ * not run any. Every field is literally true of the page it sits on: that
+ * page's own heading, its own canonical URL, the access date, and the licence
+ * the page already states. The date is the SERVER's date, so a citer in another
+ * timezone may be a day off; that is a far smaller error than no date at all.
+ */
+function tit_cite_line($name, $url, $accessed = '') {
+    if ($accessed === '') $accessed = wp_date('M j, Y');
+    return sprintf(
+        '%s. Talent Intelligence Tracker, AskTheRecruiter.com. Accessed %s. %s Licensed CC BY 4.0; every record links to the document behind it.',
+        $name, $accessed, $url
+    );
+}
+
+/**
+ * The block form. `tit-cite-box` gets `overflow-wrap: anywhere` and
+ * `min-width: 0` in dashboard.css: a company slug can run long, a URL offers no
+ * break opportunity, and no horizontal bleed at 375px is a hard bar here.
+ */
+function tit_cite_box_html($name, $url) {
+    return '<div class="tit-cite-box"><span class="tit-cite-h">Cite this page</span><code>'
+        . esc_html(tit_cite_line($name, $url)) . '</code></div>';
 }
 
 function tit_render_footer() {

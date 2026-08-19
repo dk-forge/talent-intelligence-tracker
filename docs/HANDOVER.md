@@ -2,6 +2,40 @@
 
 ---
 
+## 2026-08-19: the durable pages had a licence note where a citation should be. Deployed as 1.83.5.
+
+Ported from the sibling layoff tracker, where a discoverability audit fetched
+the live site with a crawler User-Agent. Most of that audit came back green on
+both trackers; the one thing that did not is that **the citation affordance was
+not something a machine could read**.
+
+Here the company profiles and the place pages carried `tit-cite`: "The
+read-through on each line is our interpretation ... Data licensed CC BY 4.0"
+plus onward links. That is a **provenance note, not a reference**. It has no
+access date and no URL, so there was nothing on the page a journalist could
+paste, and nothing an answer engine could quote back with attribution. These
+are the pages a stranger arrives at first, which the render function's own
+comment already says.
+
+`tit_cite_line()` / `tit_cite_box_html()` in the plugin main file build one
+pasteable reference in PHP, server-side, no JavaScript in the path -- which is
+the point, since the readers that matter for citation do not run any. Every
+field is true of the page it sits on: its own heading, its own canonical URL,
+the access date, and the licence the page already states. It sits ABOVE the
+existing provenance note, which stays.
+
+`.tit-cite-box code` gets `min-width: 0` and `overflow-wrap: anywhere`: it
+carries the page's full canonical URL and a URL offers no break opportunity, so
+without them it bleeds horizontally at 375px.
+
+**Note for the next session touching dashboard.css:** the first attempt shipped
+hex fallbacks inside `var(--tit-bd, #e2e3e8)` and
+`test_theme_light_dark.py::test_g2_no_colour_literal_at_all_outside_the_token_blocks`
+caught it. The tokens all exist; the fallbacks were belt-and-braces and were
+removed. Full suite: 4,301 passed.
+
+---
+
 ## 2026-08-18: the public search box returned 13,934 of 30,986 rows for `EY`. NEEDS A DEPLOY.
 
 **Deployed as 1.83.4 and verified live.**

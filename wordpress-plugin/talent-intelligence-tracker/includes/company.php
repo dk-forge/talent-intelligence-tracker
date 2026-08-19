@@ -839,6 +839,12 @@ function tit_company_render($rows, $key, $profile) {
         <?php endforeach; ?>
       </ol>
 
+      <?php // A pasteable reference, server-rendered, above the provenance note.
+                  // function_exists is the FTP-deploy race guard.
+                  if (function_exists('tit_cite_box_html')) {
+                      echo tit_cite_box_html($name, tit_company_url($company_key)); // escaped inside
+                  } ?>
+
       <p class="tit-cite">
         The read-through on each line is our interpretation. The headline and
         figures come from the linked source. Data licensed CC BY 4.0.

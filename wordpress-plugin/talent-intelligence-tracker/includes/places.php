@@ -1281,6 +1281,10 @@ function tit_place_render($kind, $cell, $facts) {
         <?php endforeach; ?>
       </ol>
 
+      <?php if (function_exists('tit_cite_box_html')) {
+                echo tit_cite_box_html($heading, tit_place_url($kind, $cell['key'])); // escaped inside
+            } ?>
+
       <p class="tit-cite">
         The read-through on each line is our interpretation. The headline and
         figures come from the linked source. Data licensed CC BY 4.0.
