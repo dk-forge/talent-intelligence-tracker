@@ -2,6 +2,94 @@
 
 ---
 
+## 2026-08-19: `stash@{1}` holds work that is NOT on main. Do not clear the stash stack without reading this.
+
+**Nothing here is deployed, nothing here is a bug report. It is evidence, written
+down because it currently exists in exactly one place — a stash entry — and a
+stash is one accidental `git stash drop` from gone.** That is not hypothetical:
+the sibling layoff tracker's `stash@{0}` is labelled *"restored: popped by
+accident from a sibling worktree"*. The stack is per-REPOSITORY and every
+worktree shares it, so any agent can pop any entry.
+
+**Why there are five stashes at all.** Four of them are `autostash` —
+`git rebase --autostash` / `git pull --rebase --autostash` write to the stack
+silently. CLAUDE.md forbids `git stash`, so the rule is being broken by tooling
+rather than by hand. `rebase.autoStash=false` is now set locally in this repo,
+but an explicit `--autostash` on the command line overrides config, and no hook
+can refuse a stash push without risking a rebase left half-finished. The layoff
+tracker now watches its own stack in `ops_status.py [8]` (`railway/stash_watch.py`).
+
+### The audit, per entry, against `origin/main` at 4c66993
+
+Containment was measured two ways: is each touched file byte-identical to main,
+and what fraction of the entry's own added lines appear in main's copy today.
+The second is a heuristic — it cannot see a change that landed reworded — so the
+verdicts below name the identifiers they stand on.
+
+| entry | verdict |
+|---|---|
+| `stash@{0}` | `data/talent_intel.db` **only**. No code. A snapshot from when the DB was 76 MB. |
+| `stash@{1}` | **HOLDS UNLANDED WORK — see below.** Recorded 2026-07-29. 1,051 insertions across 10 files. |
+| `stash@{2}` | database only. No code. |
+| `stash@{3}` | code is 95–100% present on main (`collectors/gdelt.py`, `source_registry.py`, `sources.json`); remainder is a `.db`. |
+| `stash@{4}` | `pipeline/identity.py` is **100%** present on main; remainder is a `.db`. |
+
+### What `stash@{1}` holds that main does not
+
+Three things. Each was checked by grepping `origin/main` for an identifier that
+the stash introduces, so the check is reproducible rather than a judgement:
+
+1. **`tit_company_canonical_slug()`** in
+   `wordpress-plugin/talent-intelligence-tracker/includes/company.php` —
+   withholds ampersand-bearing company URLs from the sitemap. The finding behind
+   it: `<loc>` has to survive two decoders and they disagree, so percent-encoded
+   `%26` measured 404, the XML entity `&#038;` measured a 301 into a 404 for any
+   consumer that does not resolve the entity, and only a resolved literal `&`
+   returned 200. **22 of 712 published URLs** were therefore a redirect into a
+   404 for half the readers of the file — the "Page with redirect" / "Not found
+   (404)" pair already forwarded once from Search Console. A twenty-URL sample
+   missed it; fetching the whole file would not have.
+   `git grep tit_company_canonical_slug origin/main` → **no match.**
+
+2. **`_cursor_index()` in `backfill_slices.py`, plus
+   `test_a_stale_run_cannot_rewind_the_chain` in `tests/test_backfill_slices.py`** —
+   makes the backfill cursor a FORWARD-only check. `actions/checkout` pins a
+   run's SHA when it is DISPATCHED, so a run that waited behind the lock reads a
+   state file as old as its wait, and recording its cursor unconditionally
+   rewinds the chain over slices already done. The stash's own comment names the
+   precedent: the same shape as the stale checkout that destroyed 311 rows on
+   2026-07-29 (run 30413051586), one file along.
+   `git grep _cursor_index origin/main` → **no match.**
+   `git grep test_a_stale_run_cannot_rewind_the_chain origin/main` → **no match.**
+
+3. **Part of `pipeline/validate.py`'s third, document-reading arm.** Arms one and
+   two both read a headline — one the source wrote, one the model wrote — and
+   `sec_edgar` writes neither: it stamps one identical boilerplate string onto
+   every document it fetches, so arm one has been matching the collector's own
+   boilerplate against a layoff vocabulary. The stash's comment names four
+   events that reached the live page through that hole while every guard
+   reported healthy. **Only ~34% of this file's added lines are on main**, and
+   `git grep "ANNOUNCES a reduction" origin/main -- pipeline/validate.py` → **no
+   match**, so the body-shaped rule is not there.
+
+**The rest of `stash@{1}` IS landed** and is not a reason to keep it:
+`pipeline/prefilter.py` (100%), `tests/test_layoff_scope_correction.py` (100%),
+`tests/test_scope_and_materiality.py` (100%), `correct-layoff-scope.yml` (98%),
+`correct_layoff_scope.py` (97%).
+
+### What to do with it — deliberately left open
+
+**Do not apply, pop, or drop it on this evidence.** Main has moved a long way
+since 2026-07-29 and recovering the three items above is a real merge decision
+with real conflict risk, not a cleanup. It is the owner's call. Recording it
+costs nothing and preserves the option; the point of this section is that
+clearing the stack is now an informed decision instead of a coin flip.
+
+If the decision is to recover, the three items are independent and the sitemap
+one is self-contained — take it first.
+
+---
+
 ## 2026-08-19: the durable pages had a licence note where a citation should be. Deployed as 1.83.5.
 
 Ported from the sibling layoff tracker, where a discoverability audit fetched
