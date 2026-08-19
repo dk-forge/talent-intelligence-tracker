@@ -188,6 +188,37 @@ def gather(queries: list[dict], *, offline: dict | None,
     return leads, total, diagnostics, failures
 
 
+def report_declined(why: str) -> str:
+    """File the run that RAN and correctly declined to buy anything.
+
+    A budget stop used to leave no trace in `source_health` at all: the gate is
+    read before the database is even opened, so the ledger's newest tripwire row
+    stayed at the last run that spent money and aged into a STALE that meant
+    only "the ceiling was binding". On 2026-08-18 that read as "tripwire last
+    ran 406h ago" against a collector that had in fact run green on 08-10, 08-13
+    and 08-17 — a false alarm, and a report with false alarms in it is a report
+    sessions learn to skim, which is how a real outage gets missed.
+
+    `skipped` is its own status for that reason. It is not `ok` (nothing was
+    collected, and report_health rewrites a zero-item `ok` to `degraded`
+    anyway), and it is emphatically not `degraded` or `error` — nothing broke.
+    It says: this collector is alive, it ran, and it chose not to spend. That
+    is what lets the staleness clock tell the two apart. A job that died still
+    goes STALE on schedule; a job that declined does not.
+    """
+    conn = schema.connect()
+    try:
+        store.report_health(
+            conn, "tripwire",
+            status="skipped",
+            detail=f"ran and bought nothing: {why}",
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return "recorded (skipped)"
+
+
 def report_health(conn, result: dict, worklist: dict) -> str:
     """File the run in the same ledger every collector reports to.
 
@@ -369,6 +400,12 @@ def main(argv=None) -> int:
             # already trust, and this asks a model to guess where to look.
             print(f"NOT SPENDING: {why}. Discovery yields to the collection "
                   f"pipeline; the next run asks again.")
+            # ... and SAY SO IN THE LEDGER. Green and silent is what made a
+            # working budget look like a dead collector for 406 hours. A dry
+            # run writes nothing by the same rule that governs every other
+            # path here, and --no-health still means no health.
+            if not (args.dry_run or args.no_health):
+                print(f"health: {report_declined(why)}")
             return 0
 
     queries = ask.build_queries(run_plan)

@@ -457,7 +457,7 @@ protecting the collectors.
 
 **$8.00 STILL DOES NOT FUND TODAY'S CONFIGURATION, and that is the honest
 state of this project rather than a bug to tune away.** What it costs to run
-as configured is **$11.54/month** (`cost_projection.py [4]`, "today's caps"),
+as configured is **~$11.5/month** (`cost_projection.py [4]`, first row),
 against a committed pot of $7.11. The MEASURED figure agrees: the committed
 cost ledger reads **$0.38/day = $11.57/month** over 2026-08-14..17, the first
 four un-degraded once-daily days. Two independent methods, and they now agree
@@ -471,17 +471,38 @@ Bringing the committed set inside its pot is a read-cap decision
 
 | configuration | cost/month |
 |---|---|
-| **today's caps, as configured and running** | **$11.54** |
-| FULL coverage, second pass conditional | $18.86 |
-| ... extraction on gemini-2.5-flash-lite | $6.17 |
-| ... all of it, on the cheapest models | **$2.93** |
+| **today's caps, AS RUNNING (measured)** | **~$11.5** |
+| FULL coverage, second pass conditional | ~$21.8 |
+| ... extraction on gemini-2.5-flash-lite | ~$9.2 |
+| ... all of it, on the cheapest models | **~$3.2** |
 
-**FULL worldwide coverage on gemini-2.5-flash-lite extraction now FITS inside
-the collection allowance ($6.82)** — $6.17 against $6.82, for the first time,
-and that is a coverage decision the owner has never been offered before because
-until 08-18 the tool reported it as $13.20. It is bounded by the gate: **$1.73
-of every figure above is the LLM gate**, which no model swap reaches. Tuning
-caps cannot close a gap the gate has already spent.
+**Quote these as approximate and re-run the tool for today's figure.** Every
+row is recomputed live from two rolling windows over the committed ledger, so
+$0.15 of movement between two readings is drift and not disagreement. A
+session that reads $11.67 where this says $11.54 has read a slightly newer
+ledger, not a bug.
+
+**THE gemini ROW DOES NOT FIT, and this file said it did for one day.** The
+claim was "$6.17 against $6.82, for the first time" — a coverage decision the
+owner had never been offered. It rested on `CONDITIONAL_SHARE = 0.12`, a
+hand-set constant the ledger contradicts outright: 396 of 1,215 storing
+records buy a paid sentence, which is **32.6%**. Deriving it from the meter
+(2026-08-18) moves that row to ~$9.2 against $6.82. Nothing got more
+expensive; the estimate was flattering every "second pass CONDITIONAL" figure
+and under-pricing a read in `[5]` by ~18% — and `[5]` is where the recommended
+`TIT_READTHROUGH_CAP` values come from. **Do not restore the constant to make
+the row fit.**
+
+**`[4]`'s FIRST row is the bill; every row under it is a configuration that is
+not running.** The two "today's caps" rows were labelled backwards until
+2026-08-18: read-late shipped, the ledger's two ratios swapped meaning, and
+the names did not follow, so the tool called the real bill "before read-late"
+and gave a hypothetical nobody has run the name "today's caps, WITH
+read-late". Reading the second as the current state over-budgets by ~42%.
+
+It is bounded by the gate either way: **~$1.71 of every figure above is the
+LLM gate**, which no model swap reaches. Tuning caps cannot close a gap the
+gate has already spent.
 
 So the road under $5 is **making the gate free**, not rationing reads: replace
 the paid LLM gate with a trained classifier (`docs/PLAN-gate-to-five-dollars.md`,

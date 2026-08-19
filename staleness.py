@@ -28,8 +28,9 @@ The numbers are derived from each collector's actual schedule, not picked:
 from __future__ import annotations
 
 # Once-daily cadence (24h) plus queue slack. Shared by everything collect.yml
-# sweeps on its 16:00 UTC cron and by national_press on collect-press.yml's
-# 17:00 one (the same once-daily owner decision, e60ce7f then df0efdf). The
+# sweeps on its 22:00 UTC cron and by national_press on collect-press.yml's
+# 23:00 one (the same once-daily owner decision, e60ce7f then df0efdf; the
+# pair moved from 16:00/17:00 to after the US close in 01e1737). The
 # old name here was TWICE_DAILY_HOURS = 14, and the day the schedule went
 # once-daily that leash became permanent noise: every collector read stale for
 # ten hours before its next scheduled run, which is the 2-day-ceiling-on-a-
@@ -38,7 +39,7 @@ from __future__ import annotations
 SCHEDULED_SWEEP_HOURS = 26
 
 MAX_AGE_HOURS = {
-    # collect.yml, 16:00 UTC daily. Since the schedule became a sweep, all
+    # collect.yml, 22:00 UTC daily. Since the schedule became a sweep, all
     # four run every scheduled slot, so all four share the cron's leash.
     # Before that, gdelt and the SEC pair were dispatch-only and carried 336h,
     # which stopped being honest the moment the schedule started running them.
@@ -46,7 +47,7 @@ MAX_AGE_HOURS = {
     "gdelt": SCHEDULED_SWEEP_HOURS,
     "sec_edgar": SCHEDULED_SWEEP_HOURS,
     "sec_form_d": SCHEDULED_SWEEP_HOURS,
-    # collect-press.yml, 17:00 UTC daily, an hour behind collect by the same
+    # collect-press.yml, 23:00 UTC daily, an hour behind collect by the same
     # owner decision. It was 09:00, which collided with collect-structured's
     # daily cron inside the shared `talent-collect` lock and got the pending
     # press run cancelled most mornings — the leash was right and the schedule
@@ -155,12 +156,25 @@ MAX_AGE_HOURS = {
     # The result was a live twice-weekly collector wearing a 100-day leash: it
     # could have broken on a Monday and reported `ok` until November.
     #
-    # 336 is the number that entry always named — the Mon+Thu 07:00 UTC pair in
-    # schedule-link-hygiene.yml, so 3.5 days of cadence, and four missed runs
-    # before it speaks. Wide, on purpose: the slot writes a TICKET and
-    # drain-writers dispatches it into an empty lock group, so a run can
-    # legitimately wait behind a backfill slice that is entitled to its time.
-    "tripwire": 336,           # ~14 days: twice-weekly, plus the queue's wait
+    # The Mon+Thu 07:00 UTC pair in schedule-link-hygiene.yml is a WORST GAP OF
+    # 96 HOURS (Thu -> Mon), not 3.5 days. This entry read 336 until 2026-08-18
+    # — four missed runs before it spoke — and 336 was wide because the leash
+    # was carrying a second job it should never have had: until the same day,
+    # the tripwire filed NO health row at all when it declined to spend, so its
+    # newest row was the last run that bought something and the leash had to
+    # tolerate a whole binding month. It did not tolerate it; it reported
+    # "tripwire last ran 406h ago — stale" about a collector that ran green on
+    # 08-10, 08-13 and 08-17. Widening it further would have bought silence
+    # about a genuinely dead job instead.
+    #
+    # The fix was the missing row (run_tripwire.report_declined -> status
+    # `skipped`), and with it every scheduled slot now leaves evidence whether
+    # it spends or not. So the leash can be what the schedule says it is: 96h of
+    # cadence plus the queue's worst-case wait, since the slot writes a TICKET
+    # and drain-writers dispatches it into an empty lock group — a run may
+    # legitimately wait behind a backfill slice entitled to its 350 minutes.
+    # One missed pair, not four.
+    "tripwire": 168,           # 7 days: the 96h Thu->Mon gap, plus the queue's wait
     # The benchmark-diff chase, weekly on Tuesdays from the same scheduler
     # and DORMANT until the owner arms a BENCHMARK_* secret. While dormant it
     # files no health row at all, so this leash never ticks; once armed, one
@@ -177,6 +191,32 @@ MAX_AGE_HOURS = {
     # last run" is a question about the owner's pace and not about coverage
     # going quiet. Tighten this the day a schedule is chosen.
     "press_archive": 2400,
+    # primary_chase is DISPATCH-ONLY, and collect.yml's own comment says why:
+    # "its population is a hand-made list of URLs, so a cron would re-fetch
+    # documents that have already been read". It appears in that workflow's
+    # `source` choice list only so a run can be QUEUED through drain-writers
+    # like every other database writer — never in the scheduled sweep.
+    #
+    # It had NO entry here until 2026-08-18, so it fell through to
+    # DEFAULT_MAX_AGE_HOURS and wore a 336h leash nobody chose. It then reported
+    # "last ran 360h ago — stale (its schedule expects a run within 336h)"
+    # about a job that has no schedule to expect anything of. That default is a
+    # backstop for a source nobody has thought about yet; spending it as a
+    # verdict on a source somebody deliberately left unscheduled is how a report
+    # earns a false alarm. Same shape and same number as press_archive above.
+    "primary_chase": 2400,
+    # The two recall families, recall.yml, Mondays 08:00 UTC. Both file a health
+    # row from measure_recall.py on every run, one per family
+    # (analysis/recall/family.py owns which is which). Weekly cadence plus a day
+    # of slack: one missed Monday is a measurement nobody took, which is worth
+    # saying, and 336 would have let a dead measurement sit for a fortnight
+    # while the published rate went on looking current.
+    #
+    # Neither had an entry until 2026-08-18. They were found by the test that
+    # now refuses a collector with no chosen leash, rather than by anybody
+    # noticing — which is the whole argument for that test.
+    "recall": 192,             # 8 days: weekly, plus a day of slack
+    "recall_us": 192,
     # Link rot and archiving, both scheduled since 2026-07-30 — but by
     # schedule-link-hygiene.yml writing a TICKET rather than by a cron in their
     # own workflows, because both are database writers and a cron in a

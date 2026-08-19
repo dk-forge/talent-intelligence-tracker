@@ -463,3 +463,113 @@ def test_writer_queue_still_imports_with_no_dependencies():
          "import sys; sys.path.insert(0, %r); import writer_queue" % str(ROOT)],
         capture_output=True, text=True)
     assert out.returncode == 0, out.stderr
+
+
+# --- a run that declined to spend must not look like a run that died -------
+#
+# MEASURED 2026-08-18. ops_status.py reported, in one report:
+#
+#     [3b] DISCOVERY TRIPWIRE  DORMANT — dispatch only
+#     -> tripwire last ran 406h ago — stale (its schedule expects a run
+#        within 336h)
+#
+# Both false. The tripwire is armed Mon+Thu via schedule-link-hygiene.yml and
+# had run green on 08-10, 08-13 and 08-17. It looked dead because the spend
+# gate is read BEFORE the database is opened, so a declining run filed no
+# source_health row at all and the ledger's newest entry stayed at 2026-08-02 —
+# the last run that spent money.
+#
+# The tests above pin "a budget stop is green and is recorded in the QUEUE".
+# These pin the other ledger: it must also be recorded in source_health, or the
+# staleness leash cannot tell a binding budget from a dead collector. Three
+# false alarms in one report is how a session learns to skim the report.
+
+def test_a_declining_tripwire_run_files_a_health_row():
+    """Green and SILENT is what made a working budget look like a dead job."""
+    import run_tripwire
+
+    assert hasattr(run_tripwire, "report_declined"), (
+        "a run that declines to spend must still file its run in the health "
+        "ledger; without a row it is indistinguishable from a run that died")
+
+    src = inspect.getsource(run_tripwire.report_declined)
+    assert 'status="skipped"' in src, (
+        "the declining run must file `skipped`: not ok (nothing was "
+        "collected, and report_health rewrites a zero-item ok to degraded) "
+        "and not degraded/error (nothing broke)")
+
+    # The gate's own decline path has to CALL it, not merely have it available.
+    main_src = inspect.getsource(run_tripwire.main)
+    gate = main_src.split("NOT SPENDING")[1]
+    assert "report_declined" in gate.split("return 0")[0], (
+        "run_tripwire.main returns 0 at the spend gate without filing the "
+        "row, which is the 406-hour false alarm of 2026-08-18")
+
+
+def test_a_declining_run_is_benign_in_both_judges_and_still_ages():
+    """`skipped` is not an incident — and it is not an exemption either.
+
+    It must be benign (a budget stop is UNDECIDED, never a verdict) while its
+    timestamp keeps ticking the staleness clock. Putting it alongside
+    retired/disabled would exempt a genuinely dead collector from the age check
+    for ever, which is the failure the status exists to close.
+    """
+    import health_digest
+    import ops_status
+
+    assert "skipped" in health_digest.BENIGN_STATUSES
+    assert "skipped" in ops_status.BENIGN_STATUSES
+    assert "skipped" not in health_digest.DELIBERATELY_STOPPED, (
+        "a skipped run is FRESH evidence, not a deliberate stop: exempting it "
+        "from the age check would hide a dead job for ever")
+
+
+def test_the_tripwire_arming_report_reads_the_scheduler_not_its_own_file():
+    """A cron in tripwire.yml is the BUG, so it cannot be the armed signal.
+
+    ops_status [3b] asked whether tripwire.yml carried a cron and printed
+    DORMANT when it did not. Arming the tripwire meant DELETING that cron and
+    moving the slot to the scheduler, so the check was guaranteed to print
+    DORMANT for ever — and would have printed ARMED in precisely the miswired
+    state `_report_link_schedule` exists to catch.
+    """
+    import ops_status
+
+    src = inspect.getsource(ops_status._report_discovery)
+    assert "LINK_SCHEDULER" in src, (
+        "[3b] must decide arming from the workflow that writes the ticket, "
+        "not from the writer's own file")
+    assert "MISWIRED" in src, (
+        "a cron in tripwire.yml is an eviction bug and must be reported as "
+        "one, never as the armed state")
+
+
+def test_every_collector_that_reports_health_has_a_chosen_leash():
+    """DEFAULT_MAX_AGE_HOURS is a backstop, never a verdict.
+
+    primary_chase had no entry, so it silently inherited 336h and was reported
+    "stale (its schedule expects a run within 336h)" — about a job that is
+    dispatch-only by explicit design and has no schedule to expect anything of.
+    A leash nobody chose must be loud rather than quietly applied.
+    """
+    import sqlite3
+
+    import staleness
+
+    db = ROOT / "data" / "talent_intel.db"
+    if not db.exists():                            # pragma: no cover
+        pytest.skip("no committed database in this checkout")
+
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        seen = {r[0] for r in conn.execute(
+            "SELECT DISTINCT collector FROM source_health")}
+    finally:
+        conn.close()
+
+    missing = sorted(seen - set(staleness.MAX_AGE_HOURS))
+    assert not missing, (
+        f"{missing} file health rows but have no leash in staleness.py, so "
+        f"each silently wears DEFAULT_MAX_AGE_HOURS ({staleness.DEFAULT_MAX_AGE_HOURS}h). "
+        f"Give each one a number derived from its REAL cadence — including "
+        f"'this is dispatch-only', which is a cadence too")

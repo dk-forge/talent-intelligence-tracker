@@ -410,6 +410,15 @@ def _profile_slug(key: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", folded.replace("&", " and ")).strip("-")
 
 
+#: A status that is not an incident. `skipped` is the interesting one: the
+#: collector RAN and correctly declined to buy the paid part of its work. A
+#: budget stop is UNDECIDED, never a verdict, so it must not be reported as a
+#: fault — and it must still refresh the staleness clock, because the job is
+#: demonstrably alive. Mirrors health_digest.BENIGN_STATUSES, which is the same
+#: judgement made in the other tool.
+BENIGN_STATUSES = {"ok", "skipped"}
+
+
 def _report_health(conn) -> list[str]:
     problems = []
     print("\n[2] COLLECTORS")
@@ -446,7 +455,7 @@ def _report_health(conn) -> list[str]:
         if row["detail"]:
             print(f"             {row['detail'][:70]}")
 
-        if row["status"] != "ok":
+        if row["status"] not in BENIGN_STATUSES:
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
     return problems
@@ -1011,6 +1020,12 @@ LINK_JOBS = {"archive-sources.yml": "eight-hourly Wayback pass",
              "link-check.yml": "daily rot sweep"}
 LINK_SCHEDULER = "schedule-link-hygiene.yml"
 
+#: How `[3b]` recognises the tripwire's slot inside the scheduler. The scheduler
+#: names the workflow it is asking for, so the workflow filename IS the marker;
+#: matching on that rather than on a cron position means re-timing the slot
+#: cannot silently turn the tripwire's arming report into a lie.
+TRIPWIRE_SLOT_PATTERN = "tripwire.yml"
+
 
 def _report_link_schedule() -> list[str]:
     """Whether the link-hygiene jobs actually run, and by which route."""
@@ -1377,17 +1392,38 @@ def _report_discovery() -> None:
     """The tripwire: what the outside view says we are missing.
 
     Read straight off the committed work list, because a session that does not
-    know a work list exists will never chase it. Says DORMANT loudly while
-    nothing schedules it, for the same reason section [0] does: a session that
-    assumes this runs would misread a stale work list as current.
-    """
-    workflow = ROOT / ".github" / "workflows" / "tripwire.yml"
-    armed = workflow.exists() and any(
-        line.strip().startswith("- cron:")
-        for line in workflow.read_text().splitlines())
+    know a work list exists will never chase it.
 
-    print("\n[3b] DISCOVERY TRIPWIRE  "
-          + ("ARMED — runs on schedule" if armed else "DORMANT — dispatch only"))
+    ARMING IS READ FROM THE SCHEDULER, NOT FROM tripwire.yml. Until 2026-08-18
+    this asked whether `tripwire.yml` carried a cron, and printed DORMANT when
+    it did not. That is exactly backwards, and it could never be right: the
+    tripwire is a database writer, so a cron in its OWN file would put it in the
+    `talent-collect` lock uncoordinated — the miswiring `_report_link_schedule`
+    exists to catch. Arming it meant DELETING that cron and moving the slot to
+    `schedule-link-hygiene.yml`, which writes a ticket instead. So this check
+    was guaranteed to print DORMANT forever, and would have printed ARMED in
+    precisely the state that is broken. It reported "DORMANT, dispatch only"
+    for a collector that had run green on 08-10, 08-13 and 08-17.
+    """
+    slot = TRIPWIRE_SLOT_PATTERN
+    scheduler_crons = [c for c in _crons(LINK_SCHEDULER)]
+    scheduler_text = (ROOT / ".github" / "workflows" / LINK_SCHEDULER)
+    schedules_tripwire = (scheduler_text.exists()
+                          and slot in scheduler_text.read_text())
+    self_cron = _crons("tripwire.yml")
+
+    print("\n[3b] DISCOVERY TRIPWIRE  ", end="")
+    if self_cron:
+        # Not a nuance: a cron here is the eviction bug, not the armed state.
+        print("MISWIRED — see below")
+        print(f"    tripwire.yml carries its own cron ({', '.join(self_cron)}). "
+              f"It is a database\n    writer, so a scheduled run enters the "
+              f"talent-collect lock uncoordinated.\n    Move the slot to "
+              f"{LINK_SCHEDULER}, which writes a ticket.")
+    elif schedules_tripwire and scheduler_crons:
+        print(f"ARMED via the writer queue — {LINK_SCHEDULER}")
+    else:
+        print("DORMANT — dispatch only")
 
     worklist = ROOT / "data" / "tripwire_worklist.json"
     if not worklist.exists():

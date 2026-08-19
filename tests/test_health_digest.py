@@ -233,9 +233,33 @@ class TestStalenessBoundary(unittest.TestCase):
 
 
 class TestBenignStatuses(unittest.TestCase):
-    def test_ok_retired_and_disabled_are_all_benign(self):
+    def test_ok_retired_disabled_and_skipped_are_all_benign(self):
         self.assertEqual(health_digest.BENIGN_STATUSES,
-                         {"ok", "retired", "disabled"})
+                         {"ok", "retired", "disabled", "skipped"})
+
+    def test_a_skipped_run_is_benign_but_is_NOT_a_deliberate_stop(self):
+        """The whole point of `skipped` is that it keeps the clock running.
+
+        It means the collector ran and correctly declined to buy the paid part
+        of its work — benign, because a budget stop is UNDECIDED and never a
+        verdict. But its timestamp is FRESH evidence that the job is alive, so
+        it must go on ageing like any other run. Putting it in
+        DELIBERATELY_STOPPED would exempt a genuinely dead collector from the
+        age check for ever, which is the exact failure the status exists to
+        close: before it existed the tripwire filed no row at all when it
+        declined, and ops_status reported "last ran 406h ago — stale" about a
+        collector that had run green three times inside that window.
+        """
+        self.assertNotIn("skipped", health_digest.DELIBERATELY_STOPPED)
+
+        fresh = health_digest.classify({"tripwire": entry(2, "skipped")}, NOW)
+        self.assertEqual(fresh["ok"], ["tripwire"])
+        self.assertEqual(fresh["stale"], [])
+
+        ancient = health_digest.classify(
+            {"tripwire": entry(24 * 400, "skipped")}, NOW)
+        self.assertEqual([row[0] for row in ancient["stale"]], ["tripwire"],
+                         "a skipped run that stopped arriving is a dead job")
 
     def test_a_retired_collector_is_never_stale(self):
         """It was stopped on purpose, so an ancient timestamp is correct."""
