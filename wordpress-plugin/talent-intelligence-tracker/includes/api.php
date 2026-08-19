@@ -645,6 +645,33 @@ function tit_api_aggregate(WP_REST_Request $req) {
             $sql = "SELECT {$expr} FROM {$table} WHERE {$where}";
             return (int) $wpdb->get_var($params ? $wpdb->prepare($sql, $params) : $sql);
         };
+        /*
+          WHEN THE DATABASE ITSELF LAST TOOK A ROW, which is not `generated`
+          and is not the window either.
+
+          `generated` is when THIS RESPONSE was built, so it moves every time
+          anybody asks. A reader needs the other fact: the moment ingest last
+          wrote, because everything they are holding is a snapshot taken then.
+
+          WHY THE SIBLING NEEDS IT. The layoff tracker's email digest composes
+          a talent section from these endpoints, and its citation block prints
+          "as of <stamp>" for the layoff figures out of api.php's own last
+          write. It could print nothing for the talent figures, because nothing
+          here published one, and it says so rather than borrowing the layoff
+          tracker's: they are separate databases on separate schedules.
+
+          MAX(captured_at) OVER THE WHOLE TABLE, deliberately not under the
+          caller's WHERE. "When did we last collect anything" is a fact about
+          the database, and scoping it to a filter would answer a different
+          question in the same words: a 2024 slice would report a 2024 stamp
+          and read as a stale database. NULL on an empty table prints nothing,
+          which is the honest answer and never a guess.
+
+          It is added to the `fresh` panel only. That panel is a closed
+          vocabulary, so a consumer of the full response cannot change shape
+          by accident, and it is one scalar on a query that already runs four.
+        */
+        $cut = $wpdb->get_var("SELECT MAX(captured_at) FROM {$table}");
         $out = array(
             'total'     => $one('COUNT(*)'),
             'companies' => $one('COUNT(DISTINCT company_key)'),
@@ -652,6 +679,9 @@ function tit_api_aggregate(WP_REST_Request $req) {
             'verified'  => $one("SUM(confidence = 'verified')"),
             'money'     => tit_aggregate_money($table, $where, $params, tit_request_pillar($req)),
             'generated' => gmdate('c'),
+            // ISO 8601 in UTC, like `generated`, because captured_at is stored
+            // in UTC. '' means the table is empty, never "we did not look".
+            'data_last_changed' => $cut ? gmdate('c', strtotime($cut . ' UTC')) : '',
         );
         set_transient($cache_key, $out, TIT_CACHE_TTL);
         return tit_public_response($out);

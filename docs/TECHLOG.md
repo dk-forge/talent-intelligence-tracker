@@ -14,6 +14,56 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-19 — the freshness panel now says when the DATA last changed, not just when the reply was built (1.83.3)
+
+**NOT DEPLOYED BY THIS SESSION.** This repo deploys by `workflow_dispatch`
+only. The branch is `claude/digest-data-cut-2026-08-19` and it is ready; the
+owner runs the deploy.
+
+### What was missing
+
+The sibling layoff tracker's email digest composes a Talent Intelligence
+Tracker section from `/talent/v1/aggregate` and `/talent/v1/query`, and prints
+a citation under it. Chicago prefers a last-modified date and APA asks for a
+retrieval date on a source designed to change over time. The layoff half of
+that citation carries both, out of that plugin's own `alt_last_write`. The
+talent half could carry only the retrieval date, because nothing here published
+a last write.
+
+The digest says that absence out loud rather than borrowing the layoff
+tracker's stamp, which would be a claim about a different database on a
+different ingest schedule. That is honest and it is still a missing fact.
+
+### What changed
+
+`include=fresh` now returns `data_last_changed`, ISO 8601 in UTC, from
+`MAX(captured_at)` over the table.
+
+Three things it deliberately is not:
+
+- **Not `generated`.** That is when the response was built, so it moves every
+  time anybody asks. It answers "is this reply fresh", never "is the data
+  fresh".
+- **Not scoped to the caller's WHERE.** "When did we last collect anything" is
+  a fact about the database. Under a filter it answers a different question in
+  the same words: a caller asking about 2024 would be told the database last
+  changed in 2024 and read that as a dead pipeline. This is the assertion in
+  `tests/test_aggregate_data_cut.py` that matters.
+- **Not filled in on an empty table.** NULL prints `''`, which means "no row
+  has ever been captured", never a guessed date.
+
+It is on the `fresh` panel only. That panel is a closed vocabulary, so nothing
+consuming the full response can change shape by accident, and it is one scalar
+on a query that already runs four.
+
+### The follow-up that belongs to the OTHER repo
+
+Once this is deployed, the layoff repo's `alt_digest_compose_talent()` can read
+`data_last_changed` and pass it to `alt_digest_cite_note()` as the as-of stamp.
+Until then it passes `''` and prints no as-of clause, which is why that side
+needs no coordination and no flag day.
+
+
 ## 2026-08-18 — three reds on main, and only one of them was a defect
 
 `tests`, `drain-writers` and `enrich` were all red within seven hours of each
