@@ -88,6 +88,36 @@ scan is the one we were already paying for; the precision is new.
 `test_the_table_still_has_no_fulltext_index_to_prefer` fails the day a FULLTEXT
 index lands, which is the day `MATCH ... AGAINST` becomes the better answer.
 
+### Measured, live, before (1.83.2) and after (1.83.5)
+
+| q= | before | after | note |
+|---|---:|---:|---|
+| EY | 13,934 | **0** | see below - this is the honest answer |
+| GE | 22,854 | **14** | GE Vernova, GE Aviation, GE Power India |
+| BT | 71 | **4** | BT, BT Group, BT Brands |
+| SAP | 27 | **2** | |
+| IBM | 16 | **15** | |
+| HP | - | 4 | |
+| Workday | 4 | **4** | unchanged |
+| Stripe | 4 | **3** | the dropped row matched as a substring only |
+| Expedia | 2 | **2** | unchanged |
+| OpenRouter | 1 | **1** | unchanged |
+| 退任 (JP) | 49 | **49** | unchanged, to the row |
+| 사임 (KR) | 41 | **41** | unchanged, to the row |
+| 삼성 (KR) | 2 | **2** | unchanged - still finds it inside 삼성전자 |
+
+The three CJK figures are the important ones: identical before and after,
+because no boundary is applied to them at all. The sibling took the same fix
+the same day (2.20.96): EY 1,968 to 2, GE 8,612 to 66.
+
+**EY GOING TO ZERO IS CORRECT, AND IT EXPOSED A SECOND, SEPARATE GAP.** This
+corpus stores the firm as "Ernst & Young" and never as the bare token, so
+`q=Ernst` returns 15 rows and `q=EY` returns none. Before the fix `q=EY`
+returned 13,934 rows **of which not one was the firm**. A company-alias map
+(EY, PwC, KPMG, and whatever else readers type) is a real follow-up and it is
+NOT this fix. Matching two letters against every word in the corpus was never a
+way of finding EY; it was a way of not noticing that we could not.
+
 ### What proves it
 
 `tests/php/search_boundary.php` runs the **real** `tit_build_where` as **real
