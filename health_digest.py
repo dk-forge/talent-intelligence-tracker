@@ -75,7 +75,14 @@ except Exception:                              # pragma: no cover - import guard
 
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.
-BENIGN_STATUSES = {"ok", "retired", "disabled"}
+#
+# "skipped" is NOT one of those, and the difference is the point: it means the
+# collector ran and correctly declined to buy the paid part of its work, so it
+# is benign — a budget stop is UNDECIDED, never a verdict — but its timestamp
+# is FRESH and must keep ticking the staleness clock. Putting it in
+# DELIBERATELY_STOPPED would exempt a genuinely dead job from the age check for
+# ever, which is the failure this whole status exists to close.
+BENIGN_STATUSES = {"ok", "retired", "disabled", "skipped"}
 DELIBERATELY_STOPPED = {"retired", "disabled"}
 
 # How long a collector may stay quiet before it counts as stale. The map

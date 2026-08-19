@@ -212,8 +212,17 @@ def test_the_staleness_leash_matches_the_new_cadence():
     """
     import staleness
 
+    # tripwire joined this loop on 2026-08-18. It was excluded while it filed a
+    # health row ONLY on the runs that spent money: its leash was then carrying
+    # "a whole binding month of budget stops" as well as its cadence, so no
+    # cron-derived bound could have been honest about it, and the 336h that
+    # bought that silence still reported a live twice-weekly collector STALE.
+    # Now that a declining run files `skipped` (run_tripwire.report_declined),
+    # every scheduled slot leaves evidence and the leash is answerable to the
+    # cron like the other two.
     for collector, workflow in (("archive_sources", "archive-sources.yml"),
-                                ("link_check", "link-check.yml")):
+                                ("link_check", "link-check.yml"),
+                                ("tripwire", "tripwire.yml")):
         cadence = min(24.0 / _runs_per_day(cron)
                       for cron in _crons_that_queue(workflow))
         leash = staleness.MAX_AGE_HOURS[collector]

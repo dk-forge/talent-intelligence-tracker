@@ -168,7 +168,15 @@ CREATE TABLE IF NOT EXISTS seen_urls (
 CREATE TABLE IF NOT EXISTS source_health (
     collector    TEXT NOT NULL,
     run_at       TEXT NOT NULL,
-    status       TEXT NOT NULL,  -- ok | degraded | running | error
+    -- ok | degraded | running | error | skipped
+    --
+    -- `skipped` means the collector RAN and correctly declined to do the paid
+    -- part of its work. Nothing broke, so it is not `degraded` or `error`;
+    -- nothing was collected, so it is not `ok`. It exists because a run that
+    -- files NO row is indistinguishable from a run that died, and the
+    -- staleness leash in staleness.py cannot tell a binding budget from a
+    -- dead job without a row to read.
+    status       TEXT NOT NULL,
     items_found  INTEGER NOT NULL DEFAULT 0,
     items_stored INTEGER NOT NULL DEFAULT 0,
     detail       TEXT,
