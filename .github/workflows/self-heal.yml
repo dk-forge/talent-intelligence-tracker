@@ -23,8 +23,10 @@ name: Self-heal
 # DORMANT UNTIL THE OWNER ADDS A SECRET (CLAUDE_CODE_OAUTH_TOKEN or
 # ANTHROPIC_API_KEY): without one this gates, prints what it WOULD have done,
 # and exits green with a notice naming the secret. Kill switch: repository
-# variable SELF_HEAL_DISABLED=true. Budget is structural: one healer at a
-# time, one open PR per cause fingerprint, ceiling of 3 open healer PRs.
+# variable SELF_HEAL_DISABLED=true. Budget is structural, and it lives in the
+# GATE, not in the concurrency group: one open PR per cause fingerprint, and a
+# ceiling of 3 open healer PRs. The group deliberately does NOT serialise
+# healers any more — see the concurrency block below for what that bought.
 #
 # This job is deliberately NOT in the talent-collect concurrency group: it
 # never writes the database, and a healer queueing behind the writer lock
