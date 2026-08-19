@@ -4,7 +4,15 @@
 
 ## 2026-08-18: the public search box returned 13,934 of 30,986 rows for `EY`. NEEDS A DEPLOY.
 
-**1.83.3. `wordpress-plugin/` changed, and the deploy here is `workflow_dispatch`, so it is not live until somebody runs it.**
+**Deployed as 1.83.4 and verified live.**
+
+**THE VERSION COLLIDED FIRST.** This claimed 1.83.3 and PR #69 landed a
+different 1.83.3 on main in the same window. Nothing was lost -- #69's plugin
+diff was the bump alone and git merged the identical line cleanly -- but two
+main commits claiming one version makes "which build is live" unanswerable
+later, and 1.83.3 had never shipped, so it was bumped to **1.83.4** before the
+deploy rather than after. Writing the claim down is necessary and is not
+sufficient; re-read main's version immediately before merging.
 
 `/talent/v1/query?q=EY` was a SQL `LIKE '%EY%'` and matched "money", "survey",
 "Monterrey", "key" and "attorney". The top three hits for a reader searching a
