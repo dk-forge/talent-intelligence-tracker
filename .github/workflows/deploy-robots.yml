@@ -87,8 +87,14 @@ jobs:
           # Restore pip's wheel cache, keyed on THIS lock's own hash. A lock
           # change changes the key, so a cache entry can never outlive the lock
           # that vouched for it, and the hash-verified install below still
-          # checks every artifact it uses. The locks are keyed separately on
-          # purpose: a light job must not pull the heavy cache.
+          # checks every artifact it uses.
+          #
+          # Only requirements-dev.lock is cached (12-16s to install). The 29
+          # workflows on requirements.lock deliberately are NOT: that install
+          # is 1-6s, and setup-python's prefix restore-key would hand them this
+          # cache anyway whenever the runner's Python patch version shifts and
+          # their exact key missed. Measured 2026-08-19; the sibling repo's
+          # RUNBOOK, "Runner minutes", has the table. Do not add it back.
           cache: 'pip'
           cache-dependency-path: requirements-dev.lock
 

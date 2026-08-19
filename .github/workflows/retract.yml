@@ -77,13 +77,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          # Restore pip's wheel cache, keyed on THIS lock's own hash. A lock
-          # change changes the key, so a cache entry can never outlive the lock
-          # that vouched for it, and the hash-verified install below still
-          # checks every artifact it uses. The locks are keyed separately on
-          # purpose: a light job must not pull the heavy cache.
-          cache: 'pip'
-          cache-dependency-path: requirements.lock
       - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
 
       # The reason arrives through the ENVIRONMENT, never through `${{ }}`.
