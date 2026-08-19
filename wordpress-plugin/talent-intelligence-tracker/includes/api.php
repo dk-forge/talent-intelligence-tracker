@@ -223,6 +223,140 @@ function tit_country_expr() {
 }
 
 /**
+ * WORD-BOUNDARY SEARCH. A two-letter employer name is not a substring.
+ *
+ * MEASURED 2026-08-18 on the live endpoint: `/talent/v1/query?q=EY` returned
+ * 13,934 of 30,986 rows. The top hits were a Brazilian space startup, a
+ * Bolivian statistics agency and a debt-collection company, because "money",
+ * "survey", "Monterrey", "key" and "attorney" all contain the letters. A
+ * reader searching a real firm got most of the database back. The sibling's
+ * layoff endpoint had the same defect (1,968 of 65,441 for the same term) and
+ * so did its ingest gate, where `layoff` matched `playoff`; all three take the
+ * same answer.
+ *
+ * Three things this deliberately does NOT do:
+ *
+ * 1. It does not impose a minimum query length. That returns an honest-looking
+ *    zero for a real two-letter employer, which is a worse failure than the
+ *    noise because nothing about it looks wrong.
+ * 2. It does not make search case-sensitive. `workday` must still find
+ *    `Workday`. REGEXP follows the column collation, which is _ci: we match the
+ *    token and not the case of the string.
+ * 3. It does not apply to non-Latin scripts. A boundary needs a non-word
+ *    character on the far side of the term, and Japanese and Chinese are
+ *    written without one, so `\b退任\b` matches nothing in a real headline;
+ *    Korean has the spaces but glues particles on. This corpus really holds
+ *    those rows (145 Korean, 434 Japanese on the day of the fix, and one of the
+ *    owner's four probe items was reachable only through a Korean headline), so
+ *    any term carrying a non-Latin letter keeps today's substring search.
+ *    Unchanged behaviour there, no regression possible, and the defect being
+ *    fixed is a Latin-acronym defect.
+ *
+ * The regex is ANDed BEHIND the LIKE rather than replacing it. Neither can use
+ * an index -- no B-tree serves a leading wildcard, and this table has no
+ * FULLTEXT (see tit_install_table) -- so the LIKE stays the cheap first pass
+ * and the regex only runs on the rows it already admitted. The scan is the one
+ * we were already paying for; the precision is new.
+ */
+
+/**
+ * Which word-boundary syntax THIS server's MySQL actually understands.
+ *
+ * There is no single answer and guessing wrong is silent. MySQL 8 runs ICU and
+ * takes `\b` while REJECTING the POSIX `[[:<:]]` it used to require; MySQL 5.7
+ * and its Spencer engine take `[[:<:]]` and read `\b` as a literal `b`, which
+ * matches nothing and would empty the search box. So probe, with BOTH a
+ * positive and a negative -- a pattern that merely fails to error is not a
+ * pattern that works. Neither passing means no boundary support and the caller
+ * falls back to substring, which is the honest degraded answer rather than a
+ * wrong one. Cached for a day; it changes only when the host moves.
+ */
+function tit_regexp_boundary_syntax() {
+    static $memo = null;
+    if ($memo !== null) return $memo;
+    $stored = get_transient('tit_rx_boundary_syntax');
+    if (is_string($stored) && $stored !== '') {
+        $memo = ($stored === 'none') ? '' : $stored;
+        return $memo;
+    }
+    global $wpdb;
+    $memo = '';
+    $previous = $wpdb->suppress_errors(true);
+    foreach (tit_regexp_boundary_candidates() as $name => $wrap) {
+        $pattern = $wrap[0] . 'EY' . $wrap[1];
+        $hit  = $wpdb->get_var($wpdb->prepare('SELECT %s REGEXP %s', 'EY LLP', $pattern));
+        $miss = $wpdb->get_var($wpdb->prepare('SELECT %s REGEXP %s', 'money survey key', $pattern));
+        if ($hit === '1' && $miss === '0') { $memo = $name; break; }
+    }
+    $wpdb->suppress_errors($previous);
+    set_transient('tit_rx_boundary_syntax', ($memo === '' ? 'none' : $memo), DAY_IN_SECONDS);
+    return $memo;
+}
+
+/** The two dialects, as (open, close). Order is preference order. */
+function tit_regexp_boundary_candidates() {
+    return array(
+        // ICU (MySQL 8, MariaDB 10.0.5+ via PCRE).
+        'icu'   => array('\\b', '\\b'),
+        // Henry Spencer POSIX (MySQL 5.6/5.7). Errors outright on MySQL 8.
+        'posix' => array('[[:<:]]', '[[:>:]]'),
+    );
+}
+
+/** Escape every character that means something to ICU and to POSIX ERE alike. */
+function tit_regexp_quote($term) {
+    return preg_replace('/[.\\\\+*?\\[\\]^$(){}|\\-\\/]/u', '\\\\$0', (string) $term);
+}
+
+/**
+ * The boundary-matched pattern for a search term, or '' when this term must
+ * stay a substring search. `$syntax` is injected so the builder is a pure
+ * function with no database in it; callers pass tit_regexp_boundary_syntax().
+ */
+function tit_boundary_pattern($term, $syntax = null) {
+    if ($syntax === null) $syntax = tit_regexp_boundary_syntax();
+    $candidates = tit_regexp_boundary_candidates();
+    if (!isset($candidates[$syntax])) return '';
+    $term = trim((string) $term);
+    if ($term === '') return '';
+    // Latin letters, digits, punctuation and spaces only. Anything else -- Han,
+    // Kana, Hangul, Cyrillic, Arabic, Thai -- keeps today's substring search.
+    if (!preg_match('/^[\p{Latin}\p{Nd}\p{P}\p{S}\p{Zs}\s]+$/u', $term)) return '';
+    // The term must contain something a boundary can sit against at all.
+    if (!preg_match('/[\p{L}\p{Nd}]/u', $term)) return '';
+    $wrap = $candidates[$syntax];
+    $pattern = tit_regexp_quote($term);
+    // Anchor only the ends that ARE word characters: "AT&T" gets both, "(EY)"
+    // gets neither, and a boundary asserted against a bracket never holds.
+    if (preg_match('/^[\p{L}\p{Nd}_]/u', $term)) $pattern = $wrap[0] . $pattern;
+    if (preg_match('/[\p{L}\p{Nd}_]$/u', $term)) $pattern = $pattern . $wrap[1];
+    return $pattern;
+}
+
+/**
+ * One free-text clause: the LIKE we already ran, plus the boundary regex when
+ * the term supports one. `$value_for` maps a column to the value matched
+ * against it, because `company` is asked of the lowercased `company_key`.
+ * Appends to $params by reference and returns SQL.
+ */
+function tit_freetext_clause(array $columns, $term, array &$params, $lowercase = false) {
+    global $wpdb;
+    $term = trim((string) $term);
+    $needle = $lowercase ? strtolower($term) : $term;
+    $like = '%' . $wpdb->esc_like($needle) . '%';
+    $ors = array();
+    foreach ($columns as $c) { $ors[] = "$c LIKE %s"; $params[] = $like; }
+    $sql = '(' . implode(' OR ', $ors) . ')';
+    $pattern = tit_boundary_pattern($needle);
+    if ($pattern !== '') {
+        $ors = array();
+        foreach ($columns as $c) { $ors[] = "$c REGEXP %s"; $params[] = $pattern; }
+        $sql .= ' AND (' . implode(' OR ', $ors) . ')';
+    }
+    return $sql;
+}
+
+/**
  * Build the WHERE clause shared by /query and /aggregate.
  *
  * country_basis=any (the default) unions job location with employer HQ, so a
@@ -286,8 +420,7 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
 
     $company = sanitize_text_field($req->get_param('company') ?? '');
     if ($company !== '') {
-        $where[] = 'company_key LIKE %s';
-        $params[] = '%' . $wpdb->esc_like(strtolower($company)) . '%';
+        $where[] = tit_freetext_clause(array('company_key'), $company, $params, true);
     }
 
     $industries = tit_multi_param($req, 'industry', tit_allowed_industries());
@@ -415,9 +548,8 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
     // Free-text search across what the source said and what we concluded.
     $search = sanitize_text_field($req->get_param('q') ?? '');
     if ($search !== '') {
-        $like = '%' . $wpdb->esc_like($search) . '%';
-        $where[] = '(headline LIKE %s OR summary LIKE %s OR talent_readthrough LIKE %s OR company LIKE %s)';
-        array_push($params, $like, $like, $like, $like);
+        $where[] = tit_freetext_clause(
+            array('headline', 'summary', 'talent_readthrough', 'company'), $search, $params);
     }
 
     return implode(' AND ', $where);

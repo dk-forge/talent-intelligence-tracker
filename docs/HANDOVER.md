@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-08-18: the public search box returned 13,934 of 30,986 rows for `EY`. NEEDS A DEPLOY.
+
+**1.83.3. `wordpress-plugin/` changed, and the deploy here is `workflow_dispatch`, so it is not live until somebody runs it.**
+
+`/talent/v1/query?q=EY` was a SQL `LIKE '%EY%'` and matched "money", "survey",
+"Monterrey", "key" and "attorney". The top three hits for a reader searching a
+Big Four firm were a Brazilian space startup, a Bolivian statistics agency and
+a debt-collection company. `q=GE` returned 22,854. The endpoint was correct on
+`Workday` (4), `Stripe` (4) and `Expedia` (2) the whole time, which is why it
+was never caught: the defect only bites on the short all-caps names this domain
+is made of.
+
+Fixed with word-boundary matching behind the existing LIKE, NOT with a minimum
+query length (that returns an honest-looking zero for a real two-letter
+employer) and NOT for non-Latin scripts (a boundary matches nothing in
+Japanese, and Korean particles would break `삼성` finding `삼성전자`). The SQL
+dialect is probed on the live server with a positive AND a negative rather than
+assumed, because MySQL 5.7 reads `\b` as a literal `b` and would empty the
+search box without erroring. Full reasoning in TECHLOG 2026-08-18.
+
+The sibling had the same defect (1,968 of 65,441) and is fixed in the same
+shape as 2.20.96.
+
+---
+
 ## 2026-08-18: the digest reported a collection outage that never happened. Nothing here needs a deploy.
 
 **Merged to main as a67c887 (PR #65). Tests green on that SHA. No plugin change, so nothing to deploy.**
