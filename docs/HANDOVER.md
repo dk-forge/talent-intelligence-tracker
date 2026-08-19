@@ -90,6 +90,49 @@ one is self-contained — take it first.
 
 ---
 
+## 2026-08-19: /blog served a maintenance page for ~27 minutes. The deploy did not cause it, and the fatal was never live.
+
+Both trackers and the whole blog returned 503 with WordPress's own Maintenance
+page from roughly 02:03 to 02:30 UTC. All three URLs are 200 again, bare and
+cache-busted, and the layoff tracker's reader check reports PASS on version AND
+build. Three things were established rather than assumed.
+
+**The plugin tree was never partial.** The cancelled deploy (run 32207135840,
+27d9ecc) died in step 8, "Prove the target is a WordPress install" -- a
+read-only `cls` listing. Steps 9 through 12 were skipped, so the mirror never
+ran and no bytes moved. Two later runs at 6cca0cd then completed normally, the
+second (32208402841) doing a full upload plus the contrast check, and 1.83.5 is
+live and rendering.
+
+**The deploy hung, it did not run slowly.** lftp's `net:max-retries` defaults
+to 0, which means UNLIMITED. Against a control channel that connects and then
+stops answering, it reconnects forever and nothing below the job ceiling stops
+it -- which is how a listing burned 20 minutes. The 20-minute ceiling is NOT
+the bug and is unchanged: it is ~3x the measured worst case, and clipping a
+slow FTP session is how a live deploy becomes a half-uploaded tree. The bound
+now lives inside lftp (`$LFTP_SETTINGS`, shared by all three call sites),
+because `timeout-minutes` can kill a job but never unwind a half-finished
+transfer. Per-step ceilings of 4/5/10 minutes sit under the job ceiling so the
+next hang is attributed to its step, and the mirror is `--continue`.
+
+That FTP blip and the maintenance page are one host event, not two: Bluehost
+was unwell for that half hour, and the repo saw it once through lftp and once
+through HTTP.
+
+**`wp_date()` was a harness gap, not a live fault.** The line at
+talent-intelligence-tracker.php:175 sits inside `tit_cite_line()`, not at load
+time, and `wp_date` is WordPress core on a real site -- the country and city
+pages render "Accessed Aug 19, 2026" right now. Six of the seven harnesses that
+load the plugin stub it; `render_place_pages.php` was the one that did not.
+
+**The deploy should not have started.** It was dispatched onto a main whose own
+`tests` run was red and nothing in the workflow knew. It checks now, and only a
+conclusive `failure` stops it -- tests are often still queueing when someone
+dispatches, and a refusal there would block the deploy exactly when it is most
+wanted.
+
+---
+
 ## 2026-08-19: the durable pages had a licence note where a citation should be. Deployed as 1.83.5.
 
 Ported from the sibling layoff tracker, where a discoverability audit fetched
