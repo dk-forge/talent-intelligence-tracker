@@ -21,6 +21,31 @@ concurrency:
   group: deploy-plugin
   cancel-in-progress: false
 
+# WHY THIS BLOCK EXISTS. On 2026-08-19 run 32207135840 sat in "Prove the target
+# is a WordPress install" -- a READ-ONLY `cls` listing -- for 20 minutes and was
+# killed by the job ceiling. It did not run slowly; it HUNG, and the reason is a
+# default: lftp's `net:max-retries` is 0, which means UNLIMITED. Against an FTP
+# control channel that accepts a connection and then never answers (Bluehost had
+# a blip that same minute, which is also why /blog served a maintenance page),
+# lftp reconnects forever and nothing below the job ceiling ever stops it.
+#
+# So every lftp invocation here now opens with these settings. `timeout-minutes`
+# can only kill a job; it can never unwind a half-finished transfer. The bound
+# has to live INSIDE lftp, which is what these five lines are.
+#
+# Do NOT answer a future hang by raising timeout-minutes. 20 is ~3x the measured
+# worst case and clipping a slow FTP session is how a live deploy becomes a
+# half-uploaded plugin tree. A run that exceeds it is hung, not slow.
+env:
+  LFTP_SETTINGS: |
+    set ftp:ssl-force true;
+    set ssl:verify-certificate no;
+    set net:max-retries 3;
+    set net:timeout 20;
+    set net:reconnect-interval-base 5;
+    set net:reconnect-interval-max 30;
+    set dns:fatal-timeout 20;
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -37,11 +62,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # THIS SHA'S OWN TESTS MUST BE GREEN.
+      #
+      # On 2026-08-19 a deploy was dispatched onto a main whose `tests` run was
+      # RED with a PHP fatal. That fatal turned out to be a harness gap rather
+      # than a live fault, but nothing in this workflow knew that or could have
+      # known it -- it was willing to push a tree its own suite was failing on,
+      # onto a host that also serves a live sibling product.
+      #
+      # Deliberately NOT a hard block on "no run found": tests may still be
+      # queueing when someone dispatches, and turning that into a refusal makes
+      # the deploy unusable at exactly the moment it is wanted. A conclusive
+      # `failure` is the only thing that stops the job; anything else warns and
+      # continues, so this can never be the reason a live fix cannot ship.
+      # A dry run is not a deploy, so it is exempt.
+      - name: Refuse to deploy a SHA whose tests are failing
+        if: ${{ !inputs.dry_run && !inputs.probe }}
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          CONC=$(gh api "repos/${{ github.repository }}/actions/workflows/tests.yml/runs?head_sha=${{ github.sha }}&per_page=10" \
+                   --jq '[.workflow_runs[] | select(.status=="completed") | .conclusion] | first // ""' 2>/dev/null || echo "")
+          echo "tests conclusion for ${{ github.sha }}: ${CONC:-<none>}"
+          if [ "$CONC" = "failure" ]; then
+            echo "::error::tests is RED on this SHA. Fix the suite, or dispatch from a SHA that is green. Refusing to deploy."
+            exit 1
+          fi
+          if [ "$CONC" != "success" ]; then
+            echo "::warning::No conclusive tests result for this SHA (got '${CONC:-<none>}'). Proceeding, but this deploy is unverified."
+          fi
+
       # Read only. Finds where WordPress actually lives, because an FTP account
       # is usually chrooted to its own home and an absolute-looking path from
       # the control panel is often not what the FTP session sees.
       - name: Probe the FTP tree
         if: ${{ inputs.probe }}
+        timeout-minutes: 5
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -53,8 +111,7 @@ jobs:
           for DIR in / /blog /wp-content /wp-content/plugins /blog/wp-content/plugins; do
             echo "===== $DIR ====="
             lftp -c "
-              set ftp:ssl-force true;
-              set ssl:verify-certificate no;
+              $LFTP_SETTINGS
               open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
               cls -1 '$DIR';
             " 2>&1 | head -40 || echo "(not listable)"
@@ -123,6 +180,8 @@ jobs:
       # the wrong folder when a secret goes missing.
       - name: Prove the target is a WordPress install
         if: ${{ !inputs.dry_run && !inputs.probe }}
+        # A read-only listing. If this needs 4 minutes it is not listing.
+        timeout-minutes: 4
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -137,8 +196,7 @@ jobs:
           # No redirect inside the lftp script: lftp parses "2>/dev/null" as a
           # second path to list, not as a shell redirect.
           LISTING=$(lftp -c "
-            set ftp:ssl-force true;
-            set ssl:verify-certificate no;
+            $LFTP_SETTINGS
             open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
             cls -1 '$WP_ROOT';
           " 2>&1 || true)
@@ -177,6 +235,10 @@ jobs:
 
       - name: Upload over FTPS
         if: ${{ !inputs.dry_run && !inputs.probe }}
+        # The mirror itself. Measured era is ~1 min of transfer; 10 is generous
+        # without being the job ceiling, so a stuck upload is named as the
+        # stuck step rather than showing up as an unattributed job timeout.
+        timeout-minutes: 10
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -187,10 +249,9 @@ jobs:
           set -e
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
           lftp -c "
-            set ftp:ssl-force true;
-            set ssl:verify-certificate no;
+            $LFTP_SETTINGS
             open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
-            mirror --reverse --delete --verbose \
+            mirror --reverse --delete --continue --verbose \
               wordpress-plugin/talent-intelligence-tracker '$REMOTE_DIR';
           "
 
