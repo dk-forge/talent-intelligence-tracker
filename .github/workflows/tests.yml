@@ -32,6 +32,23 @@ on:
     - cron: '43 * * * *'
   workflow_dispatch:
 
+concurrency:
+  # SUPERSEDED PR RUNS ONLY. A newer commit on the same pull request makes the
+  # older run pointless, so it is cancelled and the queue slot is freed.
+  #
+  # Every OTHER event -- push to main, schedule, workflow_dispatch -- gets a
+  # group keyed to its own run id, which no other run can ever share. That
+  # makes `cancel-in-progress` structurally unreachable for them: nothing
+  # queues behind anything and nothing is cancelled. This shape is deliberate.
+  # A shared group that cancels is how the sibling repo's Self-heal went blind (57 of its last 100
+  # runs concluded `cancelled` with ZERO jobs, including the one healable
+  # failure of that evening), and a `cancelled` conclusion is one this repo's
+  # alerter and healer then have to interpret. `skipped` costs no runner
+  # minutes and discards no decision; `cancelled` costs a queue slot and throws
+  # a decision away. Prefer conditions that skip over groups that cancel.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
@@ -48,6 +65,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          # Restore pip's wheel cache, keyed on THIS lock's own hash. A lock
+          # change changes the key, so a cache entry can never outlive the lock
+          # that vouched for it, and the hash-verified install below still
+          # checks every artifact it uses. The locks are keyed separately on
+          # purpose: a light job must not pull the heavy cache.
+          cache: 'pip'
+          cache-dependency-path: requirements-dev.lock
 
       - name: Install dependencies
         run: |
