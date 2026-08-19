@@ -194,7 +194,13 @@ VIOLATIONS = [
     "requirements.lock",            # the supply chain
     "requirements-dev.lock",
     "docs/HANDOVER.md",             # the session log
+    "docs/STYLE.md",                # the copy standard...
+    "style_check.py",               # ...and the ceiling that enforces it
+    "ci_alert.py",                  # the alarm channel that reports on the healer
+    ".github/workflows/ci-alert.yml",
     ".github/workflows/self-heal.yml",  # the healer itself
+    "self_heal.py",                 # its gate and guard
+    "tests/test_self_heal.py",      # and the test pinning this boundary
 ]
 
 
@@ -351,11 +357,32 @@ def test_every_job_condition_is_a_balanced_expression():
         assert depth == 0, f"unbalanced parens:\n{cond}"
 
 
-def test_one_healer_at_a_time_and_never_the_writer_lock():
-    assert "group: self-heal" in WORKFLOW
+def test_the_concurrency_group_cannot_discard_a_decision():
+    # WAS test_one_healer_at_a_time_and_never_the_writer_lock, asserting the
+    # substring `group: self-heal`. That shared group did not bound spend and
+    # DID drop failures: GitHub keeps one pending run per group, so the waiting
+    # run is cancelled before any job starts. The old assertion also passes
+    # vacuously once the group is keyed per run, because it is a prefix of the
+    # new value. Assert the property that matters instead.
+    assert "group: self-heal-${{ github.event.workflow_run.id" in WORKFLOW
     assert "cancel-in-progress: false" in WORKFLOW
-    # NOT in the writer lock: a healer queueing there could evict a writer.
+    # Still NOT the writer lock: a healer queueing there could evict a writer.
     assert "talent-collect" not in re.sub(r"#.*", "", WORKFLOW)
+
+
+def test_the_cli_transcript_survives_a_successful_decline():
+    # The healer's most common outcome is a SUCCESSFUL run that opens nothing.
+    # Between 2026-08-16 and 2026-08-18 the action ran and succeeded 25 times
+    # and pushed no branch, with this step skipped every time, so the reason
+    # was unrecoverable. `if: failure()` cannot audit a silent decline.
+    assert "if: always() && steps.gate.outputs.heal == 'yes'" in WORKFLOW
+
+
+def test_the_prompt_teaches_the_mechanical_class():
+    # A test that names its own regeneration command is the cheapest real heal
+    # there is, and it was reaching the owner as an email instead.
+    assert "RUN THAT GENERATOR" in WORKFLOW
+    assert "regenerate" in WORKFLOW.lower()
 
 
 def test_the_pr_is_a_draft_and_a_human_merges():

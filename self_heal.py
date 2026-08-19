@@ -123,15 +123,42 @@ BRANCH_PREFIX = "self-heal/"
 #: healer that erases evidence. spend/budget/guardrails are the constants a
 #: "fix" must never widen; the locks are the supply chain; HANDOVER is the
 #: session log; the healer may not edit itself.
+#
+#: THE LINE IS MECHANICAL vs SEMANTIC. The healer may re-derive a thing that
+#: has one correct answer its generator already knows (regenerate a committed
+#: artifact, rewrite a sentence that overran a word ceiling). It may never
+#: touch a thing whose correct answer is a JUDGEMENT — what we promise to
+#: check, how much drift we tolerate, or what we are willing to spend. Every
+#: one of those can be made to look "fixed" by being loosened, which is the one
+#: failure mode a later green run cannot detect.
 FORBIDDEN = (
+    # Committed state and the spend/guardrail constants.
     "data/",
     "spend.py",
     "budget.py",
     "guardrails.py",
+    # The copy standard and its ceiling. A sentence that overran the ceiling is
+    # MECHANICAL and the healer should rewrite the sentence; the ceiling that
+    # caught it is a judgement. Forbidding the checker while leaving the page
+    # in reach is what makes the only available fix the correct one.
+    "docs/STYLE.md",
+    "style_check.py",
+    # The alarm channel. NEVER_HEAL keeps the healer off these workflows'
+    # failures; this keeps it out of their code from any other failure. A
+    # healer thrashing on the alarm is the one loop worse than silence, and it
+    # is the channel that reports the healer's own mistakes.
+    "ci_alert.py",
+    ".github/workflows/ci-alert.yml",
+    # Supply chain: nobody unattended refreshes a hash-pinned lock.
     "requirements.lock",
     "requirements-dev.lock",
+    # The handover note.
     "docs/HANDOVER.md",
+    # The healer itself — its workflow, its gate and guard, and the test that
+    # pins this boundary. A healer that can edit its own restraints has none.
     ".github/workflows/self-heal.yml",
+    "self_heal.py",
+    "tests/test_self_heal.py",
 )
 
 

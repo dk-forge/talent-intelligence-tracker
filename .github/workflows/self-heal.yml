@@ -23,8 +23,10 @@ name: Self-heal
 # DORMANT UNTIL THE OWNER ADDS A SECRET (CLAUDE_CODE_OAUTH_TOKEN or
 # ANTHROPIC_API_KEY): without one this gates, prints what it WOULD have done,
 # and exits green with a notice naming the secret. Kill switch: repository
-# variable SELF_HEAL_DISABLED=true. Budget is structural: one healer at a
-# time, one open PR per cause fingerprint, ceiling of 3 open healer PRs.
+# variable SELF_HEAL_DISABLED=true. Budget is structural, and it lives in the
+# GATE, not in the concurrency group: one open PR per cause fingerprint, and a
+# ceiling of 3 open healer PRs. The group deliberately does NOT serialise
+# healers any more — see the concurrency block below for what that bought.
 #
 # This job is deliberately NOT in the talent-collect concurrency group: it
 # never writes the database, and a healer queueing behind the writer lock
@@ -54,8 +56,29 @@ permissions:
   # actually needed.
   id-token: write
 
+# ONE GROUP PER TRIGGERING RUN — never one shared group for the whole repo.
+#
+# GitHub keeps at most ONE pending run per concurrency group: when a third run
+# arrives while one is already waiting, the waiting one is CANCELLED, before
+# any job starts and before the gate has decided anything. This workflow
+# triggers on `workflows: ['*']`, so on a busy day the group is saturated and
+# real failures are discarded silently — 4 of the last 100 Self-heal runs here
+# concluded `cancelled` with ZERO jobs, and in the sibling layoff repo, where
+# the traffic is heavier, it was 57 of 100 and a genuine `Tests` failure on
+# main went ungated (see that repo's TECHLOG, 2026-08-18).
+#
+# Keying the group to the triggering run makes every group a group of one, so
+# nothing is ever cancelled while pending and EVERY failure reaches the gate.
+# It costs nothing: a trigger the gate refuses by name now concludes `skipped`,
+# which consumes no runner minutes, where `cancelled` consumed a queue slot AND
+# discarded a real decision.
+#
+# BUDGET IS UNCHANGED, because it never lived here. It lives in the gate, where
+# it is testable: one open PR per cause fingerprint and a hard MAX_OPEN_PRS
+# ceiling, both enforced in self_heal.py. Do NOT restore a shared group to
+# "serialise the spend": it does not bound the spend, and it drops failures.
 concurrency:
-  group: self-heal
+  group: self-heal-${{ github.event.workflow_run.id || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -153,6 +176,22 @@ jobs:
                defect (a data regression, a host outage, a budget stop, an
                expired credential, a judgement call), STOP: open no PR, push
                no branch, and state plainly why the gate should have skipped it.
+            3c. THE MECHANICAL CLASS — PREFER IT. If the failing assertion
+               names the command that rebuilds a committed artifact ("X
+               drifted from Y; regenerate with `python3 gen.py`", "the
+               generated file is stale", a checked-in file a script in this
+               repo produces), then the fix is to RUN THAT GENERATOR and
+               commit exactly what it emits. Do not hand-edit the generated
+               file to match, and do not edit the test that noticed. Show the
+               generator's command and its output in the PR body, and confirm
+               the assertion is red before and green after. This class has one
+               correct answer and the repo already knows it, which is the whole
+               reason it is safe to automate — a cron moving and its generated
+               consumer not being rebuilt is a defect a human should never have
+               been emailed about. If running the generator changes files
+               BEYOND the one the test named, stop and report that instead: a
+               generator with side effects is not the mechanical class.
+
             4. If it is a code defect: fix it on a NEW branch named exactly
                `${{ steps.gate.outputs.branch }}`, and verify the failing
                test/assertion is red before your change and green after it.
@@ -168,9 +207,16 @@ jobs:
             - never merge anything, never push to main, never `gh workflow run`
               or re-run any workflow (dispatching writers evicts queued runs
               here — it is the repo's most expensive known defect);
-            - never touch: data/ (anything under it), spend.py, budget.py,
-              guardrails.py, requirements.lock, requirements-dev.lock,
-              docs/HANDOVER.md, .github/workflows/self-heal.yml;
+            - never touch any of these. The guard re-checks the real diff,
+              so editing one only wastes the attempt. Committed state and the
+              spend/guardrail constants: data/ (anything under it), spend.py,
+              budget.py, guardrails.py. The copy standard and its ceiling:
+              docs/STYLE.md, style_check.py. The alarm channel: ci_alert.py,
+              .github/workflows/ci-alert.yml. The hash-pinned locks:
+              requirements.lock, requirements-dev.lock. The handover note:
+              docs/HANDOVER.md. The healer itself:
+              .github/workflows/self-heal.yml, self_heal.py,
+              tests/test_self_heal.py;
             - never widen a ceiling, cap, floor, timeout or staleness bound to
               make a red go green — a loosened guardrail is a masked failure;
             - one PR maximum; if you cannot produce a fix you have verified,
@@ -185,8 +231,18 @@ jobs:
       # LINE BREAK inside the pasted token. The CLI writes its own log to the
       # runner's temp dir and nothing preserves it. Print it on failure so the
       # next failure names its own cause.
+      # ...and it is NOT `if: failure()`, because the healer's most common
+      # outcome is a SUCCESSFUL run that opened nothing. Between 2026-08-16 and
+      # 2026-08-18 the action ran and SUCCEEDED 25 times here — several for
+      # 4+ minutes, one for 10m56s, all of them paid — and opened zero pull
+      # requests; `git ls-remote` shows no self-heal branch was ever pushed.
+      # On every one of those runs this step was `skipped`, so whether the
+      # healer declined on judgement or was blocked by its own allowlist is
+      # unanswerable from the logs. A healer that can decline silently cannot
+      # be audited, and 25 unexplained paid declines is exactly the question
+      # the owner asks when he asks whether it earns its keep.
       - name: What did the CLI actually say?
-        if: failure()
+        if: always() && steps.gate.outputs.heal == 'yes'
         run: |
           F="${RUNNER_TEMP}/claude-execution-output.json"
           if [ -f "$F" ]; then
