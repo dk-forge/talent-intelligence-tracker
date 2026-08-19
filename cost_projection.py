@@ -435,13 +435,22 @@ def main() -> int:
           f"{m['rows']} row(s)")
     print(f"    ${m['cost'] / max(m['reads'], 1):.5f} per read, "
           f"${m['cost'] / max(m['rows'], 1):.5f} per stored row")
-    waste = m["read_throughs"] - m["rows"]
     if m["read_throughs"]:
-        print(f"    {m['read_throughs']} interpretation(s) bought for "
-              f"{m['rows']} row(s): {waste} "
-              f"({100 * waste // m['read_throughs']}%) went to records a free "
-              f"guard settled")
-        print("      -> that is the read-late lever, and it is now shipped")
+        # This used to print `read_throughs - rows` as "waste". That subtraction
+        # only means anything while interpretations EXCEED rows, which was true
+        # before read-late shipped and has not been true since: the ledger now
+        # holds 396 interpretations against 1,215 rows, so the line printed
+        # "-819 (-207%) went to records a free guard settled". A negative
+        # percentage in a cost report is a reader's cue to stop trusting it.
+        # The ratio is what the figure was always reaching for, and it stays
+        # meaningful in both directions.
+        share = 100 * m["read_throughs"] / max(m["rows"], 1)
+        print(f"    {m['read_throughs']:,} interpretation(s) for "
+              f"{m['rows']:,} stored row(s): {share:.1f}% of storing records "
+              f"bought a\n      paid sentence; the free triage settled the "
+              f"other {100 - share:.1f}%")
+        print("      -> read-late AND the conditional second pass are both "
+              "shipped")
     print(f"    prompt tokens {m['prompt_tokens']:,}, of which "
           f"{m['cached_tokens']:,} served from cache "
           f"({100 * m['cached_tokens'] // max(m['prompt_tokens'], 1)}%)")
@@ -503,16 +512,54 @@ def main() -> int:
     # read-throughs (0.671) and then multiplied by reads, which overstated the
     # read-through line by 28% and understated read-late's saving by the same.
     #
-    #   before read-late   every read that extraction called a signal bought one
-    #   after read-late    only a record that will actually store buys one
-    #   conditional        ...and only when the free triage flags extraction's
-    #                      own sentence. 8.8% measured over 4,171 rows of fused
-    #                      deepseek prose; 12% used here, because the flagged
-    #                      share rises as coverage moves to languages the
-    #                      triage declines to score.
-    rt_per_read_eager = m["read_throughs"] / max(m["reads"], 1)
-    rt_per_read_late = m["rows"] / max(m["reads"], 1)
-    CONDITIONAL_SHARE = 0.12
+    #   live           what the ledger measured under the shipped configuration:
+    #                  read-late AND the conditional second pass
+    #   unconditional  one interpretation per storing record — read-late with
+    #                  the conditional pass turned OFF. Not running.
+    # THE TWO NAMES BELOW WERE WRITTEN BEFORE READ-LATE SHIPPED, AND SHIPPING
+    # IT INVERTED THEM. Corrected 2026-08-18.
+    #
+    # When these ratios were introduced the ledger measured 477 interpretations
+    # against 320 stored rows: interpretations EXCEEDED rows, so `rows/reads`
+    # was genuinely the cheaper post-read-late rate and `read_throughs/reads`
+    # was the eager status quo. Read-late then shipped — unconditionally, with
+    # no flag, at run_collect.py's two call sites — and the conditional second
+    # pass with it. The ordering flipped: the ledger now measures 396
+    # interpretations against 1,215 rows.
+    #
+    # So `read_throughs/reads` stopped being a counterfactual and became the
+    # direct measurement of the RUNNING configuration, while `rows/reads`
+    # became a model of one interpretation per storing row — read-late WITHOUT
+    # the conditional pass, which is not running and is now the MORE expensive
+    # of the two. The arithmetic never moved; only what each number describes
+    # did. The [4] rows carried the old names, so the tool labelled the actual
+    # bill "before read-late" and gave a configuration nobody has ever run the
+    # name "today's caps, WITH read-late". A reader taking the second for the
+    # current state over-budgets by about 42%.
+    rt_per_read_live = m["read_throughs"] / max(m["reads"], 1)
+    rt_per_read_unconditional = m["rows"] / max(m["reads"], 1)
+
+    # What share of storing records actually buy a paid sentence. This was the
+    # hand-set 0.12 — "8.8% measured over 4,171 rows of fused deepseek prose;
+    # 12% used here, because the flagged share rises as coverage moves to
+    # languages the triage declines to score". The ledger has since contradicted
+    # it outright: 396 of 1,215 storing records bought one, which is 32.6%.
+    #
+    # It is DERIVED now, because a constant the meter disagrees with is not a
+    # conservative assumption, it is a wrong one — and it was wrong in the
+    # direction that flatters every "second pass CONDITIONAL" figure, including
+    # the gemini row CLAUDE.md leans on, while under-pricing a read in [5] by
+    # about 18%. Those are the TIT_READTHROUGH_CAP numbers the owner sets caps
+    # from, so it is not a cosmetic disagreement.
+    #
+    # Deriving it also makes the model self-consistent: rt_per_read_unconditional
+    # x (read_throughs/rows) collapses to rt_per_read_live, so "the conditional
+    # pass at today's reads" reproduces the measurement instead of arguing with
+    # it. The old estimate is kept and printed, so the gap is visible rather
+    # than quietly erased.
+    CONDITIONAL_SHARE_ESTIMATED = 0.12
+    CONDITIONAL_SHARE = ((m["read_throughs"] / m["rows"]) if m["rows"]
+                         else CONDITIONAL_SHARE_ESTIMATED)
 
     def bill(reads_per_month: int, *, read_late: bool, conditional: bool = False,
              extract_model: str | None = None,
@@ -526,7 +573,7 @@ def main() -> int:
             return float("nan"), {}
         # Read-late buys an interpretation only for a record that stores.
         # Without it, every read that extraction called a signal bought one.
-        rate = rt_per_read_late if read_late else rt_per_read_eager
+        rate = rt_per_read_unconditional if read_late else rt_per_read_live
         if conditional:
             rate *= CONDITIONAL_SHARE
         interpretations = reads_per_month * rate
@@ -539,8 +586,9 @@ def main() -> int:
     full_reads = day_kept * DAYS
 
     rows = [
-        ("today's caps, before read-late", today_reads, False, False, None, None),
-        ("today's caps, WITH read-late", today_reads, True, False, None, None),
+        ("today's caps, AS RUNNING (measured)", today_reads, False, False, None, None),
+        ("  hypothetical: second pass UNCONDITIONAL",
+         today_reads, True, False, None, None),
         ("FULL coverage, read-late", full_reads, True, False, None, None),
         ("FULL coverage, second pass CONDITIONAL", full_reads, True, True, None, None),
     ]
@@ -588,6 +636,19 @@ def main() -> int:
         print(f"    {label:44} {parts['gate']:6.2f} {parts['extract']:6.2f} "
               f"{parts['read']:6.2f} {total:7.2f}{flag}")
 
+    # Say which row is the bill. The first row IS the running configuration and
+    # the second is a hypothetical, and for four days the labels said the
+    # opposite; an owner making a spending decision should not have to know what
+    # "read-late" means to tell those apart.
+    print(f"\n    The FIRST row is what this is costing right now. Every row "
+          f"below it is a\n    configuration that is not running. "
+          f"'CONDITIONAL' rows use the MEASURED "
+          f"{CONDITIONAL_SHARE:.1%}\n    of storing records that buy a paid "
+          f"sentence, not the older {CONDITIONAL_SHARE_ESTIMATED:.0%} estimate"
+          + ("" if abs(CONDITIONAL_SHARE - CONDITIONAL_SHARE_ESTIMATED) < 0.02
+             else " —\n    the ledger and that estimate disagree, and the "
+                  "ledger wins."))
+
     # DISCOVERY, priced beside collection rather than left out of it. This is
     # the only paid thing in the product that is not a read of a source we
     # already trust, and it was invisible here until 2026-08-02.
@@ -613,7 +674,8 @@ def main() -> int:
     e = call_cost(prices, MODELS["extract"], EXTRACT_IN, EXTRACT_OUT,
                   cached_prefix=EXTRACT_PREFIX)
     per_read = ((e or 0)
-                + (unit["read"] or 0) * rt_per_read_late * CONDITIONAL_SHARE) * factor
+                + (unit["read"] or 0) * rt_per_read_unconditional
+                  * CONDITIONAL_SHARE) * factor
     gate_bill = (unit["gate"] or 0) * day_gate * DAYS * factor
     affordable = (max(0, int((collection_allowance - gate_bill) / per_read))
                   if per_read else 0)
