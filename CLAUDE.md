@@ -187,6 +187,33 @@ against its real background, in four theme combinations at 1280 and 375.
   plugin's own declaration to the site rule's own scope plus `.tit-wrap`, one
   class more specific and never wider.
 
+**THE REPOSITORY IS THE BACKUP, AND SOMETHING EXERCISES THAT CLAIM NOW.**
+`data/talent_intel.db` is committed, so if the host disappears the rows are
+still here and the site is rebuilt by clearing `published_at` and republishing.
+That was true and unexercised until 2026-08-20. `backup_check.py` runs weekly
+(`backup-check.yml`, Mondays 10:00 UTC, under a second, no model, no key) and
+opens **the committed blob** rather than the working copy: `PRAGMA
+integrity_check`, every table's row count against the last recorded reading in
+`data/backup_check.json`, and the restored schema against `publish.FIELDS`. It
+is not a database writer and is not in the `talent-collect` lock; it commits one
+ledger. **A table that shrank is a FAIL with zero tolerance**, because nothing
+here deletes a row: the 2026-07-28 reset-and-copy commits took 9,572 rows across
+five commits with no red run anywhere. A baseline run is UNKNOWN, never a pass.
+`ops_status.py [6]` reads the ledger offline; a red run alerts through
+`ci-alert.yml` like every other red run, and there is no new channel.
+
+**The backup has a ceiling and it is close.** GitHub refuses any single file
+over 100 MiB in one push. The database was 78.6 MiB on 2026-08-20 and grows
+~650 KB/day, so pushes start being rejected in about five weeks and the check
+reds at 90 MiB before that. VACUUM, moving `seen_urls` out of the committed
+file, and LFS are the three options, and all three are the owner's decision
+rather than a fix a session should just take. **[docs/RECOVERY.md](docs/RECOVERY.md)**
+is the 2am document: what to check first, how to get any past revision back, the
+republish sequence, and the unsoftened list of what is NOT covered (`wp_posts`
+and the whole blog, uploads, the WordPress install, and the shared email
+subscriber list, which is the sibling plugin's and is personal data that must
+never reach either public repo).
+
 **There is no Railway deployment.** Collection runs on Actions because the
 database must be committed back to the repo; an ephemeral container discards
 it. If you find a Railway service pointed at this repo, it is a leftover.

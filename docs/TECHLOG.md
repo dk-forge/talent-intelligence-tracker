@@ -14,6 +14,65 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-20 - the backup was a hypothesis, and one number says it expires
+
+**"Can this be backed up 100% on GitHub so if Bluehost disappears we can
+reimage elsewhere?"** The answer for the DATA was already yes and had never
+been tested; the answer for the SITE is no, and nothing in either repository
+said so out loud.
+
+**What was verified rather than assumed.** `wp_tit_signals` is the only table
+this plugin owns, and its 49 columns are a strict SUBSET of the 50 in the local
+`signals` table (the extra one is `published_at`, a local marker the site never
+sees). Publishing is one-way: `pipeline/publish.py` sends unpublished rows and
+the site has no write route that is not keyed and driven from this repository.
+So the live table is a projection, and the projection is LOSSY in the direction
+that matters: `restore_lost_rows.py` already recorded that `/query` returns 35
+of 48 columns and no `collector` at all. The repository is the superset.
+
+**The restore was exercised, not described.** `git cat-file -p
+HEAD:data/talent_intel.db` into a temp file, `PRAGMA integrity_check` -> `ok`,
+and `publish.publish(conn, dry_run=True)` on that extracted file after clearing
+`published_at` reports `would_send: 31157, quarantined: 7`, which is every
+current row bar the ones an unanswered guardrail holds. That is the whole
+rebuild path, run offline, against the real committed blob.
+
+**So the check is now weekly.** `backup_check.py` + `backup-check.yml`, Mondays
+10:00 UTC, under a second, no model and no key. It reads the COMMITTED BLOB and
+not the working copy, which are different files and only one of them is the
+backup. Five checks: integrity, core tables present and non-empty, no table
+smaller than the last recorded reading, every `publish.FIELDS` column still in
+the restored schema, and the push size. A shrink is FAIL at ZERO tolerance
+because nothing in this repository deletes a row - the July reset-and-copy
+commits took 9,572 rows across five commits with no red run anywhere, which is
+exactly the shape of failure that looks like protection. A baseline run is
+UNKNOWN and never a pass, and FAIL outranks UNKNOWN. `tests/test_backup_check.py`
+seeds each failure and asserts it fires; a guard only ever seen to pass is not a
+guard.
+
+**The number nobody had looked at.** GitHub refuses any single file over
+100 MiB in one push. The database is 78.6 MiB and grew 650 KB/day over
+2026-08-05..20, so pushes start being REJECTED in about five weeks and
+collection stops being able to save its own work. It would have arrived as a
+failed push inside a 22:00 collect run. It now arrives as a Monday email at
+90 MiB instead. VACUUM, moving `seen_urls` (56,103 rows of pure bookkeeping,
+and the fastest-growing table) out of the committed file, or LFS - all three
+change what a plain clone gives you, so all three are the owner's call.
+
+**And the honest gaps, written down in [RECOVERY.md](RECOVERY.md) rather than
+softened.** `wp_posts` and every blog article, revision and permalink; the
+uploads directory; the WordPress install itself including the site CSS override
+that `contrast_audit.py` exists to beat; and the email subscriber list, which is
+rendered by this plugin but STORED by the sibling's (`alt_digest_subscribe_form`
+-> `ai-layoff-tracker/includes/subscribe.php`), one install, one list. None of
+it is in any repository. A WordPress export covers the first, a Bluehost account
+backup covers the first three, and nothing this project controls covers the
+subscriber list. It is personal data, both repositories are public, and moving
+it anywhere is the owner's decision and not a session's.
+
+---
+
+
 ## 2026-08-19 - the alert said the failure was `##[endgroup]`
 
 **An operational email went out whose entire WHAT FAILED section read
