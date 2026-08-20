@@ -5,8 +5,13 @@ Nothing here needs a decision until step 3.
 
 The short version: **the data is safe and the website is not.** Every row this
 project has ever collected is committed to this repository as
-`data/talent_intel.db`, and the live WordPress table is built out of it by
-re-running one push. What is not in any repository is WordPress itself: the blog
+`data/talent_intel.db` **and `data/talent_intel_cache.db`**, and the live
+WordPress table is built out of them by re-running one push. Two files since
+2026-08-20, and you need **both**: the first holds `signals`, the second holds
+`seen_urls`, `source_links` and `employer_identity`. They are one database at
+runtime — `pipeline.schema.connect()` attaches the second to the first — so
+nothing you do below has to name the cache file except when you are copying
+files around, and then you must copy the pair. What is not in any repository is WordPress itself: the blog
 posts, the uploads, the theme, the other plugins, and the email subscriber list.
 Section 4 is the honest list, and it is the part worth reading before you need
 it.
@@ -45,20 +50,32 @@ are genuinely moving to a new host.
 
 ## 2. Where the data is
 
-One file, committed on every collect run:
+Two files, both committed on every collect run:
 
 ```bash
 git log --oneline -- data/talent_intel.db | head        # every version ever pushed
 git log --oneline -- data/talent_intel.db | wc -l       # 503 versions as of 2026-08-19
 ```
 
-Any past version can be handed back whole, with every column:
+Any past version can be handed back whole, with every column. Take **both**
+halves at the **same sha**, and give the cache file the `_cache` name the code
+derives — the attach looks for it beside the product file:
 
 ```bash
-git show <sha>:data/talent_intel.db > /tmp/restored.db
-sqlite3 /tmp/restored.db "PRAGMA integrity_check;"
-sqlite3 /tmp/restored.db "SELECT COUNT(*) FROM signals;"
+git show <sha>:data/talent_intel.db       > /tmp/restored.db
+git show <sha>:data/talent_intel_cache.db > /tmp/restored_cache.db
+sqlite3 /tmp/restored.db       "PRAGMA integrity_check;"
+sqlite3 /tmp/restored_cache.db "PRAGMA integrity_check;"
+python3 -c "from pipeline import schema; c = schema.connect_ro('/tmp/restored.db'); \
+    print(c.execute('SELECT COUNT(*) FROM signals').fetchone()[0], 'signals'); \
+    print(c.execute('SELECT COUNT(*) FROM seen_urls').fetchone()[0], 'seen_urls')"
 ```
+
+A sha older than 2026-08-20 has no cache file, and that is not a broken
+restore: at that revision the three tables are still inside the product file.
+`schema.connect()` moves them out as it opens the file, so an old version and a
+new one arrive at `merge_db.py` in the same shape. The second `git show` above
+will simply fail on such a sha; skip it.
 
 Write it to a **new path**, never over `data/talent_intel.db`. Restoring by
 copying a file over the tracked one is what destroyed 9,572 signal rows on
@@ -76,18 +93,18 @@ The current state, for comparison when you are deciding whether something is
 wrong. These are the numbers `data/backup_check.json` recorded on 2026-08-20,
 and that file is the authority rather than this table:
 
-| table | rows |
-|---|---|
-| signals | 33,369 |
-| seen_urls | 56,103 |
-| source_links | 6,448 |
-| employer_identity | 5,457 |
-| source_health | 329 |
-| publish_guardrails | 39 |
-| funding_corroborations | 0 |
+| table | rows | file |
+|---|---|---|
+| signals | 33,382 | `talent_intel.db` |
+| source_health | 332 | `talent_intel.db` |
+| publish_guardrails | 39 | `talent_intel.db` |
+| funding_corroborations | 0 | `talent_intel.db` |
+| seen_urls | 56,106 | `talent_intel_cache.db` |
+| source_links | 6,496 | `talent_intel_cache.db` |
+| employer_identity | 5,457 | `talent_intel_cache.db` |
 
-78.6 MiB, growing about 650 KB and about 180 signal rows a day. Measured over
-2026-08-05 to 2026-08-20, so roughly 240 MB and 65,000 signal rows a year.
+56.7 MiB and 18.7 MiB, growing about 358 KB and 318 KB a day respectively, and
+about 180 signal rows a day. Measured over 2026-08-05 to 2026-08-20.
 
 ---
 
@@ -126,7 +143,8 @@ site holds nothing, so the marker has to be cleared before anything will be
 sent:
 
 ```bash
-cp data/talent_intel.db /tmp/republish.db          # work on a copy first
+cp data/talent_intel.db       /tmp/republish.db          # work on a copy first
+cp data/talent_intel_cache.db /tmp/republish_cache.db    # ...and its other half
 sqlite3 /tmp/republish.db "UPDATE signals SET published_at = NULL;"
 ```
 
@@ -134,14 +152,15 @@ Check what that would send, without sending it:
 
 ```python
 python - <<'PY'
-import sqlite3
-from pipeline import publish
-conn = sqlite3.connect("/tmp/republish.db"); conn.row_factory = sqlite3.Row
+from pipeline import publish, schema
+conn = schema.connect("/tmp/republish.db")   # attaches /tmp/republish_cache.db
 print(publish.publish(conn, dry_run=True))
 PY
 ```
 
-Measured on 2026-08-19 this reports `would_send: 31157, quarantined: 7`, which
+Measured on 2026-08-20, from the two committed blobs and nothing else, this
+reports 31,227 current rows selecting cleanly across all 40 republish columns
+(`would_send` less whatever a guardrail is holding), which
 is every current row except the ones an unanswered publish guardrail is
 holding. If your number is far from the current signal count, stop and find out
 why before sending anything.
@@ -152,9 +171,8 @@ database:
 ```bash
 sqlite3 data/talent_intel.db "UPDATE signals SET published_at = NULL;"
 WP_SITE_URL=https://<domain>/blog WP_API_KEY=<key> python - <<'PY'
-import sqlite3
-from pipeline import publish
-conn = sqlite3.connect("data/talent_intel.db"); conn.row_factory = sqlite3.Row
+from pipeline import publish, schema
+conn = schema.connect("data/talent_intel.db")
 print(publish.publish(conn))
 PY
 ```
@@ -182,7 +200,8 @@ that state has to be pushed or the next collect run will offer all 31,000 rows
 again.
 
 ```bash
-git add data/talent_intel.db && git commit -m "restore: republished to the new host"
+git add data/talent_intel.db data/talent_intel_cache.db \
+    && git commit -m "restore: republished to the new host"
 git push
 ```
 
@@ -336,13 +355,28 @@ republish path sends. `ops_status.py [6]` reads the committed ledger offline. A
 failing week reds the run, and a red run mails the owner through `ci-alert.yml`
 like every other red run here.
 
-**The one ceiling worth knowing about now.** GitHub refuses any single file over
-100 MiB in a push. The database was 78.6 MiB on 2026-08-19 and grows about
-650 KB a day, which is roughly **five weeks** before pushes start being
-rejected. When that happens, collection stops being able to save its own work,
-and the failure arrives as a push error inside an unrelated 22:00 collect run.
-`backup_check.py` fails at 90 MiB so it arrives as a Monday morning email
-instead. The options at that point are a `VACUUM`, moving `seen_urls` (56,012
-rows of pure bookkeeping, and the fastest-growing table) out of the committed
-file, or Git LFS. All three are decisions rather than fixes, and the last one
-changes what a plain `git clone` gives you, which is the whole backup story.
+**The ceiling, and what was done about it on 2026-08-20.** GitHub refuses any
+single file over 100 MiB in a push. The database was 78.8 MiB and growing
+676 KB a day, which was about **32 days** before pushes started being rejected —
+and when that happens collection stops being able to save its own work, arriving
+as a push error inside an unrelated 22:00 collect run. `backup_check.py` fails at
+90 MiB so it arrives as a Monday morning email instead.
+
+The answer was to **split the file**, not to take it out of git. The limit is
+per FILE, and both halves stay committed, so `git push` is still the
+compare-and-swap that makes `merge_db.py` safe and `git show <sha>:data/...` is
+still everything on this page. Release assets have no compare-and-swap — two
+uploads clobber, which is the 2026-07-28 failure that cost 9,572 rows — and LFS
+would move 80 MiB per checkout onto a 1 GB/month quota this repo would spend in
+a day, while changing what a plain `git clone` gives you, which is the whole
+backup story. `VACUUM` alone was measured and buys nothing: the freelist was
+zero pages. `split_cache_db.py` is the migration and its docstring carries the
+full reasoning.
+
+**This bought about four months, not a solution, and the next session to hit it
+should not repeat the same move.** `signals` is the growth now (about 358 KB a
+day of the file), it is the product rather than a cache, nothing here deletes a
+row, and there is nothing left to move out. The durable answer is to CLOSE the
+live file and start a dated shard — `data/archive/signals-<period>.db`, frozen,
+never rewritten, attached read-only by anything that needs history — which
+bounds the file that is pushed every day instead of buying another four months.
