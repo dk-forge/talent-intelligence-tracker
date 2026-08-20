@@ -338,8 +338,14 @@ def test_known_round_is_matched_before_any_read(conn):
         item("Enigma raised $71 million from new investors",
              url="https://late.example/7"))
     assert parsed is not None
+    # The window is anchored on the CANDIDATE's published_date, never on
+    # date.today() (pipeline/dedupe.py, fixed 2026-08-04) — the real call
+    # site (run_collect.py) always passes it. Omitting it here made the
+    # assertion drift out of the default 21-day window and fail once the
+    # suite ran more than 21 days after this fixture's "2026-07-29".
     assert dedupe.funding_event_duplicate(
-        conn, parsed.company_key, parsed.amount_usd, parsed.amount_canon)
+        conn, parsed.company_key, parsed.amount_usd, parsed.amount_canon,
+        published_date="2026-07-29")
 
 
 def test_a_different_company_or_size_is_not_a_known_round(conn):
