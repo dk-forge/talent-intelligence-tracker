@@ -317,32 +317,28 @@ def test_the_recall_alert_carries_names_to_the_inbox_only(monkeypatch):
     log records only the percentage and the count."""
     posted = {}
 
-    class Resp:
-        status_code = 200
+    # `post` is a payload sink now, not an HTTP poster. The recall gap goes
+    # through ops_notify, which owns the From line and the subject prefix, so
+    # there is no url, no header and no API key for this test to assert on -
+    # that is the point of the change, not a gap in it.
+    def fake_post(payload):
+        posted.update(payload)
+        return True
 
-    def fake_post(url, *, json=None, headers=None, timeout=0):
-        posted["url"] = url
-        posted["json"] = json
-        posted["headers"] = headers
-        return Resp()
-
-    monkeypatch.setenv("WP_SITE_URL", "https://example.com/blog")
-    monkeypatch.setenv("WP_API_KEY", "k")
     sent = run_benchmark_diff.email_recall_gap(
         ["Plantopia", "Verdantis"], 60.0, 5, post=fake_post)
     assert sent
-    assert posted["url"].endswith("/wp-json/talent/v1/alert")
-    assert "X-Talent-API-Key" in posted["headers"]
-    assert "Plantopia" in posted["json"]["body"]
-    assert "60.0%" in posted["json"]["subject"]
+    assert "Plantopia" in posted["body"]
+    assert "60.0%" in posted["subject"]
+    # The transport stamps the prefix. A caller that stamps it too produces
+    # `[Talent Intelligence Tracker] [Talent Intelligence Tracker] ...`.
+    assert "[Talent Intelligence Tracker]" not in posted["subject"]
 
 
 def test_a_healthy_recall_sends_no_alert(monkeypatch):
     def explode(*a, **k):
         raise AssertionError("no alert may fire at or above the threshold")
 
-    monkeypatch.setenv("WP_SITE_URL", "https://example.com/blog")
-    monkeypatch.setenv("WP_API_KEY", "k")
     assert run_benchmark_diff.email_recall_gap(
         ["Plantopia"], run_benchmark_diff.RECALL_ALERT_PCT, 100,
         post=explode) is False

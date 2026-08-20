@@ -904,11 +904,35 @@ def _report_host() -> list[str]:
                   f"{(e.get('payload') or {}).get('subject', e.get('key', ''))[:60]}")
         if worst >= 12:  # alert_outbox.FAIL_LOUD_ATTEMPTS
             problems.append(
-                f"{len(held)} alert(s) have failed delivery 12+ times. With the "
-                f"host up that is a settled refusal, not an outage: check "
-                f"WP_API_KEY and that the plugin carrying /alert is deployed.")
+                f"{len(held)} alert(s) have failed delivery 12+ times. That is a "
+                f"settled refusal, not an outage: check RESEND_API_KEY, and "
+                f"check that OPS_MAIL_FROM uses a domain this Resend account "
+                f"has verified.")
     else:
         print("    alerts    nothing held — every alert raised has reached the owner")
+
+    # WHAT IS CURRENTLY BEING SUPPRESSED, which no session could read while the
+    # open/resolved state lived in a WordPress option. One cause is one email,
+    # so anything listed here is a real failure the owner has already been told
+    # about once and will not be told about again until it clears or reaches its
+    # fourteen-day reminder. That is correct behaviour and invisible behaviour,
+    # and invisible correct behaviour is indistinguishable from a broken alerter
+    # until you can print it.
+    try:
+        import alert_state
+        suppressed = alert_state.open_alarms()
+    except Exception as exc:  # noqa: BLE001 - a status tool must not raise
+        print(f"    suppress  UNKNOWN — could not read the alarm ledger ({exc})")
+        suppressed = []
+    else:
+        if suppressed:
+            print(f"    suppress  {len(suppressed)} cause(s) OPEN, so a repeat of "
+                  f"each is deduped away")
+            for key, first, _last, subject in suppressed[:3]:
+                print(f"              raised {first}  {subject[:56]}")
+        else:
+            print("    suppress  nothing open — the next failure of anything "
+                  "will mail")
 
     return problems
 

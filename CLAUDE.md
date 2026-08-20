@@ -51,8 +51,101 @@ filtered alarm is the original problem in a new hat. `ci_status.py` shares
 `ci_alert.extract_cause` so the dashboard and the email can never describe one
 failure two ways.
 
-**`/alert` is a route on the host it reports about, and on 2026-07-31 that was
-the whole defect.** Bluehost 504'd under `/blog/` for seven minutes: enrich
+**OPERATIONAL MAIL LEFT THE HOST ON 2026-08-20. IT GOES THROUGH RESEND NOW.**
+`/alert` was a route on the host it reports about, and it calls bare `wp_mail()`
+— which the Brevo plugin on this install replaces wholesale with the SUBSCRIBER
+relay identity, so alarms arrived wearing the reader newsletter's face. Two
+defects, one route. `opsmail.py` (stdlib, Resend, `RESEND_API_KEY`) now carries
+CI alerts, the RECOVERED notices, the weekly `health_digest.py`,
+`ci_noise_report.py`, the benchmark recall gap and the gate-classifier notices.
+**The alarm no longer depends on the thing it monitors.**
+
+ONE IDENTITY, and it matches the sibling tracker so one mail rule catches both:
+
+    From:    Talent Intelligence Tracker Ops <ops@asktherecruiter.com>
+    Subject: [Talent Intelligence Tracker] <anything>
+
+The prefix is what the endpoint stamped, kept byte for byte including the
+trailing space, because the owner filters on it. `OPS_MAIL_FROM` overrides the
+sender and is READ IN `opsmail.py` AND NOWHERE ELSE; it travels with
+`RESEND_API_KEY` in every workflow that carries one, because the day it is set,
+a job that does not carry it keeps the old From and the owner has two identities
+to filter. **Reader mail keeps its own identity and never gains the ops prefix.**
+There is no subscriber relay in this repo today; if one is added it stays on its
+own provider and its own budget, so a bad afternoon of red CI cannot eat an
+allowance readers depend on.
+
+ENUMERATING EVERY SENDER IS THE WHOLE LESSON. The sibling's port
+converted three callers and left nine, and **nothing noticed, because a wrong
+From line produces no error anywhere.** `tests/test_ops_sender.py` is what makes
+that impossible to repeat: no module may build a request to the `/alert` route,
+only reviewed helpers may touch the transport, `OPS_MAIL_FROM` has exactly one
+reader, the prefix is stamped once by the transport and never by a caller, every
+mailing job's workflow carries `RESEND_API_KEY`, and `ALERT_STATE_COMMIT` is set
+where alarms are raised.
+
+**The open/resolved ledger moved with it, into `data/alert_state.json`, and THE
+CLAIM IS COMMITTED BEFORE THE SEND.** That ordering is the whole reason this is
+not a downgrade. The endpoint's read-modify-write window was milliseconds; a
+committed file read at checkout and pushed 30 seconds later is not, and two
+runners that both read "nothing is open" would both mail. `git push` to main is
+the compare-and-swap: the loser re-derives, finds the cause open and goes quiet.
+Resend's `Idempotency-Key` is a second guard on the same transition — a
+TRANSITION, not a cause, because a cause can open, close and reopen inside
+Resend's 24-hour window and a cause-scoped key answers the genuine second alarm
+with HTTP 409. Everything dedup promised still holds: one cause is one email,
+RECOVERED fires once, the 14-day STILL FAILING window is unchanged.
+`ops_status.py [2f]` now prints what is currently being SUPPRESSED, which no
+session could read while that state lived in a WordPress option. Do not
+"simplify" this by writing the ledger after the send, and **do not let the drain
+re-rule a held alert** — `host_watch.drain` calls `ci_alert.deliver`, never
+`post_alert`, or the ledger would swallow the alert as a duplicate of itself.
+
+**A LIVE-DATA failure is deduped by INCIDENT, not by branch.** The scope is
+`workflow:branch` for a code failure — a test that fails on one branch only is
+that branch's defect and must not hide inside main's alarm. An assertion naming
+a `published_figures` check reads asktherecruiter.com, not the checkout, so
+every branch sees the same one wrong published number and the branch that
+noticed is noise. Those raise and clear under a branch-free
+`<workflow>:live.data` scope, keyed on `live_data_identity()`, whose vocabulary
+is read from `published_figures`' OWN registry so a rename cannot silently
+return it to one email per branch. Do not broaden this to non-live failures, and
+do not collapse two checks into one key.
+
+**A pull-request failure on a non-main branch is ROUTED, not emailed.**
+`ci_alert.route_to_ops_status` sends it to `ci_status.py` instead of the inbox:
+it is still red in GitHub, still red in the pull request, still blocks the merge,
+and a session is standing right there holding it. Four things it must never
+catch, each of them a test: any failure on main, a live-data incident from any
+branch, a scheduled or pushed run anywhere, and a RECOVERED notice. A routed
+raise writes NOTHING to the ledger, so it orphans nothing and is owed no clear.
+
+The outbox survives all of it, because a relay can be down too. Three rules
+still, unchanged in substance:
+
+- **An undeliverable alert is HELD, not lost.** `ci_alert.py` retries transient
+  failures in-run, then writes it to `data/alert_outbox.json` (committed).
+  `host-watch.yml` drains it every 15 minutes, and **the drain is no longer
+  gated on the host answering** — delivery has nothing to do with Bluehost now,
+  and waiting for a host probe would re-couple the two. An empty outbox makes no
+  request at all, which is why that tick stays free.
+- **A delivery failure is NOT a red run.** Holding exits 0. The only non-zero
+  left is "could neither deliver NOR hold". **Do not restore the old `exit 1` on
+  a failed POST**: that is what let one outage manufacture red runs which
+  manufacture alerts which also fail.
+- **`host-watch.yml` still opens ONE GitHub issue per sustained outage.** It is
+  no longer the only channel that works during an outage — email works now — but
+  it is still the record, and opening and closing it are two emails while every
+  update in between mails nobody.
+
+THE HISTORY, because it is why all of the above is shaped this way. On
+2026-07-31 Bluehost 504'd under `/blog/` for seven minutes: enrich failed,
+drain-writers correctly went red, and the alerter then failed four times saying
+"HTTP 504 from /alert" — mute at exactly the moment it was needed, and
+manufacturing four extra red runs while it was.
+
+**The original coupling, kept because it is the argument.** `/alert` was a route on the host it reports about, and on 2026-07-31 that was
+the whole defect. Bluehost 504'd under `/blog/` for seven minutes: enrich
 failed, drain-writers correctly went red, and the alerter then failed four times
 saying "HTTP 504 from /alert" — mute at exactly the moment it was needed, and
 manufacturing four extra red runs while it was. Three things now hold:

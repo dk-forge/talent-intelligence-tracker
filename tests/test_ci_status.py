@@ -398,7 +398,16 @@ class TheRitualTests(unittest.TestCase):
         # because the QUEUE is what has to refuse a key the endpoint will only
         # ever answer with a settled 400 — see the note on alert_outbox.KEY_SAFE
         # and the five hours host-watch spent red over one uppercase letter.
-        leans_on = {"writer_queue", "alert_outbox"}
+        # opsmail, alert_state and published_figures joined on 2026-08-20, when
+        # operational mail left the WordPress host. opsmail IS the transport
+        # (urllib), alert_state IS the committed open/resolved ledger (json,
+        # subprocess), and published_figures is consulted only for the live-data
+        # vocabulary that decides whether an incident is keyed per branch. All
+        # three are stdlib-only, and the loop below is what keeps that true: the
+        # notifier must never need a venv, because a dependency resolver that
+        # fails at 2am would take the alarm down with it.
+        leans_on = {"writer_queue", "alert_outbox", "opsmail", "alert_state",
+                    "published_figures"}
 
         self.assertEqual(imports_of("ci_alert.py")
                          - set(sys.stdlib_module_names)

@@ -41,6 +41,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 import ci_alert
+import opsmail
 import writer_queue_runs
 
 #: Conclusions that count as failures, same set the alerter reacts to.
@@ -197,15 +198,13 @@ def main(argv=None) -> int:
     if args.dry_run:
         return 0
 
-    site = os.environ.get("WP_SITE_URL", "").rstrip("/")
-    key = os.environ.get("WP_API_KEY", "")
-    if not (site and key):
-        print("::error::WP_SITE_URL / WP_API_KEY are not set — the noise "
-              "report was NOT sent.")
+    if not opsmail.configured():
+        print("::error::RESEND_API_KEY is not set - the noise report was NOT "
+              "sent.")
         return 1
 
     payload = {"subject": subject, "body": body, "dedupe_key": dedupe_key}
-    ok, note, transient = ci_alert.post_alert(site, key, payload)
+    ok, note, transient = ci_alert.post_alert("", "", payload)
     print(f"noise report {dedupe_key}: {note}")
     if ok:
         return 0

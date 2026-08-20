@@ -476,31 +476,30 @@ def revert(out_dir: str, report: dict, *, prior: dict, n_labels: int) -> dict:
     return status
 
 
-# --- Alerts (the keyed /alert route; ci_alert owns the transport) ------------------
+# --- Alerts (ops_notify owns the From line, the prefix and the transport) ---
 
 
 def _alert(subject: str, body: str, *, dedupe_key: str = "",
            resolve_scope: str = "", poster=None) -> bool:
-    """One email through the plugin's keyed /alert. Never raises, never exits
-    non-zero: an undeliverable notice is printed and retried next week via
-    status.json's notice_pending, not turned into a red training run."""
-    site = (os.environ.get("WP_SITE_URL") or "").strip()
-    key = (os.environ.get("WP_API_KEY") or "").strip()
+    """One operational email. Never raises, never exits non-zero: an
+    undeliverable notice is printed and retried next week via status.json's
+    notice_pending, not turned into a red training run."""
     payload = {"subject": subject, "body": body}
     if dedupe_key:
         payload["dedupe_key"] = dedupe_key
     if resolve_scope:
         payload["resolve_scope"] = resolve_scope
-    if poster is None:
-        if not site or not key:
-            print(f"[gate-classifier] notice NOT sent (no WP credentials in "
-                  f"this environment): {subject}")
-            return False
-        import ci_alert
-        ok, note, _transient = ci_alert.post_alert(site, key, payload)
-        print(f"[gate-classifier] /alert: {note}")
-        return ok
-    return poster(payload)
+    if poster is not None:
+        return poster(payload)
+    # Through the one door. This built its own payload and called
+    # `ci_alert.post_alert` with the WP credentials, so it went to the route
+    # that hands mail to bare `wp_mail()` and the reader newsletter's From line.
+    # The dedup shape it had is preserved exactly: the caller's `dedupe_key` and
+    # `resolve_scope` are passed straight through.
+    import ops_notify
+    return ops_notify.notify(subject, body, dedupe_key=dedupe_key,
+                             resolve_scope=resolve_scope,
+                             what="gate-classifier notice")
 
 
 def _fingerprint(text: str) -> str:
