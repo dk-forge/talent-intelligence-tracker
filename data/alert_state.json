@@ -4,8 +4,13 @@
       "first": 1787266230,
       "last": 1787266230,
       "subject": "CI RED: collect: [publish] sent=4 stored=4 duplicate=0 errors=0"
+    },
+    "tests:main:4f1a1e68f4bf4daf": {
+      "first": 1787267468,
+      "last": 1787267468,
+      "subject": "CI RED: tests: [2226:2251:0820/230342.913972:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "
     }
   },
-  "updated_at": "2026-08-20T22:50:31+00:00",
+  "updated_at": "2026-08-20T23:11:09+00:00",
   "version": 1
 }
