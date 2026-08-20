@@ -323,7 +323,26 @@ def collect(queries=None, *, days_back: int = 5, pages: int = 3,
     for page in range(pages):
         try:
             hits = search(days_back=days_back, page=page)
-        except requests.RequestException:
+        except requests.RequestException as exc:
+            # SAY SO. This `break` used to be silent, and a silent break is
+            # indistinguishable from a genuinely quiet window: both leave
+            # found=0, which run_outcome() reads as a failure, and the workflow
+            # goes red with nothing in the log to explain it.
+            #
+            # That is not hypothetical. On 2026-08-19 `collect` run 32307688627
+            # reddened main on exactly this path -- EFTS refused the first page,
+            # the group ran 3.0s against a normal 32s, and the step printed
+            # nothing at all. Replaying the same query afterwards returned 222
+            # filings, so the window was never empty. Diagnosing one transient
+            # took a full log read and a manual replay of the query.
+            #
+            # This line does NOT change what the run concludes; whether an
+            # errored zero should be fatal at all is a live question about
+            # failure semantics and is the owner's call. It changes only whether
+            # the failure can be read. An unattributable red is the expensive
+            # part.
+            print(f"[sec_form_d] EDGAR refused page {page}: "
+                  f"{type(exc).__name__}: {exc}")
             break
         if not hits:
             break

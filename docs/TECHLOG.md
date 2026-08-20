@@ -14,6 +14,47 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-19 - the alert said the failure was `##[endgroup]`
+
+**An operational email went out whose entire WHAT FAILED section read
+`##[endgroup]`.** That is a GitHub log-group marker. It is formatting.
+
+`collect` run 32307688627 went red on main. `extract_cause()` matched none of
+its buckets, and fell through to its documented fallback -- "the last real
+output line still beats 'a job failed'". The last non-empty line before
+`##[error]Process completed with exit code 1.` was the fold marker that closes
+the step. The fallback was right in principle and had no idea that formatting
+is not output.
+
+**The subject line was the smaller half.** `cause` is also what `build_alert`
+FINGERPRINTS. `##[endgroup]` is a constant that survives `normalise()`
+unchanged, so every no-cause failure of one workflow+branch hashes to ONE key
+and the second is suppressed as "already open". One email per CAUSE quietly
+became one email per WORKFLOW, and no surface said so.
+
+`is_cause_line()` refuses blank lines, fold markers, and any workflow command
+with no message, applied twice -- once to the candidate pool, once to the final
+answer, because either alone is a guard the next new bucket walks around.
+`##[error]` and `##[warning]` still carry causes; `##[group]`, `##[endgroup]`
+and `##[section]` never do whatever text follows, because a fold's name says
+what was about to happen rather than what broke. `build_alert` already had a
+truthful no-cause path and now reaches it. The documented fallback is otherwise
+unchanged: on the real log the cause becomes `[publish] sent=0 stored=0
+duplicate=0 errors=0`, thin but genuinely what the job last said.
+
+**And the run itself.** `sec_form_d` fetched 0 filings in 3.0 seconds against a
+normal 32, because `collectors/sec_form_d.py` caught `requests.RequestException`
+from the first EFTS page and `break`, silently. `run_outcome()` reads found=0 as
+a failure, so the workflow went red with NOTHING in the log to explain it.
+Replaying the same query afterwards returned 222 filings, so the window was
+never empty -- EDGAR refused us on the runner. The `break` now prints the
+exception. That does not change what the run concludes; whether an errored zero
+should be fatal at all is a live question about failure semantics and is the
+owner's call. It changes only whether the failure can be READ. An
+unattributable red is the expensive part, and this one cost a full log read and
+a manual replay of the query to name.
+
+
 ## 2026-08-18 — the public search box returned 45% of the database for a two-letter company name
 
 The owner handed over four real industry items as a recall probe. Checking the
