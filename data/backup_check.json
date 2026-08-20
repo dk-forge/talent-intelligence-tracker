@@ -87,6 +87,50 @@
         "source_links": 6448
       },
       "verdict": "PASS"
+    },
+    {
+      "blob": "73d420051f2be53c00afc48f589ce3b52ab19e13",
+      "bytes": 82485248,
+      "checked_at": "2026-08-20T06:13:43Z",
+      "checks": [
+        {
+          "check": "integrity",
+          "detail": "PRAGMA integrity_check: ok",
+          "status": "PASS"
+        },
+        {
+          "check": "core_tables",
+          "detail": "6 core table(s) present and populated",
+          "status": "PASS"
+        },
+        {
+          "check": "no_shrink",
+          "detail": "no table is smaller than it was on 2026-08-20T05:43:59Z",
+          "status": "PASS"
+        },
+        {
+          "check": "republishable",
+          "detail": "all 40 republished column(s) present",
+          "status": "PASS"
+        },
+        {
+          "check": "push_size",
+          "detail": "78.7 MiB of GitHub's 100 MiB per-file push limit, about 7 day(s) of headroom at 3099 KB/day",
+          "status": "PASS"
+        }
+      ],
+      "commit": "b9691c0679497540654b4a723d322e54d8f1f02b",
+      "integrity": "ok",
+      "tables": {
+        "employer_identity": 5457,
+        "funding_corroborations": 0,
+        "publish_guardrails": 39,
+        "seen_urls": 56103,
+        "signals": 33369,
+        "source_health": 330,
+        "source_links": 6496
+      },
+      "verdict": "PASS"
     }
   ],
   "version": 1
