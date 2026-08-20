@@ -227,11 +227,11 @@ class TestBehaviour:
         calls = []
         monkeypatch.setattr(
             ci_alert, "post_alert",
-            lambda s, k, p, **kw: (calls.append(p), (False, "HTTP 504 from /alert", True))[1])
+            lambda s, k, p, **kw: (calls.append(p), (False, "could not reach Resend", True))[1])
         code, out = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "failure",
              "--envelope", str(envelope)],
-            monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
+            monkeypatch, RESEND_API_KEY="k")
 
         assert code == 0, "an outage must not manufacture a red run of its own"
         assert "::warning::" in out and "HELD" in out
@@ -247,10 +247,10 @@ class TestBehaviour:
         honestly means being loud here and nowhere else."""
         monkeypatch.setattr(
             ci_alert, "post_alert",
-            lambda s, k, p, **kw: (False, "HTTP 504 from /alert", True))
+            lambda s, k, p, **kw: (False, "could not reach Resend", True))
         code, out = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "failure"],
-            monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
+            monkeypatch, RESEND_API_KEY="k")
         assert code == 1
         assert "::error::" in out and "nobody will be told" in out.lower()
 
@@ -260,11 +260,11 @@ class TestBehaviour:
         envelope = tmp_path / "held.json"
         monkeypatch.setattr(
             ci_alert, "post_alert",
-            lambda s, k, p, **kw: (False, "HTTP 401 from /alert", False))
+            lambda s, k, p, **kw: (False, "HTTP 401 from Resend", False))
         code, out = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "failure",
              "--envelope", str(envelope)],
-            monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
+            monkeypatch, RESEND_API_KEY="k")
         assert code == 0, "still held, still not a red run"
         assert "::error::" in out, "a settled refusal must not be whispered"
 
@@ -295,10 +295,14 @@ class TestBehaviour:
         code, _ = self._run(
             ["--run-id", "1", "--workflow", "collect", "--conclusion", "success",
              "--branch", "main"],
-            monkeypatch, WP_SITE_URL="https://example.invalid", WP_API_KEY="k")
+            monkeypatch, RESEND_API_KEY="k")
         assert code == 0
-        assert calls[0]["resolve_scope"] == "collect:main"
-        assert "dedupe_key" not in calls[0]
+        # TWO resolves per green run: the ordinary branch-scoped one, and the
+        # branch-free `live.data` one a published-figure incident is raised
+        # under. Each is silent unless something was open for it.
+        assert [c["resolve_scope"] for c in calls] == ["collect:main",
+                                                       "collect:live.data"]
+        assert all("dedupe_key" not in c for c in calls)
 
 
 class TestSelfTimeoutIsNotAnEviction:

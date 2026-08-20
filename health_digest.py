@@ -37,6 +37,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+#: The one door operational mail leaves by: one From line, one subject
+#: prefix, one transport, for everything only the operator receives.
+import ops_notify
+
 # Imported under an alias because `build_email` takes a parameter called
 # `guardrails` (the ledger rows), and the module and the rows are both needed
 # in the same scope. The alias is the honest fix; renaming the parameter would
@@ -814,45 +818,30 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
     return subject, "\n".join(lines)
 
 
-def send_alert(subject: str, body: str, *, site: str, key: str) -> tuple[bool, str]:
-    """POST the alert to the site's keyed /alert endpoint.
+def send_alert(subject: str, body: str, *, site: str = "", key: str = "") -> tuple[bool, str]:
+    """Send the weekly digest to the operator, through `ops_notify`.
 
-    Mail goes through WordPress (wp_mail) rather than an SMTP service so there
-    is one fewer credential to hold, and the same de-duplication the sibling
-    uses applies server-side. Returns (sent, human-readable note). The key is
-    never printed.
+    IT NO LONGER GOES THROUGH THE HOST IT REPORTS ON. This used to POST to
+    `/wp-json/talent/v1/alert`, which is a route on the WordPress site this
+    digest is largely about, and that route hands the message to bare
+    `wp_mail()` -- which the Brevo plugin replaces wholesale with the SUBSCRIBER
+    newsletter identity. So a health digest about broken collectors arrived from
+    the newsletter address, and arrived not at all whenever the host was the
+    thing that was broken.
+
+    `site` and `key` are still accepted and ignored, because callers and tests
+    pass them and a signature break here buys nothing.
+
+    Returns (sent, human-readable note). No credential is ever printed.
     """
-    if not site or not key:
-        missing = " and ".join(
-            [n for n, v in (("WP_SITE_URL", site), ("WP_API_KEY", key)) if not v])
-        return False, "not sent: %s is not configured" % missing
-
-    import requests
-
-    try:
-        resp = requests.post(
-            f"{site.rstrip('/')}/wp-json/talent/v1/alert",
-            json={"subject": subject, "body": body},
-            headers={"X-Talent-API-Key": key, "User-Agent": USER_AGENT},
-            timeout=30,
-        )
-    except Exception as exc:
-        return False, "not sent: request failed (%s)" % str(exc)[:160]
-
-    if resp.status_code == 404:
-        return False, ("not sent: the site has no /alert route yet. The plugin "
-                       "carrying it has not been deployed.")
-    if resp.status_code != 200:
-        return False, "not sent: endpoint returned HTTP %d" % resp.status_code
-
-    try:
-        payload = resp.json()
-    except ValueError:
-        return False, "not sent: endpoint returned a non-JSON body"
-
-    if payload.get("sent"):
-        return True, "sent"
-    return False, "not sent: %s" % (payload.get("reason") or "wp_mail declined")
+    if not ops_notify.configured():
+        return False, "not sent: RESEND_API_KEY is not configured"
+    # Undeduped, deliberately: this is the shape it had on the endpoint's legacy
+    # path, and it runs weekly, so there is nothing to suppress. Changing an
+    # alarm's cadence in the same change as its From line would make a later
+    # "why did this stop mailing?" unanswerable.
+    ok = ops_notify.notify(subject, body, what="weekly health digest")
+    return ok, "sent" if ok else "not sent: the relay did not accept it"
 
 
 # --------------------------------------------------------------------------

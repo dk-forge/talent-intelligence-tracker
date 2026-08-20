@@ -140,12 +140,15 @@ def close(repo: str, *, note: str) -> tuple[bool, str]:
 
 def _default_preamble() -> str:
     return (
-        "The `/alert` endpoint that turns a red CI run into an email lives on "
-        "the same WordPress host it reports about, so while that host is "
-        "unreachable **no alert email can be sent**.\n\n"
-        "Alerts raised during the outage are not lost. They are held in "
-        "`data/alert_outbox.json` (committed, so it outlives the runner) and "
-        "delivered by the next `host-watch` run that finds the host answering.\n\n"
+        "The WordPress host that serves both trackers is not answering.\n\n"
+        "**Your alert email still works.** Operational mail leaves through "
+        "Resend, not through this host, so a red CI run during the outage is "
+        "emailed as normal. Until 2026-08-20 that was not true: alerts went out "
+        "through a route on this host, so an outage silenced the alarm about "
+        "itself, and this issue was the only channel left.\n\n"
+        "Anything that could not be delivered for a different reason is still "
+        "held in `data/alert_outbox.json` (committed, so it outlives the runner) "
+        "and drained on the next `host-watch` tick.\n\n"
         "**Nothing is required of you.** This issue exists because silence "
         "during an outage is the one thing the alerting design must never do.")
 

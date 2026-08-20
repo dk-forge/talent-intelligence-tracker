@@ -135,18 +135,58 @@ class TestHeldAlertsSurviveAndArrive:
                              reason="HTTP 504 from /alert")
         return doc
 
+    def test_the_drain_never_re_rules_a_held_alert(self, monkeypatch):
+        """It must call `ci_alert.deliver`, and never `ci_alert.post_alert`.
+
+        A held alert has ALREADY been ruled on by the ledger and already
+        claimed. Sending it back through `post_alert` would re-derive against
+        that ledger and find its own cause open -- so the alert would be
+        swallowed as a duplicate of itself and never arrive -- or, for a
+        resolve, clear a scope a second time. The ruling travelled with the
+        payload; the drain's only job is to send it.
+        """
+        doc = self._held()
+
+        def forbidden(*a, **k):
+            raise AssertionError("the drain must not re-rule a held alert")
+
+        monkeypatch.setattr(ci_alert, "post_alert", forbidden)
+        monkeypatch.setattr(ci_alert, "deliver",
+                            lambda *a, **k: (True, "emailed the owner", False))
+        assert host_watch.drain(doc)[:2] == (1, 0)
+
+    def test_the_idempotency_key_travels_with_the_held_message(self, monkeypatch):
+        """A re-drain after a failed outbox commit is the one path that genuinely
+        sends the same decision twice. The key that collapses it at Resend was
+        stamped into the payload when the ledger ruled, so it is still there
+        months later."""
+        doc = alert_outbox.empty()
+        alert_outbox.enqueue(doc, key="collect:main:abc", kind="alert",
+                             scope="collect:main",
+                             payload={"subject": "CI RED: collect", "body": "b",
+                                      "dedupe_key": "collect:main:abc",
+                                      "idempotency_key": "tit-raise-collect:main:abc-99"},
+                             reason="the relay was unreachable")
+        seen = {}
+        monkeypatch.setattr(ci_alert, "deliver",
+                            lambda payload, *a, **k: (
+                                seen.update(payload),
+                                (True, "emailed the owner", False))[1])
+        host_watch.drain(doc)
+        assert seen["idempotency_key"] == "tit-raise-collect:main:abc-99"
+
     def test_an_alert_held_during_an_outage_is_delivered_afterwards(self, monkeypatch):
         doc = self._held()
-        monkeypatch.setattr(ci_alert, "post_alert",
+        monkeypatch.setattr(ci_alert, "deliver",
                             lambda *a, **k: (True, "emailed the owner", False))
-        delivered, remaining, _ = host_watch.drain(doc, "https://x.invalid", "k")
+        delivered, remaining, _ = host_watch.drain(doc)
         assert (delivered, remaining) == (1, 0)
 
-    def test_a_drain_that_hits_a_still_down_host_keeps_everything(self, monkeypatch):
+    def test_a_drain_that_hits_a_dead_relay_keeps_everything(self, monkeypatch):
         doc = self._held()
-        monkeypatch.setattr(ci_alert, "post_alert",
+        monkeypatch.setattr(ci_alert, "deliver",
                             lambda *a, **k: (False, "HTTP 504", True))
-        delivered, remaining, blocked = host_watch.drain(doc, "https://x.invalid", "k")
+        delivered, remaining, blocked = host_watch.drain(doc)
         assert (delivered, remaining) == (0, 1) and "504" in blocked
         assert alert_outbox.pending(doc)[0]["attempts"] == 2
 
@@ -155,10 +195,10 @@ class TestHeldAlertsSurviveAndArrive:
         alert_outbox.enqueue(doc, key="b", kind="alert", scope="s2",
                              payload={"subject": "second"}, reason="")
         tries = []
-        monkeypatch.setattr(ci_alert, "post_alert",
+        monkeypatch.setattr(ci_alert, "deliver",
                             lambda *a, **k: (tries.append(1), (False, "HTTP 504", True))[1])
-        host_watch.drain(doc, "https://x.invalid", "k")
-        assert len(tries) == 1, "a down host learns nothing from the second POST"
+        host_watch.drain(doc)
+        assert len(tries) == 1, "a dead relay learns nothing from the second send"
 
     def test_the_outbox_survives_a_round_trip_through_the_file(self, tmp_path):
         path = tmp_path / "alert_outbox.json"

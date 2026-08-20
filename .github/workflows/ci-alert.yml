@@ -150,11 +150,15 @@ jobs:
       # red runs, each falsely reading as "the alerter is broken". The alerting
       # system depended on the host it was alerting about.
       #
-      # An undeliverable alert is now HELD in data/alert_outbox.json (committed
-      # below), and host-watch.yml delivers it when the host answers again. That
-      # is a kept promise, so ci_alert.py exits 0 and this run stays green. It
-      # exits non-zero only when the alert can be neither delivered NOR held —
-      # the one state where nobody is ever going to hear about the failure.
+      # An undeliverable alert is HELD in data/alert_outbox.json (committed
+      # below) and drained on the next host-watch tick. That is a kept promise,
+      # so ci_alert.py exits 0 and this run stays green. It exits non-zero only
+      # when the alert can be neither delivered NOR held — the one state where
+      # nobody is ever going to hear about the failure.
+      #
+      # SINCE 2026-08-20 THE COUPLING ITSELF IS GONE. Mail leaves through
+      # Resend, so a Bluehost outage no longer silences the alarm about it. The
+      # outbox stays because a relay can be down too.
       - name: Alert on failure / clear on recovery
         env:
           WP_SITE_URL: https://asktherecruiter.com/blog
@@ -162,7 +166,27 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
+          # The relay that carries operational mail. It is deliberately NOT on
+          # the host these alerts are about: see opsmail.py. Without it the job
+          # is green and its mail is silent, which is why
+          # tests/test_ops_sender.py fails when a mailing job lacks it.
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          # Travels WITH the key, always. It is unset today, so opsmail's
+          # default applies everywhere; the day it is set, a job that does not
+          # carry it keeps the old From and the owner has two identities to
+          # filter. That is the defect this whole change exists to close.
+          OPS_MAIL_FROM: ${{ vars.OPS_MAIL_FROM }}
+          # The claim is COMMITTED BEFORE THE SEND, and `git push` to main is the
+          # compare-and-swap that keeps one cause to one email across two
+          # concurrent runners. Without this the ledger is written to the
+          # runner's disk and thrown away with it, so dedup becomes a property
+          # of a single runner, which is not dedup. See alert_state.py.
+          ALERT_STATE_COMMIT: 'true'
         run: |
+          # Needed by the ledger claim above, which commits data/alert_state.json
+          # before anything is sent.
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
           python3 ci_alert.py \
             --run-id     "${{ inputs.run_id || github.event.workflow_run.id }}" \
             --workflow   "${{ github.event.workflow_run.name || 'manual proof' }}" \
@@ -181,7 +205,7 @@ jobs:
       # in the alert's key, so a race with a concurrent alert costs a retry and
       # never a duplicate email. Same lesson as merge_db.py and
       # schedule-link-hygiene.yml, which both learned it the expensive way.
-      - name: Hold the alert until the host is back
+      - name: Hold the alert until the relay answers
         if: ${{ !cancelled() }}
         env:
           ALERT_ENVELOPE: ${{ runner.temp }}/undelivered_alert.json
@@ -212,7 +236,7 @@ jobs:
             # HEAD:main explicitly — a workflow_run checkout can be detached,
             # and a push that resolves to no upstream fails after the work.
             if git push origin HEAD:main; then
-              echo "Held on attempt $attempt. host-watch.yml will deliver it."
+              echo "Held on attempt $attempt. The next host-watch tick delivers it."
               exit 0
             fi
             echo "Push rejected (attempt $attempt) — re-deriving on current main."

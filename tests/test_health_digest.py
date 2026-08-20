@@ -11,6 +11,7 @@ third-party packages installed. pytest collects it just the same.
 """
 
 import sys
+import os
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -558,10 +559,19 @@ class TestArchiveCoverageIsReported(unittest.TestCase):
 
 class TestDelivery(unittest.TestCase):
     def test_missing_configuration_is_reported_not_claimed_as_sent(self):
-        sent, note = health_digest.send_alert("s", "b", site="", key="")
+        """The credential named must be the one that can actually send.
+
+        This asserted WP_SITE_URL and WP_API_KEY, which have had nothing to do
+        with sending mail since the digest moved off the host it reports on.
+        Naming the wrong credential sends the owner to rotate a working secret.
+        """
+        import unittest.mock as _mock
+        with _mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("RESEND_API_KEY", None)
+            sent, note = health_digest.send_alert("s", "b")
         self.assertFalse(sent)
-        self.assertIn("WP_SITE_URL", note)
-        self.assertIn("WP_API_KEY", note)
+        self.assertIn("RESEND_API_KEY", note)
+        self.assertNotIn("WP_API_KEY", note)
 
 
 if __name__ == "__main__":

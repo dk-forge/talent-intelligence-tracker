@@ -83,6 +83,16 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # The relay that carries operational mail. It is deliberately NOT on
+          # the host these alerts are about: see opsmail.py. Without it the job
+          # is green and its mail is silent, which is why
+          # tests/test_ops_sender.py fails when a mailing job lacks it.
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          # Travels WITH the key, always. It is unset today, so opsmail's
+          # default applies everywhere; the day it is set, a job that does not
+          # carry it keeps the old From and the owner has two identities to
+          # filter. That is the defect this whole change exists to close.
+          OPS_MAIL_FROM: ${{ vars.OPS_MAIL_FROM }}
           BENCHMARK_FEED_URLS: ${{ secrets.BENCHMARK_FEED_URLS }}
           BENCHMARK_COMPANIES: ${{ secrets.BENCHMARK_COMPANIES }}
           TIT_READTHROUGH_CAP: '25'

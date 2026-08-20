@@ -78,6 +78,9 @@ RECALL_ALERT_PCT = float(os.environ.get("BENCHMARK_RECALL_ALERT_PCT", "90") or "
 RECALL_ALERT_MAX_NAMES = max(5, int(
     os.environ.get("BENCHMARK_RECALL_MAX_NAMES", "60") or "60"))
 
+#: The one door operational mail leaves by. See ops_notify.py.
+import ops_notify
+
 USER_AGENT = "TalentIntel/1.0 (info@asktherecruiter.com)"
 
 # Lines of run_collect's narration that are safe to re-emit: they are counts,
@@ -96,16 +99,18 @@ _SAFE_LINE = re.compile(
 def email_recall_gap(missing: list[str], recall_pct: float, n_total: int,
                      *, post=None) -> bool:
     """Mail the owner the employers we lack versus the reference list, so a
-    coverage gap surfaces by itself. PRIVATE: names go only to the inbox via
-    the keyed /alert route, never to the repo or the Actions log. Fires only
-    below the threshold; a healthy week is silent. Never raises."""
+    coverage gap surfaces by itself. PRIVATE: names go only to the inbox, never
+    to the repo or the Actions log. Fires only below the threshold; a healthy
+    week is silent. Never raises."""
     if recall_pct >= RECALL_ALERT_PCT or not missing:
         return False
-    site = (os.environ.get("WP_SITE_URL") or "").rstrip("/")
-    key = os.environ.get("WP_API_KEY") or ""
-    if not (site and key):
-        print("benchmark-diff: recall below threshold but WP_SITE_URL / "
-              "WP_API_KEY are not set, so no alert can be sent")
+    # The credential that can actually send. This gated on WP_SITE_URL and
+    # WP_API_KEY, which have had nothing to do with sending mail since the
+    # Resend move: a gate on the wrong credential is how a job goes green while
+    # its mail is silent.
+    if post is None and not ops_notify.configured():
+        print("benchmark-diff: recall below threshold but RESEND_API_KEY is "
+              "not set, so no alert can be sent")
         return False
     shown = sorted(missing, key=str.lower)[:RECALL_ALERT_MAX_NAMES]
     more = (f" (first {len(shown)} of {len(missing)})"
@@ -127,22 +132,18 @@ def email_recall_gap(missing: list[str], recall_pct: float, n_total: int,
         '  "Run run_benchmark_diff.py and widen BENCHMARK_DIFF_MAX for this '
         'run; report what stored and what found no primary source."',
     ])
-    if post is None:
-        import requests
-        post = requests.post
+    # Through `ops_notify`, not through the host. This POSTed to
+    # `/wp-json/talent/v1/alert`, which calls bare `wp_mail()` and so wore the
+    # reader newsletter's From line, and which is unreachable exactly when the
+    # host is the problem. `post` is still honoured so the test can observe the
+    # payload without a network.
     try:
-        resp = post(f"{site}/wp-json/talent/v1/alert",
-                    json={"subject": subject, "body": body},
-                    headers={"X-Talent-API-Key": key,
-                             "User-Agent": USER_AGENT},
-                    timeout=30)
-        status = getattr(resp, "status_code", 0)
-        if status == 200:
-            print(f"benchmark-diff: recall gap alert sent "
-                  f"({recall_pct}%, {len(missing)} missing)")
-            return True
-        print(f"benchmark-diff: recall alert not sent (HTTP {status})")
+        if post is not None:
+            return bool(post({"subject": subject, "body": body}))
+        return ops_notify.notify(subject, body, what="benchmark recall gap")
     except Exception as exc:  # noqa: BLE001 - an alert must not fail the run
+        # The exception TYPE, never the message: the message could carry an
+        # employer name, and these names go to the inbox and to nothing else.
         print(f"benchmark-diff: recall alert failed ({type(exc).__name__})")
     return False
 

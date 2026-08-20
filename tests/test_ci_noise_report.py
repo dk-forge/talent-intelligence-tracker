@@ -239,7 +239,7 @@ class TestMain:
     def test_a_quiet_week_posts_nothing_and_says_so(self, monkeypatch):
         sent = self._patch(monkeypatch, [_run(1, "collect", "success")])
         code, out = self._main([], monkeypatch,
-                               WP_SITE_URL="https://x", WP_API_KEY="k")
+                               RESEND_API_KEY="k")
         assert code == 0
         assert not sent, "no noise means NO post — silence is the product"
         assert "quiet week" in out
@@ -249,7 +249,7 @@ class TestMain:
         causes = {str(i): "queue needs a human" for i in range(1, 5)}
         sent = self._patch(monkeypatch, runs, causes)
         code, _out = self._main([], monkeypatch,
-                                WP_SITE_URL="https://x", WP_API_KEY="k")
+                                RESEND_API_KEY="k")
         assert code == 0
         assert len(sent) == 1, "one summary, never one post per run"
         assert "3 noisy run(s)" in sent[0]["subject"]
@@ -258,7 +258,7 @@ class TestMain:
         runs = [_run(i, "drain-writers", "failure") for i in (1, 2)]
         sent = self._patch(monkeypatch, runs, {"1": "x", "2": "x"})
         code, out = self._main(["--dry-run"], monkeypatch,
-                               WP_SITE_URL="https://x", WP_API_KEY="k")
+                               RESEND_API_KEY="k")
         assert code == 0 and not sent and "--- subject ---" in out
 
     def test_noise_with_no_credentials_is_loud_not_silent(self, monkeypatch):

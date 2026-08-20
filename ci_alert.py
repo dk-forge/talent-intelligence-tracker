@@ -253,6 +253,16 @@ from alert_outbox import KEY_SAFE  # noqa: E402,F401  stdlib-only, no cycle
 #: attached to the constant it documents.
 import alert_outbox  # noqa: E402
 
+#: The transport. Operational mail leaves through Resend, not through the host
+#: these alerts are about. See opsmail.py for the outage that made that the
+#: whole point rather than a preference.
+import opsmail  # noqa: E402
+
+#: The committed open/resolved ledger. It used to live in a WordPress option
+#: next to `wp_mail`; it moved here when sending did, and the claim is committed
+#: BEFORE the send so `git push` to main is the compare-and-swap.
+import alert_state  # noqa: E402
+
 
 def slug(text: str, limit: int = 48) -> str:
     """A stable, key-safe scope fragment. Two different workflows must never
@@ -459,6 +469,123 @@ def self_timeout_of_run(repo: str, run_id: str) -> str | None:
     return self_timeout_cause(fetch_annotations(repo, run_id))
 
 
+#: The branch component of the scope, replaced for live-data incidents. A dot
+#: rather than a slash because `KEY_SAFE` admits dots and the endpoint's key
+#: shape did too, and because no branch slug can ever contain one after
+#: `slug()`, so this can never collide with a real branch.
+LIVE_DATA_SEGMENT = "live.data"
+
+
+def _live_data_vocabulary():
+    """(check keys, figure keys) that mark an assertion as live-data.
+
+    Read from `published_figures`' OWN registries rather than copied, so a
+    rename over there cannot silently return every live-data alarm to one email
+    per branch. That is the specific way this goes wrong quietly: nothing fails,
+    the alarm simply multiplies again.
+
+    An import failure is not a crash and not a pass. It returns empty
+    vocabularies, which means "not recognised as live-data", which keeps the
+    branch-scoped key -- the conservative direction, because it costs extra mail
+    rather than lost mail.
+    """
+    try:
+        import published_figures as pf
+    except Exception as exc:  # noqa: BLE001
+        print(f"could not read the published-figure registry ({exc}): "
+              "live-data failures will be keyed per branch")
+        return set(), set()
+    checks = {getattr(c, "__name__", "") for c in getattr(pf, "CHECKS", ())}
+    figures = set()
+    for group in (getattr(pf, "HOME_FIGURES", ()), getattr(pf, "TILE_FIGURES", ())):
+        for f in group:
+            key = getattr(f, "key", "")
+            if key:
+                figures.add(str(key))
+    return {c for c in checks if c}, figures
+
+
+def live_data_identity(cause: str):
+    """-> the stable identity of a live-data incident, or None.
+
+    A live-data assertion reads asktherecruiter.com, not the checkout. Every
+    branch that runs it sees the SAME one wrong published number, so the branch
+    that noticed is noise and a branch-scoped key turns one defect into one
+    email per branch.
+
+    The identity is the check plus the figures named, so two different wrong
+    numbers stay two alarms. Do not collapse them.
+    """
+    text = (cause or "").lower()
+    if not text:
+        return None
+    checks, figures = _live_data_vocabulary()
+    hit_checks = sorted(c for c in checks if c.lower() in text)
+    if not hit_checks:
+        return None
+    hit_figures = sorted(f for f in figures if f.lower() in text)
+    return "+".join(hit_checks + hit_figures)
+
+
+def live_data_scope(workflow: str) -> str:
+    """The branch-free scope live-data incidents are raised and cleared under.
+
+    Still workflow-qualified: a resolve clears by key PREFIX, and a green run of
+    one workflow must not clear an alarm only another workflow can see.
+    """
+    return f"{slug(workflow)}:{LIVE_DATA_SEGMENT}"
+
+
+#: The branch every failure pages the owner about, always, no exceptions.
+PROTECTED_BRANCH = "main"
+
+
+def route_to_ops_status(*, event: str, branch: str, cause: str):
+    """Does this red run go to ci_status.py instead of the owner's inbox?
+
+    -> (routed, why). `why` is printed either way, because a routing decision
+    nobody can read is the same problem as an alarm nobody can read.
+
+    THIS IS ROUTING, NOT SILENCING, and the distinction is the whole of it. A
+    routed failure is still red in GitHub, still red in the pull request, still
+    blocks the merge, and is still listed by `ci_status.py`. What changes is
+    that it does not interrupt a person at 22:33.
+
+    WHAT IT CATCHES: a pull-request-triggered failure on a branch that is not
+    main. That failure has a session actively holding it, the failure text
+    prints the fix, and it clears on the next push.
+
+    FOUR THINGS IT MUST NEVER CATCH, and each is a test:
+
+    1. ANY failure on main. No exceptions, no window, no new condition.
+    2. A LIVE-DATA incident, from any branch. Those raise under the branch-free
+       `<workflow>:live.data` scope precisely because a wrong published number
+       is one alarm rather than one per branch, and a branch reading
+       asktherecruiter.com is reading the same wrong number main is. This is the
+       one a naive branch check breaks, so it is consulted BY IDENTITY --
+       `live_data_identity(cause)`, the same function that builds the key --
+       rather than by branch name.
+    3. A scheduled or cron-triggered run, wherever it runs. A nightly job
+       failing is not somebody's working branch. Only `pull_request` is routed;
+       `schedule`, `push`, `workflow_dispatch` and everything else page.
+    4. A RECOVERED notice. A routed raise writes NOTHING to the ledger, so there
+       is no open cause to orphan and none is owed a clear. Anything that did
+       raise still clears normally.
+    """
+    if branch == PROTECTED_BRANCH:
+        return False, f"on {PROTECTED_BRANCH}: the owner hears about this every time"
+    if event != "pull_request":
+        return False, (f"triggered by '{event}', not a pull request: a scheduled or "
+                       "pushed run is not somebody's working branch")
+    identity = live_data_identity(cause)
+    if identity:
+        return False, (f"a LIVE-DATA incident ({identity}): every branch reads the "
+                       "same wrong published number, so this pages from any branch")
+    return True, (f"a pull-request failure on '{branch}': red in the pull request, "
+                  "where the session that owns it is standing and the check prints "
+                  "the fix")
+
+
 def build_alert(*, repo: str, workflow: str, branch: str, event: str,
                 run_url: str, cause: str, context: list[str],
                 label: str = "CI RED") -> tuple[str, str, str]:
@@ -470,9 +597,20 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
     needs no new vocabulary. The cause fingerprint is what keeps them distinct
     emails.
     """
-    scope = f"{slug(workflow)}:{slug(branch, 32)}"
-    fingerprint = hashlib.md5(
-        f"{scope}\n{normalise(cause)}".encode("utf-8")).hexdigest()[:16]
+    # A live-data failure is deduped by INCIDENT, not by branch. `tests` failing
+    # on one branch only is that branch's defect and must not hide inside main's
+    # alarm, so the ordinary scope stays branch-qualified. An assertion that
+    # reads the LIVE site is the opposite case: every branch sees the same one
+    # wrong published number, and one open incident mailing once per branch is
+    # how an alert channel gets filtered.
+    identity = live_data_identity(cause)
+    if identity:
+        scope = live_data_scope(workflow)
+        fingerprint = hashlib.md5(identity.encode("utf-8")).hexdigest()[:16]
+    else:
+        scope = f"{slug(workflow)}:{slug(branch, 32)}"
+        fingerprint = hashlib.md5(
+            f"{scope}\n{normalise(cause)}".encode("utf-8")).hexdigest()[:16]
     dedupe_key = f"{scope}:{fingerprint}"
 
     headline = cause or "no error line could be extracted from the log"
@@ -529,56 +667,94 @@ _TRANSIENT_STATUS = {408, 425, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524}
 _BACKOFF = (3, 12)
 
 
-def _post_once(site: str, key: str, payload: dict) -> tuple[bool, str, bool]:
-    """One POST. Returns (ok, description, transient)."""
-    req = urllib.request.Request(
-        f"{site.rstrip('/')}/wp-json/talent/v1/alert",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json",
-                 "X-Talent-API-Key": key,
-                 "User-Agent": USER_AGENT},
-        method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            body = json.loads(resp.read().decode("utf-8", "replace") or "{}")
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            return False, ("the site has no /alert route yet: the plugin carrying it "
-                           "has not been deployed (deploy-plugin.yml is manual here)"), False
-        detail = exc.read().decode("utf-8", "replace")[:300] if exc.fp else ""
-        return False, f"HTTP {exc.code} from /alert: {detail}", exc.code in _TRANSIENT_STATUS
-    except urllib.error.URLError as exc:
-        # DNS, TCP, TLS, timeout: the host is not answering at all. Always
-        # transient — a name that does not resolve now may resolve in a minute,
-        # and there is nothing here for a human to fix in this repo.
-        return False, f"could not reach /alert: {exc.reason}", True
-    except Exception as exc:  # noqa: BLE001 — a notifier must not raise
-        return False, f"could not reach /alert: {exc}", True
-    if body.get("sent"):
-        return True, "emailed the owner", False
-    return True, f"not emailed: {body.get('reason', 'the endpoint reported no send')}", False
+def _post_once(site: str, key: str, payload: dict, idem: str = "") -> tuple[bool, str, bool]:
+    """One send. Returns (ok, description, transient).
+
+    THE COUPLING THIS BROKE. Until now this POSTed to
+    `/wp-json/talent/v1/alert`, a route on the WordPress host the alerts are
+    ABOUT. On 2026-07-31 Bluehost 504'd and this alerter failed four times
+    saying "HTTP 504 from /alert", mute at the exact moment it was needed, while
+    manufacturing four extra red runs. That route also calls bare `wp_mail()`,
+    which the Brevo plugin replaces wholesale with the SUBSCRIBER relay
+    identity, so what did arrive arrived wearing the newsletter's face. The held
+    outbox made delivery durable, which was the right fix for delivery and no
+    fix at all for the dependency.
+
+    Operational mail now leaves through Resend, so the alarm no longer depends
+    on the thing it monitors, and `opsmail` stamps one From line and one subject
+    prefix for every caller.
+
+    `site` and `key` are still accepted and still ignored. Several callers pass
+    them and the outbox's held payloads predate the change; a signature break
+    here would be a second edit in every one of those places for no gain.
+    """
+    return opsmail.send_once(payload.get("subject", ""),
+                             payload.get("body", ""), idem)
+
+
+def deliver(payload: dict, sleep=time.sleep, idem: str = "") -> tuple[bool, str, bool]:
+    """Send a message the ledger has ALREADY ruled on, retrying transient
+    failures in-run.
+
+    This is the DRAIN's entry point, and it is separate from `post_alert` on
+    purpose: an alert held in the outbox has already been decided and already
+    claimed, so re-running it through the ledger would either suppress it as a
+    duplicate of itself or clear a scope twice.
+
+    THE IDEMPOTENCY KEY TRAVELS WITH THE MESSAGE. The drain is the one path
+    where the same decision is genuinely sent more than once -- a re-drain after
+    a failed outbox commit -- and it was the one path with nothing protecting
+    it. `post_alert` stamps the key it used into the payload, the payload is
+    what gets held, so the drain reproduces the same key months later and Resend
+    collapses the repeat instead of mailing twice.
+    """
+    idem = idem or str((payload or {}).get("idempotency_key") or "")
+    ok, note, transient = _post_once(None, None, payload, idem)
+    for delay in _BACKOFF:
+        if ok or not transient:
+            break
+        print(f"  Resend did not answer ({note}): retrying in {delay}s")
+        sleep(delay)
+        ok, note, transient = _post_once(None, None, payload, idem)
+    return ok, note, transient
 
 
 def post_alert(site: str, key: str, payload: dict,
                *, sleep=time.sleep) -> tuple[bool, str, bool]:
-    """POST to the plugin's keyed /alert, retrying transient failures.
+    """Rule on a message against the committed ledger, then send it.
 
-    Returns (ok, description, transient) — `transient` is what tells the caller
-    whether this looked like a host outage (hold it, say so quietly, do not go
-    red) or a settled refusal like a bad key (hold it, and be loud about it).
+    Returns (ok, description, transient) -- `transient` is what tells the caller
+    whether this looked like an outage (hold it, say so quietly, do not go red)
+    or a settled refusal like a missing key (hold it, and be loud about it).
 
-    urllib rather than requests on purpose: this runs before any `pip install`,
-    so the alerting path cannot be broken by a dependency resolution failure —
-    which would be a notifier that dies exactly when the repo is unhealthy.
+    THE LEDGER CLAIM IS COMMITTED BEFORE THE SEND, and that ordering is the
+    whole reason moving the state off the endpoint does not weaken dedup. See
+    alert_state.py. Do not reorder it.
+
+    `payload` is updated in place with the subject and body the ledger decided
+    on, so a caller that goes on to HOLD it holds the message that was actually
+    meant, not the one before the ruling.
+
+    urllib rather than requests, all the way down: this runs before any `pip
+    install`, so the alerting path cannot be broken by a dependency resolution
+    failure -- which would be a notifier that dies exactly when the repo is
+    unhealthy.
     """
-    ok, note, transient = _post_once(site, key, payload)
-    for delay in _BACKOFF:
-        if ok or not transient:
-            break
-        print(f"  /alert did not answer ({note}), retrying in {delay}s")
-        sleep(delay)
-        ok, note, transient = _post_once(site, key, payload)
-    return ok, note, transient
+    decision, recorded = alert_state.claim(payload, sleep=sleep)
+    if not decision.sends:
+        return True, f"not emailed: {decision.note}", False
+    payload["subject"] = decision.subject
+    payload["body"] = decision.body
+    # Stamped in place for the same reason the subject and body are: a caller
+    # that goes on to HOLD this payload must hold everything the ruling decided,
+    # and the idempotency key is part of the ruling. Without it the drain sends
+    # the held copy unguarded. See deliver().
+    idem = decision.idempotency_key()
+    if idem:
+        payload["idempotency_key"] = idem
+    if not recorded:
+        print("::warning::sending an alert whose claim could not be recorded")
+    return deliver(payload, sleep=sleep, idem=idem)
 
 
 def write_envelope(path: str, *, key: str, kind: str, scope: str,
@@ -627,16 +803,17 @@ def hold(*, envelope: str, key: str, kind: str, scope: str, payload: dict,
     # log must be able to tell "the host was down and we kept the alert" from
     # "the alerter is broken", because the first needs nothing from anybody.
     if transient:
-        print(f"::warning::/alert is unreachable ({note}). The alert is HELD in "
-              "data/alert_outbox.json and will be delivered by the next host-watch "
-              "run that finds the host answering. This run is NOT failing: an "
-              "outage must not manufacture red runs on top of the ones it caused.")
+        print(f"::warning::the mail relay is unreachable ({note}). The alert is "
+              "HELD in data/alert_outbox.json and will be delivered by the next "
+              "host-watch tick. This run is NOT failing: an outage must not "
+              "manufacture red runs on top of the ones it caused.")
     else:
-        print(f"::error::/alert refused this alert and it is not a transient "
-              f"failure: {note}. It is HELD in data/alert_outbox.json, but a "
-              "settled refusal will not fix itself — check WP_API_KEY and that "
-              "the plugin carrying /alert is deployed. ops_status.py escalates "
-              "a held alert that keeps failing.")
+        print(f"::error::the mail relay refused this alert and it is not a "
+              f"transient failure: {note}. It is HELD in data/alert_outbox.json, "
+              "but a settled refusal will not fix itself: check RESEND_API_KEY, "
+              "and check that OPS_MAIL_FROM uses a domain this Resend account "
+              "has verified. ops_status.py escalates a held alert that keeps "
+              "failing.")
     return 0
 
 
@@ -656,8 +833,6 @@ def notice(*, subject: str, body: str, dedupe_key: str, run_url: str,
     allowance month however many runs meet the closed gate.
     """
     key = alert_outbox.deliverable_key(dedupe_key)
-    site = os.environ.get("WP_SITE_URL", "").rstrip("/")
-    api_key = os.environ.get("WP_API_KEY", "")
     payload = {"subject": subject, "body": body, "dedupe_key": key}
 
     print(f"dedupe_key: {key}")
@@ -667,11 +842,11 @@ def notice(*, subject: str, body: str, dedupe_key: str, run_url: str,
         print("--- body ---")
         print(body)
         return 0
-    if not (site and api_key):
-        print("::error::WP_SITE_URL / WP_API_KEY are not set. The notice was NOT sent.")
+    if not opsmail.configured():
+        print("::error::RESEND_API_KEY is not set. The notice was NOT sent.")
         return 1
 
-    ok, note, transient = post_alert(site, api_key, payload)
+    ok, note, transient = post_alert("", "", payload)
     print(f"notice {key}: {note}")
     if not ok:
         return hold(envelope=envelope, key=key, kind="alert", scope=key,
@@ -720,8 +895,11 @@ def main(argv=None) -> int:
     conclusion = (args.conclusion or "").lower()
     scope = f"{slug(args.workflow)}:{slug(args.branch, 32)}"
 
-    site = os.environ.get("WP_SITE_URL", "").rstrip("/")
-    key = os.environ.get("WP_API_KEY", "")
+    # The only credential that can send mail. `WP_SITE_URL`/`WP_API_KEY` used to
+    # be read here and have had nothing to do with sending since the Resend
+    # move; reading them would be a gate on the wrong thing, which is how a job
+    # goes green while its mail is silent.
+    can_send = opsmail.configured()
 
     if conclusion == "success":
         # A green drain-writers tick is NOT proof the queue's problems are
@@ -749,17 +927,28 @@ def main(argv=None) -> int:
         # Recovery. The endpoint mails exactly once IF something was open for
         # this scope and stays silent otherwise, so this is cheap to post on
         # every green run and cannot itself become noise.
-        payload = {"resolve_scope": scope,
-                   "subject": f"RECOVERED: {args.workflow} is green again",
-                   "body": (f"'{args.workflow}' on {args.branch} passed again.\n\n"
-                            f"  run: {args.run_url}\n\n"
-                            "Whatever was failing is no longer failing. Nothing to do.")}
-        if args.dry_run or not (site and key):
-            print(f"[dry-run] resolve scope={scope}")
+        # TWO scopes, because a live-data incident is raised under a branch-free
+        # one (see live_data_identity). Both are posted from every green run of
+        # this workflow; each is silent unless something was actually open for
+        # it, which is what makes a resolve safe to post unconditionally.
+        scopes = [scope, live_data_scope(args.workflow)]
+        if args.dry_run or not can_send:
+            print(f"[dry-run] resolve scopes={', '.join(scopes)}")
             return 0
-        ok, note, transient = post_alert(site, key, payload)
-        print(f"resolve {scope}: {note}")
-        if not ok:
+        failed = None
+        for one in scopes:
+            payload = {
+                "resolve_scope": one,
+                "subject": f"RECOVERED: {args.workflow} is green again",
+                "body": (f"'{args.workflow}' on {args.branch} passed again.\n\n"
+                         f"  run: {args.run_url}\n\n"
+                         "Whatever was failing is no longer failing. Nothing to do.")}
+            ok, note, transient = post_alert("", "", payload)
+            print(f"resolve {one}: {note}")
+            if not ok and failed is None:
+                failed = (one, payload, note, transient)
+        if failed:
+            scope, payload, note, transient = failed
             # Held like any other alert. Holding a RESOLVE is what lets the
             # outbox cancel a RED for the same scope that never went out: if
             # both were raised during one outage, the owner hears about
@@ -806,6 +995,10 @@ def main(argv=None) -> int:
     print(f"normalised: {normalise(cause)}")
     print(f"dedupe_key: {dedupe_key}")
 
+    routed, why = route_to_ops_status(event=args.event, branch=args.branch,
+                                      cause=cause)
+    print(f"routing:    {'ci_status.py' if routed else 'the owner'} - {why}")
+
     if args.dry_run:
         print("--- subject ---")
         print(subject)
@@ -813,14 +1006,21 @@ def main(argv=None) -> int:
         print(body)
         return 0
 
-    if not (site and key):
+    if routed:
+        # Deliberately BEFORE any ledger write. A routed raise leaves no open
+        # cause behind, so there is nothing to orphan when the branch is deleted
+        # and nothing is owed a RECOVERED. The run is still red in GitHub, still
+        # red in the pull request, and still listed by ci_status.py.
+        return 0
+
+    if not can_send:
         # Loud, and non-zero. A silent "no credentials so I did nothing" is the
         # same class of lie as a green drain tick that dispatched nothing.
-        print("::error::WP_SITE_URL / WP_API_KEY are not set. The CI alert was NOT sent.")
+        print("::error::RESEND_API_KEY is not set. The CI alert was NOT sent.")
         return 1
 
     payload = {"subject": subject, "body": body, "dedupe_key": dedupe_key}
-    ok, note, transient = post_alert(site, key, payload)
+    ok, note, transient = post_alert("", "", payload)
     print(f"alert {dedupe_key}: {note}")
     if not ok:
         return hold(envelope=args.envelope, key=dedupe_key, kind="alert",

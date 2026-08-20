@@ -75,6 +75,7 @@ from pathlib import Path
 
 import alert_outbox
 import ci_alert
+import opsmail
 import gh_fallback
 
 ROOT = Path(__file__).resolve().parent
@@ -247,20 +248,32 @@ def needs_commit(doc: dict, decision: dict, *, now: datetime,
 
 # --- draining what waited --------------------------------------------------
 
-def drain(outbox: dict, site: str, key: str) -> tuple[int, int, str]:
+def drain(outbox: dict, site: str = "", key: str = "") -> tuple[int, int, str]:
     """Deliver held alerts, oldest first. Returns (delivered, remaining, note).
 
-    Stops at the first TRANSIENT failure: if the host has gone away again
+    IT CALLS `ci_alert.deliver`, NEVER `post_alert`, and that is not a detail.
+    A held alert has ALREADY been ruled on by the ledger and already claimed, so
+    re-running it through `post_alert` would either find its own cause open and
+    swallow the alert as a duplicate of itself, or clear a scope a second time.
+    The ruling travelled with the payload; the drain's job is to send it.
+
+    The idempotency key travelled with it too, so a re-drain after a failed
+    outbox commit collapses at Resend instead of mailing the owner twice.
+
+    Stops at the first TRANSIENT failure: if the relay has gone away again
     mid-drain there is nothing to learn from hammering it, and the entries keep
-    their place. A SETTLED refusal (bad key, missing route) does not stop the
-    drain — every entry will hit it, and the count of how many is the size of
-    the problem.
+    their place. A SETTLED refusal (bad key, unverified sender) does not stop
+    the drain — every entry will hit it, and the count of how many is the size
+    of the problem.
+
+    `site` and `key` are still accepted and ignored: several callers pass them
+    and the held payloads predate the move off the host.
     """
     delivered = 0
     blocked = ""
     for entry in alert_outbox.pending(outbox):
         payload = entry.get("payload") or {}
-        ok, note, transient = ci_alert.post_alert(site, key, payload)
+        ok, note, transient = ci_alert.deliver(payload)
         if ok:
             alert_outbox.mark_delivered(entry, f"delivered late: {note}")
             delivered += 1
@@ -303,10 +316,14 @@ def outage_summary(doc: dict, *, now: datetime) -> dict:
             f"  last detail: {doc.get('last_detail')}",
             f"  probe: GET {PROBE_PATH} (public, cache-busted)",
             "",
-            "WHAT THIS MEANS. While the host is down, /alert cannot send mail, so",
-            "any CI failure raised during the window is HELD in",
-            "data/alert_outbox.json and delivered when the host answers again.",
-            "You are reading this because it did.",
+            "WHAT THIS MEANS FOR YOUR ALERTS. Nothing. Operational mail leaves",
+            "through Resend, not through this host, so a CI failure raised",
+            "during the window was emailed as normal. That was not true before",
+            "2026-08-20: alerts used to go out through a route on this host, so",
+            "an outage silenced the alarm about itself.",
+            "",
+            "WHAT IT MEANS FOR READERS. The tracker pages were unreachable for",
+            "the window above.",
             "",
             "WHAT TO DO. Usually nothing: this host has produced several short",
             "504 windows and healed itself each time. If these become frequent,",
@@ -350,9 +367,13 @@ def main(argv=None) -> int:
     problems: list[str] = []
 
     if decision["newly_sustained"]:
-        # Two channels, deliberately different in kind. The issue can be
-        # created while the host is down; the email cannot, so it is queued to
-        # arrive with the recovery.
+        # STILL QUEUED RATHER THAN SENT, and the reason has changed. It used to
+        # be that the email COULD NOT be sent while the host was down, because
+        # it went out through that host. It can be sent now. It is still queued
+        # because the drain below is the one place a held alert is delivered and
+        # recorded, and routing this one message around it would be a second
+        # delivery path to keep in step. The drain runs in this same tick, so
+        # the email leaves immediately rather than waiting for the recovery.
         ledger["announced"] = True
         _outcome, _entry = alert_outbox.enqueue(
             outbox, key=f"host-unreachable:{ledger.get('since')}", kind="alert",
@@ -374,28 +395,34 @@ def main(argv=None) -> int:
                       "able to tell the owner about this outage.")
                 problems.append("fallback channel unusable")
 
-    if ok:
-        key = os.environ.get("WP_API_KEY", "")
-        if held_before and not key:
-            print("::error::the host is up and "
-                  f"{held_before} alert(s) are held, but WP_API_KEY is not set "
-                  "so none of them can be delivered.")
-            problems.append("no WP_API_KEY to drain with")
-        elif held_before and not args.dry_run:
-            print(f"draining {held_before} held alert(s)")
-            delivered, remaining, blocked = drain(outbox, site, key)
-            outbox_changed = outbox_changed or delivered > 0 or bool(blocked)
-            print(f"delivered {delivered}, {remaining} still held")
-            if remaining and alert_outbox.stuck(outbox):
-                print(f"::error::{len(alert_outbox.stuck(outbox))} alert(s) have "
-                      f"now failed delivery {alert_outbox.FAIL_LOUD_ATTEMPTS}+ "
-                      f"times with the host UP ({blocked}). These are not going "
-                      "to arrive on their own — check WP_API_KEY and that the "
-                      "plugin carrying /alert is deployed.")
-                problems.append("alerts are stuck with the host up")
-        elif held_before:
-            print(f"[dry-run] would deliver {held_before} held alert(s)")
+    # THE DRAIN IS NO LONGER GATED ON THE HOST ANSWERING, and it must not be.
+    # It was, because delivery went through `/alert` on that host, so "the host
+    # just answered" was the only moment worth retrying. Mail leaves through
+    # Resend now: the held alerts have nothing to do with whether Bluehost is
+    # up, and waiting for a host probe before draining would make the relay's
+    # availability depend on the very thing the move was meant to decouple from.
+    # So this tick drains whenever anything is held. An EMPTY outbox makes no
+    # request at all, which is why the fifteen-minute tick stays free.
+    if held_before and not opsmail.configured():
+        print(f"::error::{held_before} alert(s) are held, but RESEND_API_KEY is "
+              "not set so none of them can be delivered.")
+        problems.append("no RESEND_API_KEY to drain with")
+    elif held_before and not args.dry_run:
+        print(f"draining {held_before} held alert(s)")
+        delivered, remaining, blocked = drain(outbox)
+        outbox_changed = outbox_changed or delivered > 0 or bool(blocked)
+        print(f"delivered {delivered}, {remaining} still held")
+        if remaining and alert_outbox.stuck(outbox):
+            print(f"::error::{len(alert_outbox.stuck(outbox))} alert(s) have "
+                  f"now failed delivery {alert_outbox.FAIL_LOUD_ATTEMPTS}+ "
+                  f"times ({blocked}). These are not going to arrive on their "
+                  "own - check RESEND_API_KEY, and check that OPS_MAIL_FROM "
+                  "uses a domain this Resend account has verified.")
+            problems.append("alerts are stuck")
+    elif held_before:
+        print(f"[dry-run] would deliver {held_before} held alert(s)")
 
+    if ok:
         if not args.no_fallback and not alert_outbox.pending(outbox):
             good, note = gh_fallback.close(
                 repo, note=(f"The host answered again at {_iso(now)} "
