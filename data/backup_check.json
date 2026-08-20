@@ -1,0 +1,93 @@
+{
+  "checks": [
+    {
+      "blob": "b47d41eb738bc2b68c7f06968d5571d9e13d8912",
+      "bytes": 82419712,
+      "checked_at": "2026-08-20T05:43:02Z",
+      "checks": [
+        {
+          "check": "integrity",
+          "detail": "PRAGMA integrity_check: ok",
+          "status": "PASS"
+        },
+        {
+          "check": "core_tables",
+          "detail": "6 core table(s) present and populated",
+          "status": "PASS"
+        },
+        {
+          "check": "no_shrink",
+          "detail": "no previous reading to compare against \u2014 this run is the baseline, not a pass",
+          "status": "UNKNOWN"
+        },
+        {
+          "check": "republishable",
+          "detail": "all 40 republished column(s) present",
+          "status": "PASS"
+        },
+        {
+          "check": "push_size",
+          "detail": "78.6 MiB of GitHub's 100 MiB per-file push limit",
+          "status": "PASS"
+        }
+      ],
+      "commit": "ece193a17497f4f8e870c9965a0e646db5298de4",
+      "integrity": "ok",
+      "tables": {
+        "employer_identity": 5457,
+        "funding_corroborations": 0,
+        "publish_guardrails": 39,
+        "seen_urls": 56103,
+        "signals": 33369,
+        "source_health": 329,
+        "source_links": 6448
+      },
+      "verdict": "UNKNOWN"
+    },
+    {
+      "blob": "b47d41eb738bc2b68c7f06968d5571d9e13d8912",
+      "bytes": 82419712,
+      "checked_at": "2026-08-20T05:43:59Z",
+      "checks": [
+        {
+          "check": "integrity",
+          "detail": "PRAGMA integrity_check: ok",
+          "status": "PASS"
+        },
+        {
+          "check": "core_tables",
+          "detail": "6 core table(s) present and populated",
+          "status": "PASS"
+        },
+        {
+          "check": "no_shrink",
+          "detail": "no table is smaller than it was on 2026-08-20T05:43:02Z",
+          "status": "PASS"
+        },
+        {
+          "check": "republishable",
+          "detail": "all 40 republished column(s) present",
+          "status": "PASS"
+        },
+        {
+          "check": "push_size",
+          "detail": "78.6 MiB of GitHub's 100 MiB per-file push limit",
+          "status": "PASS"
+        }
+      ],
+      "commit": "ece193a17497f4f8e870c9965a0e646db5298de4",
+      "integrity": "ok",
+      "tables": {
+        "employer_identity": 5457,
+        "funding_corroborations": 0,
+        "publish_guardrails": 39,
+        "seen_urls": 56103,
+        "signals": 33369,
+        "source_health": 329,
+        "source_links": 6448
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "version": 1
+}

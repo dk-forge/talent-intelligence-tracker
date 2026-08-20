@@ -66,6 +66,7 @@ def main() -> int:
     problems += _report_published_figures()
     _report_surfaces()
     problems += _report_spend()
+    problems += _report_backup()
 
     print("\n" + "-" * 64)
     if problems:
@@ -1779,6 +1780,78 @@ def _report_surfaces() -> None:
     print(f"    dashboard  {LIVE_URL}")
     print(f"    sibling    {SIBLING_URL}  (layoffs are READ from its API, never collected here)")
     print(f"    repo       https://github.com/dk-forge/talent-intelligence-tracker")
+
+
+def _report_backup() -> list[str]:
+    """[6] Is the repository still a backup of itself?
+
+    The whole disaster answer here is "the database is committed", and that is
+    true. It is also a claim nobody was exercising: a truncated blob, a table
+    that shrank under a racing push, or a file that has grown past the size
+    GitHub will accept all look identical to a healthy backup from the outside.
+
+    This reads the ledger `backup_check.py --write` commits, offline. It never
+    re-runs the check: that costs an 80 MiB extraction and belongs in the
+    weekly job, not in a command a session runs at every prompt.
+
+    A ledger that is missing, unreadable or old is UNKNOWN and an action item.
+    "Nothing has verified the backup" is precisely the state this section
+    exists to make visible, and it is never a pass.
+    """
+    print("\n[6] BACKUP  (the committed database, which is the disaster plan)")
+    problems: list[str] = []
+    try:
+        import backup_check
+    except Exception as e:                                    # noqa: BLE001
+        print(f"    UNKNOWN — could not load backup_check ({e}). NOT a pass.")
+        return ["BACKUP: the verifier could not be loaded (UNKNOWN, not a pass)"]
+
+    record = backup_check.load_latest()
+    if not record:
+        print("    UNKNOWN — the backup has never been verified. NOT a pass.")
+        print("            python3 backup_check.py --write")
+        return ["BACKUP: never verified (UNKNOWN, not a pass)"]
+
+    checked = record.get("checked_at") or "unknown"
+    age_days = None
+    try:
+        when = datetime.strptime(checked, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc)
+        age_days = (datetime.now(timezone.utc) - when).days
+    except ValueError:
+        pass
+
+    verdict = record.get("verdict") or "UNKNOWN"
+    tables = record.get("tables") or {}
+    print(f"    {verdict:<7} restores at commit {str(record.get('commit'))[:12]}, "
+          f"{tables.get('signals')} signal row(s), "
+          f"{(record.get('bytes') or 0) / 1048576:.1f} MiB, checked {checked}")
+    for check in record.get("checks") or []:
+        if check.get("status") != "PASS":
+            print(f"            {check.get('status')} {check.get('check')}: "
+                  f"{check.get('detail')}")
+
+    if verdict == "FAIL":
+        problems.append(
+            "BACKUP: the committed database failed verification — read the "
+            "failing check above and docs/RECOVERY.md")
+    elif verdict == "UNKNOWN":
+        problems.append(
+            "BACKUP: the last verification could not complete (UNKNOWN, not a "
+            "pass) — python3 backup_check.py")
+
+    # The job is weekly. Two missed weeks is the job itself having stopped,
+    # which is the failure nobody notices because it produces no output at all.
+    if age_days is not None and age_days > 15:
+        print(f"            the last verification is {age_days} days old; "
+              "backup-check.yml runs weekly, so it has missed two runs")
+        problems.append(
+            f"BACKUP: last verified {age_days} days ago — check backup-check.yml "
+            "is still scheduled")
+
+    print("    recovery   docs/RECOVERY.md  (what this covers, and the four "
+          "things it does not)")
+    return problems
 
 
 if __name__ == "__main__":

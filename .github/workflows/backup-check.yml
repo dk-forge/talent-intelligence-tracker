@@ -1,0 +1,125 @@
+name: backup check
+
+# Is the repository still a backup of itself?
+#
+# WEEKLY, Mondays 10:00 UTC. One hour after `landmarks` and three before the
+# health digest, so a Monday reads: measure the corpus, check the named events,
+# check that the corpus itself could be restored at all, then mail one line
+# about the morning. Daily would commit a file every day to say nothing moved.
+#
+# WHY THIS EXISTS. The disaster answer for this project is that the database is
+# committed: if the host disappears, the rows are still here and the site is
+# rebuilt by republishing them. That is true, and until this job existed it was
+# also unexercised. A backup nobody has restored is a hypothesis, and the three
+# ways this one dies are all invisible from the outside: a blob truncated by a
+# runner that died mid-push, a table that shrank because one job's push
+# overwrote another's (2026-07-28, 9,572 signal rows, no red run anywhere), and
+# a file that has grown past the 100 MiB GitHub will accept in a single push.
+#
+# THIS JOB IS NOT A DATABASE WRITER. It extracts the committed blob into the
+# runner's temp directory with `git cat-file`, opens it read-only, and commits
+# exactly one file, data/backup_check.json, which is a ledger with no row
+# identity to merge on. That is why it is not in the `talent-collect` lock and
+# why the drain-writers queue does not apply.
+#
+# Do not name the database file anywhere in THIS file. tests/test_workflows.py
+# classifies a workflow as a database writer by that literal string appearing
+# in it, and would then require this reader to take the writer lock. The path
+# lives in backup_check.py, which is where it belongs.
+#
+# COSTS NOTHING AND ALERTS THROUGH THE CHANNEL THAT ALREADY EXISTS. No model is
+# called and none can be: the script imports nothing that talks to a provider.
+# There is no new notification path either — ci-alert.yml listens for EVERY
+# workflow completing, so a red run here reaches the owner by the route every
+# other red run in this repository already takes, deduped by cause like the
+# rest. Measured runtime of the check itself is under a second; the job is
+# checkout-bound.
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'      # Mondays 10:00 UTC
+  workflow_dispatch:
+
+# Only against itself. Two runs at once would race on the one file they write.
+concurrency:
+  group: talent-backup-check
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  backup-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The republishable check imports pipeline.publish so it can read the
+      # real column list rather than a copy of it, and that module imports
+      # requests. Without this step the check would report UNKNOWN, which is
+      # honest but useless every week.
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # The reading is recorded BEFORE the exit code is allowed to matter. A
+      # failing week must still leave its counts committed, or next week has no
+      # baseline and the shrink it should have caught becomes the new normal.
+      - name: Verify the committed database restores
+        id: check
+        continue-on-error: true
+        run: python backup_check.py --write
+
+      - name: Commit the ledger
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+
+          path=data/backup_check.json
+          git add "$path"
+          if git diff --staged --quiet; then
+            echo "No change to commit."
+            exit 0
+          fi
+
+          cp "$path" "$RUNNER_TEMP/backup_check.json"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/backup_check.json" "$path"
+            git add "$path"
+            if git diff --staged --quiet; then
+              echo "Remote already has this reading."
+              exit 0
+            fi
+            git commit -q -m "backup: verified $(date -u +%Y-%m-%d)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), replaying onto current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the backup ledger after 5 attempts. \
+          This week's counts exist only on the runner, so next week has no \
+          baseline to detect a shrink against."
+          exit 1
+
+      # The verdict decides the colour of the run, AFTER the reading is safely
+      # committed. Exit 2 is FAIL, exit 3 is UNKNOWN, and both are red: a week
+      # in which nothing could verify the backup is not a week in which the
+      # backup is fine.
+      - name: Fail on a broken or unverifiable backup
+        if: ${{ steps.check.outcome == 'failure' }}
+        run: |
+          echo "::error::The committed database did not verify as a usable "\
+               "backup, or could not be checked at all. Read the step above: "\
+               "each line names one check and its verdict. docs/RECOVERY.md "\
+               "explains what the backup covers and what it does not."
+          exit 1
