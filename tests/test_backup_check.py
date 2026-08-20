@@ -15,7 +15,7 @@ temporary directory.
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -303,3 +303,19 @@ def test_a_truncated_file_grades_as_a_failed_backup_and_not_a_traceback(tmp_path
         integrity=integrity, tables=read["tables"],
         signals_columns=read["signals_columns"], size_bytes=1024, prior=None)
     assert report["verdict"] == backup_check.FAIL
+
+
+def test_a_growth_rate_is_not_quoted_from_two_readings_minutes_apart():
+    """The first dispatched run divided one collect run's rows by half an hour
+    and reported "3099 KB/day, about 7 days of headroom" on a file with five
+    weeks in it. A rate needs a window."""
+    now = datetime.now(timezone.utc)
+    recent = _reading(HEALTHY, size=1000,
+                      when=(now - timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    report = _grade(prior=recent, size=9_000_000, now=now)
+    assert "headroom" not in _named(report, "push_size")["detail"]
+
+    old = _reading(HEALTHY, size=1000,
+                   when=(now - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    report = _grade(prior=old, size=9_000_000, now=now)
+    assert "headroom" in _named(report, "push_size")["detail"]

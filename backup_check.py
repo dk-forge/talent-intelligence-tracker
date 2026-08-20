@@ -310,6 +310,14 @@ def evaluate(*, integrity: str, tables: dict, signals_columns: list[str],
     return {"verdict": verdict, "checks": checks}
 
 
+# Two readings less than this far apart cannot measure a daily growth rate.
+# The first dispatched run sat 30 minutes after the seeded one, divided one
+# collect run's worth of new rows by half an hour, and reported "3099 KB/day,
+# about 7 days of headroom" on a file with five weeks in it. A rate is a
+# measurement over a window, and a window that short is noise wearing a unit.
+MIN_GROWTH_WINDOW_DAYS = 3.0
+
+
 def _growth_per_day(prior: dict | None, size_bytes: int,
                     now: datetime | None = None) -> float | None:
     if not prior or not prior.get("bytes") or not prior.get("checked_at"):
@@ -319,7 +327,7 @@ def _growth_per_day(prior: dict | None, size_bytes: int,
     except ValueError:
         return None
     days = ((now or datetime.now(timezone.utc)) - then).total_seconds() / 86400
-    if days <= 0:
+    if days < MIN_GROWTH_WINDOW_DAYS:
         return None
     return (size_bytes - int(prior["bytes"])) / days
 
