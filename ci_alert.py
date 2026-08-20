@@ -497,9 +497,9 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
     if not cause:
         lines.append("")
         lines.append(
-            "No assertion or error line could be read out of this run's log (the log may "
+            "No assertion or error line could be read out of this run's log. The log may "
             "have expired, the job may have died before producing one, or the failing step "
-            "may have printed nothing but log markers). Open the run URL. This "
+            "may have printed nothing but log markers. Open the run URL. This "
             "email is telling you the truth it has, not guessing at one.")
     lines.append(
         "\nWhat to do: open a Claude Code session in the talent-intelligence-tracker repo "
