@@ -155,6 +155,46 @@ _PYTEST_SUMMARY = re.compile(r"^FAILED\s+\S+::\S+.*$")
 _UNITTEST_HEAD = re.compile(r"^(?:FAIL|ERROR):\s+\w+\s+\(.*\)\s*$")
 _LOOSE_ERROR = re.compile(r"(?i)(?:^|\s)(?:error|fatal|failed)[: ]")
 
+# A GitHub workflow-command marker carrying no diagnosis of its own. These are
+# FORMATTING, and formatting is never a cause -- but on 2026-08-19 one was the
+# ENTIRE "WHAT FAILED:" section of a real email about `collect` run 32307688627.
+# No bucket matched that log, so the fallback below took the last non-empty body
+# line, and the last non-empty body line was the fold marker that closes the step.
+#
+# THE SUBJECT LINE WAS THE SMALLER HALF. `cause` is also what build_alert
+# fingerprints, and "##[endgroup]" is a constant that survives normalise()
+# unchanged, so every no-cause failure of one workflow+branch hashed to ONE key
+# and the second was suppressed as "already open". One email per CAUSE quietly
+# became one email per WORKFLOW, and no surface said so.
+#
+# Two shapes, because "##[" alone does not settle it: `##[error]` and
+# `##[warning]` carry real messages and are read as causes above, while
+# `##[group]`, `##[endgroup]` and `##[section]` are STRUCTURE -- the text after
+# `##[group]` names a fold ("Run python3 run_collect.py"), which says what was
+# about to happen and never what went wrong.
+_STRUCTURAL_MARKER = re.compile(r"^##\[(?:group|endgroup|section)\]", re.IGNORECASE)
+#: Any workflow command with no message at all, including ones not named above.
+_EMPTY_MARKER = re.compile(r"^##\[[^\]]*\]\s*$")
+
+
+def is_cause_line(line: str) -> bool:
+    """Could this line be a diagnosis at all?
+
+    False for blank lines, whitespace, fold markers, and any workflow command
+    with nothing after it. Applied in TWO places on purpose: to keep markers out
+    of the candidate pool, and to refuse one that reaches the final answer
+    anyway. Either alone is a guard the next new bucket walks around.
+
+    Refusing is honest rather than lossy -- build_alert already has a truthful
+    no-cause path, and "I could not read a cause, here is the run" is
+    actionable where a log marker is not.
+    """
+    stripped = (line or "").strip()
+    if not stripped:
+        return False
+    return not (_STRUCTURAL_MARKER.match(stripped)
+                or _EMPTY_MARKER.match(stripped))
+
 # THE PHP RENDER HARNESSES, which are half of what `tests` runs and which mailed
 # NOTHING USEFUL until 2026-08-17. Every file in tests/php/ fails in one shape:
 #
@@ -256,7 +296,7 @@ def extract_cause(raw_log: str) -> tuple[str, list[str]]:
         if _GENERIC_ERROR.match(body):
             cut = i
             break
-    body_lines = [ln for ln in lines[:cut] if ln.strip()]
+    body_lines = [ln for ln in lines[:cut] if is_cause_line(ln)]
 
     annotations: list[str] = []
     exceptions: list[str] = []
@@ -316,13 +356,19 @@ def extract_cause(raw_log: str) -> tuple[str, list[str]]:
         # "a job failed", and saying so honestly beats inventing a diagnosis.
         cause = body_lines[-1].strip() if body_lines else ""
 
+    # A marker that reached the answer is NOT an answer. Returning "" hands
+    # build_alert its honest no-cause path; keeping it would put formatting in
+    # the subject line AND in the dedup key.
+    if not is_cause_line(cause):
+        cause = ""
+
     # The header names which harness broke, which the bullet on its own does
     # not, so it leads the context whenever there is one.
     context: list[str] = []
     for bucket in (harness_heads, test_heads, exceptions, pytest_detail,
                    harness_detail, annotations):
         for ln in bucket[-3:]:
-            if ln != cause and ln not in context:
+            if ln != cause and ln not in context and is_cause_line(ln):
                 context.append(ln)
     return cause[:400], context[:5]
 
@@ -452,7 +498,8 @@ def build_alert(*, repo: str, workflow: str, branch: str, event: str,
         lines.append("")
         lines.append(
             "No assertion or error line could be read out of this run's log (the log may "
-            "have expired, or the job died before producing one). Open the run URL. This "
+            "have expired, the job may have died before producing one, or the failing step "
+            "may have printed nothing but log markers). Open the run URL. This "
             "email is telling you the truth it has, not guessing at one.")
     lines.append(
         "\nWhat to do: open a Claude Code session in the talent-intelligence-tracker repo "
