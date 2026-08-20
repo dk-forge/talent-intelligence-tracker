@@ -147,6 +147,7 @@ jobs:
           # 2026-07-28 (182c2da -> 42222a0), and 3,604 identity rows a human had
           # just pushed from a laptop (9991861 -> e1bfb03). See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/collected_cache.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
           # This slice's per-candidate gate verdicts, saved before the reset
           # discards them. A backfill pays for exactly the same gate calls the
@@ -178,7 +179,7 @@ jobs:
               python backfill_slices.py record --from "$RUNNER_TEMP/slice.json" \
                 --queue || RECORD_RC=$?
             fi
-            git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
             git add data/backfill_state.json data/writer_queue.json || true
             git add data/spend_month.json || true
             # `-A` and not a plain add: when a month closes the ledger gzips

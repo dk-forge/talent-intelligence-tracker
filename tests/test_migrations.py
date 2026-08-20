@@ -64,6 +64,13 @@ def test_existing_rows_survive_a_migration(tmp_path):
 
 def test_every_migration_column_exists_in_the_create_statement():
     """A column added by ALTER but missing from TABLES would exist on old
-    databases and vanish on fresh ones."""
+    databases and vanish on fresh ones.
+
+    Two scripts since the 100 MiB split: the product file's CREATEs and the
+    cache file's. A column has to appear in whichever one owns its table, so
+    both are searched — and `source_links.archive_probes` is the reason this
+    test noticed the split at all.
+    """
+    declared = schema.TABLES + schema.CACHE_TABLES
     for table, column, _decl in schema.MIGRATIONS:
-        assert column in schema.TABLES, f"{table}.{column} missing from CREATE"
+        assert column in declared, f"{table}.{column} missing from CREATE"

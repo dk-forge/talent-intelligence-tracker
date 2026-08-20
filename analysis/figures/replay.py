@@ -37,7 +37,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from pipeline import validate
+from pipeline import schema, validate
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DB = ROOT / "data" / "talent_intel.db"
@@ -143,7 +143,7 @@ def glue_sites(text: str, reference: re.Pattern) -> list[tuple[str, bool]]:
 
 
 def rows(db: Path):
-    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    conn = schema.connect_ro(db)
     conn.row_factory = sqlite3.Row
     try:
         signals = conn.execute(

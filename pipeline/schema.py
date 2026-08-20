@@ -12,6 +12,7 @@ Two rules drive every decision here, and both are impossible to retrofit:
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from pathlib import Path
 
@@ -154,14 +155,7 @@ CREATE TABLE IF NOT EXISTS signals (
 );
 
 
--- Every URL we have ever looked at, so we never pay an LLM for it twice.
--- Spec 4 rule 2: this removed ~60% of daily extraction volume on the sibling.
-CREATE TABLE IF NOT EXISTS seen_urls (
-    url         TEXT PRIMARY KEY,
-    first_seen  TEXT NOT NULL,
-    collector   TEXT NOT NULL,
-    outcome     TEXT NOT NULL   -- stored | rejected | duplicate
-);
+
 
 -- Collector status ledger (spec 16 loop 1). A collector that returns zero
 -- writes 'degraded', never 'ok'.
@@ -233,64 +227,7 @@ CREATE TABLE IF NOT EXISTS source_health (
     PRIMARY KEY (collector, run_at)
 );
 
--- Link rot, per SOURCE URL rather than per row (link_check.py, archive_sources.py).
---
--- WHY A SEPARATE TABLE. The promise is that every figure links to the document
--- that states it, so a source link that dies converts a sourced claim into an
--- unsourced one WITHOUT anything looking broken. That has to be recorded
--- somewhere, and it must not be recorded on the signal: a dead link is not a
--- correction, nothing about what we knew has changed, and appending a revision
--- for it would put HTTP weather into the record of what a source said.
---
--- Keyed on the URL because 15,631 current rows share 13,893 distinct source
--- URLs (and thousands of SEC rows share a handful of filing index pages), so
--- one check and one snapshot serve every row that cites the same document.
---
--- Nothing here ever deletes or edits a signal. A dead link is recorded and
--- surfaced; deciding what to do about it is a human step, on purpose.
-CREATE TABLE IF NOT EXISTS source_links (
-    source_url    TEXT PRIMARY KEY,
 
-    -- Reachability, from link_check.py.
-    http_status   INTEGER,        -- 0 means the request never completed
-    final_url     TEXT,           -- where it landed after redirects
-    final_domain  TEXT,           -- registrable domain of final_url
-    state         TEXT,           -- live | walled | dead | drifted | unreachable | error | robots
-    checked_at    TEXT,
-    check_detail  TEXT,
-    checks        INTEGER NOT NULL DEFAULT 0,
-
-    -- Permanence, from archive_sources.py. archive_url is a Wayback permalink:
-    -- a neutral third-party copy, so a reader can still reach the evidence when
-    -- the publisher's own copy is gone.
-    archive_url      TEXT,
-    archive_state    TEXT,        -- archived | pending | unavailable
-    archive_attempts INTEGER NOT NULL DEFAULT 0,
-    archived_at      TEXT,
-    -- Probe accounting. `archive_attempts` counts CAPTURES tried; these two
-    -- count what we LEARNED, and the difference is what stops a throttled
-    -- fortnight from walking a capturable document to the terminal state:
-    --   archive_probes       definitive answers from the availability API
-    --                        (a hit, or an explicit "no snapshot"). 0 means we
-    --                        have never once been told anything about this URL.
-    --   archive_blind_rounds rounds that learned nothing at all — a 429, a
-    --                        timeout, a Save Page Now refusal. Never rot, never
-    --                        evidence, and never grounds for going terminal.
-    archive_probes       INTEGER NOT NULL DEFAULT 0,
-    archive_blind_rounds INTEGER NOT NULL DEFAULT 0,
-    archive_detail       TEXT,
-
-    -- Reporting only. A rot rate that rises for ONE publisher means that
-    -- publisher changed its URL scheme, which is actionable in a way that an
-    -- overall percentage is not.
-    source_name   TEXT,
-    host          TEXT,
-
-    -- Merge key. Both jobs write this row, so merge_db.py resolves a collision
-    -- by keeping the later write wholesale. Both jobs are resumable and
-    -- idempotent, so the worst a lost update costs is one cycle.
-    updated_at    TEXT NOT NULL
-);
 
 -- Employer identity resolutions (pipeline/identity.py). Keyed per EMPLOYER,
 -- not per signal: employers repeat and the SEC filers among them recur every
@@ -360,19 +297,6 @@ CREATE TABLE IF NOT EXISTS funding_corroborations (
     PRIMARY KEY (signal_id, host)
 );
 
-CREATE TABLE IF NOT EXISTS employer_identity (
-    company_key   TEXT PRIMARY KEY,
-    company       TEXT,
-    qid           TEXT,           -- Wikidata item, for auditing a bad match
-    ticker        TEXT,
-    cik           TEXT,
-    hq_city       TEXT,
-    hq_country    TEXT,
-    employer_type TEXT,
-    resolved      INTEGER NOT NULL DEFAULT 0,
-    detail        TEXT,
-    resolved_at   TEXT NOT NULL
-);
 """
 
 INDEXES = """
@@ -392,10 +316,6 @@ CREATE INDEX IF NOT EXISTS idx_signals_cik      ON signals(cik);
 CREATE INDEX IF NOT EXISTS idx_signals_material ON signals(materiality);
 CREATE INDEX IF NOT EXISTS idx_signals_site_evt ON signals(site_event);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_signals_hash_rev ON signals(content_hash, revision);
-CREATE INDEX IF NOT EXISTS idx_links_state    ON source_links(state);
-CREATE INDEX IF NOT EXISTS idx_links_checked  ON source_links(checked_at);
-CREATE INDEX IF NOT EXISTS idx_links_archive  ON source_links(archive_state);
-CREATE INDEX IF NOT EXISTS idx_links_host     ON source_links(host);
 CREATE INDEX IF NOT EXISTS idx_guardrails_state ON publish_guardrails(state);
 CREATE INDEX IF NOT EXISTS idx_corrob_signal ON funding_corroborations(signal_id);
 -- Deliberately NO index on signals(source_url). It would help the GROUP BY in
@@ -403,6 +323,156 @@ CREATE INDEX IF NOT EXISTS idx_corrob_signal ON funding_corroborations(signal_id
 -- added 1.7 MB to a database that is committed to the repo on every collect run
 -- and therefore stored again in full by git each time. The wrong trade.
 """
+
+
+# --- the second committed file ---------------------------------------------
+#
+# WHY THERE ARE TWO FILES. GitHub refuses any single file over 100 MiB in a
+# push, and the limit is PER FILE, not per repository or per push. On
+# 2026-08-20 `data/talent_intel.db` was 78.8 MiB and growing 676 KB/day
+# (measured over the fortnight to 08-20, not estimated), which is 32 days from
+# a repository that stops accepting commits. Everything about this system
+# assumes the database is committed: `git push` is the compare-and-swap that
+# makes merge_db.py safe, `git show <sha>:data/talent_intel.db` is the restore
+# path, and backup_check.py opens the committed blob. Moving the database out
+# of git to a release asset or to LFS would buy space by giving all three of
+# those up, so instead the file is SPLIT and both halves stay committed.
+#
+# What moved is everything that is a CACHE or a LEDGER rather than the product:
+#
+#   seen_urls          the never-pay-twice URL cache. 15.2 MiB with its
+#                      autoindex, 31 percent of daily growth, and the biggest
+#                      single thing here that is not a signal.
+#   source_links       the link-rot / archive ledger. 3.7 MiB, 14 percent of
+#                      growth, and re-derivable by re-running link_check.
+#   employer_identity  the Wikidata resolution cache, re-derivable by paying
+#                      for the lookups again.
+#
+# `signals` stays in the product file with source_health and publish_guardrails,
+# which are small and are what every reader means by "the data".
+#
+# The two files are ONE database at runtime: connect() ATTACHes the cache as
+# `cache`, and SQLite resolves an unqualified table name across attached
+# schemas, so `SELECT ... FROM seen_urls` needs no change anywhere. A commit
+# spanning both files is atomic (SQLite writes a master journal), so a run
+# cannot store a signal without recording its URL as seen.
+#
+# THE ONE RULE THIS ADDS: every workflow that commits the database must commit
+# BOTH files. A run that pushes only the product file throws away the URL cache
+# and re-pays the LLM for stories it already read.
+# tests/test_workflows.py enforces it; do not weaken that test.
+
+CACHE_SCHEMA = "cache"
+
+#: Tables that live in the cache file rather than the product file.
+CACHE_TABLE_NAMES = ("seen_urls", "source_links", "employer_identity")
+
+CACHE_TABLES = """
+-- Every URL we have ever looked at, so we never pay an LLM for it twice.
+-- Spec 4 rule 2: this removed ~60% of daily extraction volume on the sibling.
+CREATE TABLE IF NOT EXISTS cache.seen_urls (
+    url         TEXT PRIMARY KEY,
+    first_seen  TEXT NOT NULL,
+    collector   TEXT NOT NULL,
+    outcome     TEXT NOT NULL   -- stored | rejected | duplicate
+);
+
+-- Link rot, per SOURCE URL rather than per row (link_check.py, archive_sources.py).
+--
+-- WHY A SEPARATE TABLE. The promise is that every figure links to the document
+-- that states it, so a source link that dies converts a sourced claim into an
+-- unsourced one WITHOUT anything looking broken. That has to be recorded
+-- somewhere, and it must not be recorded on the signal: a dead link is not a
+-- correction, nothing about what we knew has changed, and appending a revision
+-- for it would put HTTP weather into the record of what a source said.
+--
+-- Keyed on the URL because 15,631 current rows share 13,893 distinct source
+-- URLs (and thousands of SEC rows share a handful of filing index pages), so
+-- one check and one snapshot serve every row that cites the same document.
+--
+-- Nothing here ever deletes or edits a signal. A dead link is recorded and
+-- surfaced; deciding what to do about it is a human step, on purpose.
+CREATE TABLE IF NOT EXISTS cache.source_links (
+    source_url    TEXT PRIMARY KEY,
+
+    -- Reachability, from link_check.py.
+    http_status   INTEGER,        -- 0 means the request never completed
+    final_url     TEXT,           -- where it landed after redirects
+    final_domain  TEXT,           -- registrable domain of final_url
+    state         TEXT,           -- live | walled | dead | drifted | unreachable | error | robots
+    checked_at    TEXT,
+    check_detail  TEXT,
+    checks        INTEGER NOT NULL DEFAULT 0,
+
+    -- Permanence, from archive_sources.py. archive_url is a Wayback permalink:
+    -- a neutral third-party copy, so a reader can still reach the evidence when
+    -- the publisher's own copy is gone.
+    archive_url      TEXT,
+    archive_state    TEXT,        -- archived | pending | unavailable
+    archive_attempts INTEGER NOT NULL DEFAULT 0,
+    archived_at      TEXT,
+    -- Probe accounting. `archive_attempts` counts CAPTURES tried; these two
+    -- count what we LEARNED, and the difference is what stops a throttled
+    -- fortnight from walking a capturable document to the terminal state:
+    --   archive_probes       definitive answers from the availability API
+    --                        (a hit, or an explicit "no snapshot"). 0 means we
+    --                        have never once been told anything about this URL.
+    --   archive_blind_rounds rounds that learned nothing at all — a 429, a
+    --                        timeout, a Save Page Now refusal. Never rot, never
+    --                        evidence, and never grounds for going terminal.
+    archive_probes       INTEGER NOT NULL DEFAULT 0,
+    archive_blind_rounds INTEGER NOT NULL DEFAULT 0,
+    archive_detail       TEXT,
+
+    -- Reporting only. A rot rate that rises for ONE publisher means that
+    -- publisher changed its URL scheme, which is actionable in a way that an
+    -- overall percentage is not.
+    source_name   TEXT,
+    host          TEXT,
+
+    -- Merge key. Both jobs write this row, so merge_db.py resolves a collision
+    -- by keeping the later write wholesale. Both jobs are resumable and
+    -- idempotent, so the worst a lost update costs is one cycle.
+    updated_at    TEXT NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS cache.employer_identity (
+    company_key   TEXT PRIMARY KEY,
+    company       TEXT,
+    qid           TEXT,           -- Wikidata item, for auditing a bad match
+    ticker        TEXT,
+    cik           TEXT,
+    hq_city       TEXT,
+    hq_country    TEXT,
+    employer_type TEXT,
+    resolved      INTEGER NOT NULL DEFAULT 0,
+    detail        TEXT,
+    resolved_at   TEXT NOT NULL
+);
+"""
+
+CACHE_INDEXES = """
+CREATE INDEX IF NOT EXISTS cache.idx_links_state    ON source_links(state);
+CREATE INDEX IF NOT EXISTS cache.idx_links_checked  ON source_links(checked_at);
+CREATE INDEX IF NOT EXISTS cache.idx_links_archive  ON source_links(archive_state);
+CREATE INDEX IF NOT EXISTS cache.idx_links_host     ON source_links(host);
+"""
+
+
+def cache_path_for(db_path: Path | str) -> Path:
+    """The cache file that belongs to `db_path`.
+
+    Derived rather than configured, so a test database, a backfill's scratch
+    copy and the committed file all carry their own cache and nothing can point
+    two databases at one cache by accident.
+    """
+    p = Path(db_path)
+    return p.with_name(p.stem + "_cache" + p.suffix)
+
+
+CACHE_DB_PATH = cache_path_for(DB_PATH)
+
 
 
 # Columns added after the first release. CREATE TABLE IF NOT EXISTS does
@@ -571,17 +641,248 @@ def backfill_materiality(conn: sqlite3.Connection) -> int:
     return len(updates)
 
 
+def attach_cache(conn: sqlite3.Connection, db_path: Path | str) -> Path:
+    """ATTACH the cache file belonging to `db_path` as `cache`. Returns its path.
+
+    Idempotent: attaching twice raises, so an already-attached `cache` is left
+    alone. That matters because read-only callers build their own connection
+    and hand it here.
+    """
+    cache = cache_path_for(db_path)
+    already = {row[1] for row in conn.execute("PRAGMA database_list")}
+    if CACHE_SCHEMA not in already:
+        conn.execute("ATTACH DATABASE ? AS %s" % CACHE_SCHEMA, (str(cache),))
+    return cache
+
+
+def connect_ro(db_path: Path | str | None = None) -> sqlite3.Connection:
+    """Read-only connection with the cache file attached read-only.
+
+    For the tools that deliberately open `mode=ro` rather than going through
+    connect(): ops_status, the digest, the analysis walkers. They must not
+    create a table, must not migrate and must not be able to lock a database a
+    collect run is writing — but they DO read `source_links` and `seen_urls`,
+    which now live in the other file.
+
+    A missing cache file is NOT silently tolerated. `mode=ro` refuses to create
+    it, so the ATTACH raises and the caller fails loudly, which is the point:
+    reading zero link-rot rows because the file was never fetched looks exactly
+    like a clean link-rot report.
+    """
+    path = Path(db_path) if db_path else DB_PATH
+    conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    cache = cache_path_for(path)
+    conn.execute(
+        "ATTACH DATABASE ? AS %s" % CACHE_SCHEMA,
+        (f"file:{cache}?mode=ro",),
+    )
+    return conn
+
+
+class CacheMoveFailed(RuntimeError):
+    """A row was about to be lost moving a table between the two files."""
+
+
+def _move_legacy_cache_tables(conn: sqlite3.Connection) -> list[str]:
+    """Move any cache table still sitting in the product file into the cache.
+
+    THIS IS NOT ONE-OFF CLEANUP, it is the thing that makes the split safe to
+    land on a repository with two dozen live branches. SQLite resolves an
+    unqualified table name against `main` FIRST, so a `seen_urls` in the
+    product file SHADOWS the real one in the cache file — silently, and reading
+    an empty cache is indistinguishable from a cache that legitimately holds
+    nothing. That is exactly how a run re-pays the LLM for every story it
+    already read.
+
+    Two ways it happens, and they need different handling:
+
+    THE MIGRATION. A database written before the split holds the real rows in
+    main and has no cache file at all. Those rows are moved by REBUILDING the
+    table in the cache file from the legacy table's OWN `CREATE` statement and
+    copying every row across unchanged.
+
+    Rebuilding from the legacy DDL rather than from CACHE_TABLES is not
+    fastidiousness, it is the fix for a measured row loss. The two shapes are
+    not the same: `ALTER TABLE ADD COLUMN archive_probes INTEGER` (MIGRATIONS)
+    is nullable, `CREATE TABLE ... archive_probes INTEGER NOT NULL DEFAULT 0`
+    (CACHE_TABLES) is not, and 1,232 of 6,496 `source_links` rows on
+    2026-08-20 held NULL there. Copied into the stricter table with
+    `INSERT OR IGNORE`, every one of them was skipped in silence and the move
+    reported success. Coercing them to 0 would have been just as wrong in a
+    quieter way: NULL means "never probed" and 0 means "probed and told
+    nothing", and archive_sources.py reads the difference to decide whether a
+    document may go terminal.
+
+    THE SHADOW. A branch still running the pre-split schema.py puts an EMPTY
+    `seen_urls` back into main. Here the cache is authoritative — it was
+    written by a checkout that knew about it — so rows are folded in with
+    `INSERT OR IGNORE` and a key the cache already holds is kept.
+
+    Either way the row count is CHECKED before `main` is dropped, and a
+    shortfall raises rather than logs. A move that loses rows is the failure
+    this whole file is arranged around, and the last time it happened here it
+    took 9,572 signals and no run went red.
+
+    It does NOT vacuum. Dropping a 15 MiB table returns its pages to the
+    freelist and leaves the file the same size on disk, so the space is only
+    reclaimed by split_cache_db.py, which is run once by a human and commits
+    the result. A VACUUM here would rewrite an 80 MiB file on every connect().
+    """
+    moved = []
+    in_main = {row[0] for row in conn.execute(
+        "SELECT name FROM main.sqlite_master WHERE type='table'")}
+    for table in CACHE_TABLE_NAMES:
+        if table not in in_main:
+            continue
+
+        source_rows = conn.execute(
+            f"SELECT COUNT(*) FROM main.{table}").fetchone()[0]
+        exists_in_cache = conn.execute(
+            f"SELECT COUNT(*) FROM {CACHE_SCHEMA}.sqlite_master "
+            f" WHERE type='table' AND name=?", (table,)).fetchone()[0]
+        held = conn.execute(
+            f"SELECT COUNT(*) FROM {CACHE_SCHEMA}.{table}").fetchone()[0] \
+            if exists_in_cache else 0
+
+        if held == 0:
+            # The migration. Reproduce the legacy table verbatim in the cache
+            # file, so nothing can be coerced, widened or refused on the way.
+            legacy_sql = conn.execute(
+                "SELECT sql FROM main.sqlite_master "
+                " WHERE type='table' AND name=?", (table,)).fetchone()[0]
+            if exists_in_cache:
+                conn.execute(f"DROP TABLE {CACHE_SCHEMA}.{table}")
+            conn.execute(_qualify_create(legacy_sql, table))
+            conn.execute(
+                f"INSERT INTO {CACHE_SCHEMA}.{table} SELECT * FROM main.{table}")
+            # The legacy shape is authoritative about the rows, but it can be
+            # missing a column the current CREATE declares — a database old
+            # enough to predate one. Reconciled by ALTER, which keeps the
+            # copied rows and gives the new column its declared default, so
+            # CACHE_INDEXES below cannot fail on a column that is not there.
+            _add_missing_cache_columns(conn, table)
+            expected = source_rows
+        else:
+            # The shadow. The cache wins every key it already has; everything
+            # else is folded in.
+            columns = [r[1] for r in conn.execute(f"PRAGMA main.table_info({table})")]
+            cache_columns = {r[1] for r in conn.execute(
+                f"PRAGMA {CACHE_SCHEMA}.table_info({table})")}
+            shared = [c for c in columns if c in cache_columns]
+            names = ", ".join(f'"{c}"' for c in shared)
+            key = [r[1] for r in sorted(
+                (r for r in conn.execute(f"PRAGMA {CACHE_SCHEMA}.table_info({table})")
+                 if r[5]), key=lambda r: r[5])]
+            on = " AND ".join(f"c.{k} = m.{k}" for k in key)
+            collisions = conn.execute(
+                f"SELECT COUNT(*) FROM main.{table} m "
+                f" JOIN {CACHE_SCHEMA}.{table} c ON {on}").fetchone()[0] if key else 0
+            conn.execute(
+                f"INSERT OR IGNORE INTO {CACHE_SCHEMA}.{table} ({names}) "
+                f"SELECT {names} FROM main.{table}")
+            expected = held + source_rows - collisions
+
+        landed = conn.execute(
+            f"SELECT COUNT(*) FROM {CACHE_SCHEMA}.{table}").fetchone()[0]
+        if landed != expected:
+            conn.rollback()
+            raise CacheMoveFailed(
+                f"moving {table} into the cache file would have lost "
+                f"{expected - landed} row(s): {source_rows} in the product "
+                f"file plus {held} already held should be {expected}, but "
+                f"{landed} landed. Nothing was dropped; the product file is "
+                f"unchanged.")
+
+        conn.execute(f"DROP TABLE main.{table}")
+        moved.append(table)
+    if moved:
+        conn.commit()
+    return moved
+
+
+def _add_missing_cache_columns(conn: sqlite3.Connection, table: str) -> list[str]:
+    """Bring a table rebuilt from a legacy CREATE up to the current declaration.
+
+    The reference is CACHE_TABLES itself, built in a throwaway attached schema
+    and read back, rather than a hand-kept list of columns. A list would be a
+    second declaration of the same thing and would drift the first time a
+    column was added — which is precisely the class of bug MIGRATIONS exists to
+    document.
+    """
+    conn.execute("ATTACH DATABASE ':memory:' AS _ref")
+    try:
+        conn.executescript(CACHE_TABLES.replace(f"{CACHE_SCHEMA}.", "_ref."))
+        want = [(r[1], r[2], r[4]) for r in
+                conn.execute(f"PRAGMA _ref.table_info({table})")]
+        have = {r[1] for r in conn.execute(f"PRAGMA {CACHE_SCHEMA}.table_info({table})")}
+        added = []
+        for name, decl, default in want:
+            if name in have:
+                continue
+            # Always nullable, never NOT NULL, even where the CREATE says so.
+            # SQLite cannot ALTER a NOT NULL column onto a populated table
+            # without a default, and adopting one would hand every existing row
+            # a value nothing measured — which is the same mistake as coercing
+            # a NULL `archive_probes` to 0. This mirrors MIGRATIONS, which adds
+            # every column nullable for exactly that reason.
+            clause = f"{name} {decl}"
+            if default is not None:
+                clause += f" DEFAULT {default}"
+            conn.execute(f"ALTER TABLE {CACHE_SCHEMA}.{table} ADD COLUMN {clause}")
+            added.append(name)
+        return added
+    finally:
+        conn.execute("DETACH DATABASE _ref")
+
+
+def _qualify_create(sql: str, table: str) -> str:
+    """Point a `CREATE TABLE` statement at the cache schema.
+
+    sqlite_master stores the statement exactly as it was written, so the name
+    may or may not be quoted and may or may not carry IF NOT EXISTS. Only the
+    table name is touched; every column declaration is left byte for byte,
+    which is the entire point of rebuilding from this rather than from
+    CACHE_TABLES.
+    """
+    pattern = re.compile(
+        r'(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(["\'`\[]?)'
+        + re.escape(table) + r'(["\'`\]]?)',
+        re.IGNORECASE)
+    qualified, count = pattern.subn(
+        lambda m: f"{m.group(1)}{CACHE_SCHEMA}.{m.group(2)}{table}{m.group(3)}",
+        sql, count=1)
+    if count != 1:
+        raise CacheMoveFailed(
+            f"could not read the stored CREATE statement for {table}: {sql!r}")
+    return qualified
+
+
 def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     path = Path(db_path) if db_path else DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
 
-    # Order matters: create tables, then add missing columns, then indexes —
-    # an index on a not-yet-added column is what broke this the first time.
+    # The cache file is created on demand exactly like the product file is: a
+    # fresh checkout, a test tmp_path and a backfill's scratch copy all have to
+    # work without a migration step somebody remembers to run.
+    attach_cache(conn, path)
+
+    # Order matters, and the first two steps are new:
+    #   1. create the product tables, then the cache tables, so the destination
+    #      of the move below exists before the move runs;
+    #   2. move any shadowing copy out of main BEFORE _migrate and INDEXES,
+    #      both of which name their tables unqualified and would otherwise
+    #      migrate and index the shadow instead of the real table;
+    #   3. add missing columns, then indexes — an index on a not-yet-added
+    #      column is what broke this the first time.
     conn.executescript(TABLES)
+    conn.executescript(CACHE_TABLES)
+    _move_legacy_cache_tables(conn)
     _migrate(conn)
     conn.executescript(INDEXES)
+    conn.executescript(CACHE_INDEXES)
 
     # Run here rather than from a script someone has to remember. A one-off
     # migration script is a migration that stops running: the collectors, the

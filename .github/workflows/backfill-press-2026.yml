@@ -177,6 +177,7 @@ jobs:
           # the top of it — a copy destroys every row anyone else pushed while
           # this run was collecting. See merge_db.py.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/collected_cache.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
           # This slice's per-candidate gate verdicts, saved before the reset
           # discards them. A backfill pays for exactly the same gate calls the
@@ -213,7 +214,7 @@ jobs:
                 --queue > "$RUNNER_TEMP/record.log" 2>&1 || RECORD_RC=$?
               cat "$RUNNER_TEMP/record.log"
             fi
-            git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
             git add data/backfill_state.json data/writer_queue.json || true
             git add data/press_archive_health.json || true
             git add data/spend_month.json || true

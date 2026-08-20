@@ -132,13 +132,14 @@ jobs:
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db
+          git add data/talent_intel.db data/talent_intel_cache.db
           if git diff --staged --quiet; then
             echo "No new snapshots."
             exit 0
           fi
 
           cp data/talent_intel.db "$RUNNER_TEMP/archived.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/archived_cache.db"
 
           for attempt in 1 2 3 4 5; do
             git fetch origin main
@@ -150,7 +151,7 @@ jobs:
             # not travel. Re-deriving it here from the merged ledger is cheap
             # and idempotent, and it is why the projection lives in a function.
             python -c "from pipeline import schema, source_links; c = schema.connect('data/talent_intel.db'); print('re-projected', source_links.project_archive_urls(c), 'row(s)'); c.commit()"
-            git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
             if git diff --staged --quiet; then
               echo "Remote already has these snapshots."
               exit 0

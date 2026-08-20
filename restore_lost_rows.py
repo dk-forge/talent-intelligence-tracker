@@ -51,6 +51,12 @@ import merge_db
 from pipeline import schema
 
 DB_IN_REPO = "data/talent_intel.db"
+# The second committed file, since the 2026-08-20 split. Revisions OLDER than
+# the split do not have it — their seen_urls, source_links and
+# employer_identity are inside the product file — and that is handled rather
+# than special-cased: schema.connect() moves any such table into the cache file
+# as it opens the version, so both eras arrive at the merge in the same shape.
+CACHE_IN_REPO = "data/talent_intel_cache.db"
 QUERY_URL = "https://asktherecruiter.com/blog/wp-json/talent/v1/query"
 # ModSecurity on the WP host rejects python-requests' default agent.
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -69,7 +75,7 @@ def historical_versions() -> list[str]:
     mean: employer_identity keeps the later resolved_at, and a revision appended
     after a row was written must not be undone by the version before it.
     """
-    shas = _git("log", "--format=%H", "--", DB_IN_REPO).split()
+    shas = _git("log", "--format=%H", "--", DB_IN_REPO, CACHE_IN_REPO).split()
     return list(reversed(shas))
 
 
@@ -104,11 +110,28 @@ def replay_history(db_path: Path, shas: list[str], *, dry_run: bool) -> dict:
         recovered = 0
         for index, sha in enumerate(shas, 1):
             version = tmp / f"{sha}.db"
+            version_cache = schema.cache_path_for(version)
             with version.open("wb") as handle:
                 subprocess.run(("git", "show", f"{sha}:{DB_IN_REPO}"),
                                stdout=handle, check=True)
+            # Post-split revisions carry their own cache file. Pre-split ones
+            # do not, and must NOT get an empty one written here: opening the
+            # version through connect() below moves the cache tables out of the
+            # product file, which is where they still are at that revision.
+            with version_cache.open("wb") as handle:
+                if subprocess.run(("git", "show", f"{sha}:{CACHE_IN_REPO}"),
+                                  stdout=handle,
+                                  stderr=subprocess.DEVNULL).returncode != 0:
+                    handle.close()
+                    version_cache.unlink()
+            # Normalise the version before merging it: creates the cache file
+            # when the revision predates the split, and moves any shadowing
+            # copy out of main so the merge reads the real table and not an
+            # empty one that happens to have the same name.
+            schema.connect(version).close()
             report = merge_db.merge(version, target)
             version.unlink()
+            version_cache.unlink(missing_ok=True)
             if report["signals_inserted"] or report["employer_identity_added"]:
                 print(f"  [{index}/{len(shas)}] {sha[:9]}: "
                       f"+{report['signals_inserted']} signals, "

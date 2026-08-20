@@ -152,8 +152,8 @@ jobs:
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db data/national_press_health.json data/spend_month.json 2>/dev/null \
-            || git add data/talent_intel.db
+          git add data/talent_intel.db data/talent_intel_cache.db data/national_press_health.json data/spend_month.json 2>/dev/null \
+            || git add data/talent_intel.db data/talent_intel_cache.db
           # This run's per-candidate gate verdicts: the training set for the
           # classifier that replaces most of the paid gate
           # (docs/PLAN-gate-to-five-dollars.md). `-A` because a month closing
@@ -170,6 +170,7 @@ jobs:
           # The gate labels merge too — they are append-only lines, and a copy
           # would overwrite whatever another writer appended meanwhile.
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/collected_cache.db"
           cp data/national_press_health.json "$RUNNER_TEMP/press_health.json" 2>/dev/null || true
           rm -rf "$RUNNER_TEMP/gate_labels"
           cp -R data/gate_labels "$RUNNER_TEMP/gate_labels" 2>/dev/null || true
@@ -180,8 +181,8 @@ jobs:
             python merge_db.py "$RUNNER_TEMP/collected.db" data/talent_intel.db
             cp "$RUNNER_TEMP/press_health.json" data/national_press_health.json 2>/dev/null || true
             python merge_gate_labels.py "$RUNNER_TEMP/gate_labels" data/gate_labels || true
-            git add data/talent_intel.db data/national_press_health.json 2>/dev/null \
-              || git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db data/national_press_health.json 2>/dev/null \
+              || git add data/talent_intel.db data/talent_intel_cache.db
             git add -A data/gate_labels 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this data."

@@ -119,12 +119,13 @@ jobs:
           # while this run was correcting. See merge_db.py, and the header
           # above for why this one may merge where correct-form-d may not.
           cp data/talent_intel.db "$RUNNER_TEMP/corrected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/corrected_cache.db"
           LANDED=0
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/corrected.db" data/talent_intel.db
-            git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
             if git diff --staged --quiet; then
               echo "No data change."
               LANDED=1

@@ -244,6 +244,7 @@ jobs:
           # 2026-07-28/29. It merges instead; see merge_db.py.
           mkdir -p "$RUNNER_TEMP/tripwire"
           cp data/talent_intel.db "$RUNNER_TEMP/tripwire/talent_intel.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/tripwire/talent_intel_cache.db"
           cp data/tripwire_worklist.json "$RUNNER_TEMP/tripwire/worklist.json"
           cp -r analysis/tripwire/results "$RUNNER_TEMP/tripwire/results"
 

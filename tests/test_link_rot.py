@@ -494,7 +494,7 @@ def test_the_ledger_merges_instead_of_being_overwritten(tmp_path, stocked):
 
     report = merge_db.merge(ours_path, tmp_path / "theirs.db")
     assert report["source_links_added"] == 1
-    merged = sqlite3.connect(tmp_path / "theirs.db")
+    merged = schema.connect(tmp_path / "theirs.db")
     urls = {r[0] for r in merged.execute("SELECT source_url FROM source_links")}
     merged.close()
     assert urls == {"https://theirs.example/x", "https://ours.example/y"}

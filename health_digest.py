@@ -42,6 +42,7 @@ from pathlib import Path
 # in the same scope. The alias is the honest fix; renaming the parameter would
 # touch every caller and every test for a shadowing that is one line deep.
 from pipeline import guardrails as guardrails_mod
+from pipeline import schema
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
@@ -123,7 +124,7 @@ def read_local(db_path: Path = DB) -> dict:
     """Collectors from the committed SQLite ledger, newest run per collector."""
     if not db_path.exists():
         raise FileNotFoundError(f"no database at {db_path}")
-    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    conn = schema.connect_ro(db_path)
     conn.row_factory = sqlite3.Row
     try:
         rows = conn.execute(
@@ -163,7 +164,7 @@ def read_link_health(db_path: Path = DB) -> dict | None:
         return None
     try:
         from pipeline import source_links
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn = schema.connect_ro(db_path)
         conn.row_factory = sqlite3.Row
         try:
             cover = source_links.archive_coverage(conn)
@@ -264,7 +265,7 @@ def read_guardrails(db_path: Path = DB) -> list[dict]:
         return []
     try:
         from pipeline import guardrails
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn = schema.connect_ro(db_path)
         conn.row_factory = sqlite3.Row
         try:
             report = guardrails.quarantine(conn, write=False)

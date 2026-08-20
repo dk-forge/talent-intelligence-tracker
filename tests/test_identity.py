@@ -171,8 +171,19 @@ _OPEN: list = []
 
 
 def _db():
+    """An in-memory database with BOTH halves of the schema.
+
+    `employer_identity` moved to the cache file in the 100 MiB split, so
+    executing schema.TABLES alone no longer builds a database this module can
+    use. In memory the two halves are one connection with `cache` attached to
+    its own private in-memory database, which is the same name resolution
+    production gets from two files.
+    """
     conn = sqlite3.connect(":memory:")
+    conn.execute("ATTACH DATABASE ':memory:' AS cache")
     conn.executescript(schema.TABLES)
+    conn.executescript(schema.CACHE_TABLES)
+    conn.executescript(schema.CACHE_INDEXES)
     _OPEN.append(conn)
     return conn
 
@@ -652,7 +663,8 @@ class TheCacheTable(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             conn = schema.connect(Path(tmp) / "t.db")
             tables = {r[0] for r in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'")}
+                "SELECT name FROM sqlite_master WHERE type='table' "
+                "UNION SELECT name FROM cache.sqlite_master WHERE type='table'")}
             conn.close()
         self.assertIn("employer_identity", tables)
 
@@ -660,13 +672,16 @@ class TheCacheTable(unittest.TestCase):
         """The database is committed to the repo, so it outlives this change."""
         with tempfile.TemporaryDirectory() as tmp:
             db = Path(tmp) / "old.db"
-            old = schema.TABLES.split("CREATE TABLE IF NOT EXISTS employer_identity")[0]
+            # A database from before the cache table existed at all: the
+            # product half only, and not even the cache file beside it.
+            old = schema.TABLES
             raw = sqlite3.connect(db)
             raw.executescript(old)
             raw.close()
             conn = schema.connect(db)
             tables = {r[0] for r in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'")}
+                "SELECT name FROM sqlite_master WHERE type='table' "
+                "UNION SELECT name FROM cache.sqlite_master WHERE type='table'")}
             conn.close()
         self.assertIn("employer_identity", tables)
 
