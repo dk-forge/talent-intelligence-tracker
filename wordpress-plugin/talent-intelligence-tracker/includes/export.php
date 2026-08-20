@@ -61,6 +61,22 @@ function tit_export_filters() {
     $params = wp_unslash($_GET);
     unset($params['action']);
     $req->set_query_params($params);
+    // An unknown filter value refuses the DOWNLOAD too. A CSV is the one
+    // surface where the mistake outlives the request: the file is saved,
+    // mailed on and analysed, with nothing on it to say the filter in its
+    // filename never reached the query. Plain text and a 400, because this
+    // route is admin_post and not REST, and because a browser is what asked.
+    if (function_exists('tit_validate_filters')) {
+        $invalid = tit_validate_filters($req);
+        if (is_wp_error($invalid)) {
+            status_header(400);
+            nocache_headers();
+            header('Content-Type: text/plain; charset=utf-8');
+            echo $invalid->get_error_message() . "\n";
+            exit;
+        }
+    }
+
     $out = array();
     // Every filter EXCEPT the detail control. A download is the complete
     // matching set: the page sets routine filings aside so a reader is not

@@ -177,6 +177,21 @@ jobs:
       - name: The header submenu under the tracker, run for real
         run: php tests/php/nav_submenu.php
 
+      # An unknown filter value used to be DROPPED, so /aggregate answered the
+      # worldwide total under whatever label the caller asked for. Measured
+      # live on 2026-08-20: pillar=leadership_change returned 16,493 and
+      # pillar=leadership_chang returned 31,162, both HTTP 200. No call fails,
+      # so no failed-call guard can see it. This runs the real routes over real
+      # SQL and fails if any filter value the registry does not know answers
+      # anything other than 400.
+      - name: An unknown filter value must not widen the answer
+        run: php tests/php/filter_validation.php
+
+      # The word-boundary search harness, which was written and then never
+      # wired in. Same class of assertion, same harness shape.
+      - name: The public search box, run as real SQL
+        run: php tests/php/search_boundary.php
+
       - name: Run tests
         run: python -m pytest -q
 
