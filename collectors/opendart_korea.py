@@ -1,4 +1,4 @@
-"""OpenDART — Korea's leadership spine, which is the report NAME and not a code.
+r"""OpenDART — Korea's leadership spine, which is the report NAME and not a code.
 
 South Korea's Financial Supervisory Service runs DART, the mandatory disclosure
 registry, and exposes it through the keyed OpenDART API. This collector reads
