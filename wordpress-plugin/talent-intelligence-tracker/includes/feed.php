@@ -145,6 +145,15 @@ function tit_feed_over_cap() {
 }
 
 function tit_api_feed(WP_REST_Request $req) {
+    // The feed takes /query's filters, so it inherits /query's answer to an
+    // unknown value: refuse it. A feed that quietly served the WHOLE corpus
+    // because one word in the subscribed URL was misspelled is the same defect
+    // wearing a different content type, and a feed reader polls it forever.
+    if (function_exists('tit_validate_filters')) {
+        $invalid = tit_validate_filters($req);
+        if (is_wp_error($invalid)) return $invalid;
+    }
+
     $cache_key = tit_cache_key('rss', $req);
     $xml = get_transient($cache_key);
 

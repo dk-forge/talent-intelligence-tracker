@@ -14,6 +14,91 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-20 - an unknown filter value answered with the worldwide total
+
+**Measured live, twice, before anything was changed.** Against an unfiltered
+`/talent/v1/aggregate` total of 31,162:
+
+| request | answer | |
+|---|---|---|
+| `pillar=leadership_change` | 16,493 | honoured |
+| `funding=1` | 4,587 | honoured |
+| `pillar=rewards_comp` | 8,944 | honoured |
+| `pillar=leadership_chang` | **31,162** | dropped, one character short |
+| `pillar=hiring_expansion` | **31,162** | dropped, not a pillar |
+| `funding=banana` / `funding=0` / `pillar=` | **31,162** | dropped |
+| `confidence=verifed` / `since=banana` / `sort=nonsense` | **31,162** | dropped |
+
+Every one of those answered **HTTP 200**. `tit_build_where` was written
+throughout as "apply this filter if the value is one we recognise", which reads
+as caution and behaves as its opposite: the unrecognised value fell out of the
+WHERE clause and the caller was handed the worldwide total under the label it
+had asked for. A caller printing "Leadership moves: 31,162" off one dropped
+character has published a wrong number, and no failed-call guard anywhere can
+see it, because no call failed. A large plausible figure invites none of the
+scrutiny a wrong zero would.
+
+**It was never only `/aggregate`.** `tit_build_where` is shared, so `/query`,
+the RSS feed and both CSV downloads had the same defect, verified live for
+`/query` (`industry=nonsense` -> 31,162; `country=USA` -> 31,162, because the
+three-letter code fails the two-letter shape test and is then simply forgotten).
+
+**The answer is 400, not zero.** The sibling layoff tracker answers an unknown
+filter value with zero rows and that is also defensible. It is not the answer
+here, because on these endpoints **zero is a legitimate measurement**: a pillar
+with no updates inside a narrow window genuinely counts zero, and the same
+parameters drive a feed and two CSV downloads where "no items" and "no rows"
+are equally ordinary. A zero cannot be told apart from "you asked wrong" by the
+one thing that needs to tell them apart, which is the caller about to print it.
+A 400 naming the parameter and listing what it accepts is the only response
+that cannot be mistaken for a measurement.
+
+**One definition, and the values are not written in the validator.**
+`tit_filter_spec()` declares every parameter `tit_build_where` reads and reads
+each closed vocabulary from the `tit_allowed_*()` function that already
+declares it. `tit_build_where` and `tit_multi_param` now take their lists from
+the same registry through `tit_filter_allowed()`, and `$orders` was hoisted out
+of `tit_api_query` into `tit_query_orders()` so the sort names the validator
+checks are the sort names the endpoint answers by. A hard-coded list in the
+route handler would have been this bug with an extra step.
+
+**An empty value stays "not supplied", explicitly and on purpose.** Every
+select on the dashboard has an "Any" option whose value is the empty string and
+a browser submits `pillar=` for it; rejecting that would turn clearing a filter
+into an error page. `funding=0` and `stated_headcount=0` are accepted as "off"
+for the same reason. What is gone is `funding=banana` reading as off.
+
+**`include` lost its deliberate forgiveness.** That parameter previously
+ignored an unrecognised value by design, so a future value could not break a
+consumer predating it. That is the same reasoning that produced this defect,
+and the forward compatibility it bought is available without it: a new value
+joins the registry in the commit that teaches the endpoint to read it.
+
+**Nothing depended on the old behaviour.** The layoff tracker's digest composer
+(`alt_digest_compose_talent`, the caller most at risk) sends `since`, `until`,
+`include=fresh`, `per_page`, `pillar=leadership_change` and `funding=1`, all
+valid, and it already skips a category whose request `is_error()`. So a future
+rename now omits that line instead of printing the worldwide headline beside a
+category label. `published_figures.py`, `check_landmarks.py`, `measure_recall.py`
+and `restore_lost_rows.py` send `detail=notable`, `country_basis=any` and real
+ISO codes. The dashboard fills its own controls from server-rendered options.
+The one behaviour change a reader can reach is a **bookmarked or shared
+dashboard URL carrying a value this plugin no longer uses**: it now shows the
+load-failed state rather than silently showing everything, which is the trade
+this entry exists to make.
+
+**`tests/php/filter_validation.php`** enters the real routes over real SQL and
+was run against the pre-fix files first: **98 failures**, including every row of
+the table above, and 0 after. It walks `tit_filter_spec()` rather than a list of
+examples, demands every value each vocabulary declares and refuses each one a
+character short, and re-reads `tit_build_where`'s own source for parameters the
+registry has never heard of, so the next filter cannot arrive unvalidated. Wired
+into `tests.yml`, along with `tests/php/search_boundary.php`, which had been
+written and never run in CI.
+
+Shipped in 1.84.0.
+
+
 ## 2026-08-20 - the backup was a hypothesis, and one number says it expires
 
 **"Can this be backed up 100% on GitHub so if Bluehost disappears we can

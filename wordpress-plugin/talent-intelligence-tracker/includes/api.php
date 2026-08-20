@@ -131,7 +131,8 @@ function tit_funding_where() {
  * the closed vocabulary it belongs to before it reaches SQL, so the IN clause
  * can only ever be built from strings we shipped ourselves.
  */
-function tit_multi_param(WP_REST_Request $req, $name, array $allowed) {
+function tit_multi_param(WP_REST_Request $req, $name, ?array $allowed = null) {
+    if ($allowed === null) $allowed = tit_filter_allowed($name);
     $raw = sanitize_text_field($req->get_param($name) ?? '');
     if ($raw === '') return array();
     $out = array();
@@ -357,6 +358,221 @@ function tit_freetext_clause(array $columns, $term, array &$params, $lowercase =
 }
 
 /**
+ * EVERY FILTER THIS ENDPOINT ACCEPTS, AND WHAT COUNTS AS A VALUE. ONE PLACE.
+ *
+ * THE DEFECT THIS EXISTS TO CLOSE, measured live on 2026-08-20 against an
+ * unfiltered /aggregate total of 31,162:
+ *
+ *     ?pillar=leadership_change  ->  16,493   honoured
+ *     ?pillar=leadership_chang   ->  31,162   SILENTLY DROPPED
+ *     ?funding=banana            ->  31,162   SILENTLY DROPPED
+ *     ?confidence=verifed        ->  31,162   SILENTLY DROPPED
+ *     ?since=banana              ->  31,162   SILENTLY DROPPED
+ *
+ * Every filter below used to be written as "apply it if the value is one we
+ * recognise", which reads as caution and behaves as the opposite: an
+ * unrecognised value fell out of the WHERE clause and the caller was handed
+ * the UNFILTERED total under the label they asked for. One dropped character,
+ * or one pillar renamed in this plugin while a caller still sends the old
+ * name, is enough to publish "Leadership moves: 31,162" where the true figure
+ * is 16,493. No call fails, so a failed-call guard cannot see it, and a large
+ * plausible number invites none of the scrutiny a wrong zero would.
+ *
+ * WHY 400 AND NOT ZERO. The sibling layoff tracker answers an unknown filter
+ * value with zero rows, which is also defensible and is a real improvement on
+ * silence. It is not the answer here, because on THIS endpoint zero is a
+ * legitimate measurement: a pillar with no updates inside a narrow date window
+ * genuinely counts zero, and these same parameters also drive an RSS feed and
+ * two CSV downloads, where "no items" and "no rows" are equally ordinary. A
+ * zero therefore cannot be told apart from "you asked wrong" by the thing that
+ * needs to tell them apart, which is the caller about to print it. A 400 that
+ * names the parameter and lists the values it accepts is the only response
+ * that cannot be mistaken for a measurement, and it makes a typo loud at the
+ * caller rather than quiet in the caller's output.
+ *
+ * THE VALUES ARE NOT WRITTEN HERE. Each closed vocabulary is read from the
+ * tit_allowed_*() function that already declares it, so renaming a pillar
+ * changes what is accepted and what reaches SQL in one edit. A hard-coded list
+ * in this registry would be the original bug with an extra step.
+ *
+ * KINDS:
+ *   enum        one value, from `allowed`
+ *   list        comma separated, every element from `allowed`
+ *   pattern     one value matching `pattern`
+ *   pattern_list comma separated, every element matching `pattern`
+ *   int         a whole number, at least `min`
+ *   text        an open vocabulary (a company name, a city, a search term).
+ *               Nothing can be validated, and nothing needs to be: an
+ *               unmatched free-text value narrows to zero rows on its own,
+ *               which is the failure mode this file exists to produce.
+ *
+ * `upper` uppercases before checking, so country=us is still the United
+ * Kingdom's neighbour and not a rejection.
+ */
+function tit_filter_spec() {
+    static $spec = null;
+    if ($spec !== null) return $spec;
+    $spec = array(
+        // Closed vocabularies, mirrored from the pipeline. Single valued.
+        'pillar'        => array('kind' => 'enum', 'allowed' => tit_allowed_pillars()),
+        'direction'     => array('kind' => 'enum', 'allowed' => tit_allowed_directions()),
+        'confidence'    => array('kind' => 'enum', 'allowed' => tit_allowed_confidence()),
+
+        // Closed vocabularies, comma separated ("Technology OR Healthcare").
+        'industry'      => array('kind' => 'list', 'allowed' => tit_allowed_industries()),
+        'employer_type' => array('kind' => 'list', 'allowed' => tit_allowed_employer_types()),
+        'work_mode'     => array('kind' => 'list', 'allowed' => tit_allowed_work_modes()),
+        'deal_type'     => array('kind' => 'list', 'allowed' => tit_allowed_deal_types()),
+        'site_event'    => array('kind' => 'list', 'allowed' => tit_allowed_site_events()),
+        'function'      => array('kind' => 'list', 'allowed' => tit_allowed_functions()),
+        'funding_stage' => array('kind' => 'list', 'allowed' => tit_allowed_funding_stages()),
+
+        /*
+          Switches. `1` turns the filter on and `0` leaves it off, and `0` is
+          accepted rather than rejected because a front end that renders an
+          unchecked box as funding=0 is asking a coherent question. What is
+          gone is `funding=banana` reading as off.
+        */
+        'funding'          => array('kind' => 'enum', 'allowed' => array('0', '1')),
+        'stated_headcount' => array('kind' => 'enum', 'allowed' => array('0', '1')),
+
+        // How much to show. `all` is the API's own default and is spelled out
+        // here so a caller can ask for it explicitly.
+        'detail'        => array('kind' => 'enum', 'allowed' => array('all', 'notable')),
+
+        // Where a row is. `any` unions job location with employer HQ.
+        'country_basis' => array('kind' => 'enum', 'allowed' => array('any', 'location')),
+
+        // Shapes rather than lists: ISO-3166 alpha-2, US postal codes, dates.
+        // A code of the right shape that names nothing real (country=XX) is a
+        // real question with a zero answer and stays accepted; country=USA is
+        // a caller using the wrong standard and is now told so.
+        'country' => array('kind' => 'pattern_list', 'pattern' => '/^[A-Z]{2}$/',
+                           'upper' => true, 'shape' => 'a two-letter ISO country code'),
+        'state'   => array('kind' => 'pattern', 'pattern' => '/^[A-Z]{2}$/',
+                           'upper' => true, 'shape' => 'a two-letter state or province code'),
+        'since'   => array('kind' => 'pattern', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/',
+                           'shape' => 'a date written YYYY-MM-DD'),
+        'until'   => array('kind' => 'pattern', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/',
+                           'shape' => 'a date written YYYY-MM-DD'),
+
+        // Floors. Zero means no floor.
+        'min_headcount'   => array('kind' => 'int', 'min' => 0),
+        'min_funding_usd' => array('kind' => 'int', 'min' => 0),
+
+        /*
+          Presentation, not population. A bad sort cannot change WHICH rows
+          match, but it silently changed the ORDER of a list whose control is
+          labelled with the order it claims to be in, which is the same class
+          of lie one layer up. Validated from the same table /query sorts by.
+        */
+        'sort'     => array('kind' => 'enum', 'allowed' => array_keys(tit_query_orders())),
+        'page'     => array('kind' => 'int', 'min' => 1),
+        'per_page' => array('kind' => 'int', 'min' => 1),
+
+        /*
+          /aggregate's response-shaping param. This used to ignore an
+          unrecognised value on purpose, so that a future value could not break
+          a consumer that predates it. That reasoning is the same reasoning
+          that produced the defect at the top of this comment, and the
+          forward-compatibility it buys is available without it: a new value is
+          added to this list in the same commit that teaches the endpoint to
+          read it.
+        */
+        'include'  => array('kind' => 'enum', 'allowed' => array('fresh')),
+
+        // Open vocabularies. See the `text` note above.
+        'city'    => array('kind' => 'text'),
+        'company' => array('kind' => 'text'),
+        'q'       => array('kind' => 'text'),
+    );
+    return $spec;
+}
+
+/**
+ * The accepted values for one filter, from the registry above. tit_build_where
+ * and tit_multi_param both read the vocabulary through here, so the list that
+ * is VALIDATED and the list that reaches SQL cannot drift apart.
+ */
+function tit_filter_allowed($name) {
+    $spec = tit_filter_spec();
+    return isset($spec[$name]['allowed']) ? $spec[$name]['allowed'] : array();
+}
+
+/** The first element of $raw this rule refuses, or null when it accepts all. */
+function tit_filter_offender(array $rule, $raw) {
+    $kind = isset($rule['kind']) ? $rule['kind'] : 'text';
+    if ($kind === 'text') return null;
+
+    if (!empty($rule['upper'])) $raw = strtoupper($raw);
+
+    if ($kind === 'int') {
+        if (!preg_match('/^-?\d+$/', trim($raw))) return trim($raw);
+        $min = isset($rule['min']) ? $rule['min'] : 0;
+        return ((int) $raw >= $min) ? null : trim($raw);
+    }
+
+    $multi  = ($kind === 'list' || $kind === 'pattern_list');
+    $values = $multi ? explode(',', $raw) : array($raw);
+    foreach ($values as $value) {
+        $value = trim($value);
+        // An empty element inside a list is a trailing comma, not a value.
+        if ($value === '' && $multi) continue;
+        $ok = isset($rule['pattern'])
+            ? (bool) preg_match($rule['pattern'], $value)
+            : in_array($value, isset($rule['allowed']) ? $rule['allowed'] : array(), true);
+        if (!$ok) return $value;
+    }
+    return null;
+}
+
+/**
+ * Refuse a request carrying a filter value this endpoint does not understand.
+ *
+ * Returns true, or a WP_Error carrying status 400. Called by /query,
+ * /aggregate, /feed and both CSV exports, which is every public surface built
+ * on tit_build_where. A route that grows a filter and forgets this call
+ * reopens the defect, which is why tests/php/filter_validation.php walks the
+ * registry rather than a list of examples.
+ *
+ * AN EMPTY VALUE IS "NOT SUPPLIED", DELIBERATELY AND EXPLICITLY. Every select
+ * on the dashboard carries an "Any" option whose value is the empty string,
+ * and a browser submits `pillar=` for it. Rejecting that would turn clearing a
+ * filter into an error page. `?pillar=` therefore returns the unfiltered set,
+ * which is the answer to the question actually asked.
+ */
+function tit_validate_filters(WP_REST_Request $req) {
+    foreach (tit_filter_spec() as $name => $rule) {
+        $raw = $req->get_param($name);
+        if ($raw === null || is_array($raw)) continue;
+        $raw = sanitize_text_field((string) $raw);
+        if (trim($raw) === '') continue;
+
+        $bad = tit_filter_offender($rule, $raw);
+        if ($bad === null) continue;
+
+        if (!empty($rule['allowed'])) {
+            $detail = 'Accepted values are: ' . implode(', ', $rule['allowed']) . '.';
+        } elseif (!empty($rule['shape'])) {
+            $detail = 'It must be ' . $rule['shape'] . '.';
+        } elseif (($rule['kind'] ?? '') === 'int') {
+            $detail = 'It must be a whole number of '
+                    . (isset($rule['min']) ? $rule['min'] : 0) . ' or more.';
+        } else {
+            $detail = '';
+        }
+
+        return new WP_Error(
+            'tit_invalid_filter',
+            sprintf('Unknown value "%s" for the "%s" filter. %s', $bad, $name, $detail),
+            array('status' => 400, 'param' => $name, 'value' => $bad,
+                  'allowed' => isset($rule['allowed']) ? $rule['allowed'] : array())
+        );
+    }
+    return true;
+}
+
+/**
  * Build the WHERE clause shared by /query and /aggregate.
  *
  * country_basis=any (the default) unions job location with employer HQ, so a
@@ -401,19 +617,19 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
     }
 
     $pillar = sanitize_text_field($req->get_param('pillar') ?? '');
-    if ($pillar !== '' && in_array($pillar, tit_allowed_pillars(), true)) {
+    if ($pillar !== '' && in_array($pillar, tit_filter_allowed('pillar'), true)) {
         $where[] = 'pillar = %s';
         $params[] = $pillar;
     }
 
     $direction = sanitize_text_field($req->get_param('direction') ?? '');
-    if ($direction !== '' && in_array($direction, tit_allowed_directions(), true)) {
+    if ($direction !== '' && in_array($direction, tit_filter_allowed('direction'), true)) {
         $where[] = 'signal_direction = %s';
         $params[] = $direction;
     }
 
     $confidence = sanitize_text_field($req->get_param('confidence') ?? '');
-    if ($confidence !== '' && in_array($confidence, tit_allowed_confidence(), true)) {
+    if ($confidence !== '' && in_array($confidence, tit_filter_allowed('confidence'), true)) {
         $where[] = 'confidence = %s';
         $params[] = $confidence;
     }
@@ -423,7 +639,7 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $where[] = tit_freetext_clause(array('company_key'), $company, $params, true);
     }
 
-    $industries = tit_multi_param($req, 'industry', tit_allowed_industries());
+    $industries = tit_multi_param($req, 'industry');
     if ($industries) {
         $where[] = 'industry IN (' . implode(', ', array_fill(0, count($industries), '%s')) . ')';
         $params = array_merge($params, $industries);
@@ -431,25 +647,25 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
 
     // Kind of employer, which is a real question for a job seeker choosing
     // where to apply and was stored all along with nowhere to ask it.
-    $employer_types = tit_multi_param($req, 'employer_type', tit_allowed_employer_types());
+    $employer_types = tit_multi_param($req, 'employer_type');
     if ($employer_types) {
         $where[] = 'employer_type IN (' . implode(', ', array_fill(0, count($employer_types), '%s')) . ')';
         $params = array_merge($params, $employer_types);
     }
 
-    $work_modes = tit_multi_param($req, 'work_mode', tit_allowed_work_modes());
+    $work_modes = tit_multi_param($req, 'work_mode');
     if ($work_modes) {
         $where[] = 'work_mode IN (' . implode(', ', array_fill(0, count($work_modes), '%s')) . ')';
         $params = array_merge($params, $work_modes);
     }
 
-    $deal_types = tit_multi_param($req, 'deal_type', tit_allowed_deal_types());
+    $deal_types = tit_multi_param($req, 'deal_type');
     if ($deal_types) {
         $where[] = 'deal_type IN (' . implode(', ', array_fill(0, count($deal_types), '%s')) . ')';
         $params = array_merge($params, $deal_types);
     }
 
-    $site_events = tit_multi_param($req, 'site_event', tit_allowed_site_events());
+    $site_events = tit_multi_param($req, 'site_event');
     if ($site_events) {
         $where[] = 'site_event IN (' . implode(', ', array_fill(0, count($site_events), '%s')) . ')';
         $params = array_merge($params, $site_events);
@@ -463,7 +679,7 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
 
     // functions is a JSON array; match the quoted token so 'finance' never
     // matches a longer value that merely contains it.
-    $function_list = tit_multi_param($req, 'function', tit_allowed_functions());
+    $function_list = tit_multi_param($req, 'function');
     if ($function_list) {
         // OR, not AND: a row naming engineering satisfies "engineering or
         // design". Requiring both would answer a question nobody asked.
@@ -488,7 +704,7 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params[] = $min_funding;
     }
 
-    $stages = tit_multi_param($req, 'funding_stage', tit_allowed_funding_stages());
+    $stages = tit_multi_param($req, 'funding_stage');
     if ($stages) {
         $where[] = 'funding_stage IN (' . implode(', ', array_fill(0, count($stages), '%s')) . ')';
         $params = array_merge($params, $stages);
@@ -598,8 +814,70 @@ function tit_public_response($data) {
     return $response;
 }
 
+/**
+ * THE SORTS /query ACCEPTS, as (name => ORDER BY). Hoisted out of the handler
+ * so tit_filter_spec() can validate the `sort` parameter against the very
+ * table that answers it. A name here and a name in the validator that were
+ * maintained separately would drift, and a drifted sort name used to fall back
+ * to "notable" without saying so.
+ */
+function tit_query_orders() {
+// A closed list, never interpolated from the request: this string goes
+// straight into the SQL, where $wpdb->prepare cannot help.
+// Materiality first, recency inside it. This is its own sort rather than a
+// silent tweak to "newest", because a control labelled "Newest first" that
+// does not put the newest row first is a control that lies. A reader who
+// wants pure recency can still ask for it.
+//
+// Unjudged rows (NULL) rank between medium and routine: we have not called
+// them routine, so they are not treated as routine.
+$material_rank = "CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1"
+               . " WHEN 'routine' THEN 3 ELSE 2 END ASC";
+
+$orders = array(
+    'notable'  => "{$material_rank}, COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC",
+    'newest'   => 'COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC',
+    'oldest'   => 'COALESCE(published_date, DATE(captured_at)) ASC, row_id ASC',
+    'largest'  => 'headcount DESC, COALESCE(published_date, DATE(captured_at)) DESC',
+    'employer' => 'company_key ASC, COALESCE(published_date, DATE(captured_at)) DESC',
+    // Only possible now that a numeric column exists: funding_amount was a
+    // display string ("$1.45 Million"), and sorting on it put $9M above
+    // $10B. MySQL sorts NULLs last on DESC, so the rows whose amount we
+    // could not read as US dollars fall to the bottom instead of claiming
+    // the top of a list about size.
+    'raised'   => 'funding_amount_usd DESC, COALESCE(published_date, DATE(captured_at)) DESC',
+    // Column sorts, paired so a header click can toggle direction. A
+    // clicked header orders the WHOLE filtered set through this endpoint,
+    // never the fifty rows already on screen, which would be a sort quietly
+    // lying about its own scope.
+    //
+    // Rows we cannot place or date sort to the BOTTOM in both directions:
+    // reversing a list should not promote the unknowns to the top, because
+    // "we do not know" is not an extreme value of anything.
+    'employer_desc' => 'company_key DESC, COALESCE(published_date, DATE(captured_at)) DESC',
+    'place'      => 'COALESCE(country, hq_country) IS NULL, COALESCE(country, hq_country) ASC,'
+                  . ' COALESCE(city, hq_city) IS NULL, COALESCE(city, hq_city) ASC,'
+                  . ' COALESCE(published_date, DATE(captured_at)) DESC',
+    'place_desc' => 'COALESCE(country, hq_country) IS NULL, COALESCE(country, hq_country) DESC,'
+                  . ' COALESCE(city, hq_city) IS NULL, COALESCE(city, hq_city) DESC,'
+                  . ' COALESCE(published_date, DATE(captured_at)) DESC',
+    // Strongest evidence first, in the order the vocabulary itself ranks.
+    'evidence'      => "FIELD(confidence, 'verified', 'reported', 'rumored') ASC,"
+                     . ' COALESCE(published_date, DATE(captured_at)) DESC',
+    'evidence_desc' => "FIELD(confidence, 'verified', 'reported', 'rumored') DESC,"
+                     . ' COALESCE(published_date, DATE(captured_at)) DESC',
+);
+    return $orders;
+}
+
 function tit_api_query(WP_REST_Request $req) {
     global $wpdb;
+
+    // AN UNKNOWN FILTER VALUE IS A REFUSAL, NOT A WIDER QUERY. See
+    // tit_filter_spec(). Checked before the cache read, so a rejected request
+    // never mints or reads a transient.
+    $invalid = tit_validate_filters($req);
+    if (is_wp_error($invalid)) return $invalid;
 
     $cache_key = tit_cache_key('q', $req);
     $cached = get_transient($cache_key);
@@ -609,51 +887,7 @@ function tit_api_query(WP_REST_Request $req) {
     $where  = tit_build_where($req, $params);
     $table  = tit_table_name();
 
-    // A closed list, never interpolated from the request: this string goes
-    // straight into the SQL, where $wpdb->prepare cannot help.
-    // Materiality first, recency inside it. This is its own sort rather than a
-    // silent tweak to "newest", because a control labelled "Newest first" that
-    // does not put the newest row first is a control that lies. A reader who
-    // wants pure recency can still ask for it.
-    //
-    // Unjudged rows (NULL) rank between medium and routine: we have not called
-    // them routine, so they are not treated as routine.
-    $material_rank = "CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1"
-                   . " WHEN 'routine' THEN 3 ELSE 2 END ASC";
-
-    $orders = array(
-        'notable'  => "{$material_rank}, COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC",
-        'newest'   => 'COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC',
-        'oldest'   => 'COALESCE(published_date, DATE(captured_at)) ASC, row_id ASC',
-        'largest'  => 'headcount DESC, COALESCE(published_date, DATE(captured_at)) DESC',
-        'employer' => 'company_key ASC, COALESCE(published_date, DATE(captured_at)) DESC',
-        // Only possible now that a numeric column exists: funding_amount was a
-        // display string ("$1.45 Million"), and sorting on it put $9M above
-        // $10B. MySQL sorts NULLs last on DESC, so the rows whose amount we
-        // could not read as US dollars fall to the bottom instead of claiming
-        // the top of a list about size.
-        'raised'   => 'funding_amount_usd DESC, COALESCE(published_date, DATE(captured_at)) DESC',
-        // Column sorts, paired so a header click can toggle direction. A
-        // clicked header orders the WHOLE filtered set through this endpoint,
-        // never the fifty rows already on screen, which would be a sort quietly
-        // lying about its own scope.
-        //
-        // Rows we cannot place or date sort to the BOTTOM in both directions:
-        // reversing a list should not promote the unknowns to the top, because
-        // "we do not know" is not an extreme value of anything.
-        'employer_desc' => 'company_key DESC, COALESCE(published_date, DATE(captured_at)) DESC',
-        'place'      => 'COALESCE(country, hq_country) IS NULL, COALESCE(country, hq_country) ASC,'
-                      . ' COALESCE(city, hq_city) IS NULL, COALESCE(city, hq_city) ASC,'
-                      . ' COALESCE(published_date, DATE(captured_at)) DESC',
-        'place_desc' => 'COALESCE(country, hq_country) IS NULL, COALESCE(country, hq_country) DESC,'
-                      . ' COALESCE(city, hq_city) IS NULL, COALESCE(city, hq_city) DESC,'
-                      . ' COALESCE(published_date, DATE(captured_at)) DESC',
-        // Strongest evidence first, in the order the vocabulary itself ranks.
-        'evidence'      => "FIELD(confidence, 'verified', 'reported', 'rumored') ASC,"
-                         . ' COALESCE(published_date, DATE(captured_at)) DESC',
-        'evidence_desc' => "FIELD(confidence, 'verified', 'reported', 'rumored') DESC,"
-                         . ' COALESCE(published_date, DATE(captured_at)) DESC',
-    );
+    $orders = tit_query_orders();
     $order = $orders[sanitize_text_field($req->get_param('sort') ?? '')] ?? $orders['notable'];
 
     $per_page = min(200, max(1, (int) ($req->get_param('per_page') ?: 50)));
@@ -748,11 +982,17 @@ function tit_aggregate_money($table, $where, array $params, $pillar = '') {
 /** The request's pillar, validated, or '': one place, both callers. */
 function tit_request_pillar(WP_REST_Request $req) {
     $pillar = sanitize_text_field($req->get_param('pillar') ?? '');
-    return ($pillar !== '' && in_array($pillar, tit_allowed_pillars(), true)) ? $pillar : '';
+    return ($pillar !== '' && in_array($pillar, tit_filter_allowed('pillar'), true)) ? $pillar : '';
 }
 
 function tit_api_aggregate(WP_REST_Request $req) {
     global $wpdb;
+
+    // AN UNKNOWN FILTER VALUE IS A REFUSAL, NOT A WIDER QUERY. See
+    // tit_filter_spec(). Checked before the cache read, so a rejected request
+    // never mints or reads a transient.
+    $invalid = tit_validate_filters($req);
+    if (is_wp_error($invalid)) return $invalid;
 
     $cache_key = tit_cache_key('a', $req);
     $cached = get_transient($cache_key);
