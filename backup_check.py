@@ -34,10 +34,14 @@ Four questions, and each one is a way the backup dies quietly:
      the backup restores a database the site cannot be rebuilt from.
 
 And one that is about the backup MECHANISM rather than its contents: GitHub
-refuses a single file over 100 MiB outright. This file grows about 650 KB a
-day. A backup whose next push is rejected is not a backup, and the failure
-arrives as a red push in an unrelated collect run at 22:00 UTC, which is the
-worst possible place to learn it.
+refuses a single file over 100 MiB outright. A backup whose next push is
+rejected is not a backup, and the failure arrives as a red push in an unrelated
+collect run at 22:00 UTC, which is the worst possible place to learn it.
+
+Since 2026-08-20 the backup is TWO committed files — `data/talent_intel.db` and
+`data/talent_intel_cache.db` — and all five questions are asked of the pair.
+Both are extracted, both must open, their table counts are unioned, and the
+size question is asked of the larger one, because the limit is per file.
 
 EXIT CODES
     0  PASS   — the committed blob is a usable backup
@@ -66,6 +70,17 @@ from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB_IN_REPO = "data/talent_intel.db"
+
+# THE BACKUP IS TWO FILES NOW. The database was split on 2026-08-20 because the
+# per-file push limit below was 32 days away (schema.py, "the second committed
+# file"). Both halves are committed, both are restored together, and this check
+# grades the PAIR: an integrity_check that passes on the product file while the
+# cache file is truncated is not a backup that restores. Every table count from
+# both files goes into one dict, so the split itself does not read as tables
+# vanishing, and `push_size` grades the LARGER of the two, because the limit is
+# per file and it is the bigger half that hits the wall first.
+CACHE_IN_REPO = "data/talent_intel_cache.db"
+DB_FILES = (DB_IN_REPO, CACHE_IN_REPO)
 LEDGER = os.path.join(HERE, "data", "backup_check.json")
 
 PASS, FAIL, UNKNOWN = "PASS", "FAIL", "UNKNOWN"
@@ -87,12 +102,23 @@ CORE_TABLES = (
 )
 
 # GitHub rejects a push containing a file over 100 MiB. Not a policy we can
-# raise, not something a paid plan changes, and it applies to the push and not
-# to the repository size. The check fires at 90 MiB, which at the measured
-# growth of ~650 KB/day (2026-08-05..20) is about sixteen days between the
-# alarm and the wall. Sixteen days is enough to VACUUM, to move `seen_urls` out
-# of the committed file, or to decide on LFS; it is not enough to discover the
-# problem from a failed push inside a 22:00 collect run.
+# raise, not something a paid plan changes, and it applies to the push and to a
+# single FILE — not to the repository. That last word is why the answer on
+# 2026-08-20 was to split the database rather than to take it out of git: two
+# committed files of 57 and 18 MiB are as safe to push as one of 75 would not
+# be, and every guarantee that depends on the database being in git survives.
+#
+# The check still fires at 90 MiB, now measured on the larger half. At the
+# post-split growth of ~358 KB/day that is roughly 120 days between the alarm
+# and the wall, and the alarm is what stops this being discovered as a failed
+# push inside a 22:00 collect run.
+#
+# WHEN THIS FIRES AGAIN, the answer is NOT another VACUUM: the file was
+# vacuumed at the split and has no free pages to reclaim. `signals` is the
+# growth now, it is the product rather than a cache, and nothing here deletes
+# a row. The next move is to close the file and start a new one — a dated,
+# frozen shard that is never rewritten, which bounds the live file for good
+# instead of buying another four months. See docs/RECOVERY.md.
 GITHUB_FILE_LIMIT_BYTES = 100 * 1024 * 1024
 SIZE_ACTION_BYTES = 90 * 1024 * 1024
 
@@ -108,8 +134,9 @@ def _git(*args: str) -> str:
         check=True, capture_output=True, text=True).stdout.strip()
 
 
-def committed_blob(ref: str = "HEAD") -> tuple[str, str, int]:
-    """(commit sha, blob sha, size in bytes) of the database at `ref`.
+def committed_blob(ref: str = "HEAD",
+                   db_in_repo: str = DB_IN_REPO) -> tuple[str, str, int]:
+    """(commit sha, blob sha, size in bytes) of one database file at `ref`.
 
     Raises `Unavailable` when this cannot be answered, which is UNKNOWN and not
     a failure: a checkout with no git directory has not proved the backup is
@@ -117,10 +144,10 @@ def committed_blob(ref: str = "HEAD") -> tuple[str, str, int]:
     """
     try:
         commit = _git("rev-parse", ref)
-        blob = _git("rev-parse", f"{ref}:{DB_IN_REPO}")
+        blob = _git("rev-parse", f"{ref}:{db_in_repo}")
         size = int(_git("cat-file", "-s", blob))
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError) as e:
-        raise Unavailable(f"could not read {DB_IN_REPO} out of git ({e})") from e
+        raise Unavailable(f"could not read {db_in_repo} out of git ({e})") from e
     return commit, blob, size
 
 
@@ -137,7 +164,8 @@ def extract(blob: str, path: str) -> None:
     Nothing here may write anywhere git is looking.
     """
     real = os.path.realpath(path)
-    if real == os.path.realpath(os.path.join(HERE, DB_IN_REPO)):
+    tracked = {os.path.realpath(os.path.join(HERE, f)) for f in DB_FILES}
+    if real in tracked:
         raise ValueError("refusing to extract over the tracked database")
     with open(path, "wb") as fh:
         subprocess.run(["git", "-C", HERE, "cat-file", "-p", blob],
@@ -335,32 +363,72 @@ def _growth_per_day(prior: dict | None, size_bytes: int,
 # --- one run ----------------------------------------------------------------
 
 def run(*, ref: str = "HEAD", ledger_path: str = LEDGER) -> dict:
-    """Extract, read, grade. Returns the record this run would append."""
-    commit, blob, size = committed_blob(ref)
+    """Extract, read, grade. Returns the record this run would append.
+
+    BOTH committed files, graded as one backup. A restore needs the pair: the
+    product file holds `signals`, the cache file holds `seen_urls`,
+    `source_links` and `employer_identity`, and a republish that gets one
+    without the other is not a restore. So a missing or unreadable cache file
+    is a failure of the backup and not a reason to grade the half that opened.
+    """
     ledger = load_ledger(ledger_path)
     prior = previous(ledger)
 
-    with tempfile.TemporaryDirectory(prefix="tit-backup-check-") as tmp:
-        path = os.path.join(tmp, "restored.db")
-        extract(blob, path)
-        on_disk = os.path.getsize(path)
-        if on_disk != size:
-            raise Unavailable(
-                f"the extracted file is {on_disk} bytes and git says the blob "
-                f"is {size}; the extraction, not the backup, is what failed")
-        integrity, read = read_counts(path)
+    blobs = {}
+    for name in DB_FILES:
+        commit, blob, size = committed_blob(ref, name)
+        blobs[name] = {"commit": commit, "blob": blob, "bytes": size}
 
-    graded = evaluate(integrity=integrity, tables=read["tables"],
-                      signals_columns=read["signals_columns"],
+    tables: dict[str, int] = {}
+    integrities: dict[str, str] = {}
+    signals_columns: list[str] = []
+
+    with tempfile.TemporaryDirectory(prefix="tit-backup-check-") as tmp:
+        for name, meta in blobs.items():
+            path = os.path.join(tmp, os.path.basename(name))
+            extract(meta["blob"], path)
+            on_disk = os.path.getsize(path)
+            if on_disk != meta["bytes"]:
+                raise Unavailable(
+                    f"the extracted {name} is {on_disk} bytes and git says the "
+                    f"blob is {meta['bytes']}; the extraction, not the backup, "
+                    f"is what failed")
+            integrity, read = read_counts(path)
+            integrities[name] = integrity
+            # The two files hold disjoint tables, so this is a union and never
+            # an overwrite. If that ever stops being true the split has been
+            # half-undone, and a shadowed table is exactly what the no_shrink
+            # check is there to catch.
+            tables.update(read["tables"])
+            if read["signals_columns"]:
+                signals_columns = read["signals_columns"]
+
+    # One verdict for the pair. "ok" only when BOTH said ok; otherwise the
+    # failing file is named, because "not ok" without a filename sends a human
+    # to the wrong 80 MiB file at 2am.
+    bad = [f"{name}: {verdict}" for name, verdict in integrities.items()
+           if verdict != "ok"]
+    integrity = "ok" if not bad else "; ".join(bad)
+
+    # The push limit is PER FILE, so the binding number is the larger half.
+    biggest = max(DB_FILES, key=lambda n: blobs[n]["bytes"])
+    size = blobs[biggest]["bytes"]
+
+    graded = evaluate(integrity=integrity, tables=tables,
+                      signals_columns=signals_columns,
                       size_bytes=size, prior=prior)
 
     return {
         "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "commit": commit,
-        "blob": blob,
+        "commit": blobs[DB_IN_REPO]["commit"],
+        "blob": blobs[DB_IN_REPO]["blob"],
         "bytes": size,
+        "largest_file": biggest,
+        "files": {name: {"blob": meta["blob"], "bytes": meta["bytes"],
+                         "integrity": integrities[name]}
+                  for name, meta in blobs.items()},
         "integrity": integrity,
-        "tables": read["tables"],
+        "tables": tables,
         "verdict": graded["verdict"],
         "checks": graded["checks"],
     }
@@ -411,8 +479,11 @@ def main(argv=None) -> int:
         print("=" * 64)
         print("BACKUP CHECK — can this repository rebuild the database?")
         print("=" * 64)
-        print(f"    commit {record['commit'][:12]}  blob {record['blob'][:12]}  "
-              f"{record['bytes'] / 1048576:.1f} MiB")
+        print(f"    commit {record['commit'][:12]}")
+        for name, meta in sorted((record.get("files") or {}).items()):
+            flag = "  <- largest" if name == record.get("largest_file") else ""
+            print(f"      {name:<32} blob {meta['blob'][:12]}  "
+                  f"{meta['bytes'] / 1048576:5.1f} MiB{flag}")
         for check in record["checks"]:
             print(f"    {check['status']:<7} {check['check']}: {check['detail']}")
         print("    rows: " + ", ".join(f"{t}={n}" for t, n in

@@ -128,19 +128,20 @@ jobs:
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db
+          git add data/talent_intel.db data/talent_intel_cache.db
           if git diff --staged --quiet; then
             echo "No ledger change."
             exit 0
           fi
 
           cp data/talent_intel.db "$RUNNER_TEMP/checked.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/checked_cache.db"
 
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             python merge_db.py "$RUNNER_TEMP/checked.db" data/talent_intel.db
-            git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
             if git diff --staged --quiet; then
               echo "Remote already has this ledger."
               exit 0

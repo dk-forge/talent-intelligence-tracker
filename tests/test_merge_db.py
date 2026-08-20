@@ -50,8 +50,14 @@ def two_writers(tmp_path):
 
     theirs = tmp_path / "theirs.db"
     ours = tmp_path / "ours.db"
-    theirs.write_bytes(base.read_bytes())
-    ours.write_bytes(base.read_bytes())
+    # BOTH halves, the same way every workflow's `cp` now does it. Copying only
+    # the product file would build a fixture that cannot exercise the cache
+    # merge at all — seen_urls and employer_identity are the two tables the
+    # 2026-07-28 incident actually destroyed.
+    for target in (theirs, ours):
+        target.write_bytes(base.read_bytes())
+        schema.cache_path_for(target).write_bytes(
+            schema.cache_path_for(base).read_bytes())
     return ours, theirs
 
 
@@ -72,7 +78,7 @@ def test_the_other_writers_rows_survive(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     companies = {r[0] for r in conn.execute("SELECT company FROM signals")}
     assert companies == {"Shared Co", "Ours Inc", "Theirs Ltd"}, (
         "a merge that drops either side is the bug this file exists to prevent")
@@ -100,7 +106,7 @@ def test_a_humans_identity_cache_survives(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     keys = {r[0] for r in conn.execute("SELECT company_key FROM employer_identity")}
     assert keys == {"nhs trust", "ours inc"}
 
@@ -121,14 +127,14 @@ def test_the_later_identity_resolution_wins(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT hq_city FROM employer_identity WHERE company_key = 'shared co'"
     ).fetchone()[0] == "Leeds"
 
     # And the other way round: merging the older file in must not undo it.
     merge_db.merge(theirs, ours)
-    conn = sqlite3.connect(ours)
+    conn = schema.connect(ours)
     assert conn.execute(
         "SELECT hq_city FROM employer_identity WHERE company_key = 'shared co'"
     ).fetchone()[0] == "Leeds"
@@ -146,7 +152,7 @@ def test_a_retraction_is_not_resurrected(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT is_current FROM signals WHERE company = 'Shared Co'").fetchone()[0] == 0
 
@@ -218,7 +224,7 @@ def test_seen_urls_keeps_the_earlier_sighting(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     seen = dict(conn.execute("SELECT url, first_seen FROM seen_urls"))
     assert "https://example.com/only-ours" in seen
     assert seen["https://example.com/a"] == "2026-07-01T00:00:00"
@@ -263,7 +269,7 @@ def test_a_runs_new_guardrail_findings_are_not_lost_by_the_merge(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT COUNT(*) FROM publish_guardrails WHERE subject = 'from-the-run'"
     ).fetchone()[0] == 1
@@ -289,7 +295,7 @@ def test_a_humans_acceptance_beats_a_later_automatic_write(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     row = conn.execute(
         "SELECT state, review_note FROM publish_guardrails "
         " WHERE subject = 'changxin'").fetchone()
@@ -314,7 +320,7 @@ def test_an_unreviewed_disagreement_resolves_to_open(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT state FROM publish_guardrails WHERE subject = 'row'"
     ).fetchone()[0] == "open"
@@ -350,7 +356,7 @@ def test_a_publication_survives_the_merge(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT published_at FROM signals WHERE content_hash = ?", (chash,)
     ).fetchone()[0] == "2026-08-14T08:04:45", (
@@ -377,7 +383,7 @@ def test_the_merge_never_unpublishes_a_row(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT published_at FROM signals WHERE content_hash = ?", (chash,)
     ).fetchone()[0] == "2026-08-14T06:00:00"
@@ -402,7 +408,7 @@ def test_the_earlier_publication_wins(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     assert conn.execute(
         "SELECT published_at FROM signals WHERE content_hash = ?", (chash,)
     ).fetchone()[0] == "2026-08-14T06:00:00"
@@ -425,7 +431,7 @@ def test_a_withdrawn_row_is_not_republished_by_the_marker(two_writers):
 
     merge_db.merge(ours, theirs)
 
-    conn = sqlite3.connect(theirs)
+    conn = schema.connect(theirs)
     row = conn.execute(
         "SELECT is_current, published_at FROM signals WHERE content_hash = ?",
         (chash,)).fetchone()

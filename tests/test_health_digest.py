@@ -181,11 +181,52 @@ class TestStalenessBoundary(unittest.TestCase):
             # automatically safe here: anything else hoisted to module scope has
             # to earn its place by being pinned stdlib-only first, and until then
             # this fails, which is the point.
-            repo_local_and_dependency_free = {"source_registry", "staleness"}
+            # `pipeline` earns its place below, in
+            # test_pipeline_schema_is_stdlib_only_at_import: ops_status.py
+            # imports pipeline.schema for cache_path_for/connect_ro, because
+            # the database is two files since the 100 MiB split and a SECOND
+            # definition of where the cache file lives is exactly the drift
+            # this promise is otherwise protecting against.
+            repo_local_and_dependency_free = {
+                "source_registry", "staleness", "pipeline"}
             third_party = top_level_imports - (
                 set(sys.stdlib_module_names) | repo_local_and_dependency_free)
             self.assertFalse(third_party,
                              f"{module} imports {third_party} at module scope")
+
+    def test_pipeline_schema_is_stdlib_only_at_import(self):
+        """The rent `pipeline` pays for its place on the allowlist above.
+
+        ops_status.py promises to import with no venv and no third-party
+        package, and it now imports pipeline.schema. That is only safe while
+        pipeline.schema itself is stdlib-only, which nothing else checks: the
+        day somebody adds `import requests` to it for a lookup, ops_status
+        would stop running at session start on a bare checkout and the promise
+        would have been broken by a file that never mentions ops_status.
+
+        Checked by importing it in a clean interpreter and reading what
+        actually arrived, rather than by parsing imports — a transitive
+        dependency two modules deep is the one that would slip through.
+        """
+        import subprocess
+        import sys as _sys
+        from pathlib import Path
+
+        root = Path(health_digest.__file__).parent
+        probe = (
+            "import sys\n"
+            "before = set(sys.modules)\n"
+            "from pipeline import schema\n"
+            "arrived = {m.split('.')[0] for m in set(sys.modules) - before}\n"
+            "print(' '.join(sorted(arrived - set(sys.stdlib_module_names))))\n"
+        )
+        result = subprocess.run([_sys.executable, "-c", probe], cwd=str(root),
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        arrived = {m for m in result.stdout.split() if m != "pipeline"}
+        self.assertFalse(arrived,
+                         f"pipeline.schema pulls in {arrived} at import, so "
+                         f"ops_status.py no longer imports without a venv")
 
     def test_a_deferred_import_cannot_redden_the_import_promise(self):
         """The guard is worth nothing if the way to keep it green is to append

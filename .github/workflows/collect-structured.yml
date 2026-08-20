@@ -308,8 +308,8 @@ jobs:
         run: |
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
-          git add data/talent_intel.db data/ats_board_state.json 2>/dev/null \
-            || git add data/talent_intel.db
+          git add data/talent_intel.db data/talent_intel_cache.db data/ats_board_state.json 2>/dev/null \
+            || git add data/talent_intel.db data/talent_intel_cache.db
           # Normally empty here: a derived collector never calls the gate, so
           # it writes no labels. Staged anyway, because this workflow can be
           # dispatched at a news source and a label written but never committed
@@ -327,6 +327,7 @@ jobs:
           # destroyed by the backfill that pushed at 21:53. See merge_db.py.
           mkdir -p "$RUNNER_TEMP/keep"
           cp data/talent_intel.db "$RUNNER_TEMP/keep/talent_intel.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/keep/talent_intel_cache.db"
           if [ -f data/ats_board_state.json ]; then
             cp data/ats_board_state.json "$RUNNER_TEMP/keep/ats_board_state.json"
           fi
@@ -341,8 +342,8 @@ jobs:
               cp "$RUNNER_TEMP/keep/ats_board_state.json" data/ats_board_state.json
             fi
             python merge_gate_labels.py "$RUNNER_TEMP/keep/gate_labels" data/gate_labels || true
-            git add data/talent_intel.db data/ats_board_state.json 2>/dev/null \
-              || git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db data/ats_board_state.json 2>/dev/null \
+              || git add data/talent_intel.db data/talent_intel_cache.db
             git add -A data/gate_labels 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this data."

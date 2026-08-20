@@ -243,7 +243,7 @@ jobs:
           # a month closes the ledger gzips the old shard and deletes the plain
           # one, and a deletion that is never staged is a file that comes back
           # on the next reset.
-          git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
+          git add data/talent_intel.db data/talent_intel_cache.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db data/talent_intel_cache.db
           git add -A data/gate_labels 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No data change."
@@ -251,6 +251,7 @@ jobs:
           fi
 
           cp data/talent_intel.db "$RUNNER_TEMP/collected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/collected_cache.db"
           cp data/spend_month.json "$RUNNER_TEMP/spend_month.json" 2>/dev/null || true
           rm -rf "$RUNNER_TEMP/gate_labels"
           cp -R data/gate_labels "$RUNNER_TEMP/gate_labels" 2>/dev/null || true
@@ -265,7 +266,7 @@ jobs:
             # copy. It cannot fail the step: labels are bookkeeping and the
             # rows are not.
             python merge_gate_labels.py "$RUNNER_TEMP/gate_labels" data/gate_labels || true
-            git add data/talent_intel.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db data/spend_month.json 2>/dev/null || git add data/talent_intel.db data/talent_intel_cache.db
             git add -A data/gate_labels 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this data."

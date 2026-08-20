@@ -115,7 +115,9 @@ the full design.
 ```
 collectors/   one file per source. Returns raw dicts. NEVER writes.
 pipeline/     classify -> validate -> dedupe -> store. Shared by every source.
-data/         talent_intel.db, committed. The repo IS the memory.
+data/         talent_intel.db + talent_intel_cache.db, both committed.
+              The repo IS the memory. Two files since the 100 MiB split;
+              connect() ATTACHes the second, so no query names it.
 source_registry.py   markets, tiers, search vocabulary — all as data
 analysis/     measurement, never collection: recall/ grades what we hold,
               tripwire/ finds what we are missing (run_tripwire.py, DORMANT)
@@ -202,17 +204,60 @@ five commits with no red run anywhere. A baseline run is UNKNOWN, never a pass.
 `ops_status.py [6]` reads the ledger offline; a red run alerts through
 `ci-alert.yml` like every other red run, and there is no new channel.
 
-**The backup has a ceiling and it is close.** GitHub refuses any single file
-over 100 MiB in one push. The database was 78.6 MiB on 2026-08-20 and grows
-~650 KB/day, so pushes start being rejected in about five weeks and the check
-reds at 90 MiB before that. VACUUM, moving `seen_urls` out of the committed
-file, and LFS are the three options, and all three are the owner's decision
-rather than a fix a session should just take. **[docs/RECOVERY.md](docs/RECOVERY.md)**
-is the 2am document: what to check first, how to get any past revision back, the
-republish sequence, and the unsoftened list of what is NOT covered (`wp_posts`
-and the whole blog, uploads, the WordPress install, and the shared email
-subscriber list, which is the sibling plugin's and is personal data that must
-never reach either public repo).
+**THE BACKUP HAD A CEILING AND IT WAS 32 DAYS AWAY. The database is two files
+now.** GitHub refuses any single file over 100 MiB in a push;
+`data/talent_intel.db` was 78.8 MiB growing 676 KB/day, measured over the
+fortnight to 2026-08-20. The limit is per FILE, not per repository, and that is
+the whole fix: the caches and ledgers moved to `data/talent_intel_cache.db`
+(`seen_urls`, `source_links`, `employer_identity` — 47% of the daily growth),
+both halves stay committed, and each is far from the wall.
+
+    before  talent_intel.db        78.8 MiB  676 KB/day   32 days
+    after   talent_intel.db        56.7 MiB  358 KB/day  ~127 days
+            talent_intel_cache.db  18.7 MiB  318 KB/day  ~275 days
+
+**Both halves stay in git on purpose, and this is the part not to undo.** `git
+push` is the compare-and-swap that makes `merge_db.py` safe against two runners
+and a laptop; a release asset has no such thing and two uploads clobber, which
+is exactly the 2026-07-28 failure that cost 9,572 rows. `git show
+<sha>:data/...` is `backup_check.py`, `restore_lost_rows.py` and RECOVERY.md.
+LFS moves 80 MiB per checkout onto a 1 GB/month quota this repo would spend in
+a day. VACUUM was measured and buys nothing — the freelist was zero pages.
+
+At runtime they are ONE database: `schema.connect()` ATTACHes the cache as
+`cache`, SQLite resolves unqualified table names across attached schemas, and a
+commit spanning both files is atomic. **No query anywhere changed.** What did
+change is that everything must carry the PAIR, and every place that could
+silently carry one half now fails loudly: workflows stage and `cp` both
+(pinned by `tests/test_workflows.py`), `merge_db` refuses a missing half rather
+than merging an empty cache over a full one, `connect_ro` refuses a missing
+cache file, `ops_status` names it and exits 2, and `backup_check` extracts BOTH
+blobs, unions their counts and grades push size on the larger. A legacy or
+branch-written copy of a cache table sitting in `main` would SHADOW the real one
+silently, so `connect()` moves it out on open.
+
+**The migration lost 1,232 rows on its first attempt with the suite green, and
+the lesson generalises.** `ALTER TABLE ADD COLUMN archive_probes INTEGER` is
+nullable, `CACHE_TABLES` declares it `NOT NULL DEFAULT 0`, and `INSERT OR
+IGNORE` skips a NOT NULL violation without a word — 1,232 of 6,496
+`source_links` rows. `split_cache_db.py` now rebuilds each table from its OWN
+stored `CREATE` statement and verifies the row count before dropping anything.
+Coercing those NULLs to 0 would have been the quieter mistake: NULL is "never
+probed", 0 is "probed and told nothing", and `archive_sources` reads the
+difference. **Never move rows between two tables you did not prove have the
+same shape, and never let `OR IGNORE` be the thing that decides.**
+
+**This bought about four months and is NOT the end of it.** `signals` is the
+growth now, it is the product rather than a cache, nothing here deletes a row,
+and there is nothing left to move out — so do not answer the next alarm with
+another split or another VACUUM. The durable answer is a dated frozen shard
+(`data/archive/signals-<period>.db`, never rewritten, attached read-only),
+which bounds the file pushed every day. **[docs/RECOVERY.md](docs/RECOVERY.md)**
+is the 2am document: what to check first, how to get any past revision back
+(both halves, same sha), the republish sequence, and the unsoftened list of what
+is NOT covered (`wp_posts` and the whole blog, uploads, the WordPress install,
+and the shared email subscriber list, which is the sibling plugin's and is
+personal data that must never reach either public repo).
 
 **There is no Railway deployment.** Collection runs on Actions because the
 database must be committed back to the repo; an ephemeral container discards

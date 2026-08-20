@@ -59,6 +59,14 @@ What merges, and on what key:
                      'open' wins: this table decides whether a figure goes out,
                      so its merge conflicts resolve loud.
 
+TWO FILES, ONE MERGE. Since the 100 MiB split the database is
+`talent_intel.db` plus `talent_intel_cache.db`, and seen_urls, source_links and
+employer_identity live in the second one. Nothing below changed for it: both
+sides are opened through schema.connect(), which ATTACHes each file's own cache
+sibling, and SQLite resolves an unqualified table name across attached schemas.
+The commit spans both files atomically. What DID change is that four paths are
+now required to exist rather than four being created on demand.
+
 Usage:
     python merge_db.py OURS INTO
 
@@ -288,9 +296,30 @@ def _merge_guardrails(ours: sqlite3.Connection, into: sqlite3.Connection) -> int
     return into.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] - before
 
 
+def _require(path: Path, what: str) -> None:
+    """A database half that is not there is a hard stop, never an empty merge.
+
+    Both sides are now TWO files (see schema.CACHE_TABLES): the product file
+    and its `_cache` sibling. schema.connect() CREATES a missing file, which is
+    right for a fresh checkout and catastrophic here — a merge whose `ours`
+    cache is absent would union an empty seen_urls over a full one, report
+    `seen_urls_added: 0`, exit 0, and hand the next collect run a cache that
+    has forgotten every URL it has ever paid to read. So the caller's files are
+    checked before either connection is opened, and their absence is a failure
+    with the missing path named.
+    """
+    if not path.exists():
+        raise SystemExit(f"nothing to merge: {what} {path} does not exist")
+
+
 def merge(ours_path: Path, into_path: Path) -> dict[str, int]:
-    if not ours_path.exists():
-        raise SystemExit(f"nothing to merge: {ours_path} does not exist")
+    _require(ours_path, "this run's database")
+    _require(schema.cache_path_for(ours_path), "this run's cache file")
+    # `into` is the checked-out copy. Its product file is guaranteed by the
+    # checkout; its cache file is guaranteed by the same commit, and if it is
+    # missing something has gone wrong with the checkout rather than with us.
+    _require(into_path, "the destination database")
+    _require(schema.cache_path_for(into_path), "the destination cache file")
 
     ours = schema.connect(ours_path)
     into = schema.connect(into_path)

@@ -67,7 +67,7 @@ WordPress plugin on asktherecruiter.com  (custom table + REST API + render)
 ```
 collectors/     one file per source; each returns raw dicts, never writes
 pipeline/       classify -> validate -> dedupe -> store, shared by every source
-data/           talent_intel.db (committed, CC BY 4.0)
+data/           talent_intel.db + talent_intel_cache.db (both committed, CC BY 4.0)
 site/           generated dashboard
 tests/          offline, fixture-based, no network
 ```

@@ -82,6 +82,13 @@ from urllib.parse import urlparse
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
+
+# The repo root has to be importable before `pipeline` resolves, and this file
+# is run both as a script and imported by the tests. `schema` is needed for
+# cache_path_for/connect_ro: `seen_urls` lives in the second committed file.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from pipeline import schema  # noqa: E402
 DEFAULT_DB = ROOT / "data" / "talent_intel.db"
 CATALOGUE = ROOT / "data" / "sources_catalogue.csv"
 BACKFILL_STATE = ROOT / "data" / "backfill_state.json"
@@ -234,7 +241,7 @@ def load_catalogue(path: Path = CATALOGUE) -> dict:
 def load_seen(db: Path) -> tuple[dict, Counter, dict]:
     """`seen_urls` as {url: (collector, outcome)}, plus per-domain counts and
     the first time each collector resolved anything."""
-    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    conn = schema.connect_ro(db)
     try:
         seen, by_domain, first_run = {}, Counter(), {}
         for url, collector, outcome, first_seen in conn.execute(
@@ -339,7 +346,7 @@ def url_key(url: str) -> str:
 
 def load_cited(db: Path) -> dict:
     """{source_url: is_current} for every row we hold, current or superseded."""
-    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    conn = schema.connect_ro(db)
     try:
         cited: dict[str, int] = {}
         for url, is_current in conn.execute(

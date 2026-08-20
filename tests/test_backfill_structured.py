@@ -383,7 +383,7 @@ def test_the_repeat_is_skipped_before_any_derivation(db, capsys):
 def test_fetch_only_writes_nothing_at_all(db):
     assert _run_bse(db, _BseSession(_bse_rows(12)), ["--fetch-only"]) == 0
     assert rows_in(db) == 0
-    with sqlite3.connect(db) as conn:
+    with schema.connect(db) as conn:
         assert conn.execute("select count(*) from seen_urls").fetchone()[0] == 0
 
 
@@ -546,7 +546,7 @@ def test_the_uk_source_url_is_recorded_but_never_consulted(db, monkeypatch,
 
     assert _run() == 0
     assert rows_in(db) >= 1
-    with sqlite3.connect(db) as conn:
+    with schema.connect(db) as conn:
         assert conn.execute("select count(*) from seen_urls").fetchone()[0] >= 1
 
     capsys.readouterr()

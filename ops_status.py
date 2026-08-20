@@ -24,9 +24,16 @@ import source_registry as registry
 # while the digest called the same row healthy. staleness.py is stdlib-only,
 # which is the property this file's "no deps, no keys" promise rests on.
 from staleness import max_age_hours
+# For cache_path_for and connect_ro ONLY. pipeline/schema.py is stdlib-only
+# (it imports pipeline.vocab, which is re and unicodedata), so this does not
+# cost this file its "no dependencies" promise — and importing it is what stops
+# a second, drifting definition of where the cache file lives.
+from pipeline import schema
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
+# The link-rot ledger and the URL cache live in the second committed file.
+CACHE_DB = schema.cache_path_for(DB)
 
 LIVE_URL = "https://asktherecruiter.com/blog/talent-intelligence-tracker/"
 SIBLING_URL = "https://asktherecruiter.com/blog/ai-layoff-tracker/"
@@ -44,8 +51,16 @@ def main() -> int:
         print("    Next: python run_collect.py --dry-run --offline")
         return 2
 
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
+    # Loud, not silent. The database is two committed files, and the half that
+    # is missing here holds the link-rot ledger — so a tolerated absence would
+    # print "0 dead links" and read as the best result this section can give.
+    if not CACHE_DB.exists():
+        print(f"\n[!] {CACHE_DB.name} is missing next to {DB.name}.")
+        print("    These are two halves of one database and neither is")
+        print("    optional. Restore it: git checkout -- data/")
+        return 2
+
+    conn = schema.connect_ro(DB)
 
     problems += _report_collection_armed()
     problems += _report_data(conn)

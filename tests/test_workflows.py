@@ -608,3 +608,76 @@ def test_the_retraction_timeout_outlasts_the_scripts_own_budget():
         f"single row's retry ladder can still cost after it — GitHub would "
         f"win the race and kill the run before it can commit"
     )
+
+
+# --- The database is TWO committed files ------------------------------------
+#
+# Split on 2026-08-20, because GitHub refuses a single file over 100 MiB and
+# `data/talent_intel.db` was 78.8 MiB growing 676 KB/day — 32 days from a
+# repository that stops accepting commits. `seen_urls`, `source_links` and
+# `employer_identity` moved to `data/talent_intel_cache.db`; both halves stay
+# committed, so `git push` remains the compare-and-swap merge_db.py depends on.
+#
+# THE FAILURE THESE GUARD AGAINST is a workflow that commits one half. It does
+# not look like a failure: the run is green, the push lands, and the next
+# collect run opens a database whose URL cache has forgotten every story it has
+# ever paid to read — so it pays again, and republishes what the site already
+# holds. That is exactly the shape of the 2026-07-28 defect (audit finding 1)
+# and it was invisible for a day and a half.
+
+DB_FILE = "data/talent_intel.db"
+CACHE_FILE = "data/talent_intel_cache.db"
+
+
+def test_every_workflow_that_commits_the_database_commits_both_halves():
+    for name, steps in _database_writers():
+        for step in steps:
+            code = _code(step.get("run") or "")
+            for line in code.splitlines():
+                if "git add" not in line or DB_FILE not in line:
+                    continue
+                assert CACHE_FILE in line, (
+                    f"{name}: this line stages the product half of the database "
+                    f"without its cache half, so the push drops seen_urls, "
+                    f"source_links and employer_identity:\n    {line.strip()}"
+                )
+
+
+def test_every_workflow_that_saves_the_database_saves_both_halves():
+    """The `cp` before `git reset --hard` has to take the pair.
+
+    The reset discards the working tree, so whatever was not copied aside is
+    gone — and merge_db.py then merges this run's product file into main while
+    reading a cache file that main, not this run, wrote.
+    """
+    import re
+
+    pattern = re.compile(r'^\s*cp\s+data/talent_intel\.db\s+("?[^"]+\.db"?)\s*$')
+    for name, steps in _database_writers():
+        for step in steps:
+            lines = _code(step.get("run") or "").splitlines()
+            for i, line in enumerate(lines):
+                m = pattern.match(line)
+                if not m:
+                    continue
+                expected_dst = re.sub(r'\.db("?)$', r'_cache.db\1', m.group(1))
+                following = "\n".join(lines[i + 1:i + 3])
+                assert f"cp {CACHE_FILE} {expected_dst}" in following, (
+                    f"{name}: saves the product half aside without its cache "
+                    f"half. Expected the next line to be:\n"
+                    f"    cp {CACHE_FILE} {expected_dst}"
+                )
+
+
+def test_the_cache_file_is_committed_not_ignored():
+    """A .gitignore entry would make every one of the above pass and still lose
+    the data, because `git add` of an ignored path is a silent no-op."""
+    from pathlib import Path
+    import subprocess
+
+    root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        ["git", "-C", str(root), "check-ignore", "-q", CACHE_FILE])
+    assert result.returncode != 0, (
+        f"{CACHE_FILE} is gitignored. It is half of the database, not scratch."
+    )
