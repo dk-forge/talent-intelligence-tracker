@@ -4,8 +4,13 @@
       "first": 1787266230,
       "last": 1787266230,
       "subject": "CI RED: collect: [publish] sent=4 stored=4 duplicate=0 errors=0"
+    },
+    "enrich:main:9f166da0055292fd": {
+      "first": 1787278633,
+      "last": 1787278633,
+      "subject": "CI RED: enrich: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 503: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back i"
     }
   },
-  "updated_at": "2026-08-21T00:07:04+00:00",
+  "updated_at": "2026-08-21T02:17:13+00:00",
   "version": 1
 }
