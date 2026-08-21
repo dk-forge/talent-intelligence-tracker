@@ -1840,7 +1840,12 @@ def normalize_headcount_scope(value: str):
 # US$ and USD are noise once we know the currency, and stripping them first
 # stops 'US$' from tripping the S$ (Singapore dollar) marker below.
 _USD_PREFIX = re.compile(r"(?i)\bUS\s*\$")
-_USD_CODE = re.compile(r"(?i)\bUSD\b")
+# `(?![A-Za-z])` rather than `\b` for the reason _NON_USD carries the same
+# lookahead: 'USD28 million' is how a code is written when it is glued to its
+# figure, and a trailing `\b` does not close a letter run against a digit. Our
+# own code has to answer that shape the way the foreign ones now do, or a
+# stated US dollar reads as no currency at all.
+_USD_CODE = re.compile(r"(?i)\bUSD(?![A-Za-z])")
 
 # Anything that is NOT a US dollar. A non-USD figure leaves funding_amount_usd
 # NULL rather than being converted: we would have to pick an exchange rate, and
@@ -1849,9 +1854,19 @@ _USD_CODE = re.compile(r"(?i)\bUSD\b")
 _NON_USD = re.compile(
     r"[€£¥₹₽₩₪฿]"          # currency symbols
     r"|(?<![A-Za-z])(?:HK|NZ|NT|RM|Mex|MX|C|A|S|R|Z)\s?\$"         # C$, A$, S$, HK$, R$
+    # The closing boundary is a NEGATIVE LOOKAHEAD FOR A LETTER, not `\b`, and
+    # the difference is a live row. A newswire writes the code glued to its
+    # figure -- 'JPY28 billion', 'EUR10 milioni', 'RMB7 billion' are three
+    # strings this database holds -- and `\b` needs a non-word character after
+    # the 'Y', which a digit is not. So JPY28 named no currency this pattern
+    # could see; the string went on to state 'US$176.68 million' in a
+    # parenthesised conversion, that satisfied _USD_MARKER, and 28 billion YEN
+    # was stored as 28 billion DOLLARS. A digit after a currency code is the
+    # ordinary way to write one, and it must close the token exactly as a space
+    # does.
     r"|\b(?:EUR|GBP|JPY|CHF|CAD|AUD|NZD|SGD|HKD|INR|CNY|RMB|SEK"
     r"|NOK|DKK|BRL|MXN|ZAR|KRW|PLN|ILS|AED|SAR|TRY|RUB|THB|IDR"
-    r"|MYR|PHP|VND|EGP|NGN|TWD|CZK|HUF|RON|CLP|COP|ARS|PKR|BDT)\b"
+    r"|MYR|PHP|VND|EGP|NGN|TWD|CZK|HUF|RON|CLP|COP|ARS|PKR|BDT)(?![A-Za-z])"
     r"|\b(?:euros?|pounds?\s+sterling|sterling|yen|yuan|rupees?|won"
     r"|rand|reais|reals?|shekels?|dirhams?|kron[ao]r?|zloty|ruble[s]?"
     r"|lakh|crore)\b",
@@ -2000,7 +2015,7 @@ _QUALIFIED_DOLLAR = re.compile(
 # ('500 millones', '25 millioner kroner', '10,5 mio. kr.') refusing exactly as
 # before, and keeps the live '93.175 millones' row NULL rather than guessing.
 _USD_MARKER = re.compile(
-    r"(?i)\bUSD\b|\bUS\s*\$|(?<![A-Za-z])\$"
+    r"(?i)\bUSD(?![A-Za-z])|\bUS\s*\$|(?<![A-Za-z])\$"
     r"|(?:%s)" % "|".join(_DOLLAR_WORD_PATTERNS)
 )
 
@@ -2486,10 +2501,10 @@ _THOUSAND_GROUPS = {
 }
 
 
-def _read_number(raw: str, convention: str | None):
+def _read_number(raw: str, convention: str | None, scaled: bool = False):
     """'1,450' -> 1450.0 and '10,5' -> 10.5, deciding which separator is which.
 
-    Two rules, and the ORDER of them is the whole design.
+    Three rules, and the ORDER of them is the whole design.
 
     The first is shape, and it holds under BOTH conventions rather than
     assuming one. A lone separator followed by exactly three digits is a
@@ -2512,6 +2527,24 @@ def _read_number(raw: str, convention: str | None):
     and no dollar figure. That is this project's standing rule: a figure only
     exists if the source states it, and $150.000 read as 150 is worse than NULL
     because NULL is visibly missing while 150 looks like data.
+
+    The third is `scaled`, and it exists because the FIRST rule's premise is
+    false in exactly one place. "Continental copy does not pad a decimal
+    fraction to three places" holds for a bare amount, and it is what makes
+    '$150.000' a hundred and fifty thousand. It does not hold when a SCALE WORD
+    follows, where three decimal places is the ordinary English way to write
+    money: '$1.265 Million' is one million two hundred and sixty-five thousand
+    dollars, and reading its dot as a thousands group put a $1.265 BILLION seed
+    round on the live page (row 31228, RevaTerra, citybiz).
+
+    So where a scale word follows and the token named no single language, the
+    fallback is the ENGLISH convention rather than the shape: '.' is the decimal
+    point and ',' is the thousands separator. That is not a new guess -- it is
+    the reading this module already gives the mirror image, '$1,500 million' ->
+    1.5bn, asserted since 2026-07-30. A language that WOULD write '1.265
+    Millionen' and mean 1265 million names itself in its scale word ('millionen'
+    is German alone, decimal ','), which reaches `convention` above and keeps
+    the thousands reading. Nothing changes for a string with no scale word.
     """
     text = raw.strip()
     for space in ("\u0020", "\u00a0", "\u202f"):
@@ -2534,7 +2567,12 @@ def _read_number(raw: str, convention: str | None):
         if _THOUSAND_GROUPS[sep].fullmatch(text):
             if convention == sep:
                 raise _Refuse("%s under a '%s' decimal convention" % (text, sep))
-            decimal_sep = ""
+            if convention is None and scaled and sep == ".":
+                # '$1.265 Million': a scale word follows and no language is
+                # named, so the English point is a decimal point. Docstring.
+                decimal_sep = "."
+            else:
+                decimal_sep = ""
         else:
             decimal_sep = sep
 
@@ -2755,7 +2793,7 @@ def read_funding_figure(value: str):
     multiplier, convention = scale or (1, None)
 
     try:
-        number = _read_number(m.group(0), convention)
+        number = _read_number(m.group(0), convention, scaled=scale is not None)
     except (ValueError, _Refuse):
         return None
     return number * multiplier

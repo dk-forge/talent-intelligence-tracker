@@ -14,6 +14,68 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-20 - a seed round of $1.265 million, stored as $1.265 billion
+
+Found while correcting the money-raised definition (entry below), in the two
+rows that sat at the top of the amount table once the definition work had
+explained everything else there. Both are parser defects, both are one
+character of a regular expression, and each is a thousand-fold error on a
+column that is summed into a headline.
+
+**MAGNITUDE.** `$1.265 Million` (citybiz, RevaTerra, row 31228) parsed to
+1,265,000,000. `_read_number`'s first rule reads a lone separator with exactly
+three digits behind it as a thousands group, on the stated argument that no
+locale pads a decimal fraction to three places -- which is what makes an
+Indonesian `$150.000` a hundred and fifty thousand and needs no locale to do
+it. The argument is sound for a bare amount and **false when a scale word
+follows**, because three decimal places is exactly how English writes money at
+that size. `1.265` became 1,265, `Million` multiplied it, and a seed round was
+published as $1.265bn.
+
+The fix is not a new guess. `_read_number` now takes `scaled`, and where a
+scale word follows a group-shaped number whose scale token named NO single
+language, it falls back to the ENGLISH convention: `.` is the decimal point.
+That is the reading this module already gives the mirror image -- `$1,500
+million` -> 1.5bn, asserted since 2026-07-30 -- so the change makes the two
+halves of one convention agree rather than adding a rule. A language that
+would write `1.265 Millionen` and mean 1265 million **names itself in its own
+scale word** (`millionen` is German alone, decimal `,`), reaches `convention`,
+and keeps the group reading, as `US$ 51.000 millones` (Spanish, 51bn, correct)
+still does. A string with no scale word is untouched.
+
+**CURRENCY.** `JPY28 billion (US$176.68 million` (DIGITIMES, Nitto Denko, row
+33472) parsed to 28,000,000,000. `_NON_USD` closed its ISO codes with `\b`,
+which needs a non-word character after the `Y`; a digit is not one. So `JPY28`
+named no currency the denylist could see, the parenthesised conversion
+satisfied the stated-dollar rule, `_NUMBER` took the first number in the
+string, and yen were summed as dollars. Both boundaries are now
+`(?![A-Za-z])`, ours included -- `USD28 million` had the same defect in the
+other direction and read as no currency at all. The page's promise is that a
+non-USD amount is left out rather than converted at a rate nobody published, so
+the answer for that row is no figure, not the conversion the wire happened to
+print.
+
+**THE SWEEP IS THE POINT, and it is small.** Both shapes were measured across
+all 4,602 live rows carrying a funding string before anything was proposed: a
+group-shaped number followed by a scale word appears **twice** (RevaTerra, and
+`US$ 51.000 millones`, which was already right), and a currency code glued to
+its digits appears **three times** (`EUR10 milioni` and `RMB7 billion` both
+already refused for want of a stated dollar). Re-deriving the whole column with
+the corrected parser moves **2 rows of 4,602**: 1,265,000,000 -> 1,265,000 and
+28,000,000,000 -> cleared. The stored total moves $1,561.27bn -> $1,532.01bn;
+the `company_raise` basis, which is what the published money total sums, moves
+$1,350.05bn -> $1,348.79bn.
+
+Only the RevaTerra row was ever on the site. The Nitto Denko row was already
+quarantined by the amount guardrail and never published -- the guardrail caught
+the symptom at $28bn and had been red for 190 hours; it cannot catch $1.265bn,
+which is an ordinary number for a round.
+
+Repaired by one queued run of `correct_funding_amount.py`, which re-derives the
+whole column rather than a list of two row ids, for the reason its docstring
+gives: the defect is that a pure function was improved after its output was
+stored, and that will happen again.
+
 ## 2026-08-20 - the money total added up everything that had a dollar sign
 
 **The live figure was $564.79bn "raised" over 4,238 published rows, and it was

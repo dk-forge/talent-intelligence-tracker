@@ -548,3 +548,58 @@ def test_no_stored_range_is_carrying_a_figure_the_publisher_did_not_state():
             "'refuse' a range has no figure, and one that has acquired one is a "
             "typography the detector does not recognise."
         )
+
+
+# --- the two rows the 2026-08-20 sweep found --------------------------------
+#
+# Both were found while correcting the "money raised" definition, both were
+# live and visible, and neither is a rare typography: one is how English writes
+# a sub-$10M round to three decimal places, the other is how a newswire writes
+# a currency code. Verbatim from the database.
+
+def test_a_scale_word_makes_three_decimal_places_a_fraction_not_a_group():
+    """'$1.265 Million' was stored as $1.265 BILLION (row 31228, RevaTerra).
+
+    The shape rule reads a lone separator with exactly three digits behind it as
+    a thousands group, on the argument that no locale pads a decimal fraction to
+    three places. That argument is sound for a bare amount and false when a
+    scale word follows, which is precisely where English writes three decimal
+    places: '$1.265 Million' is 1,265,000 to every reader of the headline it
+    came from, and reading it as 1,265 million is a thousand-fold error on a
+    summed total.
+    """
+    assert parse_funding_usd("$1.265 Million") == 1_265_000
+    assert parse_funding_usd("US$1.265 Million") == 1_265_000
+    assert parse_funding_usd("$2.500 million") == 2_500_000
+    # The mirror image is unchanged: under the same English reading a comma
+    # group IS thousands, which is what this module has always said.
+    assert parse_funding_usd("$1,500 million") == 1_500_000_000
+    # A language that writes the thousands DOT names itself in its scale word,
+    # and keeps the group reading rather than inheriting the English one.
+    assert parse_funding_usd("US$ 51.000 millones") == 51_000_000_000
+    assert parse_funding_usd("1.265 Millionen Dollar") == 1_265_000_000
+    # And with no scale word the shape rule stands: this is the Indonesian
+    # '$150.000' the docstring was written for.
+    assert parse_funding_usd("US$150.000") == 150_000
+    assert parse_funding_usd("$600,000") == 600_000
+
+
+def test_a_currency_code_glued_to_its_digits_still_names_a_currency():
+    """'JPY28 billion (US$176.68 million)' stored 28 BILLION DOLLARS (row 33472).
+
+    _NON_USD closed its ISO codes with `\\b`, which needs a non-word character
+    after the 'Y'. A digit is not one, so JPY28 named no currency the pattern
+    could see; the parenthesised conversion then satisfied the stated-dollar
+    rule, the first number in the string was 28, and a yen figure was summed as
+    dollars. The page's promise is that a non-USD amount is left out rather than
+    converted, so the answer here is no figure at all.
+    """
+    for text in ("JPY28 billion (US$176.68 million)", "EUR10 milioni",
+                 "RMB7 billion", "CNY5 billion", "GBP20 million"):
+        assert parse_funding_usd(text) is None, text
+    # Spaced codes were never the broken half and must stay refused.
+    assert parse_funding_usd("JPY 28 billion") is None
+    # Our OWN code is closed the same way, or a stated US dollar written
+    # 'USD28 million' would read as no currency at all.
+    assert parse_funding_usd("USD28 million") == 28_000_000
+    assert parse_funding_usd("USD 20.6 Million") == 20_600_000
