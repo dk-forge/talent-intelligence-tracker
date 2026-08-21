@@ -1574,9 +1574,9 @@ function tit_dashboard_html() {
             nobody could see ("Team or function, choose more than one if you
             like"). Wrapping the label around the select is enough.
 
-            Employer type, Work setup, Deal type, Funding stage and Site change
-            are filled from /facets and HIDE THEMSELVES when their column is
-            empty. Shipping a control that always returns nothing is worse than
+            Employer type, Work setup, Deal type, Kind of money, Funding stage
+            and Site change are filled from /facets and HIDE THEMSELVES when
+            their column is empty. Shipping a control that always returns nothing is worse than
             shipping no control. That has been the intent since they shipped and
             it was NOT what happened: the `hidden` attribute is a user agent
             rule, `.tit-field` sets `display:flex`, and any author rule beats the
@@ -1630,6 +1630,19 @@ function tit_dashboard_html() {
           <label class="tit-field tit-field--stack" id="tit-field-deal_type" hidden>
             <span class="tit-field-l">Deal Type</span>
             <select id="tit-f-deal_type" multiple size="5"
+                    aria-describedby="tit-help-multi"></select>
+          </label>
+          <?php /* Beside Deal Type because they are one question apart and a
+                   reader has to be able to see the difference: Deal Type asks
+                   what HAPPENED, this asks what the DOLLARS ON THE ROW ARE.
+                   The site's money total sums one value of this column, so
+                   this is also the control the "Total Raised" figure links to.
+                   Its options are named as figures ("Acquisition Price", not
+                   "Acquisition") so the two controls never offer one string
+                   for two questions. See tit_money_where(). */ ?>
+          <label class="tit-field tit-field--stack" id="tit-field-money_basis" hidden>
+            <span class="tit-field-l">Kind of Money</span>
+            <select id="tit-f-money_basis" multiple size="5"
                     aria-describedby="tit-help-multi"></select>
           </label>
           <label class="tit-field tit-field--stack" id="tit-field-site_event" hidden>
@@ -2732,15 +2745,23 @@ function tit_signal_defs() {
     return array(
         array('hiring',     'Adding Roles',      'direction=hiring',         "signal_direction = 'hiring'", 'count'),
         array('funded',     'Funding Rounds',    'funding=1',                $funding,                      'count'),
-        // The deep link is DELIBERATELY still the wider funding view, and this
-        // note is here so nobody "fixes" it without doing the other half. The
-        // figure now sums company raises only (tit_money_where()), so the
-        // honest link would carry `money_basis=company_raise` -- but the
-        // dashboard's query builder only forwards params it has a control for,
-        // so that param would be dropped in the browser and the link would
-        // quietly behave exactly as it does now while looking precise. The API
-        // accepts money_basis today; the control comes with it.
-        array('money',      'Total Raised',      'funding=1',                '',                            'money'),
+        // THE LINK LANDS ON THE ROWS THE FIGURE ADDED UP, and both halves of
+        // that are load-bearing. `funding=1` alone is the wider funding view --
+        // divestiture prices, fund closes, outbound spends, state subsidies,
+        // pledges -- and this figure sums none of them, so a reader clicking it
+        // used to land on rows that do not add up to the number they clicked.
+        // The basis value is asked for by name, from the one function that
+        // decides what is summable, so a rename cannot leave the link pointing
+        // at a value nothing carries.
+        //
+        // It needs the front end to carry it: the dashboard forwards only the
+        // parameters it has a control for, so this link is only honest while
+        // the Kind of Money select above exists. tests/test_money_raised.py
+        // holds the pair together.
+        array('money',      'Total Raised',
+              'funding=1&money_basis=' . (function_exists('tit_money_basis_summable')
+                                          ? tit_money_basis_summable() : 'company_raise'),
+              '',                            'money'),
         array('leadership', 'Leadership Moves',  'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
         array('pay',        'Pay and Benefits',  'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
         array('total',      'Everything in This View', '',                    '1 = 1',                      'count'),

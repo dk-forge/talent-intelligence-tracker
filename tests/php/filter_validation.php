@@ -236,6 +236,7 @@ $corpus = array(
           'industry' => 'technology', 'funding_stage' => 'series_b', 'funding_amount' => '$40m',
           'signal_direction' => 'hiring', 'state' => 'CA', 'employer_type' => 'public',
           'work_mode' => 'hybrid', 'deal_type' => 'merger', 'site_event' => 'opened',
+          'money_basis' => 'merger',
           'functions' => '["engineering"]', 'headcount' => 200, 'funding_amount_usd' => 40000000,
           'materiality' => 'high', 'city' => 'San Francisco', 'published_date' => '2026-08-11'),
     array('pillar' => 'leadership_change', 'confidence' => 'reported', 'country' => 'GB',
@@ -250,7 +251,8 @@ $corpus = array(
           'published_date' => '2026-08-15'),
     array('pillar' => 'company_development', 'confidence' => 'verified', 'country' => 'US',
           'funding_stage' => 'seed', 'funding_amount' => '$3m', 'funding_amount_usd' => 3000000,
-          'deal_type' => 'acquisition', 'published_date' => '2026-08-16'),
+          'deal_type' => 'acquisition', 'money_basis' => 'acquisition',
+          'published_date' => '2026-08-16'),
     array('pillar' => 'how_we_work', 'confidence' => 'reported', 'country' => 'FR',
           'work_mode' => 'remote', 'published_date' => '2026-08-17'),
 );
@@ -353,6 +355,7 @@ $bad = array(
     array('employer_type' => 'publik'),
     array('work_mode' => 'hybird'),
     array('deal_type' => 'aquisition'),
+    array('money_basis' => 'company_rais'),
     array('site_event' => 'oppened'),
     array('funding_stage' => 'series_bb'),
     array('detail' => 'notabl'),
@@ -446,6 +449,10 @@ $vocabularies = array(
     'employer_type' => 'tit_allowed_employer_types',
     'work_mode'     => 'tit_allowed_work_modes',
     'deal_type'     => 'tit_allowed_deal_types',
+    // The filter behind the "Total Raised" figure's own deep link. Every value
+    // it accepts has to be a value the vocabulary declares, or the link the
+    // matrix prints lands on an HTTP 400 instead of on the rows it summed.
+    'money_basis'   => 'tit_allowed_money_bases',
     'site_event'    => 'tit_allowed_site_events',
     'function'      => 'tit_allowed_functions',
     'funding_stage' => 'tit_allowed_funding_stages',
@@ -470,6 +477,48 @@ foreach (function_exists('tit_filter_allowed') ? $vocabularies : array() as $par
         }
     }
 }
+/* 6b. A DROPDOWN MAY NOT OFFER A VALUE THE FILTER REFUSES.
+
+      The fetched controls are data-driven -- /facets reads the DISTINCT values
+      out of the column -- while the filter behind them is closed-vocabulary.
+      Those two can disagree, and when they do the reader picks an option and
+      gets an HTTP 400 from a control the page built for them.
+
+      money_basis is the one where it matters most: the "Total Raised" figure
+      links to `money_basis=company_raise`, so this control is not decoration,
+      it is what makes a published figure's own link work. */
+$facet_columns = array('money_bases' => 'money_basis', 'deal_types' => 'deal_type',
+                       'employer_types' => 'employer_type', 'work_modes' => 'work_mode',
+                       'site_events' => 'site_event', 'funding_stages' => 'funding_stage');
+$GLOBALS['tit_transients'] = array();
+$facets = function_exists('tit_api_facets') ? tit_api_facets() : null;
+$facets = $facets instanceof WP_REST_Response ? $facets->get_data() : $facets;
+$facets = is_array($facets) ? $facets : null;
+if (!is_array($facets)) {
+    fail('tit_api_facets() did not answer with an array, so the controls the '
+       . 'dashboard fills from it cannot be checked against the filters');
+} else {
+    foreach ($facet_columns as $key => $param) {
+        if (!array_key_exists($key, $facets)) {
+            fail("/facets does not offer `{$key}`, so the {$param} control "
+               . 'renders empty, hides itself, and any link carrying that '
+               . 'parameter is dropped in the browser');
+            continue;
+        }
+        foreach ((array) $facets[$key] as $value) {
+            if (query_answer(array($param => $value)) === 'HTTP 400') {
+                fail("/facets offers {$param}={$value} and /query REFUSES it: "
+                   . 'the page would build a dropdown option that answers 400');
+            }
+        }
+    }
+    // And the one the money figure's link depends on is really there.
+    if (!in_array('acquisition', (array) ($facets['money_bases'] ?? array()), true)) {
+        fail('/facets did not list the money bases the corpus carries, so the '
+           . 'Kind of Money control would render empty on a table that has them');
+    }
+}
+
 if (!function_exists('tit_query_orders')) {
     fail('tit_query_orders() does not exist, so the sort names the validator '
        . 'would check are not the sort names /query answers by');

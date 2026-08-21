@@ -14,6 +14,74 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-21 - the figure was right and its own link disagreed with it (1.86.0)
+
+The day after the total stopped adding up divestiture prices, the number was
+correct and **the link under it still pointed at the rows it had stopped
+counting.** `tit_money_where()` sums `money_basis = 'company_raise'`; the
+at-a-glance matrix's Total Raised cell asked for `funding=1`, which is the
+wider funding view and includes every kind the figure excludes -- divestiture
+prices, fund closes, outbound spends, state subsidies, pledges. A reader who
+clicked a dollar total landed on a table that demonstrably does not add up to
+the number they clicked, which is the same defect as a wrong figure arriving one
+click later.
+
+The previous session saw it and wrote the reason it could not be fixed alone
+into a comment on that row: **the dashboard forwards only the parameters it has
+a control for.** `money_basis` would have been dropped in the browser and the
+link would have looked precise while behaving exactly as it did before -- worse
+than the bug, because it would also have looked fixed. So this is both halves.
+
+**What shipped**
+
+* `/facets` returns `money_bases`, data-driven from the column like its
+  neighbours (`tit_api_facets`).
+* A **Kind of Money** multi-select beside Deal Type, hidden until the column
+  has values, filled from that key. Its options are named as FIGURES --
+  "Acquisition Price", not "Acquisition" -- because Deal Type is one control
+  away and two controls offering one string for two questions is the defect the
+  IPO note there already records. `company_raise` reads "Money the Employer
+  Raised", which is the sentence the total is making.
+* `money_basis` in the `inputs` map, in `MULTI`, in `FACET_SELECT` and in the
+  `deepLinked` regex, so the parameter round-trips through the querystring, the
+  chips bar, the exports and a shared link.
+* The money row's spec is now
+  `funding=1&money_basis=<tit_money_basis_summable()>`, asked for by name so a
+  rename cannot leave it pointing at a value no row carries.
+* **A cell spec is a LIST of pairs now** (`glancePairs`). Split on `=` alone,
+  that spec yields a key of `funding` and a value of `1&money_basis`, no input
+  answers to it, and the cell becomes a button that does nothing.
+* One `FACET_LABEL` registry replaced a labels argument at each fill site plus
+  a raw value everywhere else. `applyUrlState()` adds an option for a value a
+  link carried before `/facets` answers, and it was adding it under its stored
+  name: a deep link's chip read `company_raise` while the same value picked from
+  the control read "Money the Employer Raised". Same value, two names, decided
+  by which of two things happened first. That was already true of deal type and
+  site change; it is fixed for all of them.
+
+**Guards, and each one was proved by mutation**
+
+* `tests/php/render_dashboard.php` runs render_press.php's deep-link check on
+  the MATRIX: every `data-filter` is parsed, every parameter name must be one
+  dashboard.js reads (parsed out of its `inputs` map, never written down here),
+  must be in the `deepLinked` regex, and its VALUE must be in the vocabulary --
+  a wrong name over-reports, a wrong value returns zero rows and reads as a
+  quiet week. Plus: one cell has to carry two pairs, and `glancePairs` has to
+  still exist.
+* `tests/php/filter_validation.php` calls `/facets` for real and fails if any
+  fetched control offers a value `/query` answers 400 to. Data-driven options
+  behind a closed-vocabulary filter can disagree, and when they do the reader
+  picks an option the page built for them and gets an error.
+* `tests/test_money_raised.py` holds the link and the control together as one
+  claim, and requires every basis a reader can pick to have words rather than
+  its stored name.
+
+**The byte budget went 185,600 -> 186,350** for 420 measured bytes: ~280 for the
+control, ~140 for 35 bytes x 4 cells of the widened `data-filter`. Itemised at
+the constant, per the convention.
+
+---
+
 ## 2026-08-20 - a seed round of $1.265 million, stored as $1.265 billion
 
 Found while correcting the money-raised definition (entry below), in the two

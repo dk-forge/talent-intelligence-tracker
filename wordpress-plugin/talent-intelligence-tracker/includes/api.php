@@ -1296,6 +1296,13 @@ function tit_api_facets() {
         'employer_types' => $col('employer_type'),
         'work_modes'     => $col('work_mode'),
         'deal_types'     => $col('deal_type'),
+        // WHY A ROW'S FIGURE IS OR IS NOT IN THE MONEY TOTAL. Data-driven like
+        // its neighbours, and for a sharper reason than theirs: the "Total
+        // Raised" figure links to `money_basis=company_raise`, so the control
+        // that value belongs to has to exist or the browser drops the
+        // parameter and the link reads as precise while behaving as the wider
+        // funding view. See tit_signal_defs().
+        'money_bases'    => $col('money_basis'),
         'site_events'    => $col('site_event'),
         'industries' => tit_allowed_industries(),
         'functions' => tit_allowed_functions(),
