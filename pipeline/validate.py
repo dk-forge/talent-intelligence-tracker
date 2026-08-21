@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from . import capital_event, identity, prefilter, vocab
+from . import capital_event, identity, money_raised, prefilter, vocab
 
 
 class Rejected(Exception):
@@ -49,6 +49,11 @@ class Signal:
     funding_stage: str | None
     work_mode: str | None
     deal_type: str | None
+    # WHY THIS FIGURE IS, OR IS NOT, MONEY THE EMPLOYER RAISED. Three states,
+    # and NULL is not a quiet synonym for either of the others: see
+    # pipeline/money_raised.py. 'company_raise' is the only value a public
+    # total may sum, and it is asked for by name.
+    money_basis: str | None
     site_event: str | None
     materiality: str
     confidence: str
@@ -801,6 +806,51 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
             funding_stage = None
             deal_type = deal_type or kind
 
+    # AND THEN THE OTHER QUESTION, which is not "what instrument is this" but
+    # "is the named employer raising money at all".
+    #
+    # capital_event asks whether a stated figure belongs to a bond, a listing,
+    # a share sale or a project loan. It does not ask, and cannot ask, whether
+    # the money went the other way. Five things were being added into the
+    # public "money raised" total that are not a company raising capital:
+    #
+    #   a VC closing its own fund      "Accel raises $3.5 billion to invest in
+    #                                   emerging global AI startups"
+    #   an outbound spend              "Nvidia to invest $1.5b in SB Energy"
+    #   a government award             "NextEra secures $3.3bn in state funding"
+    #   an announced pledge            "Marcos secures US$2.5B in investment
+    #                                   commitments from Canada visit"
+    #   a sale price                   "Alibaba said to be selling gaming arm
+    #                                   for US$1.5 billion"
+    #
+    # The last one is the sharpest, because nothing was broken about reading
+    # it: the model DID label that row `divestiture`, correctly, and the
+    # aggregate summed it anyway. `deal_type` was carrying the answer and
+    # nothing was asking.
+    #
+    # THE VERDICT IS POSITIVE AND IT IS ALWAYS WRITTEN. money_raised.basis()
+    # never returns None, so every stored row that carries a figure says on
+    # its face which of the two it is. That is the whole repair: the old shape
+    # summed a NULL deal_type as though empty meant "we checked and it is a
+    # round", when it meant "nothing ever looked". A row this never reached
+    # keeps money_basis NULL and no total may add it up.
+    #
+    # THE FIGURE IS NOT DESTROYED, and that is the difference from the block
+    # above. A bond is not a funding round in any sense, so capital_event nulls
+    # the columns. A divestiture price and a fund close are real, correctly
+    # extracted numbers that belong on the row and in its detail panel; they
+    # are simply not this total's kind of number. So the row keeps
+    # funding_amount, and money_basis is what keeps it out of the sum.
+    if funding or funding_usd is not None:
+        basis = money_raised.basis(deal_type, company, headline, summary, raw_text)
+        if basis != money_raised.COMPANY_RAISE:
+            money_raised.note(basis)
+            deal_type = deal_type or basis
+    else:
+        # No figure, nothing to judge. NULL here means "this row states no
+        # money", which is the ordinary case for four rows in five.
+        basis = None
+
     # What the employer did with a place of work, when the source says so.
     # Treated exactly like deal_type and for the same reason: it is an event
     # type, not a headcount claim, so it never touches signal_direction. An
@@ -849,6 +899,7 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         funding_stage=funding_stage,
         work_mode=work_mode,
         deal_type=deal_type,
+        money_basis=basis,
         site_event=site_event,
         materiality=compute_materiality(
             headcount=headcount,

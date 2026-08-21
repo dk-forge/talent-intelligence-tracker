@@ -426,7 +426,7 @@ function tit_company_rows($slug) {
     $table = tit_table_name();
     $columns = "headline, summary, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, region, country, hq_city, hq_country, state, functions, industry,
-                headcount, funding_amount, funding_amount_usd, funding_stage,
+                headcount, funding_amount, funding_amount_usd, funding_stage, money_basis,
                 confidence, source_url, source_name, archive_url,
                 published_date, captured_at, collector";
     $order = "ORDER BY COALESCE(published_date, DATE(captured_at)) DESC";
@@ -470,7 +470,16 @@ function tit_company_profile($rows) {
     foreach ($rows as $r) {
         if (!empty($r['source_url']))  $docs[$r['source_url']]   = true;
         if (!empty($r['source_name'])) $kinds[$r['source_name']] = true;
-        if (!empty($r['funding_amount_usd'])) $funding_usd += (float) $r['funding_amount_usd'];
+        // An employer's "total raised" is the same claim the dashboard's is,
+        // so it takes the same test. Without it a company page added up its
+        // own divestiture price and any fund it closed and called the result
+        // money it had raised. tit_money_basis_summable() is the one value.
+        $summable = function_exists('tit_money_basis_summable')
+            ? tit_money_basis_summable() : 'company_raise';
+        if (!empty($r['funding_amount_usd'])
+            && ($r['money_basis'] ?? '') === $summable) {
+            $funding_usd += (float) $r['funding_amount_usd'];
+        }
         if ($r['pillar'] === 'leadership_change') $leadership++;
         if ($r['confidence'] === 'verified') $verified++;
 
@@ -591,7 +600,10 @@ function tit_company_status_line($rows) {
     $what = '';
     if (!empty($r['funding_stage']) && isset($stages[$r['funding_stage']])) {
         $what = 'Funding reported, ' . $stages[$r['funding_stage']];
-    } elseif (!empty($r['funding_amount_usd']) && function_exists('tit_money_short')) {
+    } elseif (!empty($r['funding_amount_usd'])
+              && ($r['money_basis'] ?? '') === (function_exists('tit_money_basis_summable')
+                                                ? tit_money_basis_summable() : 'company_raise')
+              && function_exists('tit_money_short')) {
         // Our parsed dollars, never the source's string. Same rule and same
         // reason as tit_amount_raised_html below the timeline.
         $what = 'Funding reported, ' . tit_money_short((float) $r['funding_amount_usd']);

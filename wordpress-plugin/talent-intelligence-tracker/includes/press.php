@@ -132,6 +132,15 @@ function tit_press_facts($table) {
     $base = "is_current = 1 AND {$notable}";
     $date_expr = 'COALESCE(published_date, DATE(captured_at))';
 
+    // The one definition of what a "money raised" figure may contain. A local
+    // fallback because this file also renders against a plugin mid-upload, and
+    // the fallback must be the STRICT reading: if the definition cannot be
+    // reached, sum nothing rather than sum everything.
+    $money = function_exists('tit_money_where')
+        ? tit_money_where() : "money_basis = 'company_raise'";
+    $money_sum = function_exists('tit_money_sum_expr')
+        ? tit_money_sum_expr() : "CASE WHEN {$money} THEN funding_amount_usd END";
+
     $today = current_time('Y-m-d');
     $windows = array(
         array('week',  'The Last Seven Days', date('Y-m-d', strtotime($today . ' -6 days')), $today),
@@ -149,7 +158,10 @@ function tit_press_facts($table) {
             "SUM({$date_expr} >= %s) AS w_n_{$i}",
             "COUNT(DISTINCT CASE WHEN {$date_expr} >= %s THEN company_key END) AS w_c_{$i}",
             "SUM(confidence = 'verified' AND {$date_expr} >= %s) AS w_v_{$i}",
-            "COALESCE(SUM(CASE WHEN {$date_expr} >= %s THEN funding_amount_usd END), 0) AS w_m_{$i}",
+            // Company raises only. tit_money_where() is the one definition of
+            // what a "money raised" figure may contain; a divestiture price and
+            // a state subsidy are real numbers on real rows and are not this.
+            "COALESCE(SUM(CASE WHEN {$date_expr} >= %s AND {$money} THEN funding_amount_usd END), 0) AS w_m_{$i}",
         ) as $expr) {
             $select[] = $expr;
             $params[] = $w[2];
@@ -159,7 +171,7 @@ function tit_press_facts($table) {
     $select[] = 'COUNT(*) AS all_n';
     $select[] = 'COUNT(DISTINCT company_key) AS all_c';
     $select[] = "SUM(confidence = 'verified') AS all_v";
-    $select[] = 'COALESCE(SUM(funding_amount_usd), 0) AS all_m';
+    $select[] = "COALESCE(SUM({$money_sum}), 0) AS all_m";
     $select[] = "COUNT(DISTINCT COALESCE(country, hq_country)) AS all_countries";
     $select[] = "MIN({$date_expr}) AS lo";
     $select[] = "MAX({$date_expr}) AS hi";
@@ -214,7 +226,7 @@ function tit_press_facts($table) {
         "SELECT SUBSTR({$date_expr}, 1, 7) AS m, COUNT(*) AS n,
                 COUNT(DISTINCT company_key) AS c,
                 SUM(confidence = 'verified') AS v,
-                COALESCE(SUM(funding_amount_usd), 0) AS money
+                COALESCE(SUM({$money_sum}), 0) AS money
            FROM {$table} WHERE {$base} AND {$date_expr} IS NOT NULL
           GROUP BY m HAVING n > 0 ORDER BY m DESC LIMIT 24", ARRAY_A) ?: array();
 
@@ -234,8 +246,12 @@ function tit_press_facts($table) {
     // The largest single raise this year, named. A superlative about our own
     // dataset is fine; a superlative about the world is not.
     $facts['largest'] = $wpdb->get_row($wpdb->prepare(
+        // "The largest single raise this year" has to BE a raise. Without the
+        // basis clause this superlative named whichever row held the biggest
+        // number, which for a stretch of 2026 would have been a fund close.
         "SELECT company, company_key, funding_amount_usd AS usd, {$date_expr} AS d
            FROM {$table} WHERE {$base} AND funding_amount_usd IS NOT NULL
+            AND {$money}
             AND {$date_expr} >= %s
           ORDER BY funding_amount_usd DESC, row_id ASC LIMIT 1", $year_start), ARRAY_A) ?: array();
 

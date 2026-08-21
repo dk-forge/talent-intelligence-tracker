@@ -101,6 +101,15 @@ CREATE TABLE IF NOT EXISTS signals (
     -- employer being bought. Same event, opposite meaning to a recruiter.
     deal_type         TEXT,
 
+    -- WHY THE FIGURE ON THIS ROW IS, OR IS NOT, MONEY THE EMPLOYER RAISED.
+    -- 'company_raise' is the only value any public money total may sum, and
+    -- every sum asks for it BY NAME. Any other value is one of the excluding
+    -- deal_types and says why the row is out. NULL is a third state and means
+    -- the row was never examined, which is not a pass: summing NULL as though
+    -- it meant 'company_raise' is the defect this column exists to close.
+    -- pipeline/money_raised.py is the one definition.
+    money_basis       TEXT,
+
     -- What the employer did with a PLACE of work: opened | closed | expanded |
     -- relocated | announced. The earliest geographic hiring signal there is,
     -- because a site decision lands months before the job adverts do. It says
@@ -505,6 +514,11 @@ MIGRATIONS = (
     ("signals", "headcount_scope", "TEXT"),
     ("signals", "materiality", "TEXT"),
     ("signals", "deal_type", "TEXT"),
+    # NULL on every row stored before this column existed, and that is the
+    # honest reading of it: never examined. correct_money_basis.py is the pass
+    # that judges them, and it judges them by calling the same classifier the
+    # write path calls rather than from a list somebody typed.
+    ("signals", "money_basis", "TEXT"),
     ("signals", "site_event", "TEXT"),
     # Per-run cost accounting on the health ledger. The committed database has
     # thousands of health rows already, and they stay NULL here forever: no

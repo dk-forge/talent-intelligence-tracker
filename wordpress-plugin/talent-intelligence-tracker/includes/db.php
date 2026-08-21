@@ -65,6 +65,7 @@ function tit_create_or_update_table() {
         funding_stage VARCHAR(24) NULL,
         work_mode VARCHAR(16) NULL,
         deal_type VARCHAR(16) NULL,
+        money_basis VARCHAR(24) NULL,
         site_event VARCHAR(16) NULL,
         materiality VARCHAR(12) NULL,
         confidence VARCHAR(12) NOT NULL,
@@ -342,6 +343,13 @@ function tit_insert_signal(array $row, $flush = true) {
         // The corporate event, from the row employer's side of it: 'acquisition'
         // is buying, 'acquired' is being bought.
         'deal_type'          => !empty($row['deal_type']) ? (string) $row['deal_type'] : null,
+        // WHY THE FIGURE IS, OR IS NOT, MONEY THIS EMPLOYER RAISED. Decided in
+        // Python by pipeline/money_raised.py and never re-derived here, for
+        // exactly the reason funding_amount_usd is not: one definition, one
+        // answer. NULL means the row was never examined and is a third state,
+        // not a quiet 'company_raise' - every money sum on this site asks for
+        // that value by name, so an unexamined row cannot reach a total.
+        'money_basis'        => !empty($row['money_basis']) ? (string) $row['money_basis'] : null,
         // What the employer did with a place of work. An event type, never
         // a headcount claim: 'opened' does not mean the row is hiring.
         'site_event'         => !empty($row['site_event']) ? (string) $row['site_event'] : null,

@@ -509,6 +509,13 @@ function tit_place_facts($kind, $key) {
         : "((funding_amount IS NOT NULL AND funding_amount <> '')"
           . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
 
+    // The one definition of what a "money raised" figure may contain. A local
+    // fallback because this file also renders against a plugin mid-upload, and
+    // the fallback must be the STRICT reading: if the definition cannot be
+    // reached, sum nothing rather than sum everything.
+    $money = function_exists('tit_money_where')
+        ? tit_money_where() : "money_basis = 'company_raise'";
+
     // --- 1. every scalar the page prints, in one pass -----------------------
     // Counts, the date span, the pillar mix and the money all read the same
     // rows, so they are one query. Two queries here would let the headline
@@ -520,8 +527,8 @@ function tit_place_facts($kind, $key) {
                 COUNT(DISTINCT source_url) AS documents,
                 SUM(confidence = 'verified') AS verified,
                 SUM({$funding}) AS funding_rows,
-                SUM(funding_amount_usd IS NOT NULL) AS funding_with_usd,
-                COALESCE(SUM(funding_amount_usd), 0) AS funding_usd,
+                SUM(funding_amount_usd IS NOT NULL AND {$money}) AS funding_with_usd,
+                COALESCE(SUM(CASE WHEN {$money} THEN funding_amount_usd END), 0) AS funding_usd,
                 SUM(pillar = 'company_development') AS p_company_development,
                 SUM(pillar = 'leadership_change') AS p_leadership_change,
                 SUM(pillar = 'rewards_comp') AS p_rewards_comp,

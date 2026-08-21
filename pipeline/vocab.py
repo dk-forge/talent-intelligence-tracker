@@ -1532,6 +1532,27 @@ DISTINCT_EMPLOYER_SLUG_COLLISIONS = {
 }
 
 
+#: "<somebody>-backed <the actual employer>". Up to three tokens of backer
+#: name, because the corpus writes "Abu Dhabi-backed" and "SoftBank Vision
+#: Fund-backed" as well as "OpenAI-backed". Anchored at the start: a qualifier
+#: in the middle of a name is doing different work.
+_BACKER_PREFIX = re.compile(
+    r"^(?:[\w&]+[\s-]){0,2}[\w&]+-(?:backed|owned|led|funded|founded|controlled)\s+",
+    re.I,
+)
+
+
+def _strip_backer_prefix(k: str) -> str:
+    """Drop a leading backer qualifier, but never the whole name.
+
+    The guard is the point. If everything before the qualifier is all there is,
+    the qualifier IS the name and stripping it would leave an empty key that
+    every other nameless row would then collide with.
+    """
+    stripped = _BACKER_PREFIX.sub("", k, count=1).strip()
+    return stripped if stripped else k
+
+
 def company_key(name: str) -> str:
     """Stable join key for a company. Strips common legal suffixes so
     'Acme Inc.' and 'Acme, Inc' collapse to one employer.
@@ -1560,11 +1581,32 @@ def company_key(name: str) -> str:
     worklist by calling this function rather than from a list of six, so it
     covers the aliases below and anything a later fix here moves.
 
+    A LEADING BACKER QUALIFIER IS NOT PART OF THE NAME (2026-08-20). Two
+    outlets covered one $2bn round on the same day:
+
+        "Thrive Holdings Raises $2B To Expand AI-Powered Business Roll-Ups"
+        "OpenAI-backed Thrive Holdings raises $2B to bring AI to the enterprise"
+
+    The second keyed as `openai-backed thrive holdings`, so the two rows never
+    met in either dedup layer — both of which require the keys to be EQUAL —
+    and $2bn was counted twice in the public money total. `Nvidia-backed
+    Nscale` and `Google-backed Isomorphic` are the same shape and the same
+    defect. The qualifier says who the investors are, which is a fact about the
+    round and never a fact about the employer's identity.
+
+    Only a HYPHENATED participle is stripped, and only from the front, and only
+    when a name survives it. `-backed`, `-owned`, `-led`, `-funded`,
+    `-founded`, `-controlled`: all of them describe a relationship to somebody
+    else. It is deliberately not `\\bbacked\\b`, which would eat "Asset Backed
+    Securities Corp", and deliberately not a bare leading-word strip, which is
+    how "Revision Optics" became "optics" in the sibling tracker.
+
     The last step applies EMPLOYER_KEY_ALIASES, three curated merges of one
     employer recorded under two spellings. See the note above that map.
     """
     k = _key(name)
     k = re.sub(r"[^\w\s&-]", " ", k)
+    k = _strip_backer_prefix(k)
     k = re.sub(
         r"(?<![\w-])(inc|llc|ltd|limited|plc|corp|corporation|co|pbc|lp|llp|gmbh|ag|sa|nv|bv|ab|as|oy|spa|srl|pte|pty)(?![\w-])",
         " ",
@@ -2798,6 +2840,17 @@ DEAL_TYPES = (
     "bond_issue",       # bonds, sukuk, debentures, senior notes
     "public_offering",  # equity sold by an already-listed issuer
     "project_finance",  # a loan or facility advanced against an asset
+    # And the four MONEY-BASIS kinds, decided by pipeline/money_raised.py from
+    # the source's own words. They exist for the same reason the three above
+    # do, one question further out: those ask "is this a venture round or a
+    # market instrument", these ask "is the named employer raising money at
+    # all". A VC closing its own fund, a company spending money, a state
+    # subsidy and an investment pledge were all being added into a public
+    # "money raised" total, and `deal_type` was empty on every one of them.
+    "fund_raise",           # an investor closing its own fund or vehicle
+    "outbound_investment",  # THIS employer is the one paying
+    "state_funding",        # a subsidy, grant or public appropriation
+    "pledge",               # announced, not received
 )
 
 DEAL_TYPE_LABELS = {
@@ -2810,6 +2863,10 @@ DEAL_TYPE_LABELS = {
     "bond_issue": "Bond issue",
     "public_offering": "Public offering",
     "project_finance": "Project financing",
+    "fund_raise": "Fund close",
+    "outbound_investment": "Outbound investment",
+    "state_funding": "Government funding",
+    "pledge": "Investment pledge",
 }
 
 _DEAL_TYPE_ALIASES = {

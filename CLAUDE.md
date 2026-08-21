@@ -478,6 +478,40 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   filer's free-text clarification** — two thirds leave it blank, and the
   largest that fill it in describe one figure that is part cash and part
   consideration, which no column can split.
+- **"Money raised" has ONE definition and it lives in
+  `pipeline/money_raised.py`.** Company-inbound capital raises only. A
+  divestiture price, an acquisition price, an investor closing its own fund, an
+  outbound spend, a government award and an announced pledge are all real news
+  and none of them is money the employer raised. The verdict is written at
+  write time into `money_basis`, which has THREE states: `company_raise`
+  (summed), an excluding `deal_type` (not summed, and it says why), and NULL,
+  which means NEVER EXAMINED and is not a quiet yes. **Every sum asks for
+  `company_raise` by name** (`tit_money_where()`), never `NOT IN (...)`, or a
+  future value and every unjudged row would land on the summable side by
+  default. `funding_amount` and `funding_amount_usd` are NOT nulled by this —
+  the figure is correct and belongs on the row; only its membership of a total
+  changes. That is the difference from `capital_event.py`, which nulls the
+  columns because a bond is not a funding round in any sense.
+  **The defect was never a reading failure.** On 2026-08-20 the live total was
+  $564.79bn and the model had labelled "Alibaba said to be selling gaming arm
+  for US$1.5 billion" a `divestiture`, correctly, and the sum added it anyway,
+  because no money query had ever looked at the column. Six money sums across
+  three PHP files, none of them asking. Correcting it took $33.22bn out.
+  `tests/test_money_raised.py` fails on any `SUM(... funding_amount_usd ...)`
+  in the plugin that carries no basis clause — the guard that was missing, and
+  the sibling tracker's documented "the surface that forgot the filter".
+  `correct_money_basis.py --check` is the standing assertion that no live row
+  carries an unjudged figure; a number there means a write path is skipping
+  `validate.build_signal`.
+- **A leading backer qualifier is not part of an employer's name.** `company_key`
+  strips `<somebody>-backed|-owned|-led|-funded|-founded|-controlled` from the
+  front. Both dedup layers require key EQUALITY, so "Thrive Holdings" and
+  "OpenAI-backed Thrive Holdings" never met and one $2bn round was counted
+  twice. Only a HYPHENATED participle, only from the front, and only when a
+  name survives it: a bare leading-word strip is how the sibling tracker's
+  "Revision Optics" would have keyed as `optics`. Changing `company_key` leaves
+  history spelled the old way — `correct_company_key.py` is the backward half
+  and derives its worklist by calling the function, so it needs no editing.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how
