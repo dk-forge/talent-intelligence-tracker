@@ -38,7 +38,19 @@ USER_AGENT = (os.environ.get("EDGAR_USER_AGENT") or "").strip() \
     or "TalentIntel/1.0 (info@asktherecruiter.com)"
 
 REQUEST_DELAY = 0.15          # comfortably under SEC's 10 req/s
-PAGE_SIZE = 10
+
+# How many hits EFTS puts in one response. This is MEASURED, not chosen: the
+# endpoint takes `from` as a record offset and ignores any size we ask for, so
+# the only correct stride is the one it actually serves. It serves 100
+# (tests/test_efts_page_offset.py pins it, and the committed fixture records
+# the measurement).
+#
+# It said 10 until 2026-08-20, which meant `from` advanced a tenth of a page at
+# a time and consecutive "pages" overlapped by 90%: pages 0/1/2 returned 300
+# hits containing 120 distinct filings. Three requests bought 1.2 pages of
+# reach. Every EFTS caller here derives its offset from this one constant, so
+# there is one place to be wrong and one place to fix.
+PAGE_SIZE = 100
 
 # Exact-match phrases: EFTS does not stem. "item 5.02" is the item code itself,
 # which is the highest-precision term available — it appears in the filing
