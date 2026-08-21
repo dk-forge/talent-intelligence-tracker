@@ -55,12 +55,17 @@ SLICE_DAYS = 28
 # is ~200.
 WINDOW_DAYS = 7
 
-# `sec_form_d.search(page=N)` asks EFTS for offset N*10, but EFTS answers with
-# up to 100 hits per request. Advancing one page at a time would therefore
-# re-request the same records ten times over. The stride is derived from what
-# came back rather than assumed, so a change in EFTS's page size costs a
-# little overlap (which the per-window `seen` set absorbs) instead of silently
-# skipping filings.
+# The stride here is ONE page, and that is only correct because
+# `sec_form_d.search(page=N)` now asks for offset N*sec_edgar.PAGE_SIZE.
+#
+# It used to advance by `max(1, len(hits) // 10)`. That was a WORKAROUND, not a
+# stride: search() asked EFTS for offset N*10 against an endpoint that answers
+# with 100, so this walker skipped forward ten "pages" to land on the next
+# genuinely new record and hid the collector's bug from itself — which is why
+# the same defect went on costing the daily collector 90% of its reach.
+# With the offset fixed, that expression would step 10 real pages at a time and
+# SKIP 900 filings per hop, turning a re-read into a silent hole. The bug and
+# its workaround had to come out together.
 MAX_REQUESTS_PER_WINDOW = 60
 
 
@@ -106,7 +111,7 @@ def collect_window(conn, startdt: str, enddt: str) -> tuple[list[dict], int, int
         if not hits:
             break
         raw_hits += len(hits)
-        page += max(1, len(hits) // 10)
+        page += 1
 
         for hit in hits:
             url = sec_edgar.document_url(hit)

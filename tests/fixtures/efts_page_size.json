@@ -1,0 +1,57 @@
+{
+  "measured_utc": "2026-08-20",
+  "endpoint": "https://efts.sec.gov/LATEST/search-index",
+  "window": {
+    "startdt": "2026-08-10",
+    "enddt": "2026-08-15"
+  },
+  "queries": {
+    "form_d": {
+      "forms": "D",
+      "q": "\"equity\"",
+      "hits_per_response": {
+        "0": 100,
+        "10": 100,
+        "100": 100,
+        "200": 60
+      },
+      "overlap_with_from_0": {
+        "0": 100,
+        "10": 90,
+        "100": 1,
+        "200": 0
+      },
+      "ids_from_0_first5": [
+        "0001396358-26-000001:primary_doc.xml",
+        "0002050260-26-000043:primary_doc.xml",
+        "0000902664-26-003417:primary_doc.xml",
+        "0000902664-26-003456:primary_doc.xml",
+        "0000902664-26-003466:primary_doc.xml"
+      ]
+    },
+    "form_8k": {
+      "forms": "8-K",
+      "q": "\"item 5.02\"",
+      "hits_per_response": {
+        "0": 100,
+        "10": 100,
+        "100": 97,
+        "200": 0
+      },
+      "overlap_with_from_0": {
+        "0": 100,
+        "10": 90,
+        "100": 0,
+        "200": 0
+      },
+      "ids_from_0_first5": [
+        "0001213900-26-089281:ea0302066-8k_dytbllc.htm",
+        "0001193125-26-342480:ash-20260727.htm",
+        "0001493152-26-036992:form8-k.htm",
+        "0001079973-26-001022:jctc_8k.htm",
+        "0001193125-26-350349:nmra-20260814.htm"
+      ]
+    }
+  },
+  "note": "Measured against the live endpoint. `from` is a RECORD offset. A response carries 100 hits, so from=10 repeats 90 of the 100 that from=0 returned, while from=100 shares 0-1 with it (the 1 is ordering jitter between two requests, not a page boundary). That is what fixes PAGE_SIZE at 100."
+}

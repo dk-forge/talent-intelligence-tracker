@@ -303,7 +303,9 @@ def search(days_back: int = 5, page: int = 0, *,
         "dateRange": "custom",
         "startdt": startdt,
         "enddt": enddt,
-        "from": page * 10,
+        # sec_edgar.PAGE_SIZE, never a literal: this was `page * 10` against an
+        # endpoint that answers with 100, so pages 0/1/2 overlapped by 90%.
+        "from": page * sec_edgar.PAGE_SIZE,
     }
     time.sleep(REQUEST_DELAY)
     resp = requests.get(EFTS_URL, params=params,
