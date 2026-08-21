@@ -125,7 +125,7 @@ class WriteHarnessDb {
                 company_key TEXT DEFAULT "", pillar TEXT DEFAULT "company_development",
                 signal_direction TEXT DEFAULT "neutral", talent_readthrough TEXT DEFAULT "",
                 city TEXT, region TEXT, country TEXT, hq_city TEXT, hq_country TEXT,
-                funding_amount TEXT, funding_amount_usd INTEGER, funding_stage TEXT,
+                funding_amount TEXT, funding_amount_usd INTEGER, funding_stage TEXT, money_basis TEXT,
                 archive_url TEXT, collector TEXT DEFAULT "google_news",
                 source_url TEXT DEFAULT "", confidence TEXT DEFAULT "reported",
                 captured_at TEXT DEFAULT "2026-07-01 00:00:00"

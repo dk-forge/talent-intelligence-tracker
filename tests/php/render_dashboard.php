@@ -254,7 +254,7 @@ class DashHarnessDb {
                 hq_city TEXT, hq_country TEXT, state TEXT,
                 functions TEXT, industry TEXT,
                 headcount INTEGER, funding_amount TEXT,
-                funding_amount_usd INTEGER, funding_stage TEXT,
+                funding_amount_usd INTEGER, funding_stage TEXT, money_basis TEXT,
                 materiality TEXT,
                 confidence TEXT NOT NULL DEFAULT "verified",
                 source_url TEXT NOT NULL DEFAULT "",
@@ -822,6 +822,12 @@ foreach ($WORLD as $cc => $n) {
             $row['funding_amount'] = '$' . (5 + $i) . ' Million';
             $row['funding_amount_usd'] = (5 + $i) * 1000000;
             $row['funding_stage'] = array('seed', 'series_a', 'series_b', 'growth')[$i % 4];
+            // A figure only reaches a total when something has judged it a
+            // company raise. The pipeline writes this on every stored figure,
+            // so a fixture that omitted it would be a corpus the site cannot
+            // add up -- and it would pass by accident if the sums ever stopped
+            // asking.
+            $row['money_basis'] = 'company_raise';
         }
         $wpdb->insert_row($row);
     }

@@ -4507,11 +4507,10 @@ function tit_money_coverage_sentence($coverage) {
             number_format_i18n($with), number_format_i18n($all));
 
     $out = $lead . '. We leave out amounts in other currencies rather than'
-         . ' convert them at a rate nobody published.'
-         . ' We also leave out money that moved for another reason.'
-         . ' A sale price, an investor closing its own fund, a company'
-         . ' spending rather than raising, government funding, a pledge.'
-         . ' Each is real news and none of them is money the employer raised.';
+         . ' convert them at a rate nobody published. We also leave out money'
+         . ' that moved for another reason: a sale price, a fund close, a'
+         . ' company spending rather than raising, government funding, a'
+         . ' pledge.';
 
     /*
       AND IT ADMITS WHAT IT HAS NOT JUDGED. This should never fire: every row

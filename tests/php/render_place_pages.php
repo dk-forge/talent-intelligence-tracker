@@ -149,7 +149,7 @@ class PlaceHarnessDb {
                 hq_city TEXT, hq_country TEXT, state TEXT,
                 functions TEXT, industry TEXT,
                 headcount INTEGER, funding_amount TEXT,
-                funding_amount_usd INTEGER, funding_stage TEXT,
+                funding_amount_usd INTEGER, funding_stage TEXT, money_basis TEXT,
                 materiality TEXT,
                 confidence TEXT NOT NULL DEFAULT "verified",
                 source_url TEXT NOT NULL DEFAULT "",
@@ -310,11 +310,15 @@ seed_cell(array('country' => 'US', 'city' => 'St Louis', 'industry' => 'manufact
 $wpdb->insert_row(array('country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
     'company' => 'Austin Employer 0', 'company_key' => 'austin employer 0',
     'funding_amount' => '$40 Million', 'funding_amount_usd' => 40000000,
+    // Judged a company raise, which is what makes it summable. See
+    // pipeline/money_raised.py: an unjudged figure is left out on purpose.
+    'money_basis' => 'company_raise',
     'funding_stage' => 'series_b', 'source_url' => 'https://example.test/austin/f1',
     'source_name' => 'SEC EDGAR (Form D)'));
 $wpdb->insert_row(array('country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
     'company' => 'Austin Employer 1', 'company_key' => 'austin employer 1',
     'funding_amount' => '$10 Million', 'funding_amount_usd' => 10000000,
+    'money_basis' => 'company_raise',
     'funding_stage' => 'seed', 'source_url' => 'https://example.test/austin/f2',
     'source_name' => 'SEC EDGAR (Form D)'));
 $wpdb->insert_row(array('country' => 'US', 'city' => 'Austin', 'industry' => 'technology',
@@ -548,8 +552,11 @@ check(strpos(render('city', 'austin'), 'One source dominates') === false,
 $austin = render('city', 'austin');
 check(strpos($austin, 'disclosed across') !== false, 'the money figure is printed');
 check(strpos($austin, 'funding update') !== false, 'with the number of rows behind it');
-check(strpos($austin, 'of 3 funding updates that state a US dollar amount') !== false,
-      'and never without the coverage sentence: 2 of 3 rows state an amount');
+// The sentence has to say what the total is OF, not only how much of it
+// carries dollars. It read "that state a US dollar amount", which was true
+// about currencies and silent about a divestiture price sitting in the sum.
+check(strpos($austin, 'of 3 funding updates that are money the employer raised') !== false,
+      'and never without the coverage sentence: 2 of 3 rows are a summable raise');
 
 /*
  * The archive pending state, on this surface too. One Austin row is
