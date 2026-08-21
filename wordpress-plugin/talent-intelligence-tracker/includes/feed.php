@@ -170,7 +170,7 @@ function tit_api_feed(WP_REST_Request $req) {
                        'funding', 'since', 'until', 'min_headcount', 'q',
                        'min_funding_usd', 'funding_stage', 'detail',
                        'stated_headcount', 'employer_type', 'work_mode',
-                       'deal_type', 'site_event') as $k) {
+                       'deal_type', 'money_basis', 'site_event') as $k) {
             $v = $req->get_param($k);
             if ($v !== null && $v !== '') $qs_parts[$k] = (string) $v;
         }

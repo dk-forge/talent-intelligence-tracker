@@ -192,6 +192,13 @@ function tit_dashboard_facts($table) {
     $jan1 = sprintf('%04d-01-01', $ytd_year);
     $ytd_sql = "({$notable_sql}) AND {$date_expr} >= '{$jan1}'";
 
+    // WHAT MAY GO INTO A MONEY TOTAL, and it is not the same question as
+    // "is this update about funding". tit_money_where() is the one definition;
+    // the fallback is the STRICT reading, because a plugin caught mid-upload
+    // should print nothing rather than print the old wrong number.
+    $money_where = function_exists('tit_money_where')
+        ? tit_money_where() : "money_basis = 'company_raise'";
+
     $head = $wpdb->get_row(
         "SELECT COUNT(*) total_all,
                 SUM(materiality = 'routine') routine,
@@ -203,7 +210,7 @@ function tit_dashboard_facts($table) {
                 SUM({$ytd_sql}) ytd_total,
                 SUM(({$ytd_sql}) AND confidence = 'verified') ytd_verified,
                 COUNT(DISTINCT CASE WHEN {$ytd_sql} THEN company_key END) ytd_companies,
-                COALESCE(SUM(CASE WHEN {$ytd_sql} THEN funding_amount_usd END), 0) ytd_money,
+                COALESCE(SUM(CASE WHEN ({$ytd_sql}) AND {$money_where} THEN funding_amount_usd END), 0) ytd_money,
                 MIN({$date_expr}) lo_all,
                 MAX({$date_expr}) hi_all,
                 MIN(CASE WHEN {$notable_sql} THEN {$date_expr} END) lo,
@@ -2725,6 +2732,14 @@ function tit_signal_defs() {
     return array(
         array('hiring',     'Adding Roles',      'direction=hiring',         "signal_direction = 'hiring'", 'count'),
         array('funded',     'Funding Rounds',    'funding=1',                $funding,                      'count'),
+        // The deep link is DELIBERATELY still the wider funding view, and this
+        // note is here so nobody "fixes" it without doing the other half. The
+        // figure now sums company raises only (tit_money_where()), so the
+        // honest link would carry `money_basis=company_raise` -- but the
+        // dashboard's query builder only forwards params it has a control for,
+        // so that param would be dropped in the browser and the link would
+        // quietly behave exactly as it does now while looking precise. The API
+        // accepts money_basis today; the control comes with it.
         array('money',      'Total Raised',      'funding=1',                '',                            'money'),
         array('leadership', 'Leadership Moves',  'pillar=leadership_change', "pillar = 'leadership_change'", 'count'),
         array('pay',        'Pay and Benefits',  'pillar=rewards_comp',      "pillar = 'rewards_comp'", 'count'),
@@ -2789,6 +2804,8 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
     $defs = tit_signal_defs();
 
     $date_expr = tit_signal_date_expr();
+    $matrix_money = function_exists('tit_money_where')
+        ? tit_money_where() : "money_basis = 'company_raise'";
     $select = array();
     $select_params = array();
     foreach ($periods as $pi => $p) {
@@ -2796,8 +2813,12 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
             // A NULL funding_amount_usd is a figure we could not read as US
             // dollars, not a round of nothing, so SUM skips it rather than
             // treating it as zero. COALESCE only turns "no rows at all" into 0.
+            // The matrix money row is the same claim as the hero total, so it
+            // takes the same clause. A surface that sums without it is exactly
+            // the failure the sibling tracker logs as "the surface that forgot
+            // the filter": a rollup and the rows it absorbed, both counted.
             $select[] = ($d[4] === 'money')
-                ? "COALESCE(SUM(CASE WHEN {$date_expr} >= %s THEN funding_amount_usd END), 0) AS c_{$di}_{$pi}"
+                ? "COALESCE(SUM(CASE WHEN {$date_expr} >= %s AND {$matrix_money} THEN funding_amount_usd END), 0) AS c_{$di}_{$pi}"
                 : "SUM(({$d[3]}) AND {$date_expr} >= %s) AS c_{$di}_{$pi}";
             $select_params[] = $p[1];
         }
@@ -4239,6 +4260,26 @@ function tit_money_aggregate($table, $where = 'is_current = 1', array $params = 
         : "((funding_amount IS NOT NULL AND funding_amount <> '')"
           . " OR (funding_stage IS NOT NULL AND funding_stage <> ''))";
 
+    /*
+      AND THE NARROWER CLAUSE THAT DECIDES WHAT MAY BE ADDED UP.
+
+      `$funding` is the population a reader browses: every update about money,
+      including a divestiture price, a fund close and a state subsidy, all of
+      which are real news about an employer. `$money` is the population that
+      may be SUMMED, which is company-inbound raises and nothing else. Until
+      2026-08-20 there was only the first, and the public total was $564.78bn
+      of "money raised" containing every one of those.
+
+      Both clauses appear in one query below on purpose, because the coverage
+      sentence has to compare them: it is the difference between the two that
+      the reader needs told.
+    */
+    $money = function_exists('tit_money_where')
+        ? tit_money_where() : "money_basis = 'company_raise'";
+    $unjudged = function_exists('tit_money_unjudged_where')
+        ? tit_money_unjudged_where()
+        : "(funding_amount_usd IS NOT NULL AND money_basis IS NULL)";
+
     // One authority for both, so a money ranking and the filter a click on it
     // writes can never select different rows. See tit_city_expr().
     $country_expr = function_exists('tit_country_expr') ? tit_country_expr() : 'COALESCE(country, hq_country)';
@@ -4247,14 +4288,15 @@ function tit_money_aggregate($table, $where = 'is_current = 1', array $params = 
     // "Placed" counts say how many of the summable rows each chart can
     // actually show, so a card can admit what it is leaving out instead of
     // quietly dropping rows off the bottom of a ranking.
-    $head_sql = "SELECT COALESCE(SUM(funding_amount_usd), 0) AS total,
-                        SUM(funding_amount_usd IS NOT NULL) AS with_usd,
+    $head_sql = "SELECT COALESCE(SUM(CASE WHEN {$money} THEN funding_amount_usd END), 0) AS total,
+                        SUM(funding_amount_usd IS NOT NULL AND {$money}) AS with_usd,
                         SUM({$funding}) AS funding_rows,
-                        SUM(funding_amount_usd IS NOT NULL
+                        SUM({$unjudged}) AS unjudged,
+                        SUM(funding_amount_usd IS NOT NULL AND {$money}
                             AND {$country_expr} IS NOT NULL AND {$country_expr} <> '') AS placed_country,
-                        SUM(funding_amount_usd IS NOT NULL
+                        SUM(funding_amount_usd IS NOT NULL AND {$money}
                             AND {$city_expr} IS NOT NULL AND {$city_expr} <> '') AS placed_city,
-                        SUM(funding_amount_usd IS NOT NULL
+                        SUM(funding_amount_usd IS NOT NULL AND {$money}
                             AND industry IS NOT NULL AND industry <> '') AS placed_industry
                    FROM {$table} WHERE {$where}";
     $head = $wpdb->get_row($params ? $wpdb->prepare($head_sql, $params) : $head_sql, ARRAY_A) ?: array();
@@ -4265,10 +4307,10 @@ function tit_money_aggregate($table, $where = 'is_current = 1', array $params = 
     // never be smaller than the numerator, or the sentence reads "53 of 40".
     $all  = max($with, (int) ($head['funding_rows'] ?? 0));
 
-    $by = function ($expr) use ($wpdb, $table, $where, $params, $limit) {
+    $by = function ($expr) use ($wpdb, $table, $where, $params, $limit, $money) {
         $sql = "SELECT {$expr} AS k, SUM(funding_amount_usd) AS v, COUNT(*) AS n
                   FROM {$table}
-                 WHERE {$where} AND funding_amount_usd IS NOT NULL
+                 WHERE {$where} AND funding_amount_usd IS NOT NULL AND {$money}
                    AND {$expr} IS NOT NULL AND {$expr} <> ''
                  GROUP BY k ORDER BY v DESC LIMIT {$limit}";
         $rows = $wpdb->get_results($params ? $wpdb->prepare($sql, $params) : $sql, ARRAY_A) ?: array();
@@ -4279,7 +4321,12 @@ function tit_money_aggregate($table, $where = 'is_current = 1', array $params = 
 
     return array(
         'total'    => (float) ($head['total'] ?? 0),
-        'coverage' => array('with' => $with, 'all' => $all),
+        // `unjudged` rides in the coverage array because that is the sentence
+        // that has to admit it. It should be 0: the write path gives every
+        // stored figure a verdict, so a non-zero here means rows are arriving
+        // from a path that skips pipeline/validate.build_signal.
+        'coverage' => array('with' => $with, 'all' => $all,
+                            'unjudged' => (int) ($head['unjudged'] ?? 0)),
         'placed'   => array(
             'country'  => (int) ($head['placed_country'] ?? 0),
             'city'     => (int) ($head['placed_city'] ?? 0),
@@ -4340,11 +4387,18 @@ function tit_money_pillar_reach($table, $pillar, $country_expr, $city_expr) {
     }
     if ($label === '') return $none;
 
-    $sql = "SELECT SUM(funding_amount_usd IS NOT NULL
+    // The same basis clause the charts themselves use. This probe explains an
+    // EMPTY money chart, so it has to count the rows that chart could actually
+    // draw: a pillar whose only figures are divestiture prices would otherwise
+    // be told "we hold the money and not the place", which is not the reason.
+    $money = function_exists('tit_money_where')
+        ? tit_money_where() : "money_basis = 'company_raise'";
+
+    $sql = "SELECT SUM(funding_amount_usd IS NOT NULL AND {$money}
                        AND {$country_expr} IS NOT NULL AND {$country_expr} <> '') AS country,
-                   SUM(funding_amount_usd IS NOT NULL
+                   SUM(funding_amount_usd IS NOT NULL AND {$money}
                        AND {$city_expr} IS NOT NULL AND {$city_expr} <> '') AS city,
-                   SUM(funding_amount_usd IS NOT NULL
+                   SUM(funding_amount_usd IS NOT NULL AND {$money}
                        AND industry IS NOT NULL AND industry <> '') AS industry
               FROM {$table} WHERE is_current = 1 AND pillar = %s";
     $row = $wpdb->get_row($wpdb->prepare($sql, array($pillar)), ARRAY_A) ?: array();
@@ -4426,19 +4480,56 @@ function tit_money_coverage_sentence($coverage) {
     // "the 3,992 of 3,992" reads as a mistake. When coverage is complete, say
     // so plainly; keep the two numbers only when they actually differ, which is
     // the case the sentence exists for.
+    /*
+      THE SENTENCE HAS TO SAY WHAT THE TOTAL IS OF, not only how much of it
+      carries dollars. Those are two different subtractions and the copy used
+      to make only one of them, which is how a total containing a divestiture
+      price, a fund close and a state subsidy could describe itself as
+      complete.
+
+      `$with` is now the rows that are a COMPANY RAISE and state a US dollar
+      amount; `$all` is every funding update in view. The gap between them is
+      two things at once: amounts in other currencies, and rows that are about
+      money without being money the employer raised. The sentence names both,
+      because a reader who clicks through to `funding=1` will see the second
+      kind sitting in the table and is owed an explanation of why the figure
+      above is smaller than the rows below.
+    */
     $lead = ($with >= $all)
         ? sprintf(
             _n('All %s funding update states a US dollar amount',
                'All %s funding updates state a US dollar amount', $all, 'tit'),
             number_format_i18n($all))
         : sprintf(
-            _n('Totals cover the %1$s of %2$s funding update that states a US dollar amount',
-               'Totals cover the %1$s of %2$s funding updates that state a US dollar amount',
+            _n('Totals cover the %1$s of %2$s funding update that is money the employer raised, stated in US dollars',
+               'Totals cover the %1$s of %2$s funding updates that are money the employer raised, stated in US dollars',
                $all, 'tit'),
             number_format_i18n($with), number_format_i18n($all));
 
-    return $lead . '. We leave out amounts in other currencies rather than'
-         . ' convert them at a rate nobody published.';
+    $out = $lead . '. We leave out amounts in other currencies rather than'
+         . ' convert them at a rate nobody published. We also leave out money'
+         . ' that moved for another reason: a sale price, a fund close, a'
+         . ' company spending rather than raising, government funding, a'
+         . ' pledge.';
+
+    /*
+      AND IT ADMITS WHAT IT HAS NOT JUDGED. This should never fire: every row
+      the pipeline stores with a figure gets a verdict written at write time.
+      A number here means figures are arriving from a path that skips that
+      judgement, and the honest thing for a public page to do about a figure
+      nobody has examined is to leave it out and say so, rather than add it in
+      and say nothing. Saying nothing is exactly what went wrong.
+    */
+    $unjudged = (int) ($coverage['unjudged'] ?? 0);
+    if ($unjudged > 0) {
+        $out .= ' ' . sprintf(
+            _n('%s further update carries an amount we have not yet judged, and it is left out.',
+               '%s further updates carry amounts we have not yet judged, and they are left out.',
+               $unjudged, 'tit'),
+            number_format_i18n($unjudged));
+    }
+
+    return $out;
 }
 
 /**

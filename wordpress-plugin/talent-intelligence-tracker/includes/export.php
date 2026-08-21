@@ -178,7 +178,11 @@ function tit_export_csv() {
         // funding_amount is the source's own wording; funding_amount_usd is the
         // number. A download that only carried the string would leave the
         // person who took it doing the parsing we already did.
+        // money_basis says WHY a figure is or is not in the published total.
+        // A download that carried the amount without it would let somebody sum
+        // the column and get the number this change exists to correct.
         'headcount', 'funding_amount', 'funding_amount_usd', 'funding_stage',
+        'money_basis',
         'materiality', 'confidence',
         'source_name', 'source_url', 'archive_url',
         'published_date', 'captured_at',
@@ -208,6 +212,7 @@ function tit_export_csv() {
             ($row->funding_amount_usd === null || $row->funding_amount_usd === '')
                 ? '' : (int) $row->funding_amount_usd,
             tit_csv_guard((string) $row->funding_stage),
+            tit_csv_guard((string) $row->money_basis),
             tit_csv_guard((string) $row->materiality),
             tit_csv_guard($row->confidence),
             tit_csv_guard($row->source_name),
@@ -269,6 +274,9 @@ function tit_export_json() {
             'funding_amount_usd' => ($row->funding_amount_usd === null || $row->funding_amount_usd === '')
                                     ? null : (int) $row->funding_amount_usd,
             'funding_stage'      => $row->funding_stage,
+            // Why this amount is or is not in the site's money total. NULL
+            // means never judged, which is a third state and not a yes.
+            'money_basis'        => $row->money_basis,
             'predicted_outcome'  => $row->predicted_outcome,
             'check_after_date'   => $row->check_after_date,
             'outcome_observed'   => $row->outcome_observed,

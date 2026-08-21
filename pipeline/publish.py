@@ -170,7 +170,7 @@ FIELDS = (
     "signal_direction", "city", "region", "country",
     "hq_city", "hq_country", "state", "functions", "industry", "headcount",
     "headcount_scope", "funding_amount", "funding_amount_usd", "funding_stage",
-    "work_mode", "deal_type", "site_event",
+    "work_mode", "deal_type", "money_basis", "site_event",
     "materiality", "confidence", "source_url", "source_name",
     # `archive_url` is deliberately NOT here. It is not a field of Signal and
     # never could be: a row is built at classification time and its Wayback
@@ -189,6 +189,11 @@ ENRICHABLE = (
     "funding_amount_usd", "funding_stage", "effective_date",
     "ticker", "cik", "work_mode", "employer_type", "headcount_scope",
     "materiality",
+    # The money-basis verdict. Computed by us from text we already hold, never
+    # stated by a source, so it belongs here and not only in FIELDS: it is the
+    # route by which the 4,238 rows published before this column existed get
+    # their judgement without being re-sent as new rows.
+    "money_basis",
     # The employer's headquarters, looked up rather than claimed by a source.
     # Exactly the same class as ticker and cik, and left out of this list by
     # oversight rather than by decision: the identity backfill fills them

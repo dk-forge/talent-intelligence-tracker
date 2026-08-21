@@ -126,7 +126,7 @@ class PressHarnessDb {
                 signal_direction TEXT NOT NULL DEFAULT "neutral",
                 city TEXT, region TEXT, country TEXT, hq_city TEXT, hq_country TEXT,
                 state TEXT, functions TEXT, industry TEXT, headcount INTEGER,
-                funding_amount TEXT, funding_amount_usd INTEGER, funding_stage TEXT,
+                funding_amount TEXT, funding_amount_usd INTEGER, funding_stage TEXT, money_basis TEXT,
                 materiality TEXT, confidence TEXT NOT NULL DEFAULT "verified",
                 source_url TEXT NOT NULL DEFAULT "", source_name TEXT NOT NULL DEFAULT "",
                 archive_url TEXT, published_date TEXT,

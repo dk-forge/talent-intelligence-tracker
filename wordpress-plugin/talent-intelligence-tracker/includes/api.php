@@ -124,6 +124,74 @@ function tit_funding_where() {
 }
 
 /**
+ * WHAT MAY BE ADDED INTO A "MONEY RAISED" TOTAL. One place, and every sum on
+ * this site asks it.
+ *
+ * `tit_funding_where()` above answers a different question and answering the
+ * two with one predicate is the whole defect. That one asks "is this update
+ * ABOUT funding", which a divestiture price, a fund close and a state subsidy
+ * all are; a reader filtering for money news wants to see them. This one asks
+ * "is this figure money THIS EMPLOYER RAISED", which none of them is.
+ *
+ * Until 2026-08-20 nothing asked the second question at all. Every money
+ * figure the site printed was `SUM(funding_amount_usd)` over the funding view,
+ * so the public total carried:
+ *
+ *   $3.50bn  Accel raises $3.5 billion to invest in emerging global AI startups
+ *   $3.30bn  NextEra secures $3.3bn in state funding for 10GW of gas generation
+ *   $2.50bn  Marcos secures US$2.5B in investment commitments from Canada visit
+ *   $1.50bn  Nvidia to invest $1.5b in SB Energy
+ *   $1.50bn  Alibaba said to be selling gaming arm for US$1.5 billion
+ *
+ * The last one is the one to remember. Nothing failed to read it: the
+ * classifier labelled that row `divestiture`, correctly, and the sum added it
+ * up anyway because no sum had ever looked at the column.
+ *
+ * THE PREDICATE ASKS FOR THE VALUE BY NAME, and that is deliberate. Writing it
+ * as `money_basis NOT IN (...)` would put every future value on the summable
+ * side by default and would sum NULL, which is the state that means "this row
+ * was never examined". A row nothing has judged is not a row we have judged to
+ * be a company raise. pipeline/money_raised.py holds the definition; this is
+ * the only place the site spends it.
+ */
+function tit_money_basis_summable() {
+    return 'company_raise';
+}
+
+function tit_money_where() {
+    return "money_basis = '" . tit_money_basis_summable() . "'";
+}
+
+/**
+ * The money figure on a row, as a SQL expression, zero when the row is not a
+ * company raise.
+ *
+ * Written as one function because a SUM and the CASE inside a conditional
+ * aggregation are the same claim spelled two ways, and the freshness panel had
+ * one of each. A surface that forgets the filter is the sibling tracker's
+ * documented failure mode: a hand-written rollup query there omitted the
+ * superset filter and listed a total and the rows it absorbed, both summed.
+ */
+function tit_money_sum_expr() {
+    return "CASE WHEN " . tit_money_where() . " THEN funding_amount_usd END";
+}
+
+/**
+ * Rows carrying a dollar figure that NOTHING HAS EVER JUDGED.
+ *
+ * The count the coverage sentence needs in order to be honest, and the number
+ * ops_status and the data-integrity check watch. It should be zero after
+ * correct_money_basis.py has run and should return to zero after every
+ * collection, because the write path judges every figure it stores. A number
+ * that climbs means rows are arriving from a path that skips
+ * pipeline/validate.build_signal, which is the shape of defect that put an
+ * unexamined 4,238 rows into a public total in the first place.
+ */
+function tit_money_unjudged_where() {
+    return "(funding_amount_usd IS NOT NULL AND money_basis IS NULL)";
+}
+
+/**
  * Split a comma-separated filter value into a validated list.
  *
  * A recruiter wants "Technology OR Healthcare", not one at a time, so the
@@ -176,9 +244,26 @@ function tit_allowed_site_events() {
  * pipeline/capital_event.py decides them; keeping this list in step is what
  * lets a reader filter them out of the funding view.
  */
+/**
+ * The money-basis verdicts a reader may filter on.
+ *
+ * `company_raise` plus every excluding deal_type, because those ARE the values
+ * the column holds: pipeline/money_raised.py writes its verdict into the same
+ * closed vocabulary deal_type uses, following capital_event's rule that a
+ * refusal has to stay countable rather than become a fourth silent path.
+ */
+function tit_allowed_money_bases() {
+    return array_merge(array('company_raise'), tit_allowed_deal_types());
+}
+
 function tit_allowed_deal_types() {
     return array('acquisition', 'acquired', 'merger', 'divestiture', 'joint_venture', 'ipo',
-                 'bond_issue', 'public_offering', 'project_finance');
+                 'bond_issue', 'public_offering', 'project_finance',
+                 // The MONEY-BASIS kinds. pipeline/money_raised.py decides
+                 // them and tit_money_where() acts on them; they are here so a
+                 // reader can also ask for them directly, the same way the
+                 // capital events became askable when they were added.
+                 'fund_raise', 'outbound_investment', 'state_funding', 'pledge');
 }
 
 /**
@@ -423,6 +508,10 @@ function tit_filter_spec() {
         'employer_type' => array('kind' => 'list', 'allowed' => tit_allowed_employer_types()),
         'work_mode'     => array('kind' => 'list', 'allowed' => tit_allowed_work_modes()),
         'deal_type'     => array('kind' => 'list', 'allowed' => tit_allowed_deal_types()),
+        // WHY A ROW'S FIGURE IS OR IS NOT IN THE MONEY TOTAL. Askable so the
+        // "Total Raised" tile can link to exactly the rows it added up, which
+        // it could not do while the only filter was the wider funding view.
+        'money_basis'   => array('kind' => 'list', 'allowed' => tit_allowed_money_bases()),
         'site_event'    => array('kind' => 'list', 'allowed' => tit_allowed_site_events()),
         'function'      => array('kind' => 'list', 'allowed' => tit_allowed_functions()),
         'funding_stage' => array('kind' => 'list', 'allowed' => tit_allowed_funding_stages()),
@@ -659,6 +748,12 @@ function tit_build_where(WP_REST_Request $req, array &$params, array $ignore = a
         $params = array_merge($params, $work_modes);
     }
 
+    $bases = tit_multi_param($req, 'money_basis');
+    if ($bases) {
+        $where[] = 'money_basis IN (' . implode(', ', array_fill(0, count($bases), '%s')) . ')';
+        $params = array_merge($params, $bases);
+    }
+
     $deal_types = tit_multi_param($req, 'deal_type');
     if ($deal_types) {
         $where[] = 'deal_type IN (' . implode(', ', array_fill(0, count($deal_types), '%s')) . ')';
@@ -787,7 +882,7 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // not keyed on means two different responses share a cache entry, and
         // whichever request arrives first decides what everyone else sees.
         'min_funding_usd', 'funding_stage', 'detail', 'stated_headcount',
-        'employer_type', 'work_mode', 'deal_type', 'site_event',
+        'employer_type', 'work_mode', 'deal_type', 'money_basis', 'site_event',
         // /aggregate's response-shaping param. Read but not keyed on would let
         // a slimmed include=fresh response be served to the full dashboard
         // fetch, which then paints from keys that are not there.
@@ -908,7 +1003,7 @@ function tit_api_query(WP_REST_Request $req) {
                         pillar, signal_direction, city, region, country, hq_city, hq_country,
                         state, functions, industry, headcount, headcount_scope,
                         funding_amount, funding_amount_usd, funding_stage, work_mode,
-                        deal_type, site_event,
+                        deal_type, money_basis, site_event,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
                         collector,
                         materiality, confidence, source_url, source_name,
@@ -1629,6 +1724,12 @@ function tit_enrichable_columns() {
         'funding_amount_usd', 'funding_stage', 'effective_date',
         'ticker', 'cik', 'work_mode', 'employer_type', 'headcount_scope',
         'materiality',
+        // The money-basis verdict, computed from text we already hold and
+        // never stated by a source. It is enrichable because that is the only
+        // route by which the thousands of rows published before the column
+        // existed can be judged without being re-sent as new rows, which the
+        // near-duplicate guard would refuse anyway.
+        'money_basis',
         // The employer's headquarters: looked up, never claimed by a source,
         // so it belongs in exactly the same class as ticker and cik. It was
         // missing here by oversight, and the cost was specific. The identity

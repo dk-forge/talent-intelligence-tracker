@@ -14,6 +14,105 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-20 - the money total added up everything that had a dollar sign
+
+**The live figure was $564.79bn "raised" over 4,238 published rows, and it was
+wrong by $33.22bn plus a $2.06bn double count.** Not because anything failed to
+read a document. Because nothing had ever asked what the figures were OF.
+
+The top of the published set, measured before anything changed:
+
+| amount | headline | what it actually is |
+|---|---|---|
+| $150.00bn | Nvidia to invest almost $150b in OpenAI data centre | outbound, labelled `joint_venture` |
+| $28.00bn | Nitto Denko to expand HDD baseboard capacity | capex, and a JPY figure read as USD |
+| $7.00bn | OpenAI injects $7 billion into employee stock buyback | a buyback, the opposite of a raise |
+| $3.50bn | Accel raises $3.5 billion to invest in emerging global AI startups | a VC fund's own close |
+| $3.30bn | NextEra secures $3.3bn in state funding | a government award |
+| $3.20bn | Pantheon Raises $3.2 Billion for Co-Investment Strategy | a fund close |
+| $2.50bn | Marcos secures US$2.5B in investment commitments | a pledge from a state visit |
+| $2.20bn | GSK to buy Rapt in $2.2B deal | a purchase price |
+| $1.50bn | Alibaba said to be selling gaming arm for US$1.5 billion | a sale price |
+| $2.00bn x2 | Thrive Holdings raises $2B / OpenAI-backed Thrive Holdings raises $2B | one event, two rows |
+
+**THE ALIBABA ROW IS THE FINDING.** `deal_type` on it was `divestiture`, set by
+the model, correct. The column that answers the question existed, held the right
+answer, and every money sum on the site ignored it. On the other 5,584 rows
+carrying a figure `deal_type` was empty, and empty was being summed as though it
+meant "we checked and it is a round" when it meant "nothing ever looked".
+
+### Root cause, and it is three things
+
+1. **`deal_type` was never asked to answer this question.** `classify.py`'s
+   spec covers M&A-shaped events and says outright "A funding round is NOT a
+   deal_type. Empty when the text describes no deal." So empty is CORRECT under
+   that spec for a fund close, a subsidy and an outbound spend alike. The field
+   was doing its job; the sum was reading it as a field it is not.
+2. **Two write paths never had a model to ask.** `cheap_extract.py` hard-codes
+   `"deal_type": ""` on all three of its shapes, and `sec_form_d_bulk` is
+   structured ingest. Together they are 4,004 of 5,602 rows with a figure, all
+   with `deal_type` NULL by construction.
+3. **No sum asked anything.** Six `SUM(funding_amount_usd)` across
+   `shortcodes.php`, `press.php` and `places.php`, none of them carrying any
+   test at all.
+
+### The fix
+
+- **`pipeline/money_raised.py`** is the written definition and the classifier.
+  Company-inbound capital raises only; `fund_raise`, `outbound_investment`,
+  `state_funding` and `pledge` join the `deal_type` vocabulary beside the
+  capital events. Deterministic, no model, $0. **The debt ruling is
+  capital_event's and is unchanged**: venture debt in, bonds and facilities out.
+- **`money_basis`**, a new column with THREE states. `company_raise` is summed
+  and is asked for BY NAME. NULL means never examined and is not summed.
+  `validate.build_signal` writes it on every figure it stores, so all four
+  collection paths are covered at the one place they share.
+- **The figure is not destroyed.** Unlike `capital_event`, which nulls the
+  funding columns because a bond is not a round in any sense, an excluded row
+  keeps its amount: $1.5bn really is what the Alibaba story said. Only its
+  membership of a total changes.
+- **Every surface**: the hero tile and its year-to-date pair, all three money
+  charts, the at-a-glance matrix row, the press page's four windows, its
+  24-month archive and its "largest single raise", place pages, company pages,
+  the CSV and JSON exports and the feed.
+- **`correct_company_key.py` closes the double count.** `company_key` now
+  strips a leading backer qualifier, which is what kept "Thrive Holdings" and
+  "OpenAI-backed Thrive Holdings" apart in both dedup layers. Seven rows re-key;
+  three are duplicates of a live row and are withdrawn, worth $2.06bn.
+
+### The guards, and why the old ones were green
+
+Three guards over the funding columns passed throughout, because all three
+watched the AMOUNT and none watched what the amount was of.
+`tests/test_money_raised.py` adds the missing kind: it bracket-matches every
+`SUM(... funding_amount_usd ...)` in the plugin and fails if it carries no basis
+clause. **Confirmed to fail against the pre-change tree**: 13 of 30, including
+all three summing files and the Thrive dedup. The sibling tracker logs the same
+shape as "the surface that forgot the filter".
+
+`correct_money_basis.py --check` is the standing assertion that no live row
+carries an unjudged figure.
+
+### What is deliberately still in, named so nobody rediscovers it
+
+"G Squared raises $2.3B as companies stay private longer than ever" and "Base10
+raises $850 million for real economy AI" are both fund closes and neither
+sentence says so. Deciding them means reading the RAISER'S IDENTITY, treating a
+name ending in Capital or Ventures as an allocator, and the corpus is full of
+operating companies with those names. capital_event.py reached the same
+conclusion for the same reason.
+
+### Before and after
+
+| | rows | total |
+|---|---|---|
+| published, every figure summed | 4,238 | $564,781,208,768 |
+| published, company raises only | 4,212 | $531,562,308,768 |
+| after the three duplicate withdrawals | 4,209 | $529,500,308,768 |
+
+Plugin 1.85.0.
+
+
 ## 2026-08-20 - an unknown filter value answered with the worldwide total
 
 **Measured live, twice, before anything was changed.** Against an unfiltered
