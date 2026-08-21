@@ -4,18 +4,8 @@
       "first": 1787266230,
       "last": 1787266230,
       "subject": "CI RED: collect: [publish] sent=4 stored=4 duplicate=0 errors=0"
-    },
-    "enrich:main:9f166da0055292fd": {
-      "first": 1787278633,
-      "last": 1787278633,
-      "subject": "CI RED: enrich: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 503: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance. Check back i"
-    },
-    "enrich:main:f93a4ef53cc9cab3": {
-      "first": 1787282042,
-      "last": 1787282042,
-      "subject": "CI SELF-TIMEOUT: enrich: the job cancelled ITSELF on timeout-minutes: it exceeded the maximum execution time of 30m0s"
     }
   },
-  "updated_at": "2026-08-21T03:14:03+00:00",
+  "updated_at": "2026-08-21T04:47:27+00:00",
   "version": 1
 }
