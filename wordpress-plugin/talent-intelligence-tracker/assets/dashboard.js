@@ -275,6 +275,7 @@
     work_mode: document.getElementById('tit-f-work_mode'),
     site_event: document.getElementById('tit-f-site_event'),
     deal_type: document.getElementById('tit-f-deal_type'),
+    money_basis: document.getElementById('tit-f-money_basis'),
     country_basis: document.getElementById('tit-f-country_basis'),
     company: document.getElementById('tit-f-company'),
     q: document.getElementById('tit-f-q'),
@@ -308,6 +309,7 @@
     industry: 'Industry', country: 'Where', state: 'Where', city: 'Where',
     stated_headcount: 'Headcount', employer_type: 'Employer Type',
     work_mode: 'Work Setup', deal_type: 'Deal Type', site_event: 'Site Change',
+    money_basis: 'Kind of Money',
     confidence: 'Evidence', country_basis: 'Places', company: 'Employer',
     min_funding_usd: 'Amount Raised', funding_stage: 'Funding Stage',
     q: 'Search', since: 'From', until: 'To', region: 'Region', quickview: 'View',
@@ -356,6 +358,31 @@
     project_finance: 'Project Financing'
   };
 
+  // WHAT THE DOLLARS ON A ROW ACTUALLY ARE, which is a different question from
+  // what kind of transaction the row describes, and the reason the site's money
+  // total is smaller than its funding view. Only 'company_raise' is summed;
+  // everything else here is a figure the page holds, shows and deliberately
+  // does not add up. See tit_money_where() and pipeline/money_raised.py.
+  //
+  // The transaction kinds are named as FIGURES, never with the bare word Deal
+  // Type already uses one control away: "Acquisition" there is what happened,
+  // "Acquisition Price" here is what the number is. Two controls offering the
+  // identical string for two different questions is the defect the IPO note
+  // above was written about.
+  var MONEY_BASIS_LABEL = {
+    company_raise: 'Money the Employer Raised',
+    fund_raise: 'Fund Close',
+    outbound_investment: 'Outbound Investment',
+    state_funding: 'Government Funding',
+    pledge: 'Investment Pledge',
+    acquisition: 'Acquisition Price', acquired: 'Sale Price',
+    merger: 'Merger Value', divestiture: 'Divestiture Price',
+    joint_venture: 'Joint Venture Commitment',
+    ipo: 'IPO Proceeds', bond_issue: 'Bond Proceeds',
+    public_offering: 'Share Offering Proceeds',
+    project_finance: 'Project Financing'
+  };
+
   // What an employer did with a place of work. "Announced" is its own value
   // and not a softer word for "Opened": a plant promised for 2028 and a
   // building open this morning are different answers to "who is here now".
@@ -380,6 +407,24 @@
     reported: 'News Report',
     rumored: 'Unconfirmed'
   };
+
+  // Which map names the values of which fetched control. One registry rather
+  // than a labels argument at the fill site and a raw value everywhere else:
+  // applyUrlState() adds an option for a value a shared link carried BEFORE
+  // /facets answers, and without this it added it under its stored name, so a
+  // deep link's chip read `company_raise` while the same value picked from the
+  // control read "Money the Employer Raised". Same value, two names, decided by
+  // which of two things happened first.
+  var FACET_LABEL = {
+    funding_stage: STAGE_LABEL, employer_type: EMPLOYER_TYPE_LABEL,
+    work_mode: WORK_MODE_LABEL, deal_type: DEAL_TYPE_LABEL,
+    site_event: SITE_EVENT_LABEL, money_basis: MONEY_BASIS_LABEL
+  };
+
+  function facetLabel(key, value) {
+    var map = FACET_LABEL[key];
+    return (map && map[value]) || (key === 'country' ? countryLabel(value) : value);
+  }
 
   // Mirrors the `tit-{signal_direction}` class tit_card_html() prints. `neutral`
   // was missing and fell through to the bare tag, which put a different class on
@@ -459,11 +504,13 @@
         fill(inputs.city, data.cities);
         // Only the rounds we actually hold, so the control cannot offer a
         // stage that returns an empty page.
-        fillFacetControl('funding_stage', data.funding_stages, STAGE_LABEL);
-        fillFacetControl('employer_type', data.employer_types, EMPLOYER_TYPE_LABEL);
-        fillFacetControl('work_mode', data.work_modes, WORK_MODE_LABEL);
-        fillFacetControl('deal_type', data.deal_types, DEAL_TYPE_LABEL);
-        fillFacetControl('site_event', data.site_events, SITE_EVENT_LABEL);
+        fillFacetControl('funding_stage', data.funding_stages, FACET_LABEL.funding_stage);
+        fillFacetControl('employer_type', data.employer_types, FACET_LABEL.employer_type);
+        fillFacetControl('work_mode', data.work_modes, FACET_LABEL.work_mode);
+        fillFacetControl('deal_type', data.deal_types, FACET_LABEL.deal_type);
+        // The control the "Total Raised" figure's own link depends on.
+        fillFacetControl('money_basis', data.money_bases, FACET_LABEL.money_basis);
+        fillFacetControl('site_event', data.site_events, FACET_LABEL.site_event);
         fillPlaces(data);
       })
       // The controls still degrade to what the server rendered; what changed is
@@ -1392,7 +1439,7 @@
         // Facet-driven options may not have arrived yet, same race the single
         // selects have: add what the link asked for rather than dropping it.
         var wanted = value.split(',').filter(Boolean);
-        wanted.forEach(function (v) { ensureOption(el, v, v); });
+        wanted.forEach(function (v) { ensureOption(el, v, facetLabel(key, v)); });
         setMulti(el, wanted);
         return;
       }
@@ -1414,9 +1461,7 @@
           if (key === 'sort' && SORT_OPTION_LABEL[value]) {
             ensureOption(el, value, SORT_OPTION_LABEL[value]);
           } else if (FACET_SELECT[key]) {
-            ensureOption(el, value,
-              key === 'country' ? countryLabel(value)
-                : (key === 'funding_stage' ? (STAGE_LABEL[value] || value) : value));
+            ensureOption(el, value, facetLabel(key, value));
           } else {
             return;
           }
@@ -1429,7 +1474,7 @@
   // Selects whose options are fetched rather than rendered by the server.
   var FACET_SELECT = {
     country: 1, state: 1, city: 1, funding_stage: 1,
-    employer_type: 1, work_mode: 1, deal_type: 1, site_event: 1
+    employer_type: 1, work_mode: 1, deal_type: 1, money_basis: 1, site_event: 1
   };
 
   // --- Filters that take several values at once -----------------------------
@@ -1440,7 +1485,7 @@
   // the Amount Raised bands already nest.
   var MULTI = {
     'function': 1, industry: 1, employer_type: 1,
-    funding_stage: 1, work_mode: 1, deal_type: 1, site_event: 1
+    funding_stage: 1, work_mode: 1, deal_type: 1, money_basis: 1, site_event: 1
   };
 
   function multiValues(el) {
@@ -2586,7 +2631,7 @@
        that is already narrowed, and the controls saying so are the only
        thing explaining why the numbers are not the ones on the front page.
        Hiding them there is how a filtered view reads as a broken one. */
-    var deepLinked = /[?&](q|country|state|city|pillar|direction|function|industry|confidence|company|since|until|employer_type|work_mode|funding_stage|deal_type|site_event|min_funding_usd|looking|place)=/
+    var deepLinked = /[?&](q|country|state|city|pillar|direction|function|industry|confidence|company|since|until|employer_type|work_mode|funding_stage|deal_type|money_basis|site_event|min_funding_usd|looking|place)=/
       .test(location.search);
     var remembered = false;
     try { remembered = sessionStorage.getItem(COLLAPSE_KEY) === '1'; } catch (e) {}
@@ -2956,29 +3001,71 @@
   // click means "everything in this period" and clears the other row filters.
   var glanceBox = root.querySelector('.tit-glance');
 
+  // A ROW'S FILTER IS A LIST OF PAIRS, NOT ONE PAIR. It was one pair, and one
+  // pair was enough until the "Total Raised" row's link became
+  // `funding=1&money_basis=company_raise` -- two narrowings, because the figure
+  // sums company raises inside the funding view and either half alone names a
+  // different set of rows. Split on '=' alone, that spec yields a key of
+  // `funding` and a value of `1&money_basis`, no input answers to it, and the
+  // cell reads as a button that does nothing.
+  function glancePairs(f) {
+    return (f || '').split('&').filter(Boolean).map(function (p) {
+      var i = p.indexOf('=');
+      return i < 0 ? [p, ''] : [p.slice(0, i), p.slice(i + 1)];
+    });
+  }
+
+  // ONE pair per multi-select, exactly. A row filter naming company_raise is on
+  // when that is the whole selection, not when it is one of three: "the page is
+  // showing what this cell counts" and "the page happens to include it" are
+  // different claims, and lighting the cell for the second one tells a reader
+  // the figure beside it is the figure they are looking at.
+  function glancePairOn(key, value) {
+    if (key === 'funding') return quickView === 'funding=1';
+    var el = inputs[key];
+    if (!el) return false;
+    if (!MULTI[key]) return el.value === value;
+    var chosen = multiValues(el);
+    return chosen.length === 1 && chosen[0] === value;
+  }
+
   function glanceFilterOn(f) {
-    if (f === 'funding=1') return quickView === 'funding=1';
-    if (f) {
-      var kv = f.split('=');
-      return !!(inputs[kv[0]] && inputs[kv[0]].value === kv[1]);
+    var pairs = glancePairs(f);
+    if (pairs.length) {
+      return pairs.every(function (kv) { return glancePairOn(kv[0], kv[1]); });
     }
     // Total row: on only when no matrix row filter is narrowing the page.
     return !(inputs.direction && inputs.direction.value) &&
            !(inputs.pillar && inputs.pillar.value) &&
+           !(inputs.money_basis && multiValues(inputs.money_basis).length) &&
            quickView !== 'funding=1';
   }
 
   function setGlanceFilter(f, on) {
-    if (f === 'funding=1') { setQuickView(on ? 'funding=1' : null); return; }
-    if (f) {
-      var kv = f.split('=');
-      if (inputs[kv[0]]) inputs[kv[0]].value = on ? kv[1] : '';
+    var pairs = glancePairs(f);
+    if (pairs.length) {
+      pairs.forEach(function (kv) {
+        if (kv[0] === 'funding') { setQuickView(on ? 'funding=1' : null); return; }
+        var el = inputs[kv[0]];
+        if (!el) return;
+        if (MULTI[kv[0]]) {
+          // /facets may not have answered yet, same race applyUrlState runs:
+          // add the option the cell is asking for rather than dropping it.
+          ensureOption(el, kv[1], facetLabel(kv[0], kv[1]));
+          setMulti(el, on ? [kv[1]] : []);
+          return;
+        }
+        el.value = on ? kv[1] : '';
+      });
       return;
     }
     if (on) {
-      // "All updates": the period is the whole filter.
+      // "All updates": the period is the whole filter. money_basis is cleared
+      // with the rest because the money row writes it, and a leftover basis
+      // would keep narrowing a row that says it narrows nothing.
       if (inputs.direction) inputs.direction.value = '';
       if (inputs.pillar) inputs.pillar.value = '';
+      if (inputs.money_basis) setMulti(inputs.money_basis, []);
       if (quickView === 'funding=1') setQuickView(null);
     }
   }

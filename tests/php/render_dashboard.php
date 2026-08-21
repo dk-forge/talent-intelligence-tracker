@@ -547,7 +547,40 @@ function check($condition, $message) {
  * real now rather than being eaten by whatever day it is. The next addition
  * raises this number and writes down why.
  */
-const TIT_DASH_BYTE_BUDGET = 185600;
+/*
+ * RAISED 185,600 -> 186,350 on 2026-08-21, for 420 measured bytes, on the same
+ * pinned clock as the entry above and therefore like for like with its 185,150.
+ * This render is 185,879.
+ *
+ * Both halves bought the SAME defect, which is why they are one entry:
+ *
+ *   ~280  the Kind Of Money control. An empty hidden <label> and <select>, one
+ *         more of the seven that were already there, plus its source comment's
+ *         indentation. Its options are not in this number: like every other
+ *         facet control it is filled from /facets in the browser and it hides
+ *         itself while the column is empty.
+ *
+ *   ~140  35 bytes x 4 cells of the at-a-glance matrix's Total Raised row,
+ *         whose data-filter went from `funding=1` to
+ *         `funding=1&money_basis=company_raise`.
+ *
+ * THE 140 IS THE POINT AND THE 280 IS WHAT MAKES IT TRUE. That figure sums
+ * company raises only (tit_money_where(), shipped 1.85.0) while its link sent
+ * the reader to the wider funding view, so clicking a number landed them on
+ * rows that included divestiture prices, fund closes, outbound spends, state
+ * subsidies and pledges -- rows that demonstrably do not add up to the number
+ * they clicked. The link alone would not have fixed it: dashboard.js forwards
+ * only the parameters it has a control for, so the new param would have been
+ * dropped in the browser and the link would have looked precise while behaving
+ * exactly as it did before. The control is the half that makes the link real.
+ *
+ * The alternative was leaving a published figure whose own link contradicts it,
+ * which is the one thing this tracker cannot carry. 750 of headroom rather than
+ * the usual 450: the money control's own options arrive from /facets and never
+ * touch this render, so the fixture cannot price the copy this control will
+ * grow, and the next addition still raises this number and writes down why.
+ */
+const TIT_DASH_BYTE_BUDGET = 186350;
 
 /*
  * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.
@@ -970,7 +1003,8 @@ foreach (array('tit-f-pillar', 'tit-f-direction', 'tit-f-country', 'tit-f-state'
                'tit-f-confidence', 'tit-f-min_funding_usd', 'tit-f-q', 'tit-f-since',
                'tit-f-until', 'tit-f-detail', 'tit-f-sort', 'tit-f-company',
                'tit-f-looking', 'tit-f-place', 'tit-f-employer_type', 'tit-f-work_mode',
-               'tit-f-funding_stage', 'tit-f-deal_type', 'tit-f-site_event') as $id) {
+               'tit-f-funding_stage', 'tit-f-deal_type', 'tit-f-money_basis',
+               'tit-f-site_event') as $id) {
     check(strpos($html, 'id="' . $id . '"') !== false,
           "the {$id} control has to exist: the querystring, the chips bar and the "
           . 'exports all read it by id');
@@ -1765,6 +1799,102 @@ check($cells > 0 && $periods === $cells,
       'every matrix cell needs its period printed as real text for the stacked '
       . "phone layout: {$cells} cells, {$periods} period labels");
 
+/* --- a matrix cell may only ask for filters the browser forwards --------- */
+
+/*
+ * THE SAME CHECK render_press.php RUNS ON ITS HREFS, ON THE MATRIX'S CELLS.
+ *
+ * A cell is a deep link that happens to be a button: tit_signal_defs() writes
+ * the spec, the server prints it as data-filter, and dashboard.js routes it
+ * through the same inputs the querystring uses. So it fails the same way a
+ * press link does, and it failed that way silently until 2026-08-21: the Total
+ * Raised figure sums company raises only and its cell asked for `funding=1`,
+ * the wider view, which includes divestiture prices, fund closes, outbound
+ * spends, state subsidies and pledges. Every one of those is a row the figure
+ * left out, sitting under the figure as though it were part of it.
+ *
+ * The parameter list is parsed out of dashboard.js rather than written here,
+ * for render_press.php's reason: a control that is renamed or removed breaks
+ * this on the next run instead of turning a cell into a button that quietly
+ * does nothing. `funding` has no control and is read by name in
+ * applyUrlState(), so it is admitted the same way and proved present.
+ *
+ * The VALUE is checked too. A wrong name over-reports and a wrong value
+ * under-reports, and a matrix cell that lands on zero rows reads as "nothing
+ * happened this week" rather than as a broken link.
+ */
+$js = file_get_contents($tit_plugin . 'assets/dashboard.js');
+check($js !== false && $js !== '',
+      'dashboard.js has to be readable to check the matrix cells against it');
+preg_match('/var inputs = \{(.*?)\n  \};/s', $js, $im);
+check(!empty($im[1]),
+      'the `inputs` map could not be parsed out of dashboard.js, and it is the '
+      . 'only thing standing between a matrix cell and a filter the browser '
+      . 'drops on the floor, so a parse failure is a failure and never a skip');
+preg_match_all("/^\s*'?([a-z_]+)'?\s*:/m", $im[1] ?? '', $keys);
+$js_reads = array_flip($keys[1] ?? array());
+check(strpos($js, "q.get('funding')") !== false,
+      'a cell may ask for `funding` only while applyUrlState() still reads it '
+      . 'by name, and that call is gone from dashboard.js');
+$js_reads['funding'] = true;
+
+// A deep-linked view forces the filter panel open, and a parameter missing from
+// that regex leaves someone arriving on a narrowed page with the controls shut
+// and nothing on screen explaining why the numbers are not the front page's.
+preg_match('/var deepLinked = \/(.*?)\/\s*\n/s', $js, $dm);
+check(!empty($dm[1]), 'the deepLinked regex could not be parsed out of dashboard.js');
+
+preg_match_all('/data-filter="([^"]*)"/', $html, $specs);
+check(count($specs[1]) > 0, 'the matrix has to print its cell filters');
+$seen_multi = false;
+foreach (array_unique($specs[1]) as $spec) {
+    $spec = html_entity_decode($spec, ENT_QUOTES, 'UTF-8');
+    if ($spec === '') continue;             // the total row narrows nothing
+    if (strpos($spec, '&') !== false) $seen_multi = true;
+    parse_str($spec, $args);
+    foreach ($args as $name => $value) {
+        check(isset($js_reads[$name]),
+              "the matrix cell `{$spec}` asks for `{$name}`, which dashboard.js "
+              . 'does not read. The cell would advertise a narrowing and serve '
+              . 'the wider view, and nothing would error');
+        check($name === 'funding' || strpos($dm[1] ?? '', '|' . $name . '|') !== false
+              || strpos($dm[1] ?? '', '(' . $name . '|') !== false,
+              "the matrix cell `{$spec}` asks for `{$name}`, which is missing "
+              . 'from the deepLinked regex, so sharing the link leaves the '
+              . 'filter panel collapsed over a page that is already narrowed');
+        $allowed = array('funding' => null, 'direction' => 'tit_allowed_directions',
+                         'pillar' => 'tit_allowed_pillars',
+                         'money_basis' => 'tit_allowed_money_bases');
+        check(array_key_exists($name, $allowed),
+              "the matrix cell `{$spec}` uses `{$name}`, which this check has no "
+              . 'vocabulary for. Add it here rather than leaving the value '
+              . 'unchecked: a value nothing carries returns zero rows and reads '
+              . 'as "nothing happened", which is the quieter half of this bug');
+        if (!empty($allowed[$name]) && function_exists($allowed[$name])) {
+            check(in_array($value, call_user_func($allowed[$name]), true),
+                  "the matrix cell `{$spec}` filters {$name}={$value}, which "
+                  . $allowed[$name] . '() does not declare, so it would return '
+                  . 'zero rows and read as a quiet week');
+        }
+    }
+}
+
+/*
+ * AND ONE CELL HAS TO CARRY TWO OF THEM. The Total Raised row is the only spec
+ * with an `&` in it, and it is the reason glancePairs() exists: split on '='
+ * alone, `funding=1&money_basis=company_raise` yields a key of `funding` and a
+ * value of `1&money_basis`, no input answers to it, and the cell becomes a
+ * button that does nothing. A future session that simplifies that row back to
+ * one pair fails here instead of on the live page.
+ */
+check($seen_multi,
+      'the Total Raised cell has to carry BOTH its narrowings: the funding view '
+      . 'and the basis its figure actually sums. Either half alone names a '
+      . 'different set of rows from the number printed on the cell');
+check(strpos($js, 'function glancePairs(') !== false,
+      'and dashboard.js has to still split a cell spec on & before =, or that '
+      . 'two-part spec is routed to an input that does not exist');
+
 /* --- the pill groups have to swap into a box the same size -------------- */
 
 /*
@@ -1775,8 +1905,8 @@ check($cells > 0 && $periods === $cells,
  * one height; this asserts the markup still hands it two boxes to fix, since a
  * select that lost its `multiple` would never be pillified at all.
  */
-check(substr_count($html, 'multiple size="5"') === 7,
-      'seven multiple selects become pill groups, and the stylesheet reserves the '
+check(substr_count($html, 'multiple size="5"') === 8,
+      'eight multiple selects become pill groups, and the stylesheet reserves the '
       . 'height of each: found ' . substr_count($html, 'multiple size="5"'));
 
 /* --- nothing that scrolls the body sideways ----------------------------- */

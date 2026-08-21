@@ -394,6 +394,100 @@ def test_the_column_travels_to_the_site():
     assert "'money_basis'" in enrichable
 
 
+# --- The figure and the rows behind it --------------------------------------
+#
+# A public number whose own link lands on a different set of rows is the same
+# defect as a wrong number, arriving one click later. These hold the three
+# pieces that make the "Total Raised" link honest, and they are three pieces
+# because any one of them alone is silent.
+
+
+def _dashboard_js() -> str:
+    return (PLUGIN / "assets/dashboard.js").read_text()
+
+
+def test_the_money_figure_links_to_the_rows_it_summed():
+    """`funding=1` alone is the WIDER population.
+
+    It includes every row the figure leaves out -- divestiture prices, fund
+    closes, outbound spends, state subsidies, pledges -- so a reader who
+    clicked the total landed on a table that does not add up to it. The link
+    has to name the basis, and has to name it from the one function that
+    decides what is summable rather than by retyping the value.
+    """
+    php = (PLUGIN / "includes/shortcodes.php").read_text()
+    defs = php.split("function tit_signal_defs()", 1)[1].split("\n}", 1)[0]
+    money = [ln for ln in defs.splitlines() if "'money'" in ln and "array(" in ln]
+    assert money, "the money row is gone from tit_signal_defs()"
+    row = defs[defs.index(money[0]):]
+    row = row[:row.index("'money')") + len("'money')")]
+    assert "money_basis=" in row, (
+        "the Total Raised link does not carry money_basis, so it points at the "
+        "wider funding view and the rows under the figure do not add up to it"
+    )
+    assert "tit_money_basis_summable" in row, (
+        "the link retypes the summable value instead of asking the function "
+        "that decides it, so a rename would leave the link pointing at a value "
+        "no row carries -- zero rows, reading as a quiet week"
+    )
+
+
+def test_the_browser_carries_the_parameter_that_link_depends_on():
+    """THE HALF THAT MAKES THE LINK REAL, and the half that fails silently.
+
+    dashboard.js forwards only the parameters it has a control for. Without
+    the control, `money_basis=company_raise` is dropped in the browser and the
+    link behaves exactly as the wider view did while looking precise -- which
+    is worse than the bug it replaced, because it also looks fixed.
+    """
+    js = _dashboard_js()
+    php = (PLUGIN / "includes/shortcodes.php").read_text()
+    assert "id=\"tit-f-money_basis\"" in php, "the control is not rendered"
+    assert "money_basis: document.getElementById('tit-f-money_basis')" in js, (
+        "money_basis is not in the `inputs` map, so refresh() never puts it "
+        "in the querystring"
+    )
+    multi = js.split("var MULTI = {", 1)[1].split("};", 1)[0]
+    assert "money_basis" in multi, (
+        "money_basis is not a MULTI filter, so the page reads .value off a "
+        "<select multiple> and sends one basis where the reader chose several"
+    )
+    assert "data.money_bases" in js, "the control is never filled from /facets"
+
+    api = (PLUGIN / "includes/api.php").read_text()
+    facets = api.split("function tit_api_facets()", 1)[1].split("\nfunction ", 1)[0]
+    assert "'money_bases'" in facets, (
+        "/facets does not offer money_bases, so the control renders empty and "
+        "hides itself, and the link it exists for is dropped again"
+    )
+
+
+def test_every_basis_a_reader_can_pick_has_words():
+    """A control that offers `outbound_investment` is showing its schema.
+
+    The vocabulary is what the API accepts; the map is what the page prints.
+    A new money kind added to money_raised.py reaches the control by itself,
+    through /facets, and would arrive wearing its stored name.
+    """
+    js = _dashboard_js()
+    labels = js.split("var MONEY_BASIS_LABEL = {", 1)[1].split("};", 1)[0]
+    api = (PLUGIN / "includes/api.php").read_text()
+    allowed = api.split("function tit_allowed_money_bases()", 1)[1].split("}", 1)[0]
+    allowed += api.split("function tit_allowed_deal_types()", 1)[1].split("}", 1)[0]
+    values = set(re.findall(r"'([a-z_]+)'", allowed))
+    missing = sorted(v for v in values if f"{v}:" not in labels)
+    assert not missing, f"no reader-facing label for: {missing}"
+
+    # And the words come from the shared vocabulary, not from a second opinion
+    # about what a fund close is called.
+    for value in ("fund_raise", "outbound_investment", "state_funding", "pledge"):
+        for word in vocab.DEAL_TYPE_LABELS[value].split():
+            assert word.capitalize() in labels or word in labels, (
+                f"{value} is labelled with words vocab.DEAL_TYPE_LABELS does "
+                f"not use ({vocab.DEAL_TYPE_LABELS[value]!r})"
+            )
+
+
 # --- One event, one row -----------------------------------------------------
 
 def test_a_backer_qualifier_is_not_part_of_the_employers_name():
