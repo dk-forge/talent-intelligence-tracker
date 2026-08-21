@@ -1,11 +1,5 @@
 {
-  "open": {
-    "collect:main:ff39486b701e7338": {
-      "first": 1787266230,
-      "last": 1787266230,
-      "subject": "CI RED: collect: [publish] sent=4 stored=4 duplicate=0 errors=0"
-    }
-  },
-  "updated_at": "2026-08-21T06:44:33+00:00",
+  "open": {},
+  "updated_at": "2026-08-21T22:44:35+00:00",
   "version": 1
 }
