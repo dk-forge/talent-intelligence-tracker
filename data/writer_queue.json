@@ -203,77 +203,6 @@
   ],
   "tickets": [
     {
-      "attempts": 0,
-      "dispatched_at": "2026-08-23T02:48:55Z",
-      "history": [
-        {
-          "at": "2026-08-23T02:02:35Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-23T02:48:55Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260823T020235Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-23T02:02:35Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "acknowledged": "2026-08-13T02:28:37Z",
-      "attempts": 0,
-      "dispatched_at": "2026-08-13T01:40:39Z",
-      "history": [
-        {
-          "at": "2026-08-13T01:40:35Z",
-          "detail": "place the unplaced, worklist now shrinks (#23); 700 employers fits the 90 minute lock window",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T01:40:39Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-13T02:02:54Z",
-          "detail": "run 31658458962",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-13T02:02:54Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-08-13T02:28:37Z",
-          "detail": "placed 33 employers and committed them; its enrich step hit a WordPress 503 maintenance window. The data landed; carrying it waits on the reversal in #27 (by dakotta-labs)",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20260813T014035Z-place-unplaced",
-      "inputs": {
-        "dry_run": "false",
-        "limit": "700"
-      },
-      "priority": 0,
-      "reason": "place the unplaced, worklist now shrinks (#23); 700 employers fits the 90 minute lock window",
-      "requested_at": "2026-08-13T01:40:35Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31658458962",
-      "state": "failed",
-      "workflow": "place-unplaced.yml"
-    },
-    {
       "acknowledged": "2026-08-13T02:27:45Z",
       "attempts": 0,
       "dispatched_at": "2026-08-13T02:07:30Z",
@@ -2514,6 +2443,44 @@
       "requested_at": "2026-08-22T16:43:51Z",
       "requested_by": "dakotta-labs",
       "run_id": "32585824783",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-23T02:48:55Z",
+      "history": [
+        {
+          "at": "2026-08-23T02:02:35Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-23T02:48:55Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-23T03:15:23Z",
+          "detail": "run 32613783742",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-23T03:15:23Z",
+          "detail": "run 32613783742",
+          "event": "landed"
+        }
+      ],
+      "id": "20260823T020235Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-23T03:15:23Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-23T02:02:35Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "32613783742",
       "state": "landed",
       "workflow": "archive-sources.yml"
     }
