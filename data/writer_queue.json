@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-22T16:48:30Z",
-  "last_tick": "2026-08-22T16:48:30Z",
+  "last_dispatch": "2026-08-23T02:48:55Z",
+  "last_tick": "2026-08-23T02:48:55Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -204,12 +204,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-23T02:48:55Z",
       "history": [
         {
           "at": "2026-08-23T02:02:35Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-23T02:48:55Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260823T020235Z-archive-sources",
@@ -221,7 +226,7 @@
       "requested_at": "2026-08-23T02:02:35Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
     {
