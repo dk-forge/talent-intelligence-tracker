@@ -1,5 +1,11 @@
 {
-  "open": {},
-  "updated_at": "2026-08-21T22:44:35+00:00",
+  "open": {
+    "collect:main:471e7ce8c5895ce1": {
+      "first": 1787525498,
+      "last": 1787525498,
+      "subject": "CI RED: collect: [guardrail] 1 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
+    }
+  },
+  "updated_at": "2026-08-23T22:51:39+00:00",
   "version": 1
 }
