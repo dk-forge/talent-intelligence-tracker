@@ -204,76 +204,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-23T06:03:15Z",
-      "history": [
-        {
-          "at": "2026-08-23T05:52:50Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-23T06:03:15Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260823T055250Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-08-23T05:52:50Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "acknowledged": "2026-08-13T02:27:45Z",
-      "attempts": 0,
-      "dispatched_at": "2026-08-13T02:07:30Z",
-      "history": [
-        {
-          "at": "2026-08-13T02:07:25Z",
-          "detail": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-13T02:07:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-13T02:09:32Z",
-          "detail": "run 31659860522",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-13T02:09:32Z",
-          "detail": "cancelled after starting; needs a human",
-          "event": "cancelled-mid-run"
-        },
-        {
-          "at": "2026-08-13T02:27:45Z",
-          "detail": "cancelled on purpose: 37 cityless hq_country values must be reversed before any further enrich, and the site cannot accept the reversal until tit_clearable_columns() is widened (#27) (by dakotta-labs)",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20260813T020725Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "carry the 34 placed hq_country values; the place-unplaced enrich step hit a WordPress 503 maintenance window",
-      "requested_at": "2026-08-13T02:07:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31659860522",
-      "state": "failed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-13T03:41:22Z",
       "history": [
         {
@@ -2510,6 +2440,44 @@
       "run_id": "32613783742",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-23T06:03:15Z",
+      "history": [
+        {
+          "at": "2026-08-23T05:52:50Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-23T06:03:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-23T06:07:50Z",
+          "detail": "run 32621926493",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-23T06:07:50Z",
+          "detail": "run 32621926493",
+          "event": "landed"
+        }
+      ],
+      "id": "20260823T055250Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-23T06:07:50Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-23T05:52:50Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "32621926493",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
