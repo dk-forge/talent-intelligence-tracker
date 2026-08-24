@@ -580,7 +580,40 @@ function check($condition, $message) {
  * touch this render, so the fixture cannot price the copy this control will
  * grow, and the next addition still raises this number and writes down why.
  */
-const TIT_DASH_BYTE_BUDGET = 186350;
+/*
+ * RAISED 186,350 -> 189,350 on 2026-08-24, for 2,543 measured bytes, on the same
+ * pinned clock and therefore like for like with the 185,879 above. This render
+ * is 188,893.
+ *
+ * A WHOLE NEW PANEL, not a sentence: the US job-postings macro backdrop from
+ * Indeed Hiring Lab (1.87.0, includes/indeed_index.php), rendered once after the
+ * feed. It is the largest single addition this budget has priced, and it earns
+ * it -- it is a card, not a line -- so here is every byte:
+ *
+ *   ~1,050  the CC BY 4.0 methodology / attribution note. The licence REQUIRES
+ *           the credit and the "computed by us" statement, and the panel's whole
+ *           reason to exist is that a reader can tell this external number from
+ *           the tracker's own. That sentence is the feature, not packaging.
+ *   ~700   four .tit-stat tiles: the index, its change vs a month, the AI share
+ *           and its change, each with its label and its own "as of" date so
+ *           staleness is visible.
+ *   ~600   the section head plus the "external context, not counted in the
+ *           numbers above" sub-line -- the disclaimer that keeps this from being
+ *           read as one of our figures.
+ *   ~450   the source line (linked, CC BY 4.0, both series' dates) and the
+ *           trimmed sparkline. The sparkline is DELIBERATELY light: it downsamples
+ *           ~180 daily readings to at most 52 integer-rounded points precisely
+ *           because of this budget (see tit_indeed_sparkline). Undownsampled it
+ *           was ~1,500 bytes heavier and this raise would have been that much
+ *           larger.
+ *
+ * The alternative to raising is deleting the attribution or the disclaimer, and
+ * both are load-bearing: one is a licence obligation, the other is the promise
+ * that this context is never confused with the tracker's own counts. 457 of
+ * headroom on the usual basis. The next addition raises this number and writes
+ * down why.
+ */
+const TIT_DASH_BYTE_BUDGET = 189350;
 
 /*
  * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.

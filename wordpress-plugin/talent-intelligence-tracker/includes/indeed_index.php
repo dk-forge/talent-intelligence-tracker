@@ -60,6 +60,20 @@ function tit_indeed_sparkline($series, $label, $width = 320, $height = 48) {
             $values[] = (float) $point[1];
         }
     }
+    // Downsample to keep the line light on a phone: the seed carries ~180 daily
+    // readings, but the trend is legible in far fewer points and every extra
+    // coordinate is bytes on a cached page. Keep the last value so the line ends
+    // where the headline number does. The byte budget is why this cap exists;
+    // see tests/php/render_dashboard.php.
+    $max_points = 52;
+    $total = count($values);
+    if ($total > $max_points) {
+        $stride = (int) ceil($total / $max_points);
+        $kept = array();
+        for ($i = 0; $i < $total; $i += $stride) $kept[] = $values[$i];
+        if (end($kept) !== end($values)) $kept[] = end($values);
+        $values = array_values($kept);
+    }
     $count = count($values);
     if ($count < 2) return '';
 
@@ -68,8 +82,8 @@ function tit_indeed_sparkline($series, $label, $width = 320, $height = 48) {
     $span = max(0.0001, $max - $min);
     $points = array();
     foreach ($values as $i => $value) {
-        $x = round($i * ($width - 2) / ($count - 1) + 1, 1);
-        $y = round($height - 3 - (($value - $min) / $span) * ($height - 6), 1);
+        $x = (int) round($i * ($width - 2) / ($count - 1) + 1);
+        $y = (int) round($height - 3 - (($value - $min) / $span) * ($height - 6));
         $points[] = $x . ',' . $y;
     }
 
