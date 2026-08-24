@@ -1,0 +1,83 @@
+name: indeed-index
+
+# Refresh the US job-postings macro backdrop (Indeed Hiring Lab) on the live
+# site. WEEKLY, Tuesdays 10:17 UTC.
+#
+# Why this workflow is unlike every data job here:
+#
+#   * It is NOT a database writer. It never opens the tracker's SQLite
+#     database, files no health row, and holds no lock. It fetches two keyless
+#     CC BY 4.0 CSVs from
+#     github.com/hiring-lab and POSTs the derived seed to the keyed
+#     /talent/v1/indeed-index endpoint. That endpoint does update_option +
+#     flush; it touches no signal, no total and no row. So this file is
+#     deliberately outside the `talent-collect` concurrency group -- it has no
+#     rows to lose and nothing to race.
+#   * It does NOT commit. The committed seed in the plugin is the shipping-day
+#     value; the live page prefers the pushed option over the file (same
+#     contract as recall.yml and board_series). Keeping the live number current
+#     is what publishing does, and it needs no push to main.
+#   * It costs nothing. No model, no paid API. Two HTTP GETs and one POST.
+#
+# Cadence: the Indeed series update ~weekly and lag ~a week, so a weekly pull is
+# plenty. The build fails loudly if a CSV is unreachable or its schema changed,
+# so a broken source reddens this run rather than silently freezing the panel at
+# a stale number -- and the panel always shows the real "as of" date regardless.
+on:
+  schedule:
+    - cron: '17 10 * * 2'      # Tuesdays 10:17 UTC, a free minute
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Fetch and build, publish NOTHING (default: yes for manual runs)'
+        type: boolean
+        default: true
+
+# Its own group: this is not a database writer, so it must not sit in the
+# talent-collect lock. update_option is idempotent, so two publishes racing is
+# harmless; the group just keeps one run at a time for tidiness.
+concurrency:
+  group: indeed-index
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  indeed-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # Derived ONCE so the announcement and the command cannot disagree. On a
+      # scheduled trigger `inputs` is empty, so dry_run is false and the run
+      # publishes -- which is the point of the schedule.
+      - name: Say which mode this is
+        env:
+          DRY: ${{ inputs.dry_run && '1' || '' }}
+        run: |
+          if [ -z "$DRY" ]; then
+            echo "PUBLISHING. The live backdrop will be updated via /indeed-index."
+          else
+            echo "::warning::DRY RUN. Fetch and build only; nothing is published."
+          fi
+
+      - name: Refresh the Indeed backdrop
+        env:
+          DRY: ${{ inputs.dry_run && '1' || '' }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DRY" ]; then
+            python build_indeed_index.py --stdout --publish
+          else
+            python build_indeed_index.py --stdout
+          fi
