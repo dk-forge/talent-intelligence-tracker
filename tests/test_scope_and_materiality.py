@@ -603,6 +603,27 @@ class ColumnsTravel(unittest.TestCase):
         for column in self.NEW_COLUMNS:
             self.assertIn(column, db_php, column)
 
+    def test_every_deal_type_value_fits_the_wordpress_column(self):
+        """`deal_type` is a closed vocabulary written straight through to a
+        fixed-width MySQL column, so a value longer than the column is not a
+        validation error anywhere in this repo -- it is a WordPress "value too
+        long" failure at publish time, on every run, forever, because a failed
+        row is never marked published and is retried next run
+        (pipeline/publish.py). 'outbound_investment' (19 chars) shipped into
+        DEAL_TYPES while the column was still sized for the shorter, older
+        values, and nothing checked the two agreed."""
+        db_php = (Path(__file__).resolve().parent.parent / "wordpress-plugin"
+                  / "talent-intelligence-tracker" / "includes" / "db.php").read_text()
+        match = re.search(r"deal_type\s+VARCHAR\((\d+)\)", db_php)
+        self.assertIsNotNone(match, "deal_type column definition not found")
+        width = int(match.group(1))
+        for value in vocab.DEAL_TYPES:
+            self.assertLessEqual(
+                len(value), width,
+                f"{value!r} is {len(value)} chars, wider than "
+                f"deal_type VARCHAR({width})",
+            )
+
     def test_a_pre_existing_table_gets_them_by_migration(self):
         """The database is committed to the repo, so it outlives every schema
         change and CREATE TABLE IF NOT EXISTS does nothing to it."""
