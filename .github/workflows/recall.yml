@@ -158,17 +158,25 @@ jobs:
           git config user.email 'bot@users.noreply.github.com'
 
           db=data/talent_intel.db
+          # The database is TWO files since the 100 MiB split: the product file
+          # and its `_cache` sibling (seen_urls, source_links, employer_identity).
+          # merge_db.py requires BOTH halves of `ours` to exist — a merge whose
+          # cache half is absent is a hard stop, not an empty merge — so the
+          # cache has to be preserved into keep alongside $db. It is NOT in
+          # $paths: like $db it merges in place (schema.connect ATTACHes it), so
+          # it must not be copied back whole over the merged result.
+          cache=data/talent_intel_cache.db
           # Snapshot files, copied back whole. The database is handled separately
           # below because it is the one thing here that merges.
           paths="analysis/recall/results analysis/recall/us/results data/recall_worklist.json data/recall_us_worklist.json data/recall_rejection_audit.json data/recall_us_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json wordpress-plugin/talent-intelligence-tracker/data/recall-us.json"
-          git add $paths $db 2>/dev/null || true
+          git add $paths $db $cache 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change to commit."
             exit 0
           fi
 
           mkdir -p "$RUNNER_TEMP/keep"
-          for p in $paths $db; do
+          for p in $paths $db $cache; do
             if [ -e "$p" ]; then
               mkdir -p "$RUNNER_TEMP/keep/$(dirname "$p")"
               cp -R "$p" "$RUNNER_TEMP/keep/$(dirname "$p")/"
@@ -178,6 +186,8 @@ jobs:
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
+            # Merges $db AND $cache in place: schema.connect ATTACHes the cache
+            # sibling of each side, so the union spans both checked-out files.
             python merge_db.py "$RUNNER_TEMP/keep/$db" "$db"
             for p in $paths; do
               if [ -e "$RUNNER_TEMP/keep/$p" ]; then
@@ -185,7 +195,7 @@ jobs:
                 cp -R "$RUNNER_TEMP/keep/$p" "$(dirname "$p")/"
               fi
             done
-            git add $paths $db 2>/dev/null || true
+            git add $paths $db $cache 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this measurement."
               exit 0
