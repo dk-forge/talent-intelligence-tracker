@@ -669,6 +669,36 @@ def test_every_workflow_that_saves_the_database_saves_both_halves():
                 )
 
 
+def test_every_merge_db_caller_saves_the_cache_half_aside():
+    """merge_db.py aborts if the cache sibling of its `ours` file is absent.
+
+    The two guards above match a LITERAL `cp data/talent_intel.db DEST` and a
+    LITERAL `git add ... data/talent_intel.db ...`. recall.yml did neither: it
+    drove both the save-aside and the staging through shell variables
+    (`db=data/talent_intel.db`, and a `for p in $paths $db` copy loop), so the
+    product half was preserved into $RUNNER_TEMP/keep and the cache half was
+    not. The literal matchers saw nothing to check, the workflow went green in
+    CI, and every Monday's `recall` run then died inside merge_db.py with
+    "nothing to merge: this run's cache file ... does not exist" — a red run
+    with no data lost but the measurement never taken.
+
+    This guard is mechanism-agnostic: if a commit step invokes merge_db.py it
+    saves a database aside for the merge, so the cache filename must appear in
+    that step's real commands however they are spelled.
+    """
+    for name, steps in _database_writers():
+        for step in steps:
+            code = _code(step.get("run") or "")
+            if "merge_db.py" not in code:
+                continue
+            assert CACHE_FILE in code, (
+                f"{name}: a commit step invokes merge_db.py but never names "
+                f"{CACHE_FILE}, so the cache half of `ours` is never saved "
+                f"aside and merge_db.py aborts with 'this run's cache file "
+                f"... does not exist'."
+            )
+
+
 def test_the_cache_file_is_committed_not_ignored():
     """A .gitignore entry would make every one of the above pass and still lose
     the data, because `git add` of an ignored path is a silent no-op."""
