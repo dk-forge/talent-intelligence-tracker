@@ -2387,6 +2387,17 @@ function tit_dashboard_html() {
         </div><!-- /.tit-results -->
       </div><!-- /.tit-feed -->
 
+      <?php /* THE MACRO BACKDROP. Indeed Hiring Lab's US Job Postings Index and
+               AI-in-postings share, external context licensed CC BY 4.0. It sits
+               AFTER the tracker's own feed and BEFORE the methodology, as its own
+               separately-headed, separately-sourced band, so a reader never reads
+               it as one of our own figures. function_exists-guarded like the
+               other optional panels, so a mid-upload FTP race renders nothing
+               rather than fatalling. */
+      if (function_exists('tit_indeed_index_panel')) {
+          echo tit_indeed_index_panel();
+      } ?>
+
       <?php echo tit_trust_panel_html($facts); ?>
 
       <?php /* Shared email digest signup. The subscriber store, the consent

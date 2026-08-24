@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.86.0
+ * Version: 1.87.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.86.0');
+define('TIT_VERSION', '1.87.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -62,6 +62,11 @@ tit_require('includes/recall.php');
 // of the routed pages rather than first.
 tit_require('includes/press.php');
 tit_require('includes/board_series.php');
+// A US job-postings macro backdrop from Indeed Hiring Lab (CC BY 4.0), shown as
+// external context beside the tracker's own signals. Self-contained like
+// board_series.php: option-then-file read, its own keyed route, and it never
+// touches the database or any of the tracker's totals.
+tit_require('includes/indeed_index.php');
 // Reads the SIBLING's public HTTP API at render time. Ships disabled; see
 // the header of that file for the measurement that says why.
 tit_require('includes/cross_tracker.php');
