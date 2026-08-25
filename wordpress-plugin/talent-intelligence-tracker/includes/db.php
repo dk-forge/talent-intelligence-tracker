@@ -64,7 +64,7 @@ function tit_create_or_update_table() {
         funding_amount_usd BIGINT NULL,
         funding_stage VARCHAR(24) NULL,
         work_mode VARCHAR(16) NULL,
-        deal_type VARCHAR(16) NULL,
+        deal_type VARCHAR(24) NULL,
         money_basis VARCHAR(24) NULL,
         site_event VARCHAR(16) NULL,
         materiality VARCHAR(12) NULL,
