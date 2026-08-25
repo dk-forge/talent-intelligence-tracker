@@ -15,6 +15,11 @@
       "last": 1787546972,
       "subject": "CI RED: collect-structured: [guardrail] 1 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
     },
+    "collect-structured:main:5a1ef67dfc5cea79": {
+      "first": 1787632978,
+      "last": 1787632978,
+      "subject": "CI RED: collect-structured: ERROR  row 4: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contains i"
+    },
     "collect:main:471e7ce8c5895ce1": {
       "first": 1787525498,
       "last": 1787525498,
@@ -41,6 +46,6 @@
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
     }
   },
-  "updated_at": "2026-08-25T00:00:22+00:00",
+  "updated_at": "2026-08-25T04:42:59+00:00",
   "version": 1
 }
