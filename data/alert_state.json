@@ -40,12 +40,17 @@
       "last": 1787570520,
       "subject": "CI RED: enrich: pipeline.publish.PublishError: 1 guardrail finding(s) have been open longer than their grace window (oldest 209h). 31905 clean row(s) WERE published; the flagged on"
     },
+    "enrich:main:f93a4ef53cc9cab3": {
+      "first": 1787654153,
+      "last": 1787654153,
+      "subject": "CI SELF-TIMEOUT: enrich: the job cancelled ITSELF on timeout-minutes: it exceeded the maximum execution time of 30m0s"
+    },
     "recall:main:726d76af0651f20d": {
       "first": 1787562118,
       "last": 1787562118,
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
     }
   },
-  "updated_at": "2026-08-25T04:42:59+00:00",
+  "updated_at": "2026-08-25T10:35:59+00:00",
   "version": 1
 }
