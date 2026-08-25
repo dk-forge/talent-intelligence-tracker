@@ -146,7 +146,11 @@ class OpenVacanciesProvenance(unittest.TestCase):
         f = dd._featured(row(company="Braze", headcount=17,
                              headcount_scope="new_roles", collector="ats_boards",
                              source_name="Greenhouse job board",
-                             headline="Braze opened 17 more roles (job board: 252 to 269)"))
+                             # Observation, not new roles opened: the board
+                             # listed 17 more active postings than the last scan.
+                             headline="Braze's job board listed 17 more active "
+                                      "postings than our previous scan "
+                                      "(job board: 252 to 269)"))
         self.assertEqual(f.meaning.type, cm.OPEN_VACANCIES)
         self.assertEqual(f.provenance(), "First-party employer board")
 
