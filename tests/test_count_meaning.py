@@ -94,7 +94,10 @@ class PresentOpeningsStillCount(unittest.TestCase):
         m = cm.classify(row(
             headcount=6, headcount_scope="new_roles", collector="ats_boards",
             source_name="Greenhouse job board",
-            headline="Acme opened 6 more roles (job board: 20 to 26)"))
+            # A board-scan delta is an observation, not new roles opened:
+            # the headline describes active postings listed, not a hiring act.
+            headline="Acme's job board listed 6 more active postings "
+                     "than our previous scan (job board: 20 to 26)"))
         self.assertEqual(m.type, cm.OPEN_VACANCIES)
         self.assertTrue(m.counts_as_roles)
         self.assertEqual(m.roles, 6)
