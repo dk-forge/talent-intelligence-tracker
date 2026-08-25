@@ -202,79 +202,10 @@
     }
   ],
   "red_marks": {
-    "ticket:20260824T102026Z-enrich": "2026-08-24T11:22:02Z"
+    "ticket:20260824T102026Z-enrich": "2026-08-24T11:22:02Z",
+    "ticket:20260825T100359Z-enrich": "2026-08-25T10:35:53Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-25T10:05:10Z",
-      "history": [
-        {
-          "at": "2026-08-25T10:03:59Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-25T10:05:10Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-25T10:06:07Z",
-          "detail": "run 32835391093",
-          "event": "bound"
-        }
-      ],
-      "id": "20260825T100359Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-08-25T10:03:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32835391093",
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-14T18:08:13Z",
-      "history": [
-        {
-          "at": "2026-08-14T17:58:05Z",
-          "detail": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-14T18:08:13Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-14T18:13:32Z",
-          "detail": "run 31827246335",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-14T18:36:10Z",
-          "detail": "run 31827246335",
-          "event": "landed"
-        }
-      ],
-      "id": "20260814T175805Z-place-unplaced",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-14T18:36:10Z",
-      "priority": 0,
-      "reason": "resume after transient WP-maintenance 503; free fixer for 1,675 place-invisible rows",
-      "requested_at": "2026-08-14T17:58:05Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31827246335",
-      "state": "landed",
-      "workflow": "place-unplaced.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-15T02:12:46Z",
@@ -2512,6 +2443,43 @@
       "run_id": "32832987990",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-25T10:05:10Z",
+      "history": [
+        {
+          "at": "2026-08-25T10:03:59Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-25T10:05:10Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-25T10:06:07Z",
+          "detail": "run 32835391093",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-25T10:35:53Z",
+          "detail": "cancelled after starting; needs a human",
+          "event": "cancelled-mid-run"
+        }
+      ],
+      "id": "20260825T100359Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-08-25T10:03:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "32835391093",
+      "state": "failed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
