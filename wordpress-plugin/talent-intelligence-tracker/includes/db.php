@@ -64,7 +64,7 @@ function tit_create_or_update_table() {
         funding_amount_usd BIGINT NULL,
         funding_stage VARCHAR(24) NULL,
         work_mode VARCHAR(16) NULL,
-        deal_type VARCHAR(16) NULL,
+        deal_type VARCHAR(32) NULL,
         money_basis VARCHAR(24) NULL,
         site_event VARCHAR(16) NULL,
         materiality VARCHAR(12) NULL,
@@ -103,6 +103,28 @@ function tit_create_or_update_table() {
     ) {$charset};";
 
     dbDelta($sql);
+
+    // dbDelta reliably ADDS columns but not WIDENS them: it treats the schema as
+    // additive (the note at the top of this function), and on a MySQL that
+    // already has the column it frequently leaves the old width in place. The
+    // deal_type vocabulary gained `outbound_investment` (19 chars), which
+    // overflowed the original VARCHAR(16) and made EVERY outbound-investment row
+    // fail insert with "value too long or contains invalid data" — across
+    // collect, collect-structured and collect national press. So widen it
+    // explicitly, and only when the live column is still narrower than the
+    // target, so a table that has already migrated pays nothing and the ALTER
+    // never runs on the hot path once it has taken. Guarded, idempotent, and it
+    // repairs a table that dbDelta left at 16 exactly the way the required-
+    // column check repairs a MISSING column further down.
+    global $wpdb;
+    $len = $wpdb->get_var($wpdb->prepare(
+        "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS "
+        . "WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s "
+        . "AND COLUMN_NAME = 'deal_type'",
+        DB_NAME, $table));
+    if ($len !== null && (int) $len < 32) {
+        $wpdb->query("ALTER TABLE {$table} MODIFY deal_type VARCHAR(32) NULL");
+    }
 }
 
 /**
