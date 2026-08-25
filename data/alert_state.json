@@ -1,5 +1,10 @@
 {
   "open": {
+    "collect-national-press:main:24426031596da671": {
+      "first": 1787616021,
+      "last": 1787616021,
+      "subject": "CI RED: collect national press: ERROR  row 1: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contai"
+    },
     "collect-national-press:main:cca22f3ba0b1cc9e": {
       "first": 1787529118,
       "last": 1787529118,
@@ -36,6 +41,6 @@
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
     }
   },
-  "updated_at": "2026-08-24T22:48:32+00:00",
+  "updated_at": "2026-08-25T00:00:22+00:00",
   "version": 1
 }
