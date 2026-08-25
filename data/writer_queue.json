@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-25T09:37:53Z",
-  "last_tick": "2026-08-25T09:40:11Z",
+  "last_dispatch": "2026-08-25T10:05:10Z",
+  "last_tick": "2026-08-25T10:05:10Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -207,44 +207,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-25T09:37:53Z",
-      "history": [
-        {
-          "at": "2026-08-25T09:03:09Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-25T09:37:53Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-25T09:40:11Z",
-          "detail": "run 32832987990",
-          "event": "bound"
-        }
-      ],
-      "id": "20260825T090309Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-25T09:03:09Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32832987990",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-25T10:05:10Z",
       "history": [
         {
           "at": "2026-08-25T10:03:59Z",
           "detail": "scheduled link hygiene (40 9 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-25T10:05:10Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260825T100359Z-enrich",
@@ -256,46 +229,8 @@
       "requested_at": "2026-08-25T10:03:59Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-14T18:03:15Z",
-      "history": [
-        {
-          "at": "2026-08-14T17:57:44Z",
-          "detail": "127 published 8-K headlines carry a mangled EDGAR filer name; verified safe 2026-08-14, guardrails re-quarantine anything withheld",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-14T18:03:15Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-14T18:08:13Z",
-          "detail": "run 31826857112",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-14T18:08:13Z",
-          "detail": "run 31826857112",
-          "event": "landed"
-        }
-      ],
-      "id": "20260814T175744Z-correct-sec-filer-name",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-14T18:08:13Z",
-      "priority": 0,
-      "reason": "127 published 8-K headlines carry a mangled EDGAR filer name; verified safe 2026-08-14, guardrails re-quarantine anything withheld",
-      "requested_at": "2026-08-14T17:57:44Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "31826857112",
-      "state": "landed",
-      "workflow": "correct-sec-filer-name.yml"
     },
     {
       "attempts": 0,
@@ -2534,6 +2469,44 @@
       "run_id": "32829469710",
       "state": "landed",
       "workflow": "benchmark-diff.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-25T09:37:53Z",
+      "history": [
+        {
+          "at": "2026-08-25T09:03:09Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-25T09:37:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-25T09:40:11Z",
+          "detail": "run 32832987990",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-25T10:05:10Z",
+          "detail": "run 32832987990",
+          "event": "landed"
+        }
+      ],
+      "id": "20260825T090309Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-25T10:05:10Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-25T09:03:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "32832987990",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
