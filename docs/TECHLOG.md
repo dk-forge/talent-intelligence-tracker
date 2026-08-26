@@ -14,6 +14,23 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-27 - style_check.py: killed a quadratic regex in collect() (two-repo port)
+
+Ported byte-identical from the sibling AI Layoff Tracker, where collect() was the
+biggest cost in CI (~762s, 99.9% in one `re.sub`). The cause was one pattern in
+`_clean_literal`: `re.sub(r"\s+([,.;:!?])", ...)`. `\s+` before a class that
+usually fails to match backtracks O(k^2) on long whitespace runs. Replaced with
+two linear passes — `re.sub(r"\s+", " ", text)` (always succeeds, O(n)) then
+`re.sub(r" ([,.;:!?])", r"\1", text)`. Provably identical output: every caller
+collapses whitespace with `" ".join(text.split())` right after, and the layoff
+repo verified 1370 segments byte-identical before/after.
+
+The scorer is byte-identical across both repos, so this lands here too and
+`STYLE_CHECK_SHA256` is bumped in `tests/test_style_standard.py`. Full write-up
+and profile in the layoff repo's docs/TECHLOG.md (2026-08-26).
+
+**style_check.py sha256:** `395f73c00170717f6d11e01fb01f4d6ad5a7644cb4e177c4a0df90a29c25846f`
+
 ## 2026-08-21 - the figure was right and its own link disagreed with it (1.86.0)
 
 The day after the total stopped adding up divestiture prices, the number was
