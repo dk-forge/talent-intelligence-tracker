@@ -438,16 +438,17 @@ def _clean_literal(text):
     text = re.sub(r"%(?:\d+\$)?[-+ 0#']*[\d.]*[sdfux]", "one", text)
     text = re.sub(r"\{[a-zA-Z_][\w.\[\]']*\}", "one", text)
     # Merging text across an inline tag leaves "the health page ; the log",
-    # because the tag itself stood between the word and the punctuation. Drop
-    # that whitespace in two LINEAR passes — collapse runs, then remove the one
-    # space before punctuation. The old single pass, r"\s+([,.;:!?])", was
-    # quadratic: a greedy \s+ that then requires a punctuation char re-scans the
-    # whole whitespace run from every start position, so a literal with a long
-    # whitespace stretch fell off a cliff. Measured 2026-08-26: this one sub was
-    # 10.3s on the 78KB press page and the dominant cost on the 400KB+ subscribe
-    # page, together most of the browser suite's wall clock (TECHLOG). The final
-    # Segment text is `" ".join(cleaned.split())`, so collapsing every run here
-    # rather than only the pre-punctuation ones is identical after that join.
+    # because the tag itself stood between the word and the punctuation.
+    #
+    # Done in two linear passes, not one. The single pattern \s+([,.;:!?])
+    # backtracks quadratically on long whitespace runs that are NOT followed
+    # by punctuation: at every offset inside such a run \s+ re-matches the
+    # rest of the run and then fails the class, so a k-space run costs O(k^2)
+    # and the 7k-line templates spent minutes here. A \s+ replace that always
+    # succeeds consumes each run in one pass (O(n)), and a single-space match
+    # before punctuation cannot re-scan a run. Every caller of this function
+    # collapses whitespace with " ".join(text.split()) immediately after, so
+    # normalising runs to one space here changes no reader-visible segment.
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r" ([,.;:!?])", r"\1", text)
     return text

@@ -41,7 +41,7 @@ and `.github/workflows/style-standard.yml` stays green because the bytes still
 match. `docs/STYLE.md` is unchanged.
 
 **docs/STYLE.md sha256:** `28975ec6e9e5d99e95c8fc775f8ab033d558454091e8b8c3a972d314ef238c85`
-**style_check.py sha256:** `5a71ff70a0869551f70b3d1680cc6259ebf2af8f727879e5f532c3e6ada19d8b`
+**style_check.py sha256:** `395f73c00170717f6d11e01fb01f4d6ad5a7644cb4e177c4a0df90a29c25846f`
 
 ---
 
