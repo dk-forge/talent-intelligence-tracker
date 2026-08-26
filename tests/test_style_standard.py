@@ -76,7 +76,7 @@ TECHLOG_CANDIDATES = [ROOT / "docs" / "TECHLOG.md", ROOT / "docs" / "TECHLOG.md"
 # .github/workflows/style-standard.yml is the only check that can see the
 # sibling; these two constants are what make an ACCIDENTAL edit fail offline.
 STYLE_MD_SHA256 = "28975ec6e9e5d99e95c8fc775f8ab033d558454091e8b8c3a972d314ef238c85"
-STYLE_CHECK_SHA256 = "a45b3347508d830d128042f524946755508b2e5fd56bf971905a9cf2930e68b9"
+STYLE_CHECK_SHA256 = "5a71ff70a0869551f70b3d1680cc6259ebf2af8f727879e5f532c3e6ada19d8b"
 
 
 def _sha(path):

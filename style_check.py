@@ -438,8 +438,18 @@ def _clean_literal(text):
     text = re.sub(r"%(?:\d+\$)?[-+ 0#']*[\d.]*[sdfux]", "one", text)
     text = re.sub(r"\{[a-zA-Z_][\w.\[\]']*\}", "one", text)
     # Merging text across an inline tag leaves "the health page ; the log",
-    # because the tag itself stood between the word and the punctuation.
-    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    # because the tag itself stood between the word and the punctuation. Drop
+    # that whitespace in two LINEAR passes — collapse runs, then remove the one
+    # space before punctuation. The old single pass, r"\s+([,.;:!?])", was
+    # quadratic: a greedy \s+ that then requires a punctuation char re-scans the
+    # whole whitespace run from every start position, so a literal with a long
+    # whitespace stretch fell off a cliff. Measured 2026-08-26: this one sub was
+    # 10.3s on the 78KB press page and the dominant cost on the 400KB+ subscribe
+    # page, together most of the browser suite's wall clock (TECHLOG). The final
+    # Segment text is `" ".join(cleaned.split())`, so collapsing every run here
+    # rather than only the pre-punctuation ones is identical after that join.
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r" ([,.;:!?])", r"\1", text)
     return text
 
 
