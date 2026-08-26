@@ -39,8 +39,13 @@
       "first": 1787562118,
       "last": 1787562118,
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
+    },
+    "style-standard:main:ddd3429affb872c0": {
+      "first": 1787782785,
+      "last": 1787782785,
+      "subject": "CI RED: Style standard: style_check.py (scorer) differs from dk-forge/ai-layoff-tracker."
     }
   },
-  "updated_at": "2026-08-26T10:41:48+00:00",
+  "updated_at": "2026-08-26T22:19:46+00:00",
   "version": 1
 }
