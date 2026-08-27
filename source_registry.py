@@ -442,6 +442,71 @@ def google_news_queries(lang: str, *, window_days: int = 7) -> list[str]:
     return [f"{p} when:{window_days}d" for p in phrases]
 
 
+# --- US private-company executive appointments, off the press-release wires -
+#
+# THE GAP THIS FILLS. The leadership pillar's US spine is collectors/sec_edgar,
+# which reads 8-K Item 5.02 officer and director changes. An 8-K is a listed
+# company's obligation, so that spine sees PUBLIC employers only. A US private
+# company announcing a new chief executive does not file an 8-K; it puts the
+# release on a press-release wire — Business Wire, PR Newswire, GlobeNewswire.
+# The UK has no equivalent hole because Companies House files every officer
+# appointment at every company, listed or not (collectors/companies_house.py).
+#
+# THE ROUTE, and why it is the sanctioned one. data/sources_catalogue.csv
+# records all three wires as NOT WIRED: Business Wire answers 403 even on
+# robots.txt so its terms are unreadable, GlobeNewswire's robots.txt disallows
+# its RSS paths explicitly, and PR Newswire publishes no parseable feed — and
+# that PR Newswire row names the way in: "the route to this publisher is
+# google_news resolving to the release URL." So this pack is read through the
+# Google News INDEX exactly like every other google_news query, and the wire's
+# own feed is never fetched. The appointment is almost always in the headline
+# the index already carries ("Acme Names Jane Roe as Chief Executive Officer"),
+# so the pipeline acts on the index entry and the wire page is never requested.
+#
+# THE SHAPE. Two OR groups juxtaposed, which Google News reads as AND: an
+# appointment/promotion verb group AND an office group. Asked of the en-US
+# edition (gl=US), which is what biases the answer to US employers — the same
+# lever every other locale query pulls. A third variant names the wires as
+# free text, a legitimate Google-News query, to surface releases the plain
+# appointment query ranks below national-desk coverage.
+US_EXEC_WIRE_APPOINT = (
+    '"names" OR "appoints" OR "appointed" OR "promotes" OR "promoted" OR '
+    '"elevates" OR "elevated" OR "joins as" OR "to lead as" OR '
+    '"board appointment" OR "appoints to" OR "names to the board"'
+)
+US_EXEC_WIRE_OFFICE = (
+    '"chief executive" OR "CEO" OR "chief financial officer" OR "CFO" OR '
+    '"chief operating officer" OR "COO" OR "chief technology officer" OR "CTO" OR '
+    '"president" OR "chief people officer" OR "chief revenue officer" OR '
+    '"general counsel" OR "board of directors"'
+)
+# Named as ordinary free text, not as a source: operator (which Google News RSS
+# does not honour reliably). These three are press-release wires and are NOT the
+# banned commercial data-provider names — they appear in plaintext throughout
+# data/sources_catalogue.csv already.
+US_EXEC_WIRE_OUTLETS = (
+    '"Business Wire" OR "PR Newswire" OR "GlobeNewswire" OR "Globe Newswire"'
+)
+
+
+def us_exec_wire_queries(*, window_days: int = 7) -> list[str]:
+    """US executive-appointment discovery queries for the en-US edition.
+
+    Kept small on purpose: this reads the same index every google_news query
+    reads, and three near-identical appointment queries would resolve the same
+    releases three times over. The window is short because appointments are
+    announced once and read best fresh; already-seen URLs are skipped before
+    any spend, so nothing is lost by re-asking.
+    """
+    appoint = f"({US_EXEC_WIRE_APPOINT})"
+    office = f"({US_EXEC_WIRE_OFFICE})"
+    outlets = f"({US_EXEC_WIRE_OUTLETS})"
+    return [
+        f"{appoint} {office} when:{window_days}d",
+        f"{appoint} {office} {outlets} when:{window_days}d",
+    ]
+
+
 # --- City-led discovery ----------------------------------------------------
 #
 # EVERY PACK ABOVE IS AN INTENT AND NOT A PLACE. Sixteen languages, forty-nine
