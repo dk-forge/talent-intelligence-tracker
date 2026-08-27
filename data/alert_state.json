@@ -30,6 +30,11 @@
       "last": 1787611711,
       "subject": "CI RED: collect: ERROR  row 0: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contains invalid data"
     },
+    "drain-writers:main:2e81661ce7c364f0": {
+      "first": 1787859508,
+      "last": 1787859508,
+      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
+    },
     "indeed-index:main:de4b770fad6fd98e": {
       "first": 1787655113,
       "last": 1787655113,
@@ -41,6 +46,6 @@
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
     }
   },
-  "updated_at": "2026-08-26T22:24:43+00:00",
+  "updated_at": "2026-08-27T19:38:29+00:00",
   "version": 1
 }
