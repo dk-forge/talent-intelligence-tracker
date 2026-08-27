@@ -44,8 +44,13 @@
       "first": 1787562118,
       "last": 1787562118,
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
+    },
+    "tripwire:main:dc34cb9680008ded": {
+      "first": 1787859509,
+      "last": 1787859509,
+      "subject": "CI RED: tripwire: RESEND_API_KEY is not set. The notice was NOT sent."
     }
   },
-  "updated_at": "2026-08-27T19:38:29+00:00",
+  "updated_at": "2026-08-27T19:38:35+00:00",
   "version": 1
 }
