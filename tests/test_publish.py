@@ -164,7 +164,14 @@ def test_the_enrich_run_budget_reports_the_rest_rather_than_being_killed(
     way retract.py's RUN_BUDGET_SECONDS does, and says what it did not get
     to."""
     conn = schema.connect(tmp_path / "e.db")
-    n = 60  # BATCH_SIZE is 25, so this is 3 batches
+    # DERIVED from BATCH_SIZE, never hardcoded: this test first shipped with
+    # "n = 60  # BATCH_SIZE is 25, so this is 3 batches" and BATCH_SIZE later
+    # became 100, which quietly collapsed the fixture to ONE batch. The budget
+    # is checked BETWEEN batches, so a single-batch fixture can never trip it:
+    # the test went green-by-vacuity rather than red, and would have kept
+    # asserting nothing. Three batches is the smallest fixture that proves
+    # "stop before the next batch" rather than "stop before the only batch".
+    n = publish.BATCH_SIZE * 3
     for i in range(n):
         conn.execute(
             "INSERT INTO signals (signal_id, headline, summary, talent_readthrough,"
@@ -206,9 +213,10 @@ def test_the_enrich_run_budget_reports_the_rest_rather_than_being_killed(
     monkeypatch.setattr(publish.time, "monotonic", lambda: next(clock))
 
     result = publish.enrich_published(conn, budget=600)
-    assert result["not_attempted"] == 35, (
-        "35 of 60 rows (batches 2 and 3) must be reported as not attempted, "
-        f"got {result['not_attempted']}")
-    assert result["sent"] == 25, "the batch already in flight when the budget "\
-        "tripped must still complete rather than being abandoned mid-send"
+    assert result["not_attempted"] == publish.BATCH_SIZE * 2, (
+        f"batches 2 and 3 ({publish.BATCH_SIZE * 2} rows) must be reported as "
+        f"not attempted, got {result['not_attempted']}")
+    assert result["sent"] == publish.BATCH_SIZE, (
+        "the batch already in flight when the budget tripped must still "
+        "complete rather than being abandoned mid-send")
     assert len(sent_batches) == 1
