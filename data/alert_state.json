@@ -49,13 +49,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tripwire:main:dc34cb9680008ded": {
-      "first": 1787859509,
-      "last": 1787859509,
-      "subject": "CI RED: tripwire: RESEND_API_KEY is not set. The notice was NOT sent."
     }
   },
-  "updated_at": "2026-08-28T01:21:59+00:00",
+  "updated_at": "2026-08-28T01:22:20+00:00",
   "version": 1
 }
