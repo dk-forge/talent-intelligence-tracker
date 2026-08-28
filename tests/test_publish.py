@@ -151,3 +151,72 @@ def test_the_headquarters_columns_can_reach_the_site():
     for column in ("hq_city", "hq_country"):
         assert column in publish.ENRICHABLE
         assert column in _PHP_COLUMNS
+
+
+# --- the enrich loop stops itself before the platform's timeout does --------
+
+def test_the_enrich_run_budget_reports_the_rest_rather_than_being_killed(
+        tmp_path, monkeypatch):
+    """A run killed by the platform mid-loop gives back nothing: no batch
+    count, no error, no clue whether it was hung or just slow. Run
+    32835391093 (2026-08-25) did exactly that -- 30 minutes of zero output
+    before GitHub cancelled the job. So the loop stops ITSELF first, the same
+    way retract.py's RUN_BUDGET_SECONDS does, and says what it did not get
+    to."""
+    conn = schema.connect(tmp_path / "e.db")
+    # DERIVED from BATCH_SIZE, never hardcoded: this test first shipped with
+    # "n = 60  # BATCH_SIZE is 25, so this is 3 batches" and BATCH_SIZE later
+    # became 100, which quietly collapsed the fixture to ONE batch. The budget
+    # is checked BETWEEN batches, so a single-batch fixture can never trip it:
+    # the test went green-by-vacuity rather than red, and would have kept
+    # asserting nothing. Three batches is the smallest fixture that proves
+    # "stop before the next batch" rather than "stop before the only batch".
+    n = publish.BATCH_SIZE * 3
+    for i in range(n):
+        conn.execute(
+            "INSERT INTO signals (signal_id, headline, summary, talent_readthrough,"
+            " company, company_key, pillar, signal_direction, confidence, source_url,"
+            " source_name, captured_at, as_of, content_hash, collector,"
+            " published_date, published_at, funding_amount_usd)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (f"sig{i}", "h", "s", "t", "Acme", "acme", "company_development",
+             "hiring", "reported", f"https://example.com/{i}", "Example",
+             "2026-01-01", "2026-01-01", f"hash{i}", "google_news",
+             "2026-01-01", "2026-01-02", 1_000_000 + i),
+        )
+    conn.commit()
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"updated": len(sent_batches[-1])}
+
+    sent_batches = []
+
+    class FakeSession:
+        def post(self, url, json=None, **kw):
+            sent_batches.append(json["rows"])
+            return FakeResponse()
+
+    monkeypatch.setattr(publish.requests, "Session", lambda: FakeSession())
+    monkeypatch.setenv("WP_SITE_URL", "https://asktherecruiter.com/blog")
+    monkeypatch.setenv("WP_API_KEY", "k" * 40)
+
+    # started() consumes the first tick (0). The budget check ahead of batch
+    # 0 sees elapsed=400 (<= 600, proceeds); the check ahead of batch 1 sees
+    # elapsed=800 (> 600, stops), so only the first batch goes out.
+    clock = iter(range(0, 100_000, 400))
+    monkeypatch.setattr(publish.time, "monotonic", lambda: next(clock))
+
+    result = publish.enrich_published(conn, budget=600)
+    assert result["not_attempted"] == publish.BATCH_SIZE * 2, (
+        f"batches 2 and 3 ({publish.BATCH_SIZE * 2} rows) must be reported as "
+        f"not attempted, got {result['not_attempted']}")
+    assert result["sent"] == publish.BATCH_SIZE, (
+        "the batch already in flight when the budget tripped must still "
+        "complete rather than being abandoned mid-send")
+    assert len(sent_batches) == 1

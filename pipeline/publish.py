@@ -36,6 +36,29 @@ TIMEOUT = 30
 BATCH_SIZE = 100
 RETRY_STATUSES = (500, 502, 503, 504)
 
+#: Wall-clock budget for the enrich loop, in seconds.
+#:
+#: enrich.yml's timeout-minutes is 30 and, unlike retract.py, this loop had no
+#: self-imposed ceiling: a batch that exhausts its retry ladder is 4 attempts
+#: x 60s timeout + 15s of pauses ~= 4.25 min, and every batch after it pays the
+#: same toll against a host that is having a bad day. Nothing here prints
+#: between batches either, so the run that hits the platform's own timeout
+#: gives back zero information -- indistinguishable from a hang. That is what
+#: happened on 2026-08-25 (run 32835391093): "Push derived values" produced no
+#: output at all for the full 30 minutes before GitHub cancelled it.
+#:
+#: So the script stops ITSELF first, the same way retract.py does. Past the
+#: budget the remaining rows are left unsent and reported by name in
+#: `not_attempted`, and the caller (enrich.yml) fails loud with that count
+#: instead of being silently killed by the platform.
+#:
+#: Ceiling = budget (20) + one batch's full ladder (4.25) + overhead
+#: (checkout + hashed pip install, ~0.5) ~= 24.75 min, comfortably under the
+#: workflow's 30. Raise both together or not at all: a self-imposed budget
+#: under the platform's timeout is what lets the script win the race and say
+#: why; past that point being killed is silent again.
+RUN_BUDGET_SECONDS = int(os.environ.get("TIT_ENRICH_BUDGET", 20 * 60))
+
 
 class PublishError(RuntimeError):
     pass
@@ -228,7 +251,8 @@ ENRICHABLE = (
 )
 
 
-def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
+def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None,
+                      budget: int | None = None) -> dict:
     """Push derived fields onto rows the site already holds.
 
     publish() only ever sends rows with published_at IS NULL, and the server
@@ -275,17 +299,35 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
     if not rows:
         _escalate(guard, 0)
         return {"sent": 0, "updated": 0, "errors": [],
-                "quarantined": len(held), "guardrails": guard}
+                "quarantined": len(held), "guardrails": guard,
+                "not_attempted": 0}
     if dry_run:
         return {"sent": 0, "updated": 0, "errors": [], "would_send": len(rows),
-                "quarantined": len(held), "guardrails": guard}
+                "quarantined": len(held), "guardrails": guard,
+                "not_attempted": 0}
 
     site, key = _config()
     session = requests.Session()
     updated = sent = 0
     errors: list[dict] = []
-    for start in range(0, len(rows), BATCH_SIZE):
+    budget = RUN_BUDGET_SECONDS if budget is None else budget
+    started = time.monotonic()
+    starts = list(range(0, len(rows), BATCH_SIZE))
+    not_attempted = 0
+    for i, start in enumerate(starts):
+        # Stops itself before the platform's own timeout does, the same way
+        # retract.py's RUN_BUDGET_SECONDS does: a batch that exhausts its
+        # retry ladder is expensive, and a run the platform kills reports
+        # nothing at all. This reports what it did and did not attempt.
+        if time.monotonic() - started > budget:
+            not_attempted = len(rows) - start
+            print(f"enrich: run budget of {budget}s exhausted after batch "
+                  f"{i} of {len(starts)}; {not_attempted} row(s) not attempted",
+                  flush=True)
+            break
         batch = rows[start:start + BATCH_SIZE]
+        print(f"enrich: batch {i + 1}/{len(starts)} ({len(batch)} rows)",
+              flush=True)
         # Same retry as _post_batch above, and for the same reason. That
         # function's comment -- "shared hosting 500s at random under load, a
         # single bad response must not abort the run" -- was written about the
@@ -330,7 +372,8 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None) -
         sent += len(batch)
     _escalate(guard, sent)
     return {"sent": sent, "updated": updated, "errors": errors,
-            "quarantined": len(held), "guardrails": guard}
+            "quarantined": len(held), "guardrails": guard,
+            "not_attempted": not_attempted}
 
 
 def unpublished(conn, limit: int | None = None) -> list[dict]:
