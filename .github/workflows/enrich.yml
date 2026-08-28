@@ -27,7 +27,15 @@ concurrency:
 jobs:
   enrich:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 45, raised from 30 with the reason written down (the ops alert asks for
+    # exactly that or "make it fit", and this change does both). The primary fix
+    # is BATCH_SIZE 25 -> 100 in publish.py, which cuts the Bluehost round trips
+    # ~4x and on its own brings the run well under 30 minutes. The extra 15
+    # minutes is headroom for the shared host's variable latency and retry
+    # backoff on a bad afternoon, not the fix — so a run that still hits 45 is
+    # hung, not merely slow, and should be read as the set having outgrown the
+    # batch win (then: incremental enrichment, see the BATCH_SIZE note).
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

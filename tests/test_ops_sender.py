@@ -347,30 +347,85 @@ class EveryJobThatMailsCarriesTheKeyThatLetsItMail(unittest.TestCase):
     exits 0.
     """
 
-    #: script name -> workflow file that runs it.
+    #: script name -> EVERY workflow file that runs it. Tuples, not single
+    #: names: `ci_alert.py` is invoked by two workflows (the run-completed
+    #: listener AND tripwire's spend-ceiling notice), and while this map was
+    #: one-to-one the second was invisible to this test. That is exactly how
+    #: tripwire.yml kept the old WordPress credentials for a week after the
+    #: Resend move and went red on 2026-08-27 the first time the ceiling
+    #: bound. `test_no_mailing_script_runs_outside_this_map` is what keeps
+    #: this map honest from now on.
     JOBS = {
-        "ci_alert.py": "ci-alert.yml",
-        "ci_noise_report.py": "ci-noise-report.yml",
-        "health_digest.py": "health-digest.yml",
-        "run_benchmark_diff.py": "benchmark-diff.yml",
-        "train_gate_classifier.py": "gate-classifier.yml",
-        "host_watch.py": "host-watch.yml",
+        "ci_alert.py": ("ci-alert.yml", "tripwire.yml"),
+        "ci_noise_report.py": ("ci-noise-report.yml",),
+        "health_digest.py": ("health-digest.yml",),
+        "run_benchmark_diff.py": ("benchmark-diff.yml",),
+        "train_gate_classifier.py": ("gate-classifier.yml",),
+        "host_watch.py": ("host-watch.yml",),
     }
+
+    @staticmethod
+    def _invokes(text: str, script: str) -> bool:
+        """True when a workflow RUNS the script, not merely mentions it.
+
+        ci-alert.yml and self-heal.yml both name scripts in comments; a
+        comment does not mail anything and must not demand a key.
+        """
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            if script in stripped and "python" in stripped:
+                return True
+        return False
+
+    @staticmethod
+    def _passes_key(text: str) -> bool:
+        """True when the workflow has an UNCOMMENTED `RESEND_API_KEY:` env
+        assignment. A plain substring check is satisfied by the comment that
+        explains the key — which is precisely how a step could describe the
+        credential it does not carry and stay green here."""
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            if stripped.startswith("RESEND_API_KEY:"):
+                return True
+        return False
 
     def test_each_workflow_passes_the_resend_key(self):
         missing = []
-        for script, workflow in self.JOBS.items():
-            path = WORKFLOWS / workflow
-            if not path.exists():
-                missing.append(f"{workflow} (no such workflow)")
-                continue
-            text = path.read_text()
-            if script not in text:
-                missing.append(f"{workflow} no longer runs {script}")
-            elif "RESEND_API_KEY" not in text:
-                missing.append(f"{workflow} runs {script} but passes no "
-                               "RESEND_API_KEY, so its mail is silent")
+        for script, workflows in self.JOBS.items():
+            for workflow in workflows:
+                path = WORKFLOWS / workflow
+                if not path.exists():
+                    missing.append(f"{workflow} (no such workflow)")
+                    continue
+                text = path.read_text()
+                if not self._invokes(text, script):
+                    missing.append(f"{workflow} no longer runs {script}")
+                elif not self._passes_key(text):
+                    missing.append(f"{workflow} runs {script} but passes no "
+                                   "RESEND_API_KEY, so its mail is silent")
         self.assertEqual(missing, [], missing)
+
+    def test_no_mailing_script_runs_outside_this_map(self):
+        """A workflow that starts invoking a mailing script must be enumerated.
+
+        The 2026-08-27 tripwire red happened because this file checked the ONE
+        workflow it knew ran `ci_alert.py` and a second caller drifted with no
+        test on it. Any uncommented invocation of a mailing script in a
+        workflow this map does not list fails here, so the next second caller
+        arrives already covered.
+        """
+        unlisted = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            for script, workflows in self.JOBS.items():
+                if self._invokes(text, script) and path.name not in workflows:
+                    unlisted.append(f"{path.name} runs {script} but is not in "
+                                    "EveryJobThatMailsCarriesTheKeyThatLetsItMail.JOBS")
+        self.assertEqual(unlisted, [], unlisted)
 
     def test_the_sender_override_travels_with_the_key(self):
         """`OPS_MAIL_FROM` goes wherever `RESEND_API_KEY` goes.
@@ -397,7 +452,7 @@ class EveryJobThatMailsCarriesTheKeyThatLetsItMail(unittest.TestCase):
         and both mail. Dedup would then be a property of a single runner, which
         is not dedup.
         """
-        for workflow in ("ci-alert.yml", "ci-noise-report.yml"):
+        for workflow in ("ci-alert.yml", "ci-noise-report.yml", "tripwire.yml"):
             text = (WORKFLOWS / workflow).read_text()
             self.assertIn("ALERT_STATE_COMMIT", text, workflow)
 

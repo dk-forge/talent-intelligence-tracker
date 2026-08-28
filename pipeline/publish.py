@@ -21,7 +21,19 @@ from . import guardrails
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 TIMEOUT = 30
 
-BATCH_SIZE = 25
+# 100, not 25. enrich_published re-sends EVERY published row that carries a
+# derived value, one HTTP POST per BATCH_SIZE rows, and the bottleneck is not
+# payload — it is the fixed per-request cost of a Bluehost round trip (TLS + WP
+# bootstrap, ~1-3s each). At 25 the published set had grown to enough batches
+# that the sequential POSTs ran past the enrich job's 30-minute ceiling and the
+# runner killed it mid-run. /enrich caps nothing server-side (it validates only
+# that the body is {"rows":[...]}), and the payload of 100 derived-column rows
+# is small, so quadrupling the batch cuts the round trips ~4x and brings the run
+# comfortably back inside the ceiling. This buys years of runway at the current
+# growth; if the set ever outgrows it again the durable bound is incremental
+# enrichment (only send rows whose derived values changed), which needs a
+# persisted per-row marker the enrich job does not currently commit back.
+BATCH_SIZE = 100
 RETRY_STATUSES = (500, 502, 503, 504)
 
 #: Wall-clock budget for the enrich loop, in seconds.

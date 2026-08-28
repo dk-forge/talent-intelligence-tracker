@@ -30,22 +30,22 @@
       "last": 1787611711,
       "subject": "CI RED: collect: ERROR  row 0: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contains invalid data"
     },
-    "drain-writers:main:2e81661ce7c364f0": {
-      "first": 1787570548,
-      "last": 1787570548,
-      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
-    },
-    "enrich:main:cd0f1a58933504d7": {
-      "first": 1787570520,
-      "last": 1787570520,
-      "subject": "CI RED: enrich: pipeline.publish.PublishError: 1 guardrail finding(s) have been open longer than their grace window (oldest 209h). 31905 clean row(s) WERE published; the flagged on"
+    "indeed-index:main:de4b770fad6fd98e": {
+      "first": 1787655113,
+      "last": 1787655113,
+      "subject": "CI RED: indeed-index: pipeline.publish.PublishError: 404: {\"code\":\"rest_no_route\",\"message\":\"No route was found matching the URL and request method.\",\"data\":{\"status\":404}}"
     },
     "recall:main:726d76af0651f20d": {
       "first": 1787562118,
       "last": 1787562118,
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
+    },
+    "spend-ceiling:2026-08": {
+      "first": 1787880119,
+      "last": 1787880119,
+      "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-08-25T04:42:59+00:00",
+  "updated_at": "2026-08-28T01:23:02+00:00",
   "version": 1
 }

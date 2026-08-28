@@ -111,7 +111,12 @@ def test_live_sources_are_only_the_ones_with_collectors():
 # irs_form_990 ships dormant too: it is built, tested and dry-run, and nothing
 # schedules it, so the page must not claim IRS coverage the tracker has not
 # collected. Move it out of this set in the same change that schedules it.
-_DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase", "irs_form_990"}
+# us_exec_wire is the same: the US private-company executive-appointment wire
+# discovery is built, tested and has an arm-first dry-run probe, but nothing
+# schedules it and TIT_US_EXEC_WIRE defaults off, so the page must not claim it
+# as live coverage until a run has actually stored from it.
+_DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase", "irs_form_990",
+                       "us_exec_wire"}
 
 
 def _registered_collector_keys():
