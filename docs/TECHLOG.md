@@ -14,6 +14,38 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-27 - the shared scorer had a quadratic regex (two-repo fix)
+
+`style_check._clean_literal` collapsed whitespace before punctuation with a
+single `re.sub(r"\s+([,.;:!?])", r"\1", text)`. A greedy `\s+` that then
+REQUIRES a punctuation character re-scans the whole whitespace run from every
+start position, so a source literal with a long whitespace stretch went
+quadratic. Measured in the sibling layoff tracker on 2026-08-26: that one sub
+was 10.3s on a 78KB page and 968s across the full reader-copy set (a 400KB+
+subscribe page dominating), and it was the single biggest cost in that repo's
+browser test suite — one module, `test_reader_copy_says_entries`, spent ~708s
+of an ~860s CI leg entirely inside it, intermittently cancelling at the
+15-minute wall and firing CI-alert emails.
+
+**The fix** is two LINEAR passes: `re.sub(r"\s+", " ", text)` then
+`re.sub(r" ([,.;:!?])", r"\1", text)`. The first has no trailing requirement so
+it matches each run once and cannot re-scan; the second acts on already-single
+spaces. The final Segment text is `" ".join(cleaned.split())`, so collapsing
+every whitespace run rather than only the pre-punctuation ones is IDENTICAL
+after that join — verified byte-for-byte across all target files (1495 segments,
+0 differences; 968s -> 0.33s).
+
+Shared scorer, so this is a **two-repo change**: the same edit lands in
+dk-forge/ai-layoff-tracker and here, both digests bump, both TECHLOGs record it,
+and `.github/workflows/style-standard.yml` stays green because the bytes still
+match. `docs/STYLE.md` is unchanged.
+
+**docs/STYLE.md sha256:** `28975ec6e9e5d99e95c8fc775f8ab033d558454091e8b8c3a972d314ef238c85`
+**style_check.py sha256:** `395f73c00170717f6d11e01fb01f4d6ad5a7644cb4e177c4a0df90a29c25846f`
+
+---
+
+
 ## 2026-08-21 - the figure was right and its own link disagreed with it (1.86.0)
 
 The day after the total stopped adding up divestiture prices, the number was

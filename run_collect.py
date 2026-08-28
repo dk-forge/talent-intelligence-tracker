@@ -23,7 +23,7 @@ from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         national_press,
                         opendart_korea, primary_chase, sec_edgar,
                         sec_execcomp, sec_form_d, singapore_acra, spain_borme,
-                        tripwire_chase, uk_paygap)
+                        tripwire_chase, uk_paygap, us_exec_wire)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       gate_ledger, leadership_intl, prefilter, publish, schema,
                       store, validate)
@@ -47,6 +47,17 @@ SOURCES = {
     "google_news": google_news,
     "gdelt": gdelt,
     "national_press": national_press,
+    # DORMANT (double-locked): nothing schedules it, and TIT_US_EXEC_WIRE
+    # defaults off, so a disarmed run makes no request. The leadership pillar's
+    # US spine, sec_edgar, sees PUBLIC employers only (an 8-K is a listed
+    # company's obligation); US PRIVATE-company executive appointments are
+    # announced on the press-release wires (Business Wire, PR Newswire,
+    # GlobeNewswire), all three NOT WIRED in the catalogue. This reaches those
+    # releases through the sanctioned route the catalogue itself names — the
+    # Google News index resolving to the release URL — and never fetches a
+    # wire's own feed. See collectors/us_exec_wire.py and us_exec_wire_probe.py
+    # for the arm-first dry-run diagnostic.
+    "us_exec_wire": us_exec_wire,
     "sec_edgar": sec_edgar,
     "sec_form_d": sec_form_d,
     "sec_execcomp": sec_execcomp,

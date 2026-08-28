@@ -439,7 +439,18 @@ def _clean_literal(text):
     text = re.sub(r"\{[a-zA-Z_][\w.\[\]']*\}", "one", text)
     # Merging text across an inline tag leaves "the health page ; the log",
     # because the tag itself stood between the word and the punctuation.
-    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    #
+    # Done in two linear passes, not one. The single pattern \s+([,.;:!?])
+    # backtracks quadratically on long whitespace runs that are NOT followed
+    # by punctuation: at every offset inside such a run \s+ re-matches the
+    # rest of the run and then fails the class, so a k-space run costs O(k^2)
+    # and the 7k-line templates spent minutes here. A \s+ replace that always
+    # succeeds consumes each run in one pass (O(n)), and a single-space match
+    # before punctuation cannot re-scan a run. Every caller of this function
+    # collapses whitespace with " ".join(text.split()) immediately after, so
+    # normalising runs to one space here changes no reader-visible segment.
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r" ([,.;:!?])", r"\1", text)
     return text
 
 

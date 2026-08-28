@@ -11,8 +11,10 @@ every decision in it:
 2. **The signal is the DIFF, not the listing.** One vacancy is a job advert,
    and `validate._JOB_POSTING_PATH` exists because storing adverts would make
    this a bad job board instead of a signal tracker. What is market
-   intelligence is "this employer opened 40 more roles in Dublin this
-   fortnight", which is a fact about the employer, derived from counting.
+   intelligence is "this employer's board listed 40 more active postings in
+   Dublin this fortnight than our previous scan", an observed fact about the
+   employer, derived from counting -- NOT a claim it opened that many new roles
+   (old postings expire as new ones appear).
 3. **No model is involved.** Titles, locations, pay bands and work mode are
    all fields. There is no LLM cost at all, on any of the three row kinds.
 
@@ -1208,8 +1210,13 @@ def _hiring_item(entry: dict, current: dict, baseline: dict, today: str) -> dict
     functions = _grown_functions(current, baseline)
 
     where = f" in {label}" if label else ""
-    headline = (f"{company} opened {delta} more roles{where} "
-                f"(job board: {baseline['total']} to {current['total']})")
+    # HONESTY: a board-scan delta is an OBSERVATION, not a hiring act. The count
+    # rose because the employer's board LISTED more active postings than our
+    # previous scan -- old postings expire while new ones appear, so this never
+    # proves the employer "opened" that many new roles. Describe the measurement,
+    # not an intent we did not witness. (The body below already says as much.)
+    headline = (f"{company}'s job board listed {delta} more active postings{where} "
+                f"than our previous scan (job board: {baseline['total']} to {current['total']})")
 
     body = (
         f"{company}'s own job board listed {current['total']} open roles on "
