@@ -151,16 +151,41 @@ jobs:
 
       # ONE email per allowance month, on the existing rails. The red run used
       # to be what told the owner; now that stopping is green, this is. Deduped
-      # server-side on the month, so the eight remaining runs of a closed month
-      # add nothing to the inbox — and held in the outbox, never dropped, if the
-      # host is down.
+      # on the month through the committed ledger, so the eight remaining runs
+      # of a closed month add nothing to the inbox — and held in the outbox,
+      # never dropped, if the relay is down.
+      #
+      # This step carried the OLD route's credentials (WP_SITE_URL/WP_API_KEY)
+      # for a week after operational mail moved to Resend on 2026-08-20, and
+      # nothing noticed until the ceiling next bound: ci_alert.py errored
+      # "RESEND_API_KEY is not set", this run went red, the ticket was filed
+      # failed, and drain-writers went red once on top of it (2026-08-27, run
+      # 33109280109). tests/test_ops_sender.py enumerated the mailing jobs
+      # one workflow per script, so the SECOND workflow that runs ci_alert.py
+      # was invisible to it; it now checks every workflow a script appears in.
       - name: Tell the owner the ceiling is binding
         if: ${{ steps.spend.outputs.over == 'true' && !inputs.dry_run && !inputs.offline }}
         env:
-          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
-          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # The relay that carries operational mail. It is deliberately NOT on
+          # the host these alerts are about: see opsmail.py. Without it the job
+          # is red and no mail leaves, which is why
+          # tests/test_ops_sender.py fails when a mailing job lacks it.
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          # Travels WITH the key, always. It is unset today, so opsmail's
+          # default applies everywhere; the day it is set, a job that does not
+          # carry it keeps the old From and the owner has two identities to
+          # filter.
+          OPS_MAIL_FROM: ${{ vars.OPS_MAIL_FROM }}
+          # The claim is COMMITTED BEFORE THE SEND, and `git push` to main is
+          # the compare-and-swap that keeps one cause to one email across two
+          # concurrent runners. See alert_state.py.
+          ALERT_STATE_COMMIT: 'true'
           ALERT_ENVELOPE: ${{ runner.temp }}/alert-envelope.json
         run: |
+          # Needed by the ledger claim above, which commits data/alert_state.json
+          # before anything is sent.
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
           python ci_alert.py \
             --notice-key "spend-ceiling:$(date -u +%Y-%m)" \
             --notice-subject "Spend is at the monthly allowance" \
