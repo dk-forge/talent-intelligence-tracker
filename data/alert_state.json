@@ -30,11 +30,6 @@
       "last": 1787611711,
       "subject": "CI RED: collect: ERROR  row 0: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contains invalid data"
     },
-    "drain-writers:main:2e81661ce7c364f0": {
-      "first": 1787859508,
-      "last": 1787859508,
-      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
-    },
     "indeed-index:main:de4b770fad6fd98e": {
       "first": 1787655113,
       "last": 1787655113,
@@ -51,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-08-28T01:22:20+00:00",
+  "updated_at": "2026-08-28T01:23:02+00:00",
   "version": 1
 }
