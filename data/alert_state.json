@@ -10,16 +10,6 @@
       "last": 1787529118,
       "subject": "CI RED: collect national press: [guardrail] 1 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
     },
-    "collect:main:471e7ce8c5895ce1": {
-      "first": 1787525498,
-      "last": 1787525498,
-      "subject": "CI RED: collect: [guardrail] 1 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
-    },
-    "collect:main:90a0a30e90baef17": {
-      "first": 1787611711,
-      "last": 1787611711,
-      "subject": "CI RED: collect: ERROR  row 0: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contains invalid data"
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788014078,
       "last": 1788014078,
@@ -41,6 +31,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-08-29T17:39:03+00:00",
+  "updated_at": "2026-08-29T17:44:36+00:00",
   "version": 1
 }
