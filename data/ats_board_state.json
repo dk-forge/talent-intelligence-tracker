@@ -4500,7 +4500,7 @@
     "salary": {
      "currency": "USD",
      "listed": 66,
-     "median_max": 239500,
+     "median_max": 240000,
      "median_min": 179800,
      "other_currencies": [],
      "place": "country:US"
@@ -50993,30 +50993,30 @@
     },
     {
      "date": "2026-08-29",
-     "total": 250
+     "total": 234
     }
    ],
    "last": {
     "date": "2026-08-29",
     "functions": {
-     "customer_support": 19,
-     "data_ai": 15,
+     "customer_support": 18,
+     "data_ai": 14,
      "design": 6,
-     "engineering": 61,
+     "engineering": 58,
      "finance": 3,
      "hr_people": 2,
-     "it_infrastructure": 9,
+     "it_infrastructure": 8,
      "legal_compliance": 2,
-     "marketing": 5,
+     "marketing": 4,
      "operations": 5,
-     "product": 9,
-     "sales": 49
+     "product": 6,
+     "sales": 47
     },
-    "mode_known": 212,
+    "mode_known": 198,
     "mode_place": "country:US",
     "mode_structured": 0,
     "modes": {
-     "remote": 212
+     "remote": 198
     },
     "places": {
      "city:Atlanta": 6,
@@ -51027,7 +51027,7 @@
      "city:Columbus": 1,
      "city:Dallas": 1,
      "city:Houston": 1,
-     "city:London": 15,
+     "city:London": 12,
      "city:Montreal": 1,
      "city:New York": 1,
      "city:Ottawa": 1,
@@ -51036,20 +51036,19 @@
      "city:Seattle": 1,
      "city:Toronto": 3,
      "city:Vancouver": 1,
-     "country:CA": 23,
-     "country:DE": 4,
-     "country:FR": 3,
-     "country:GB": 7,
-     "country:MX": 13,
+     "country:CA": 22,
+     "country:DE": 2,
+     "country:FR": 2,
+     "country:GB": 4,
+     "country:MX": 10,
      "country:NL": 2,
-     "country:PL": 1,
-     "country:US": 137,
+     "country:US": 135,
      "remote:": 10
     },
     "salary": {
      "currency": "USD",
-     "listed": 93,
-     "median_max": 178650,
+     "listed": 91,
+     "median_max": 178000,
      "median_min": 118107,
      "other_currencies": [
       "CAD",
@@ -51058,7 +51057,7 @@
      ],
      "place": "country:US"
     },
-    "total": 250
+    "total": 234
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -51124,8 +51123,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "250 open roles on 2026-08-29 against 310 on 2026-07-30: -60 (19%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -60,
+    "basis": "234 open roles on 2026-08-29 against 310 on 2026-07-30: -76 (25%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -76,
     "direction": "falling",
     "from": {
      "date": "2026-07-30",
@@ -51134,7 +51133,7 @@
     "observations": 31,
     "to": {
      "date": "2026-08-29",
-     "total": 250
+     "total": 234
     },
     "window_days": 30
    },
@@ -54443,7 +54442,7 @@
     },
     {
      "date": "2026-08-29",
-     "total": 573
+     "total": 575
     }
    ],
    "last": {
@@ -54452,7 +54451,7 @@
      "customer_support": 12,
      "data_ai": 26,
      "design": 19,
-     "engineering": 103,
+     "engineering": 105,
      "executive": 5,
      "finance": 16,
      "hr_people": 8,
@@ -54506,17 +54505,17 @@
      "country:MX": 3,
      "country:NA": 1,
      "country:PL": 2,
-     "country:US": 42,
+     "country:US": 43,
      "remote:": 41
     },
-    "total": 573
+    "total": 575
    },
    "slug": "stripe",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "573 open roles on 2026-08-29 against 539 on 2026-07-30: a move of +34 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 34,
+    "basis": "575 open roles on 2026-08-29 against 539 on 2026-07-30: a move of +36 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 36,
     "direction": "flat",
     "from": {
      "date": "2026-07-30",
@@ -54525,7 +54524,7 @@
     "observations": 31,
     "to": {
      "date": "2026-08-29",
-     "total": 573
+     "total": 575
     },
     "window_days": 30
    },
