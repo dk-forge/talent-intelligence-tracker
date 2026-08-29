@@ -12939,7 +12939,7 @@
     },
     {
      "date": "2026-08-29",
-     "total": 138
+     "total": 139
     }
    ],
    "last": {
@@ -12950,24 +12950,24 @@
      "engineering": 31,
      "executive": 1,
      "finance": 5,
-     "hr_people": 7,
+     "hr_people": 8,
      "it_infrastructure": 3,
      "legal_compliance": 6,
      "marketing": 10,
      "product": 7,
      "sales": 55
     },
-    "mode_known": 138,
+    "mode_known": 139,
     "mode_place": "city:New York",
-    "mode_structured": 138,
+    "mode_structured": 139,
     "modes": {
-     "hybrid": 110,
+     "hybrid": 111,
      "onsite": 12,
      "remote": 16
     },
     "places": {
      "city:London": 9,
-     "city:New York": 105,
+     "city:New York": 106,
      "city:San Francisco": 8,
      "city:Stockholm": 1,
      "city:Toronto": 4,
@@ -12976,8 +12976,8 @@
     },
     "salary": {
      "currency": "USD",
-     "listed": 120,
-     "median_max": 264500,
+     "listed": 121,
+     "median_max": 260000,
      "median_min": 168000,
      "other_currencies": [
       "CAD",
@@ -12986,7 +12986,7 @@
      ],
      "place": "city:New York"
     },
-    "total": 138
+    "total": 139
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -13038,8 +13038,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "138 open roles on 2026-08-29 against 123 on 2026-07-30: +15 (12%) across 31 readings over 30 days",
-    "delta": 15,
+    "basis": "139 open roles on 2026-08-29 against 123 on 2026-07-30: +16 (13%) across 31 readings over 30 days",
+    "delta": 16,
     "direction": "rising",
     "from": {
      "date": "2026-07-30",
@@ -13048,7 +13048,7 @@
     "observations": 31,
     "to": {
      "date": "2026-08-29",
-     "total": 138
+     "total": 139
     },
     "window_days": 30
    },
