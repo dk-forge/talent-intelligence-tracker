@@ -1141,11 +1141,188 @@ def rejected_findings(conn) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def review(conn, key: str, state: str, note: str, who: str = "") -> int:
-    """Accept or reject one finding. `key` is 'check/subject'."""
+#: One real-world event, seen twice. Both bounds were measured against the whole
+#: ledger rather than chosen: at these values the matcher finds four pairs and
+#: every one of them is genuine (DayOne/DayOne Data Centers, Kingswood
+#: Capital/Kingswood Capital Management, the two Intel $20bn stock-sale rows,
+#: and Alibaba/Alibaba Group Holding), with no false pair anywhere in it.
+EVENT_AMOUNT_RATIO = 1.15
+EVENT_WINDOW_DAYS = 14
+
+
+def _event_tokens(company: str) -> list[str]:
+    """The employer's key as tokens, for prefix comparison."""
+    try:
+        from pipeline.vocab import company_key
+    except Exception:                                    # pragma: no cover
+        return (company or "").lower().split()
+    return company_key(company or "").split()
+
+
+def same_event(a: dict, b: dict) -> bool:
+    """Do two findings describe ONE announcement?
+
+    THIS IS ADVISORY AND IT NEVER MERGES ANYTHING. It decides what a reviewer
+    is shown, not what a row is worth, and it writes to no column. That is the
+    whole reason it may use a looser employer test than `company_key`: getting
+    it wrong costs a line of output, not a number in public.
+
+    Three conditions, all required:
+
+      employer  one key is a token-wise PREFIX of the other. This is what
+                catches every shape the ledger actually holds -- `alibaba` vs
+                `alibaba group holding`, `kingswood capital` vs `kingswood
+                capital management`, `dayone` vs `dayone data centers` -- with
+                one rule instead of a list of corporate suffixes to maintain.
+      amount    within EVENT_AMOUNT_RATIO. Outlets round the same number
+                differently: HK$80bn was reported as both $10bn and $10.2bn.
+      date      within EVENT_WINDOW_DAYS. One announcement is covered over a
+                fortnight, by wires first and weeklies later.
+
+    WHY NOT FIX company_key INSTEAD. Because `company_key` feeds `content_hash`,
+    which is the dedup identity of all 32k stored rows. Widening it there is a
+    corpus-wide rewrite through `correct_company_key.py` and a decision about
+    employer identity that belongs to the owner, not a side effect of a review
+    tool. See docs/RULING-public-equity-proceeds.md.
+    """
+    for k in ("value", "company", "published_date"):
+        if not a.get(k) or not b.get(k):
+            return False
+    hi, lo = max(a["value"], b["value"]), min(a["value"], b["value"])
+    if lo <= 0 or hi / lo > EVENT_AMOUNT_RATIO:
+        return False
+    ta, tb = _event_tokens(a["company"]), _event_tokens(b["company"])
+    n = min(len(ta), len(tb))
+    if not n or ta[:n] != tb[:n]:
+        return False
+    try:
+        da = date.fromisoformat(str(a["published_date"])[:10])
+        db = date.fromisoformat(str(b["published_date"])[:10])
+    except ValueError:
+        return False
+    return abs((da - db).days) <= EVENT_WINDOW_DAYS
+
+
+def _findings_with_rows(conn) -> list[dict]:
+    """Every finding, carrying its row's company and date.
+
+    Deliberately NOT filtered on `is_current`: a sibling that was retracted or
+    revised is still a decision somebody made about this event, and it is
+    exactly the one a reviewer needs to see. Both Kingswood rows are is_current
+    = 0 and they are the clearest precedent in the ledger.
+    """
+    try:
+        rows = [dict(r) for r in conn.execute("SELECT * FROM publish_guardrails")]
+    except Exception:
+        return []
+    facts: dict[str, dict] = {}
+    try:
+        # is_current last, so a current row wins the key for a hash that has both.
+        for r in conn.execute("SELECT content_hash, company, published_date "
+                              "  FROM signals ORDER BY is_current"):
+            facts[r["content_hash"]] = {"company": r["company"],
+                                        "published_date": r["published_date"]}
+    except Exception:
+        return []
+    for row in rows:
+        row.update(facts.get(row["subject"], {}))
+    return rows
+
+
+def siblings_of(conn, subject: str, check_name: str | None = None) -> list[dict]:
+    """Other findings describing the same event, decided ones first.
+
+    WHY A REVIEWER MUST SEE THIS. A guardrail decision attaches to
+    `content_hash`, which is company_key|pillar|date|normalised-headline. A
+    second outlet writing a different headline about the same announcement
+    therefore arrives as a NEW finding with no memory of the first answer. It
+    has happened four times: two DayOne rows, two Kingswood rows, two Intel
+    rows, and Alibaba, where the $10.2bn row was rejected and the $10.0bn row
+    came back OPEN two days later as though nothing had been decided.
+    """
+    rows = _findings_with_rows(conn)
+    me = next((r for r in rows
+               if r["subject"] == subject
+               and (check_name is None or r["check_name"] == check_name)), None)
+    if me is None:
+        return []
+    out = [r for r in rows
+           if r["subject"] != subject and same_event(me, r)]
+    rank = {"rejected": 0, "accepted": 1, "resolved": 2, "open": 3}
+    out.sort(key=lambda r: (rank.get(r.get("state"), 4), -(r.get("value") or 0)))
+    return out
+
+
+def _shared_note_clash(conn, subject: str, check: str, note: str) -> dict | None:
+    """The first finding already carrying this exact note for another event."""
+    rows = _findings_with_rows(conn)
+    me = next((r for r in rows if r["subject"] == subject
+               and r["check_name"] == check), None)
+    want = (note or "").strip()
+    for row in rows:
+        if row["subject"] == subject and row["check_name"] == check:
+            continue
+        if (row.get("review_note") or "").strip() != want:
+            continue
+        if me is not None and same_event(me, row):
+            continue                      # one event, one answer: legitimate
+        return row
+    return None
+
+
+class SharedNoteRefused(Exception):
+    """A note already used to decide a DIFFERENT event was reused verbatim."""
+
+
+def review(conn, key: str, state: str, note: str, who: str = "",
+           allow_shared_note: bool = False) -> int:
+    """Accept or reject one finding. `key` is 'check/subject'.
+
+    REFUSES A NOTE THAT ALREADY DECIDED A DIFFERENT EVENT, and that guard is
+    not hypothetical. On 2026-08-22/23 an agent adjudicating the amount queue
+    pasted one note across three unrelated findings, twice:
+
+        "... timesofoman: 'Micron ... announced a $10 billion investment ...'"
+             -> Micron $10bn        (the row the note is actually about)
+             -> Alibaba Group Holding $10.2bn
+             -> Lovable $13.3bn
+
+        "... digitimes: 'Nitto Denko will invest JPY28 billion ...'"
+             -> Nitto Denko $28bn   (the row the note is actually about)
+             -> Nvidia $150bn
+             -> Broadcom $60bn
+
+    Six rows, $271.5bn, withheld for good; four of them on reasoning about a
+    company they have nothing to do with. Nothing could catch it, because
+    `review()` took any string. A rejection is permanent and invisible once
+    made -- `--withheld` is the only place it shows -- so the note IS the
+    evidence, and a note that was written about another company is not
+    evidence about this one.
+
+    Byte-identical reuse is the signal, deliberately: every note a human wrote
+    in this ledger is unique, including the ones that cite a precedent in
+    prose ("the same class as the Intel $20bn stock-sale row"). Citing another
+    decision stays legal; copying one does not.
+
+    Two escapes, both honest. Siblings of the SAME event may share a note --
+    that is the correct way to answer a duplicate pair, and `siblings_of` is
+    what decides it. Anything else needs `allow_shared_note`, which a person
+    passes on purpose.
+    """
     if state not in ("accepted", "rejected"):
         raise ValueError("state must be 'accepted' or 'rejected'")
     check, _, subject = key.partition("/")
+    if note and not allow_shared_note:
+        clash = _shared_note_clash(conn, subject, check, note)
+        if clash:
+            raise SharedNoteRefused(
+                "this note was already recorded against %s/%s (%r), which is "
+                "not the same event as %s/%s. A rejection is permanent, so the "
+                "note is the only evidence anyone will ever see for it: write "
+                "one about THIS row, or pass allow_shared_note if the two "
+                "really are one announcement."
+                % (clash["check_name"], clash["subject"][:12],
+                   clash.get("label"), check, subject[:12]))
     cur = conn.execute(
         "UPDATE publish_guardrails SET state = ?, reviewed_at = ?, "
         "       reviewed_by = ?, review_note = ? "

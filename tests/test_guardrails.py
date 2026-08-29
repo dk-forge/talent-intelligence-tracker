@@ -785,10 +785,16 @@ def test_the_whole_accepted_backlog_ships_in_one_batch(conn, monkeypatch):
     conn.commit()
 
     guardrails.quarantine(conn, today=TODAY)
+    # A note PER ROW, because that is what answering eleven findings by hand
+    # looks like and because review() now refuses a note already used to decide
+    # a different event. Eight companies sharing one sentence is the shape that
+    # withheld $271.5bn on 2026-08-22/23. See tests/test_guardrail_siblings.py.
     for chash in accepted:
-        guardrails.review(conn, f"amount/{chash}", "accepted", "read the filing")
+        guardrails.review(conn, f"amount/{chash}", "accepted",
+                          f"read the filing for {chash}")
     for chash in ("nvda", "orcl"):
-        guardrails.review(conn, f"amount/{chash}", "rejected", "not a round")
+        guardrails.review(conn, f"amount/{chash}", "rejected",
+                          f"not a round: {chash}")
 
     seen: list[str] = []
 

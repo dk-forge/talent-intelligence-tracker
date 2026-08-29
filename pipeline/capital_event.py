@@ -131,10 +131,31 @@ _DEBT_SECURITIES = re.compile(
 # An already-listed issuer selling shares. `private placement` never reaches
 # here; every phrase below names a REGISTERED sale.
 #
-# NOT `\bshare sale\b`: the corpus's "9fin completes first employee share sale
-# after $170m raise" attaches the amount to the ROUND and the share sale to the
-# employees, so that phrase would refuse a real Series row. `stock sale` stays
-# — Intel's is the worked example and no corpus row uses it for anything else.
+# NOT a bare `\bshare sale\b`: the corpus's "9fin completes first employee share
+# sale after $170m raise" attaches the amount to the ROUND and the share sale to
+# the employees, so the bare phrase would refuse a real Series row. `stock sale`
+# stays — Intel's is the worked example and no corpus row uses it otherwise.
+#
+# QUALIFIED `share sale` IS IN, and the qualifier is the four words that made
+# the bare form unsafe. Alibaba's HK$80bn issue reached the amount queue TWICE
+# under two headlines and neither was classified:
+#
+#     "Alibaba raises US$10 billion in record Hong Kong share sale"
+#     "Alibaba to issue US$10 billion in new shares for huge AI push"
+#
+# so both were stored `money_basis = company_raise` and both were summable. A
+# third row for the same event — "Alibaba launches Rs95,000 crore share sale
+# ...; third-largest follow-on offering" — WAS excluded, by `follow-on
+# offering`. One announcement was landing on both sides of the ruling depending
+# on which outlet's wording arrived.
+#
+# This is not a new policy. Equity sold into public markets is already excluded
+# (rule 2 in the module docstring, and the owner rejected Intel's $20bn stock
+# sale twice on exactly this ground). These two patterns apply the existing
+# ruling to two phrasings it was missing. Measured over the whole corpus before
+# shipping: 2 rows of 32,451 change classification, and they are these two.
+# "employee/employees/staff/insider share sale" still does not match, which is
+# the 9fin case and is pinned by a test.
 _PUBLIC_EQUITY = re.compile(
     r"\b(?:registered\s+direct|follow[- ]?on|secondary|public|rights|equity|"
     r"stock|share|at[- ]the[- ]market|overnight)\s+offerings?\b"
@@ -142,6 +163,10 @@ _PUBLIC_EQUITY = re.compile(
     r"|\bofferta\s+(?:pubblica|diretta)\b|\boferta\s+(?:p[úu]blica|direta)\b"
     r"|\boffre\s+directe\b"
     r"|\bstock\s+sale\b"
+    r"|\bissu\w*\s+(?:\S+\s+){0,6}new\s+shares\b"
+    r"|\bnew\s+share\s+issue\b"
+    r"|(?<!employee\s)(?<!employees\s)(?<!staff\s)(?<!insider\s)"
+    r"\bshare\s+sale\b"
     r"|\brights\s+issue\b"
     r"|\bat[- ]the[- ]market\s+program(?:me)?\b"
     r"|\bshelf\s+(?:offering|registration)\b",
