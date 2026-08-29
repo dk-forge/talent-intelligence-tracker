@@ -14,6 +14,49 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-29 - the four adjudications made on another company's reasoning, redone
+
+Ledger and docs only; no code changed. On 2026-08-22/23 an agent pasted one
+review note across three unrelated amount findings, twice over, so six
+rejections stood ($271.5bn) and four of them were justified by evidence about a
+company the row had nothing to do with. `SharedNoteRefused` shipped earlier on
+2026-08-29 to make that impossible; this is the cleanup behind it.
+
+Each of the four was read from `signals` (headline, outlet, date, stored
+`deal_type` / `money_basis`), the source article was read where the headline was
+not self-sufficient, and `money_raised.classify` / `capital_event.classify` were
+RUN over the text rather than quoted. No model call, nothing spent.
+
+* **Alibaba Group Holding $10.2bn** (SCMP, "issue US$10 billion in new shares")
+  -> `public_offering`, money_raised rule 2. Rule-determined, stays rejected.
+* **Lovable $13.3bn** (siliconrepublic, "valued at $13.3bn") -> the figure is a
+  VALUATION; the round is $400m. Excluded by the definition itself, not by a
+  deal type. Rule-determined, stays rejected. **The row's figure is also just
+  wrong** - an extraction defect, flagged, not corrected here.
+* **Nvidia $150.0bn** (AFR, "to invest almost $150b in OpenAI data centre") ->
+  `outbound_investment`, rule 4, whose own worked example is a Nvidia outbound
+  row; stored `deal_type` `joint_venture` excludes it again under rule 1. The
+  ruling doc had guessed it was "right by luck"; it is determined twice over.
+* **Broadcom $60.0bn** (digitimes, "reportedly eyes up to US$100B debt
+  financing") -> **NOT DETERMINED and not decided.** It is the only inbound one
+  of the four. The debt ruling turns on private vs market instrument and the
+  article names neither; nothing in the taxonomy covers a raise that is only in
+  talks (`_PLEDGE` is deliberately narrow and extending it would be new
+  policy); and $60bn is the floor of a $60-100bn range. Verdict left where the
+  bad note put it, note replaced with one that says NOT DETERMINED in its first
+  two words. `docs/RULING-public-equity-proceeds.md` section 5 carries it.
+
+The open half of the Alibaba duplicate (`amount/85a1b6e2d284`, Taipei Times
+$10.0bn) was rejected on the SAME ruling as its sibling rather than as a second
+opinion, with a note naming the sibling hash. The amount queue is now empty.
+
+Micron's and Nitto Denko's own rows were not touched - their notes are about
+them and are correct. `company_key` was NOT widened (32k-row identity decision,
+still the owner's) and `correct-money-basis` was NOT run (database writer). All
+five notes were written fresh and passed `SharedNoteRefused` without
+`--allow-shared-note`.
+
+
 ## 2026-08-27 - the shared scorer had a quadratic regex (two-repo fix)
 
 `style_check._clean_literal` collapsed whitespace before punctuation with a
