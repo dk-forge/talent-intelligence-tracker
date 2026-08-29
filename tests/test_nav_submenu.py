@@ -287,6 +287,59 @@ def test_a_tracker_in_no_menu_writes_nothing():
 
 
 @php_only
+def test_an_ampersand_in_someone_elses_label_survives_our_write():
+    """wp_update_post() UNSLASHES. Give it serialize_blocks() raw and it bites.
+
+    This plugin rewrites the whole `wp_navigation` post, so the labels it
+    promises to carry "through untouched" go through core's serializer too.
+    That serializer writes a literal & as the six characters \\u0026, on
+    purpose: an attribute lives inside an HTML comment and a bare ampersand is
+    not safe there. wp_insert_post() then runs wp_unslash() over everything it
+    is handed, which removes that backslash and leaves the label reading the
+    literal text "u0026".
+
+    It shipped. The live header read "Salary u0026 Negotiation" and
+    "Methodology u0026 sources" -- neither of them our items, both of them ours
+    to have broken. The fix is wp_slash() on the content passed to
+    wp_update_post().
+
+    PROVEN BY MUTATION: drop the wp_slash() in tit_nav_submenu_sync() and this
+    fails with 'Salary u0026 Negotiation', as does the harness self-check.
+    """
+    labels = run_json("--labels")
+    assert "Salary & Negotiation" in labels, (
+        "a menu label carrying an ampersand came back as %r. wp_update_post() "
+        "unslashes what it is given, so serialize_blocks() output has to be "
+        "wp_slash()ed first." % [x for x in labels if "alar" in x])
+    assert not any("u0026" in x for x in labels), (
+        "a label still carries the literal text u0026: %r"
+        % [x for x in labels if "u0026" in x])
+
+
+@php_only
+def test_a_label_already_mangled_on_production_is_repaired():
+    """The corruption is ONE-WAY, so wp_slash() alone fixes nothing that is live.
+
+    Once the backslash is gone the label parses as the plain text "u0026",
+    re-serialises to those same bytes, and `$changed` stays false for ever --
+    so the sync would never write again and the live menu would read u0026
+    permanently. tit_nav_unmangle_labels() is the backward half, scoped to the
+    five sequences core's own serializer emits and to menus this plugin was
+    already going to write.
+
+    PROVEN BY MUTATION: remove the tit_nav_unmangle_labels() call and this
+    fails with 'Salary u0026 Negotiation' while every other test here still
+    passes -- the clean path and the repair path are independent.
+    """
+    labels = run_json("--labels", "mangled")
+    assert "Salary & Negotiation" in labels, (
+        "a menu seeded in the state production is ACTUALLY in was not "
+        "repaired; the label reads %r. Nothing else will ever fix it: the "
+        "mangled form is stable under parse/serialise."
+        % [x for x in labels if "alar" in x])
+
+
+@php_only
 def test_the_children_survive_serialisation():
     # serialize_block() substitutes an innerBlock for each null in innerContent
     # and never reads innerBlocks directly, so a container built with an empty

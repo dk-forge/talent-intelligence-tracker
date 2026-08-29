@@ -288,3 +288,41 @@ def _signal(headline, summary, *, pillar="company_development",
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# --- Alibaba: one announcement landing on both sides of an existing ruling ---
+#
+# Equity sold into public markets is already excluded, and the owner rejected
+# Intel's $20bn stock sale twice on that ground. Alibaba's HK$80bn issue still
+# reached the amount queue as `company_raise` twice, because neither of these
+# two phrasings was in _PUBLIC_EQUITY while a THIRD headline for the same event
+# ("...; third-largest follow-on offering") was excluded by it.
+#
+# PROVEN BY MUTATION: take either new alternative back out of _PUBLIC_EQUITY
+# and the matching case below fails with classify() == None.
+
+def test_a_qualified_share_sale_by_a_listed_issuer_is_a_public_offering():
+    assert capital_event.classify(
+        "Alibaba raises US$10 billion in record Hong Kong share sale"
+    ) == capital_event.PUBLIC_OFFERING
+
+
+def test_issuing_new_shares_is_a_public_offering():
+    assert capital_event.classify(
+        "Alibaba to issue US$10 billion in new shares for huge AI push amid "
+        "strong investor demand") == capital_event.PUBLIC_OFFERING
+
+
+def test_an_employee_share_sale_is_still_not_a_public_offering():
+    """The reason the bare phrase was refused, and it stays refused.
+
+    The amount belongs to the ROUND; the share sale belongs to the employees.
+    Matching it would null a real Series row's figure.
+    """
+    assert capital_event.classify(
+        "9fin completes first employee share sale after $170m raise") is None
+
+
+def test_a_staff_share_sale_is_not_a_public_offering():
+    assert capital_event.classify(
+        "Acme completes staff share sale after $40m Series B") is None

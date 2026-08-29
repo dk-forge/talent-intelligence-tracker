@@ -106,7 +106,33 @@ def _where(row: dict) -> str:
     return f"    held back, never published{clock}"
 
 
-def _print_findings(rows: list[dict]) -> None:
+def _print_siblings(conn, row: dict) -> None:
+    """What was already decided about this same announcement.
+
+    A guardrail decision attaches to a content_hash, so a second outlet's
+    headline about one event arrives as a fresh finding with no memory of the
+    first answer. Printing the siblings is what stops a reviewer answering the
+    same announcement twice, differently.
+    """
+    if conn is None:
+        return
+    try:
+        kin = guardrails.siblings_of(conn, row["subject"], row["check_name"])
+    except Exception:
+        return
+    if not kin:
+        return
+    print(f"    SAME EVENT, ALREADY SEEN {len(kin)} time(s) under another "
+          f"headline -- read these before answering:")
+    for s in kin:
+        print(f"      [{s.get('state')}] {s['check_name']}/{s['subject'][:12]}  "
+              f"{s.get('label') or ''}")
+        if s.get("review_note"):
+            print(f"          {s['reviewed_at']} by "
+                  f"{s.get('reviewed_by') or '?'}: {s['review_note'][:150]}")
+
+
+def _print_findings(rows: list[dict], conn=None) -> None:
     for row in rows:
         key = f"{row['check_name']}/{row['subject']}"
         state = row.get("state", "open")
@@ -120,6 +146,7 @@ def _print_findings(rows: list[dict]) -> None:
             print(f"    {line}")
         if row.get("review_note"):
             print(f"    reviewed {row.get('reviewed_at')}: {row['review_note']}")
+        _print_siblings(conn, row)
 
 
 def main(argv=None) -> int:
@@ -142,6 +169,11 @@ def main(argv=None) -> int:
     parser.add_argument("--note", default="",
                         help="why. Required with --accept or --reject.")
     parser.add_argument("--who", default="", help="who decided")
+    parser.add_argument("--allow-shared-note", action="store_true",
+                        help="permit a --note already used to decide a "
+                             "DIFFERENT event. Needed only when two findings "
+                             "really are one announcement; siblings of the "
+                             "same event are allowed without it.")
     args = parser.parse_args(argv)
 
     conn = schema.connect()
@@ -150,14 +182,20 @@ def main(argv=None) -> int:
         if not args.note:
             parser.error("--accept and --reject need a --note saying why")
         changed = 0
-        for key in args.accept:
-            n = guardrails.review(conn, key, "accepted", args.note, args.who)
-            print(f"accepted {key}" if n else f"NOT FOUND {key}")
-            changed += n
-        for key in args.reject:
-            n = guardrails.review(conn, key, "rejected", args.note, args.who)
-            print(f"rejected {key}" if n else f"NOT FOUND {key}")
-            changed += n
+        try:
+            for key in args.accept:
+                n = guardrails.review(conn, key, "accepted", args.note, args.who,
+                                      allow_shared_note=args.allow_shared_note)
+                print(f"accepted {key}" if n else f"NOT FOUND {key}")
+                changed += n
+            for key in args.reject:
+                n = guardrails.review(conn, key, "rejected", args.note, args.who,
+                                      allow_shared_note=args.allow_shared_note)
+                print(f"rejected {key}" if n else f"NOT FOUND {key}")
+                changed += n
+        except guardrails.SharedNoteRefused as exc:
+            print(f"\nREFUSED, nothing written: {exc}", file=sys.stderr)
+            return 2
         if not changed:
             print("\nNothing matched. Keys look like 'amount/<content_hash>'; "
                   "run with no arguments to list them.", file=sys.stderr)
@@ -188,7 +226,7 @@ def main(argv=None) -> int:
         if report["aggregate"]:
             print(f"  {len(report['aggregate'])} aggregate finding(s) would HALT "
                   f"publishing outright: a wrong total has no clean subset")
-        _print_findings([dict(r, state="would open") for r in rows])
+        _print_findings([dict(r, state="would open") for r in rows], conn)
         return 1 if rows else 0
 
     if args.withheld:
@@ -219,7 +257,7 @@ def main(argv=None) -> int:
             "SELECT * FROM publish_guardrails "
             " ORDER BY state, COALESCE(value, 0) DESC")]
         print(f"\n  {len(rows)} finding(s) recorded")
-        _print_findings(rows)
+        _print_findings(rows, conn)
         return 0
 
     # One line, not a list. The default view is for what needs a human, and a
@@ -260,7 +298,7 @@ def main(argv=None) -> int:
               f"window, so runs now exit non-zero after publishing clean rows.")
     else:
         print("  Nothing is overdue yet, so runs are still green.")
-    _print_findings(rows)
+    _print_findings(rows, conn)
     print("\n  Accept one:  python3 guardrails.py --accept <key> --note 'why'")
     print("               (accepting releases the row: it publishes next run)")
     print("  Reject one:  python3 guardrails.py --reject <key> --note 'why'")

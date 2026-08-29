@@ -82,9 +82,21 @@ function get_transient($k) { return false; }
 function set_transient($k, $v, $t = 0) { return true; }
 function delete_transient($k) { return true; }
 function get_posts($args) { return $GLOBALS['tit_menus']; }
+function wp_slash($v) { return is_string($v) ? addslashes($v) : $v; }
+function wp_unslash($v) { return is_string($v) ? stripslashes($v) : $v; }
+/*
+ * wp_update_post() EXPECTS SLASHED DATA, and this stub used not to say so.
+ * Core hands $postarr to wp_insert_post(), whose first statement is
+ * `$postarr = wp_unslash( $postarr );`. Modelling that is the whole point:
+ * without it the stub accepted the raw serializer output that production
+ * silently stripped, and every ampersand in the live header nav read
+ * "u0026" for weeks with this harness green. A stub gentler than production
+ * is not a test.
+ */
 function wp_update_post($args) {
+    $content = wp_unslash((string) $args['post_content']);
     foreach ($GLOBALS['tit_menus'] as $m) {
-        if ((int) $m->ID === (int) $args['ID']) $m->post_content = $args['post_content'];
+        if ((int) $m->ID === (int) $args['ID']) $m->post_content = $content;
     }
     $GLOBALS['tit_writes'][] = (int) $args['ID'];
     return $args['ID'];
@@ -130,9 +142,22 @@ function parse_blocks($content) {
     return $stack[0]['innerBlocks'];
 }
 
+/*
+ * core's serialize_block_attributes(). The escaping is not cosmetic: an
+ * attribute lives inside an HTML comment, so a raw `&`, `<`, `>` or `--` in a
+ * label could close or corrupt the delimiter. Core writes each as a JSON
+ * \uXXXX escape, and it is that BACKSLASH which wp_unslash() used to eat.
+ * The old stub encoded plain and so could not produce the bytes that break.
+ */
+function serialize_block_attributes($attrs) {
+    $json = json_encode($attrs, JSON_HEX_TAG | JSON_HEX_AMP
+                              | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return preg_replace('/--/', '\\\\u002d\\\\u002d', $json);
+}
+
 function get_comment_delimited_block_content($name, $attrs, $content) {
     $short = strpos($name, 'core/') === 0 ? substr($name, 5) : $name;
-    $json = $attrs ? json_encode($attrs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ' ' : '';
+    $json = $attrs ? serialize_block_attributes($attrs) . ' ' : '';
     if ($content === '') return '<!-- wp:' . $short . ' ' . $json . '/-->';
     return '<!-- wp:' . $short . ' ' . $json . '-->' . $content . '<!-- /wp:' . $short . ' -->';
 }
@@ -176,6 +201,12 @@ function tit_test_menu($parent) {
         . '<!-- wp:navigation-submenu {"label":"Blog","type":"custom","url":"/blog/","kind":"custom","isTopLevelItem":true} -->'
         . '<!-- wp:navigation-link {"label":"Resume Writing","type":"custom","url":"/blog/category/resume-writing/","kind":"custom"} /-->'
         . '<!-- wp:navigation-link {"label":"Cover Letters","type":"custom","url":"/blog/category/cover-letters/","kind":"custom"} /-->'
+        /* THE AMPERSAND IS THE POINT, and it is on the live menu. This is a
+           child the plugin does not own and promises to carry through
+           untouched, so it is exactly the label the unslashed write corrupted
+           on production. Without one such item in this fixture the round trip
+           never emits a \uXXXX escape and the defect is unreachable. */
+        . '<!-- wp:navigation-link {"label":"Salary \u0026 Negotiation","type":"custom","url":"/blog/category/salary-negotiation/","kind":"custom"} /-->'
         . '<!-- /wp:navigation-submenu -->'
         . '<!-- wp:navigation-link {"label":"AI Layoff Tracker","type":"custom","url":"https://example.test/blog/ai-layoff-tracker/","kind":"custom","isTopLevelLink":true} /-->'
         . '<!-- wp:navigation-link {"label":"Talent Intelligence Tracker","type":"custom","url":"' . $parent . '","kind":"custom","isTopLevelLink":true} /-->';
@@ -256,6 +287,33 @@ if ($arg === '--not-in-any-menu') {
     exit(0);
 }
 
+/*
+ * Every label in the menu after a sync, ours and the owner's alike.
+ * The owner's are the ones the unslashed write corrupted, so they are the
+ * ones worth reading back.
+ */
+if ($arg === '--labels') {
+    $seed = $argc > 2 && $argv[2] === 'mangled'
+        /* A menu ALREADY corrupted on production: the backslash is gone and
+           the label is the literal text "u0026". Nothing re-derives this, so
+           only a repair can bring it back. */
+        ? str_replace('Salary \\u0026 Negotiation', 'Salary u0026 Negotiation',
+                      tit_test_menu($PARENT))
+        : tit_test_menu($PARENT);
+    tit_test_reset($seed);
+    tit_test_sync();
+    $labels = array();
+    $walk = function ($blocks) use (&$walk, &$labels) {
+        foreach ($blocks as $b) {
+            if (isset($b['attrs']['label'])) $labels[] = $b['attrs']['label'];
+            if (!empty($b['innerBlocks'])) $walk($b['innerBlocks']);
+        }
+    };
+    $walk(parse_blocks($GLOBALS['tit_menus'][0]->post_content));
+    echo json_encode($labels);
+    exit(0);
+}
+
 if ($arg === '--serialised') {
     tit_test_reset(tit_test_menu($PARENT));
     tit_test_sync();
@@ -291,6 +349,13 @@ tit_check(count($GLOBALS['tit_writes']) === 1,
           . ' times; the second run must find the item correct and write nothing');
 tit_check($one === $GLOBALS['tit_menus'][0]->post_content,
           'the second registration changed the stored menu');
+
+tit_check(strpos($GLOBALS['tit_menus'][0]->post_content, 'Salary \\u0026 Negotiation') !== false,
+          "the ampersand in a menu label this plugin does not own did not "
+          . "survive the write: wp_update_post() unslashes what it is given, "
+          . "so serialize_blocks() output must be wp_slash()ed first or every "
+          . "&, <, > and -- in the whole menu loses its backslash and renders "
+          . "as the literal text u0026");
 
 $item = tit_test_children();
 tit_check($item['block'] === 'core/navigation-submenu',

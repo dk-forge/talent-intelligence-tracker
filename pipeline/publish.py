@@ -196,6 +196,100 @@ def _config() -> tuple[str, str]:
     return site, key
 
 
+#: The oldest live plugin this pipeline may write to.
+#:
+#: BUMP THIS ONLY WHEN THE PIPELINE STARTS DEPENDING ON SOMETHING THE PLUGIN
+#: GAINED -- a widened column, a new route, a new field in FIELDS. It is a
+#: capability floor and NOT "must equal HEAD": the plugin deploy here is a
+#: deliberate human step, so a merged commit routinely runs against the
+#: previous version and that is normal and fine.
+#:
+#: 1.87.1 is the floor because #97 widened `deal_type` to VARCHAR(32). The
+#: migration runs off the version bump, so on 1.86.0 the column is still
+#: VARCHAR(16) and every batch carrying `outbound_investment` (19 characters)
+#: is refused by MySQL.
+#:
+#: WHAT THIS COSTS WHEN IT IS WRONG, measured on this repo. Production sat on
+#: 1.86.0 while main was 1.87.1, and three collectors -- collect, collect
+#: national press, collect-structured -- went red every run for a week with:
+#:
+#:     row 4: WordPress database error: Processing the value for the following
+#:     field failed: deal_type. The supplied value may be too long ...
+#:
+#: which names a column and a row and never once says "the plugin is old". The
+#: fourth red workflow, indeed-index, failed as a bare 404 from a route that
+#: only exists in 1.87.0. Four workflows, one cause, and nothing anywhere
+#: pointed at it. The fix for a schema the site has not got yet is a deploy,
+#: and a run that cannot have that should say so before it writes, not fail
+#: partway through a batch.
+REQUIRED_PLUGIN_VERSION = "1.87.1"
+
+
+class PluginTooOld(PublishError):
+    """The live plugin predates a capability this pipeline needs."""
+
+
+def _version_tuple(text: str) -> tuple[int, ...]:
+    """'1.87.10' -> (1, 87, 10). Numeric, so 1.87.10 sorts after 1.87.9."""
+    out = []
+    for part in str(text or "").strip().split("."):
+        digits = "".join(c for c in part if c.isdigit())
+        out.append(int(digits) if digits else 0)
+    return tuple(out) or (0,)
+
+
+def live_plugin_version(site: str, session=None) -> str | None:
+    """What the site says it is running, or None if it could not be asked.
+
+    `/source-health` is a GET, needs no key and returns `plugin_version`. None
+    means UNKNOWN -- unreachable, unparseable, an old plugin that does not
+    report one -- and unknown is never a pass and never a failure either. A
+    preflight that goes red when the network hiccups is a preflight somebody
+    turns off.
+    """
+    getter = (session or requests).get
+    try:
+        resp = getter(f"{site}/wp-json/talent/v1/source-health",
+                      headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
+        if resp.status_code != 200:
+            return None
+        version = resp.json().get("plugin_version")
+    except Exception:
+        return None
+    return str(version) if version else None
+
+
+def check_plugin_version(site: str, *, required: str = REQUIRED_PLUGIN_VERSION,
+                         session=None) -> str | None:
+    """Refuse to write to a plugin older than `required`. Returns what it saw.
+
+    Raises PluginTooOld, which is deliberately a PublishError: a data job that
+    would write wrong or half-written rows should stop the way every other
+    write failure here stops, loudly and non-zero.
+    """
+    # OFF IN THE UNIT SUITE, the same way TIT_IDENTITY_LOOKUP is and for the
+    # same reason: this is the one thing in publish() that reaches the open
+    # internet, and several existing tests set WP_SITE_URL to the REAL site
+    # while stubbing only the POST. Without this switch the offline suite would
+    # ask production for its version 10 times a run. tests/conftest.py turns it
+    # off; the tests that are ABOUT the preflight turn it back on and stub the
+    # session. See that file's docstring.
+    if os.environ.get("TIT_PLUGIN_PREFLIGHT", "on").strip().lower() == "off":
+        return None
+    seen = live_plugin_version(site, session=session)
+    if seen is None:
+        return None                      # UNKNOWN: not a pass, not a verdict
+    if _version_tuple(seen) >= _version_tuple(required):
+        return seen
+    raise PluginTooOld(
+        f"the live plugin is {seen} and this pipeline needs {required} or "
+        f"newer, so writing now would fail on a schema the site has not got "
+        f"yet. Nothing was written. Deploy first:\n"
+        f"    gh workflow run deploy-plugin.yml "
+        f"-R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false\n"
+        f"then confirm with:  curl -s {site}/wp-json/talent/v1/source-health")
+
+
 # The allowlist of columns that travel to WordPress. A column missing here is
 # a column the site can never show, however well it is populated locally, so
 # adding a field to the schema means adding it here in the same change.
@@ -491,6 +585,9 @@ def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
 
     site, key = _config()
     session = requests.Session()
+    # BEFORE the first batch, not after a partial one. Writing half a run into
+    # a schema that cannot hold it is the state this is here to prevent.
+    check_plugin_version(site, session=session)
 
     sent = stored = duplicate = 0
     errors: list[dict] = []
