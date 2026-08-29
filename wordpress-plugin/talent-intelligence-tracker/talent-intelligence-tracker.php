@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.87.2
+ * Version: 1.87.3
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.87.2');
+define('TIT_VERSION', '1.87.3');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -278,7 +278,36 @@ function tit_verify_schema() {
     $need  = tit_required_columns();
 
     $cols = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
-    if (!is_array($cols) || array_diff($need, $cols)) {
+
+    // A COLUMN CAN BE PRESENT AND STILL WRONG, and until 2026-08-29 this only
+    // asked whether it was PRESENT. `deal_type` gained `outbound_investment`
+    // (19 chars) and was widened to VARCHAR(32) in db.php -- but the widening
+    // lives inside tit_create_or_update_table(), which this function calls ONLY
+    // when array_diff() finds a MISSING column. deal_type was never missing, so
+    // the diff was empty, the migration never ran, and the ALTER never fired.
+    //
+    // The cost was not subtle: `collect`, `collect national press` and
+    // `collect-structured` all failed on every outbound-investment row with
+    // "the supplied value may be too long", and a plugin deploy did not fix it
+    // because nothing on the deploy path ever asked about WIDTH. The six-hour
+    // tit_schema_ok transient then cached that verdict as healthy.
+    //
+    // So the repair condition now includes a SHAPE probe. Kept to the one
+    // column with a known constraint rather than generalised into a schema
+    // description, because an invented spec that drifts from db.php would be a
+    // second definition of the table -- the defect this file already carries a
+    // warning about.
+    $too_narrow = false;
+    $deal_len = $wpdb->get_var($wpdb->prepare(
+        "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS "
+        . "WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s "
+        . "AND COLUMN_NAME = 'deal_type'",
+        DB_NAME, $table));
+    if ($deal_len !== null && (int) $deal_len < 32) {
+        $too_narrow = true;
+    }
+
+    if (!is_array($cols) || array_diff($need, $cols) || $too_narrow) {
         tit_create_or_update_table();
         $cols = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
         // The repair changes what a query can see, so anything cached before it
