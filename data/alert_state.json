@@ -1,15 +1,5 @@
 {
   "open": {
-    "collect-national-press:main:24426031596da671": {
-      "first": 1787616021,
-      "last": 1787616021,
-      "subject": "CI RED: collect national press: ERROR  row 1: WordPress database error: Processing the value for the following field failed: deal_type. The supplied value may be too long or contai"
-    },
-    "collect-national-press:main:cca22f3ba0b1cc9e": {
-      "first": 1787529118,
-      "last": 1787529118,
-      "subject": "CI RED: collect national press: [guardrail] 1 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788014078,
       "last": 1788014078,
@@ -31,6 +21,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-08-29T17:44:36+00:00",
+  "updated_at": "2026-08-29T18:01:38+00:00",
   "version": 1
 }
