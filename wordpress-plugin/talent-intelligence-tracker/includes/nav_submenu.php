@@ -274,6 +274,67 @@ function tit_nav_apply(&$blocks, $parent_url, $desired, &$changed, &$found) {
     return false;
 }
 
+/**
+ * Undo the labels THIS PLUGIN mangled, in the menus it writes to.
+ *
+ * WHY THIS EXISTS AND WHY IT TOUCHES LABELS WE DO NOT OWN.
+ * `wp_update_post()` hands `$postarr` straight to `wp_insert_post()`, whose
+ * first act is `wp_unslash()`. So it expects SLASHED data, and until 1.87.2
+ * this file gave it the raw output of `serialize_blocks()`. Core's
+ * `serialize_block_attributes()` deliberately writes a literal `&` as the six
+ * characters backslash-u-0-0-2-6 (likewise `<`, `>`, `"` and `--`) so an
+ * attribute can never close the HTML comment it lives in. `stripslashes()`
+ * then removed that leading backslash
+ * and the label kept the rest, verbatim:
+ *
+ *     "Salary & Negotiation"   ->   "Salary u0026 Negotiation"
+ *
+ * That is what the live header read for every ampersand in the whole menu —
+ * "Salary u0026 Negotiation", "Methodology u0026 sources" — because this
+ * plugin rewrites the ENTIRE `wp_navigation` post, not just its own item. The
+ * damage therefore landed on exactly the children `tit_nav_rebuild_children()`
+ * promises to carry "through untouched", which is the contract this repair
+ * restores rather than a licence to edit the owner's menu.
+ *
+ * It is also one-way: once the backslash is gone the label parses as the
+ * literal text `u0026`, re-serialises to the same bytes, and `$changed` stays
+ * false forever, so nothing here would ever have healed it. Hence a repair and
+ * not just the `wp_slash()` on the write.
+ *
+ * SCOPE, deliberately the narrowest thing that works: only the five sequences
+ * core's own serializer emits, only on `label`, and only in menus this plugin
+ * was already going to write. A label whose author really typed "u0026" is not
+ * a case that exists; a label this plugin corrupted is one that does.
+ */
+function tit_nav_unmangle_labels(&$blocks, &$changed) {
+    /* Case-insensitive: PHP's JSON_HEX_TAG writes <, JSON_HEX_AMP writes
+       &, and core's own preg_replace pass writes lower case, so both
+       spellings reach a live menu. `--` is only ever escaped as a PAIR, so a
+       lone u002d is somebody's text and is left alone. */
+    static $mangled = array(
+        '/u002du002d/i' => '--',
+        '/u0026/i'      => '&',
+        '/u003c/i'      => '<',
+        '/u003e/i'      => '>',
+        '/u0022/i'      => '"',
+    );
+    foreach ($blocks as $i => $block) {
+        if (isset($block['attrs']['label']) && is_string($block['attrs']['label'])) {
+            $was = $block['attrs']['label'];
+            $now = preg_replace(array_keys($mangled), array_values($mangled), $was);
+            if ($now !== $was) {
+                $blocks[$i]['attrs']['label'] = $now;
+                $changed = true;
+            }
+        }
+        if (!empty($block['innerBlocks'])) {
+            $inner = $block['innerBlocks'];
+            tit_nav_unmangle_labels($inner, $changed);
+            $blocks[$i]['innerBlocks'] = $inner;
+        }
+    }
+}
+
 /** The block for $url, or null. */
 function tit_nav_find($blocks, $url) {
     foreach ($blocks as $block) {
@@ -367,10 +428,15 @@ function tit_nav_submenu_sync() {
             tit_nav_apply($blocks, $parent_url, $desired, $changed, $found);
             if (!$found) continue;
             $found_anywhere = true;
+            // Only in a menu we were already going to write. See the function.
+            tit_nav_unmangle_labels($blocks, $changed);
             if (!$changed) continue;             // already right: no write at all
+            /* wp_slash IS LOAD-BEARING. See tit_nav_unmangle_labels: without
+               it wp_insert_post's own wp_unslash() eats the backslash out of
+               every escape core's serializer just wrote. */
             wp_update_post(array(
                 'ID'           => (int) $menu->ID,
-                'post_content' => serialize_blocks($blocks),
+                'post_content' => wp_slash(serialize_blocks($blocks)),
             ));
         }
 
