@@ -1,5 +1,5 @@
 {
-  "_committed_at": "2026-08-30T01:42:45+00:00",
+  "_committed_at": "2026-08-30T13:14:49+00:00",
   "announced": false,
   "consecutive_failures": 0,
   "history": [
@@ -19,9 +19,9 @@
       "state": "up"
     }
   ],
-  "last_detail": "HTTP 200 in 2019ms",
-  "last_ok_at": "2026-08-30T01:42:45+00:00",
-  "last_probe_at": "2026-08-30T01:42:45+00:00",
+  "last_detail": "HTTP 200 in 2391ms",
+  "last_ok_at": "2026-08-30T13:14:49+00:00",
+  "last_probe_at": "2026-08-30T13:14:49+00:00",
   "since": "2026-08-11T18:39:33+00:00",
   "state": "up",
   "version": 1
