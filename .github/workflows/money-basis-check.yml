@@ -1,0 +1,92 @@
+name: money-basis check
+
+# THE STANDING ASSERTION, STOOD UP.
+#
+# CLAUDE.md has said since 2026-08-20 that `correct_money_basis.py --check` is
+# "the standing assertion that no live row carries an unjudged figure; a number
+# there means a write path is skipping validate.build_signal". On 2026-08-30
+# `grep -rln correct_money_basis .github/workflows/ tests/` matched NOTHING. No
+# workflow ran it, no test exercised it, and nobody had run it by hand since the
+# pass that created it. An assertion nothing stands up is a comment.
+#
+# It had also never been able to see the defect. `--check` read the committed
+# database, where it passed -- and the committed database is where the pipeline
+# keeps its own judgement, not where a number gets published. The site's own
+# /aggregate was reporting `money.coverage.unjudged = 2` at the same moment.
+#
+# WHY THIS IS A READER AND HOLDS NO LOCK
+# --------------------------------------
+# It writes nothing: no database, no site, no ledger. So it must stay OUT of the
+# `talent-collect` group. GitHub keeps exactly one pending run per group, and a
+# daily reader queued in there is a run that can evict a real writer waiting its
+# turn -- the precise failure drain-writers.yml was built to end. A reader that
+# needs the writers' lock has been written wrong.
+#
+# It also holds no secret. /aggregate is public, which is the whole reason the
+# figure can be checked this cheaply; WP_SITE_URL is honoured when set and the
+# public base is used otherwise.
+#
+# WHAT RED MEANS, in order of likelihood:
+#   1. exit 1 -- the site really is carrying an unjudged figure. No published
+#      TOTAL is wrong (tit_money_where() asks for `company_raise` BY NAME, so an
+#      unjudged row is never summed) which is exactly why this can sit for weeks
+#      unnoticed. Queue the correction, per the step below. DO NOT correct from
+#      here.
+#   2. exit 3 -- the check could not be performed: the host was unreachable, or
+#      the live plugin is too old to report `money.coverage.unjudged`. UNKNOWN
+#      is never a pass, and this job goes red for it on purpose, the same rule
+#      card-contract.yml and backup-check.yml apply. If the host is simply down,
+#      host-watch.yml is the job that says so.
+
+on:
+  schedule:
+    # 06:41 UTC. An odd minute on purpose: this is not a lock member, but the
+    # runner pool is shared and there is no reason to pile onto :00.
+    - cron: '41 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Keyed to the run, so nothing ever queues behind anything and
+  # cancel-in-progress is structurally unreachable. See card-contract.yml: a
+  # `cancelled` conclusion costs a queue slot and throws a decision away, and it
+  # is a conclusion the alerter then has to interpret.
+  group: money-basis-check-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Assert no figure is unjudged, in the database OR on the site
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+        # No `|| true`, and no `continue-on-error`. Exit 1 is a real unjudged
+        # figure and exit 3 is "could not check"; both are red, and neither may
+        # be softened into a pass.
+        run: python correct_money_basis.py --check
+
+      - name: Say what to do about it
+        if: ${{ failure() }}
+        run: |
+          echo "::error::correct_money_basis.py --check did not pass. Read the"
+          echo "::error::step above: exit 1 is an unjudged figure on a published"
+          echo "::error::page, exit 3 is a check that could not be performed."
+          echo "::error::"
+          echo "::error::The correction is a DATABASE WRITE and is queued, never"
+          echo "::error::dispatched -- an uncoordinated entry into talent-collect"
+          echo "::error::is what evicts the single pending run:"
+          echo "::error::  gh workflow run drain-writers.yml \\"
+          echo "::error::    -f enqueue=correct-money-basis.yml \\"
+          echo "::error::    -f inputs_json='{\"dry_run\":\"false\"}' \\"
+          echo "::error::    -f reason='live money.coverage.unjudged is nonzero'"
+          exit 1

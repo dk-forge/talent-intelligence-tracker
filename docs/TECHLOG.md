@@ -14,6 +14,132 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-30 - the standing assertion nothing stood up, and it was reading the wrong corpus
+
+`correct_money_basis.py --check` is the guard CLAUDE.md names for "no live row
+carries an unjudged figure; a number there means a write path is skipping
+`validate.build_signal`". Two things were wrong with it and they compound.
+
+**Nothing ran it.** `grep -rln correct_money_basis .github/workflows/ tests/`
+matched nothing. No workflow, no test, and no `correct-money-basis.yml` while
+every sibling correction had one - correct-form-d, correct-company-key,
+correct-funding-amount, correct-city-country, correct-sec-pillar,
+correct-layoff-scope, correct-sec-filer-name. The one correction the assertion
+can DEMAND was the one nothing could run. Same shape as the open handover item
+about `daily_digest.py` and `pipeline/count_meaning.py`: correct, and unwired.
+
+**It read the corpus that cannot hold the defect.** `--check` queried the
+committed database, where it passed - "every live figure has been judged", exit
+0. The live site disagreed: `money.coverage.unjudged = 2`. Two published rows
+carrying a `funding_amount_usd` with a NULL `money_basis`, which is exactly and
+only the state the assertion exists to catch, and it was invisible to it. The
+committed database is where the pipeline keeps its own judgement; it is not
+where a number gets published.
+
+**No published number was wrong, and that is the reason it sat there.**
+`tit_money_where()` asks for `company_raise` BY NAME, so an unjudged row is
+never summed. The guard that protects the total is also what makes the integrity
+signal silent. An assertion is the only thing that would ever have said so, and
+it was asserting about somewhere else.
+
+### What changed
+
+`--check` now asks BOTH corpora and they are different questions: did
+`build_signal` judge what it stored, and is an unjudged figure sitting on a
+published page. The live half reads `money.coverage.unjudged` from
+`/wp-json/talent/v1/aggregate`, computed by `tit_money_unjudged_where()` from
+the identical predicate `unjudged()` uses here. Two corpora, one definition,
+and `tests/test_money_basis_check.py` pins both spellings so neither can drift.
+
+PASS / FAIL / UNKNOWN, exit 0 / 1 / 3, FAIL winning over UNKNOWN as in
+`backup_check.py`. **The key is read BY NAME rather than defaulted**, which is
+the whole point: `coverage.get("unjudged", 0)` reads a plugin that predates
+`tit_money_unjudged_where()` as a corpus with nothing wrong in it. A site that
+could not be reached has not told us it is clean. `--offline` runs the local
+half and reports the published corpus as UNKNOWN - it is not a way to get a
+green.
+
+Wired as two workflows, and the split is the point:
+
+* **`money-basis-check.yml`** - the assertion. Daily, `workflow_dispatch`, and
+  it holds NO lock because it writes nothing. A reader queued into
+  `talent-collect` is a run that can evict a real writer out of the single
+  pending slot GitHub keeps per group, which is the failure `drain-writers.yml`
+  exists to end. It also holds no secret: `/aggregate` is public.
+* **`correct-money-basis.yml`** - the correction. `talent-collect`,
+  `cancel-in-progress: false`, `workflow_dispatch` only and deliberately **no
+  `schedule:`**, because an uncoordinated entry into the group is what evicts
+  the waiter into an unreplayable orphan. Queued through `drain-writers.yml`
+  like every other writer, and added to its `workflow_run` fast path so the
+  queue behind it does not stall for a quarter of an hour.
+
+The guard was proved by mutation, not by running it: restoring the local-only
+`check()` reddens 8 tests, and swapping the by-name read for
+`coverage.get("unjudged", 0)` reddens the one that is about exactly that.
+
+### The check NAMES the rows now, and that took a walk rather than a filter
+
+`/aggregate` answers HOW MANY and never WHICH, so a nonzero count was the end of
+what a session could learn without a human opening the database. `money_basis`
+is a closed-vocabulary filter -- `tit_multi_param` drops any value outside
+`tit_allowed_money_bases()` -- so `/query` cannot be asked for `IS NULL`: an
+absent filter is no clause at all, not a null test. Adding a filter would have
+meant a plugin change and a deploy for a diagnosis.
+
+So `name_unjudged()` walks instead. `min_funding_usd=1` is the only public way
+to say `funding_amount_usd IS NOT NULL` (SQL's `>= 1` is false for NULL, and a
+real funding figure is never 0), 200 rows a page, and it keeps the rows the site
+returns with no basis. It runs ONLY when the count is already nonzero -- a green
+run makes no `/query` request at all, and a test asserts that, because 22
+requests on every clean day is the cost of nothing.
+
+It is capped at 30 pages and returns `(rows, complete)`. An incomplete walk says
+`NAMING INCOMPLETE` and the FAIL stands: the count is the verdict, the naming is
+only an attempt to put names to it, and a diagnosis that cannot run must never
+soften a failure it did not investigate. When the two live readings disagree it
+says `NAMING DISAGREES` rather than implying a set.
+
+**One of these tests was passing for the wrong reason and the mutation found
+it.** The first draft asserted the narrowing with
+`"min_funding_usd" in inspect.getsource(name_unjudged)` -- which the function's
+own DOCSTRING satisfies, so deleting the parameter from the request left the
+suite green. It asserts on the request now.
+
+### What stored the two rows is still NOT established
+
+The identities can be READ now; what put them there cannot be, from here. The
+session that found this had no egress to asktherecruiter.com (proxy CONNECT
+403), so it read UNKNOWN, correctly, and did not guess. **Quarantine was ruled out**: zero published rows with a figure
+are held by `guardrails.quarantine()`. The leading hypothesis is
+`publish.enrich_published()`, the only route `money_basis` takes to an
+already-published row: it re-sends the whole corpus `ORDER BY row_id ASC` every
+run and stops on `RUN_BUDGET_SECONDS`, so the TAIL is systematically starved
+rather than merely late. Consistent with the site trailing the repo by ~49 rows
+(site `with` 4300 against 4349 published-and-summable locally). Run the check
+once egress exists; it names the count, and `correct-money-basis.yml` is now
+there to close it.
+
+### Related, and it is NOT closed by any of this
+
+Both Alibaba equity-issuance rows still store `money_basis = company_raise`,
+disagreeing with `docs/RULING-public-equity-proceeds.md`:
+
+| row_id | headline | usd | stored |
+|---|---|---:|---|
+| 33898 | Alibaba to issue US$10 billion in new shares... | $10.2bn | `company_raise` |
+| 34142 | Alibaba raises US$10 billion in record Hong Kong share sale | $10.0bn | `company_raise` |
+
+**The correction pass cannot fix these**, and that is the finding.
+`correct_money_basis.py` derives its verdict by calling
+`money_raised.basis()`, which returns `company_raise` on both today, while
+`capital_event.classify()` returns `public_offering` on both - the answer the
+ruling turns on. The disagreement is between two classifiers, not between the
+corpus and its classifier, so re-judging changes nothing until
+`money_raised.py` consults the ruling. Both rows are quarantined and
+unpublished ($20.2bn withheld), so nothing public is wrong today; the exposure
+is that a release from quarantine would put them straight into a total.
+
+
 ## 2026-08-30 - a test that was counting down, and a chart that named the wrong basis
 
 Two defects, one theme: a claim that was true on the day it was written and was
