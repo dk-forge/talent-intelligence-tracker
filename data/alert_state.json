@@ -15,6 +15,11 @@
       "last": 1787562118,
       "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
     },
+    "self-heal:main:546478a37ca6511e": {
+      "first": 1788054396,
+      "last": 1788054396,
+      "subject": "CI RED: Self-heal: Action failed with error: Claude execution failed: result is_error:true"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -26,6 +31,6 @@
       "subject": "CI RED: tests: assert (0 == 1)"
     }
   },
-  "updated_at": "2026-08-30T01:44:59+00:00",
+  "updated_at": "2026-08-30T01:46:36+00:00",
   "version": 1
 }
