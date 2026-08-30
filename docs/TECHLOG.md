@@ -77,13 +77,39 @@ The guard was proved by mutation, not by running it: restoring the local-only
 `check()` reddens 8 tests, and swapping the by-name read for
 `coverage.get("unjudged", 0)` reddens the one that is about exactly that.
 
-### What stored the two rows is NOT yet established
+### The check NAMES the rows now, and that took a walk rather than a filter
 
-The count is the site's; the identities are not. `/aggregate` reports a number
-and no row ids, `money_basis` is a closed-vocabulary filter so `/query` cannot
-express `IS NULL`, and the session that found this had no egress to
-asktherecruiter.com (proxy CONNECT 403) - so it read UNKNOWN, correctly, and
-did not guess. **Quarantine was ruled out**: zero published rows with a figure
+`/aggregate` answers HOW MANY and never WHICH, so a nonzero count was the end of
+what a session could learn without a human opening the database. `money_basis`
+is a closed-vocabulary filter -- `tit_multi_param` drops any value outside
+`tit_allowed_money_bases()` -- so `/query` cannot be asked for `IS NULL`: an
+absent filter is no clause at all, not a null test. Adding a filter would have
+meant a plugin change and a deploy for a diagnosis.
+
+So `name_unjudged()` walks instead. `min_funding_usd=1` is the only public way
+to say `funding_amount_usd IS NOT NULL` (SQL's `>= 1` is false for NULL, and a
+real funding figure is never 0), 200 rows a page, and it keeps the rows the site
+returns with no basis. It runs ONLY when the count is already nonzero -- a green
+run makes no `/query` request at all, and a test asserts that, because 22
+requests on every clean day is the cost of nothing.
+
+It is capped at 30 pages and returns `(rows, complete)`. An incomplete walk says
+`NAMING INCOMPLETE` and the FAIL stands: the count is the verdict, the naming is
+only an attempt to put names to it, and a diagnosis that cannot run must never
+soften a failure it did not investigate. When the two live readings disagree it
+says `NAMING DISAGREES` rather than implying a set.
+
+**One of these tests was passing for the wrong reason and the mutation found
+it.** The first draft asserted the narrowing with
+`"min_funding_usd" in inspect.getsource(name_unjudged)` -- which the function's
+own DOCSTRING satisfies, so deleting the parameter from the request left the
+suite green. It asserts on the request now.
+
+### What stored the two rows is still NOT established
+
+The identities can be READ now; what put them there cannot be, from here. The
+session that found this had no egress to asktherecruiter.com (proxy CONNECT
+403), so it read UNKNOWN, correctly, and did not guess. **Quarantine was ruled out**: zero published rows with a figure
 are held by `guardrails.quarantine()`. The leading hypothesis is
 `publish.enrich_published()`, the only route `money_basis` takes to an
 already-published row: it re-sends the whole corpus `ORDER BY row_id ASC` every

@@ -89,6 +89,13 @@ not told us it is clean, so it is never a pass -- and a plugin too old to
 report the key is UNKNOWN rather than zero, which is the reason this reads the
 key by name instead of defaulting it.
 
+AND ON A FAILURE IT NAMES THE ROWS. `/aggregate` answers how many and never
+which, so a nonzero count used to be the end of what a session could learn
+without a human opening the database. `name_unjudged()` walks `/query` for the
+rows that carry a figure and keeps the ones the site returns with no basis --
+best effort, run ONLY when the count is already nonzero, and it declares itself
+incomplete rather than presenting a short list as the whole answer.
+
 NOTHING HERE CORRECTS ANYTHING. `--check` is a reader and holds no lock. The
 correction is a database write and is queued like every other one:
 
@@ -122,6 +129,16 @@ from pipeline import money_raised, publish, schema
 #: one definition; neither side may drift without the other noticing.
 DEFAULT_SITE = "https://asktherecruiter.com/blog"
 AGGREGATE_PATH = "/wp-json/talent/v1/aggregate"
+QUERY_PATH = "/wp-json/talent/v1/query"
+
+#: How many /query pages the diagnosis may read before giving up.
+#:
+#: 200 rows a page (the endpoint's own ceiling) and ~4,400 live rows carry a
+#: figure, so 30 pages covers the corpus with room to grow. A CAP rather than a
+#: walk-until-done, because a diagnosis that follows a growing corpus forever is
+#: how a check becomes the outage it was meant to report. Hitting it makes the
+#: naming INCOMPLETE, never a shorter answer presented as the whole one.
+MAX_DIAGNOSIS_PAGES = 30
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 
 #: PASS / FAIL / UNKNOWN, the three states backup_check.py keeps apart, and for
@@ -276,6 +293,62 @@ def live_unjudged(site: str | None = None, timeout: int = 40,
         raise LiveUnavailable(f"`unjudged` is not a number: {value!r}") from exc
 
 
+def name_unjudged(site: str | None = None, timeout: int = 40, session=None,
+                  max_pages: int = MAX_DIAGNOSIS_PAGES
+                  ) -> tuple[list[dict], bool]:
+    """The rows behind the count. Best effort, and it says when it is not sure.
+
+    `/aggregate` reports HOW MANY carry an unjudged figure and never WHICH:
+    `money_basis` is a closed-vocabulary filter (`tit_multi_param` drops any
+    value outside `tit_allowed_money_bases()`), so `/query` cannot be asked for
+    `IS NULL` -- an absent filter is no clause at all, not a null test.
+
+    So this walks the rows that carry a figure and keeps the ones the site
+    returns with no basis. `min_funding_usd=1` is the only way to say
+    "funding_amount_usd IS NOT NULL" through the public API, and it is exact
+    enough for a diagnosis: SQL's `>= 1` is false for NULL, and a real funding
+    figure is never 0.
+
+    Returns `(rows, complete)`. `complete` is False when the walk hit the page
+    cap or a request failed, and a caller must NOT present a partial list as the
+    whole answer -- the count from /aggregate is the authority on how many there
+    are, and this only ever tries to put names to them.
+    """
+    try:
+        import requests
+    except ImportError as exc:                                # pragma: no cover
+        raise LiveUnavailable(f"requests is not installed ({exc})") from exc
+
+    base = _site(site) + QUERY_PATH
+    found: list[dict] = []
+    page = 1
+    while page <= max_pages:
+        try:
+            resp = (session or requests).get(
+                base,
+                params={"min_funding_usd": 1, "per_page": 200, "page": page},
+                headers={"User-Agent": USER_AGENT}, timeout=timeout)
+            resp.raise_for_status()
+            body = resp.json()
+        except Exception:
+            # A failed page makes the naming incomplete. It must not turn a
+            # real FAIL into a softer verdict, so it is reported, not raised.
+            return found, False
+        if not isinstance(body, dict):
+            return found, False
+        rows = body.get("rows")
+        if not isinstance(rows, list) or not rows:
+            return found, True
+        for row in rows:
+            if isinstance(row, dict) and not (row.get("money_basis") or None):
+                found.append(row)
+        total = body.get("total")
+        if isinstance(total, int) and page * 200 >= total:
+            return found, True
+        page += 1
+    return found, False
+
+
 def check(conn, *, offline: bool = False, site: str | None = None,
           timeout: int = 40, session=None) -> tuple[str, list[str]]:
     """The standing assertion, over BOTH corpora.
@@ -335,6 +408,27 @@ def check(conn, *, offline: bool = False, site: str | None = None,
             "`company_raise` BY NAME, so an unjudged row is never summed. That "
             "is why this can sit unnoticed, and it is the reason the assertion "
             "exists rather than the reason to ignore it.")
+        named, complete = name_unjudged(site, timeout, session)
+        if named:
+            lines.append("          The rows, from /query:")
+            for row in named[:20]:
+                lines.append(
+                    f"            {(row.get('collector') or '?'):<18} "
+                    f"{(row.get('signal_id') or '?')[:12]}  "
+                    f"{(row.get('headline') or '')[:60]}")
+        if not complete:
+            lines.append(
+                "          NAMING INCOMPLETE -- the walk hit the page cap or a "
+                "request failed, so this list may be short. The count above is "
+                "the authority on how many there are; this is only an attempt "
+                "to put names to them.")
+        elif len(named) != live:
+            lines.append(
+                f"          NAMING DISAGREES -- /aggregate counts {live} and "
+                f"/query names {len(named)}. Both readings are live but not "
+                f"simultaneous, and /query's figure filter is "
+                f"`funding_amount_usd >= 1` where the count's is `IS NOT NULL`. "
+                f"Treat the count as the verdict.")
         if not stragglers:
             lines.append(
                 "          The pipeline's own copy is clean, so this is the "

@@ -51,14 +51,25 @@ class _Session:
     here is this object.
     """
 
-    def __init__(self, payload, status=200, boom: Exception | None = None):
+    def __init__(self, payload, status=200, boom: Exception | None = None,
+                 query_pages=None, query_total=0):
         self._payload, self._status, self._boom = payload, status, boom
         self.calls: list[str] = []
+        self.params: list[dict] = []
+        self.query_pages = query_pages or []
+        self.query_total = query_total
 
     def get(self, url, **kwargs):
         self.calls.append(url)
+        self.params.append(dict(kwargs.get("params") or {}))
         if self._boom is not None:
             raise self._boom
+        if url.endswith("/query"):
+            # The diagnosis walk. Default: one empty page, so a test that only
+            # cares about the verdict is not also asserting about naming.
+            page = (kwargs.get("params") or {}).get("page", 1)
+            rows = self.query_pages[page - 1] if page <= len(self.query_pages) else []
+            return _Response({"rows": rows, "total": self.query_total})
         return _Response(self._payload, self._status)
 
 
@@ -311,3 +322,128 @@ def test_the_drainer_watches_the_new_writer():
     assert name, "the writer workflow has no name"
     assert f"- {name}" in drainer, (
         f"{name!r} is not in drain-writers.yml's workflow_run list")
+
+
+# --- Naming the rows behind the count --------------------------------------
+#
+# The original finding asked "identify the two live unjudged rows and say what
+# path stored them". /aggregate answers HOW MANY and never WHICH, and
+# money_basis is a closed-vocabulary filter so /query cannot be asked for
+# IS NULL. These pin the walk that puts names to the count.
+
+def _unjudged_row(**over):
+    row = {"signal_id": "abc123def456", "collector": "google_news",
+           "headline": "Someone raises $10bn", "money_basis": None,
+           "funding_amount_usd": 1e10}
+    row.update(over)
+    return row
+
+
+def test_a_failing_check_names_the_rows(conn):
+    _row(conn)
+    session = _Session(
+        _site_says(2),
+        query_pages=[[_unjudged_row(signal_id="aaa", collector="national_press"),
+                      _unjudged_row(signal_id="bbb", collector="sec_form_d"),
+                      {"signal_id": "ccc", "collector": "google_news",
+                       "money_basis": "company_raise", "headline": "A real round"}]],
+        query_total=3)
+    verdict, lines = cmb.check(conn, session=session)
+    body = "\n".join(lines)
+    assert verdict == cmb.FAIL
+    assert "national_press" in body and "sec_form_d" in body
+    assert "A real round" not in body, (
+        "a judged row must not be named as unjudged")
+
+
+def test_naming_never_softens_the_verdict(conn):
+    """A diagnosis that cannot run is still a FAIL.
+
+    The count is the verdict. If the walk fails, the check must say the naming
+    is incomplete and keep reporting the failure it already established.
+    """
+    _row(conn)
+
+    class _HalfBroken(_Session):
+        def get(self, url, **kwargs):
+            if url.endswith("/query"):
+                raise RuntimeError("query is down")
+            return _Response(self._payload, self._status)
+
+    verdict, lines = cmb.check(conn, session=_HalfBroken(_site_says(2)))
+    assert verdict == cmb.FAIL
+    assert "NAMING INCOMPLETE" in "\n".join(lines)
+
+
+def test_a_short_walk_reports_itself_incomplete():
+    """Hitting the page cap must never be presented as the whole answer.
+
+    Asserted on `name_unjudged` directly: `check()` runs it at the shipped cap,
+    and a test that could only fail by making the real corpus bigger than the
+    cap is a test that does not run today.
+    """
+    pages = [[_unjudged_row(signal_id=f"r{i}")] for i in range(5)]
+    session = _Session(_site_says(9), query_pages=pages, query_total=10_000)
+    rows, complete = cmb.name_unjudged(session=session, max_pages=2)
+    assert complete is False, "a capped walk claimed to be the whole answer"
+    assert len(rows) == 2, "it should still return what it did read"
+
+
+def test_a_walk_that_reaches_the_end_is_complete():
+    """The other side, or `complete` is just a constant."""
+    session = _Session(_site_says(1),
+                       query_pages=[[_unjudged_row(signal_id="only")]],
+                       query_total=1)
+    rows, complete = cmb.name_unjudged(session=session, max_pages=5)
+    assert complete is True
+    assert len(rows) == 1
+
+
+def test_a_count_the_naming_cannot_match_is_declared(conn):
+    """Two live readings, not one instant. Say so rather than implying a set."""
+    _row(conn)
+    session = _Session(_site_says(2),
+                       query_pages=[[_unjudged_row(signal_id="only-one")]],
+                       query_total=1)
+    _, lines = cmb.check(conn, session=session)
+    assert "NAMING DISAGREES" in "\n".join(lines)
+
+
+def test_the_walk_asks_for_rows_that_carry_a_figure():
+    """`min_funding_usd=1` is the only public way to say IS NOT NULL.
+
+    Asserted on the REQUEST, not on the source. The first draft of this test
+    grepped `inspect.getsource`, and the docstring of the function under test
+    contains the same string -- so deleting the parameter from the request left
+    the test green. A guard that its own mutation cannot redden is not a guard.
+
+    Without the narrowing this walks all ~32k live rows instead of the ~4,400
+    that carry a figure.
+    """
+    session = _Session(_site_says(1),
+                       query_pages=[[_unjudged_row()]], query_total=1)
+    cmb.name_unjudged(session=session)
+    assert session.params, "the walk made no request at all"
+    sent = session.params[0]
+    assert sent.get("min_funding_usd") == 1, (
+        f"the walk did not narrow to rows with a figure: {sent}")
+    assert sent.get("per_page") == 200
+    assert sent.get("page") == 1
+
+
+def test_the_walk_is_capped():
+    """A diagnosis that follows a growing corpus forever becomes the outage."""
+    import inspect
+    source = inspect.getsource(cmb.name_unjudged)
+    assert "max_pages" in source
+    assert cmb.MAX_DIAGNOSIS_PAGES <= 50
+
+
+def test_a_passing_check_does_not_walk_the_corpus(conn):
+    """22 requests on every green run would be the cost of nothing."""
+    _row(conn)
+    session = _Session(_site_says(0))
+    verdict, _ = cmb.check(conn, session=session)
+    assert verdict == cmb.PASS
+    assert not any(u.endswith("/query") for u in session.calls), (
+        "the naming walk ran on a clean corpus")
