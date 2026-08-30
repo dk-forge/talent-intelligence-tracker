@@ -114,6 +114,46 @@ is on a grace clock.
 rows through `correct_company_key.py` — a decision about employer identity, not
 a side effect of a review tool.
 
+### 2026-08-30: measured, attempted, and NOT shipped. The recommendation is to leave it split.
+
+Attempted via `EMPLOYER_KEY_ALIASES` and **the suite refused it**, correctly.
+`tests/test_identity.py::test_an_alias_may_only_merge_two_spellings_of_one_name`
+holds that the map "may only ever collapse PUNCTUATION. Two keys that already
+differ in their letters are two employers, and renaming one to the other here
+would be an editorial decision hiding in a lookup table." `alibaba group
+holding` and `alibaba` differ in their letters. The change was reverted rather
+than the test weakened.
+
+What the attempt established, so nobody has to measure it again:
+
+| | |
+|---|---|
+| `alibaba group holding` | **1 stored row, and it is NOT published** |
+| `alibaba` | 4 rows, 3 published |
+| `alibaba cloud` | a **subsidiary** — must never merge into the parent |
+| a `strip trailing holding(s)` rule | **593 distinct stored keys** |
+
+That last figure is the general form of this merge and it is not close: it would
+fold `capri holdings`, `upstart holdings`, `labcorp holdings` and 590 others
+into names that may belong to somebody else. It is the same answer the map's own
+header already records for the slug-shaped rule (274 keys, three employers
+fused).
+
+**Three ways forward, and the recommendation is (a):**
+
+* **(a) Leave it split.** The merge is worth ONE unpublished row today. Both
+  Alibaba findings are `rejected`, so neither can publish and neither figure can
+  reach a page; the only cost of splitting is that a future announcement covered
+  under both spellings dedupes late. Cheapest, and reversible the day it matters.
+* **(b) Record a ruling and add a SEPARATE documented-merge map**, leaving
+  `EMPLOYER_KEY_ALIASES` and its punctuation invariant untouched. This satisfies
+  the test's own stated condition — it objects to a merge asserted "without a
+  document saying so" — rather than routing around it. ~20 lines plus the
+  document. Do this if the split ever costs a real duplicate.
+* **(c) The rule-shaped widening.** Refused twice on measurement. Do not.
+
+Still the owner's call, and still not urgent: nothing public is wrong either way.
+
 ---
 
 ## 3. The taxonomy question is ALREADY RULED. The classifier was missing two phrasings.
