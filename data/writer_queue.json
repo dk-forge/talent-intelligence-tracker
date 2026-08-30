@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-30T14:20:26Z",
-  "last_tick": "2026-08-30T14:20:26Z",
+  "last_dispatch": "2026-08-30T14:47:39Z",
+  "last_tick": "2026-08-30T14:47:39Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -209,44 +209,22 @@
     }
   ],
   "red_marks": {
-    "orphan:33257935038": "2026-08-29T14:34:17Z"
+    "orphan:33257935038": "2026-08-30T14:47:39Z"
   },
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-30T14:20:26Z",
-      "history": [
-        {
-          "at": "2026-08-30T13:50:21Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-30T14:20:26Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260830T135021Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-30T13:50:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-30T14:47:39Z",
       "history": [
         {
           "at": "2026-08-30T14:30:22Z",
           "detail": "scheduled link hygiene (40 9 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-30T14:47:39Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260830T143022Z-enrich",
@@ -258,46 +236,8 @@
       "requested_at": "2026-08-30T14:30:22Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-19T02:02:57Z",
-      "history": [
-        {
-          "at": "2026-08-19T01:55:49Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-19T02:02:57Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-19T02:30:50Z",
-          "detail": "run 32207132317",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-19T02:30:50Z",
-          "detail": "run 32207132317",
-          "event": "landed"
-        }
-      ],
-      "id": "20260819T015549Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-19T02:30:50Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-19T01:55:49Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32207132317",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2536,6 +2476,44 @@
       "run_id": "33307063024",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-30T14:20:26Z",
+      "history": [
+        {
+          "at": "2026-08-30T13:50:21Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-30T14:20:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-30T14:47:39Z",
+          "detail": "run 33316595598",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-30T14:47:39Z",
+          "detail": "run 33316595598",
+          "event": "landed"
+        }
+      ],
+      "id": "20260830T135021Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-30T14:47:39Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-30T13:50:21Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "33316595598",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
