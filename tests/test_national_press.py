@@ -30,15 +30,15 @@ FIXTURES = Path(__file__).parent / "fixtures"
 # but the calendar. A pinned date in a freshness assertion is not a test, it is
 # a countdown: it says nothing about the collector on any day but the one the
 # fixture was recorded. Age each date from `now` and it holds for ever.
-def _rfc822(days_ago: float) -> bytes:
-    """The date format RSS serves, `days_ago` before this moment."""
-    stamp = datetime.now(timezone.utc) - timedelta(days=days_ago)
+def _rfc822(days_ago: float, *, now=None) -> bytes:
+    """The date format RSS serves, `days_ago` before `now` (default: this moment)."""
+    stamp = (now or datetime.now(timezone.utc)) - timedelta(days=days_ago)
     return stamp.strftime("%a, %d %b %Y %H:%M:%S GMT").encode()
 
 
-def _iso(days_ago: float) -> bytes:
-    """The date format Atom serves, `days_ago` before this moment."""
-    stamp = datetime.now(timezone.utc) - timedelta(days=days_ago)
+def _iso(days_ago: float, *, now=None) -> bytes:
+    """The date format Atom serves, `days_ago` before `now` (default: this moment)."""
+    stamp = (now or datetime.now(timezone.utc)) - timedelta(days=days_ago)
     return stamp.strftime("%Y-%m-%dT%H:%M:%S+00:00").encode()
 
 
@@ -55,8 +55,34 @@ RSS = ((FIXTURES / "national_press_rss.xml").read_bytes()
        .replace(_RECORDED_NEWEST, NEWEST_PUBDATE))
 # Read by exactly two tests: one parses the recorded document and asserts the
 # date it carries, so it keeps the file byte for byte; the other needs a date
-# measured from now and re-stamps it itself.
+# measured from a clock and re-stamps it itself.
 ATOM = (FIXTURES / "national_press_atom.xml").read_bytes()
+
+
+# Re-stamping keeps the fixture live, which is necessary and is not the whole
+# job: it makes the ARGUMENT hold on any day, while every health check still
+# asks the wall clock what day it is. Since 2026-08-30 `collect()` takes `now`,
+# the seam every other window-based collector here already had
+# (`singapore_acra.collect(today=)`, `companies_house`, `bse_india`,
+# `ats_boards.trajectory(today=)`), so a staleness verdict can be stated as
+# arithmetic between two fixed instants instead. That is the stronger claim:
+# not "this reads live today" but "this reads live, full stop".
+#
+# The instant is arbitrary — the day the countdown ran out, for the record. What
+# matters is that the fixture's dates are stamped from the SAME instant the
+# collector is handed.
+PINNED_NOW = datetime(2026, 8, 30, 12, 0, 0, tzinfo=timezone.utc)
+
+
+def _rss_aged(older_days: float, newest_days: float, *, now=None) -> bytes:
+    """The recorded RSS with its two item dates aged that many days before `now`."""
+    return (RSS.replace(OLDER_PUBDATE, _rfc822(older_days, now=now))
+               .replace(NEWEST_PUBDATE, _rfc822(newest_days, now=now)))
+
+
+# The fixture as a live feed against the pinned clock: the two item dates three
+# and two days old, the spacing the recording carried, fixed for ever.
+LIVE_RSS = _rss_aged(3, 2, now=PINNED_NOW)
 
 GLOBES = press.Feed(name="Globes", rss="https://en.globes.co.il/feed",
                     country="Israel", city="Tel Aviv", coverage="National",
@@ -301,15 +327,29 @@ def test_the_feed_this_suite_calls_live_is_live_today_not_on_its_recording_day()
     A calendar date inside a freshness assertion is a countdown, not a test. If
     this ever fails, do NOT raise STALE_AFTER_DAYS and do NOT re-record the
     fixture with a later date — both buy the same silence again. Age the
-    fixture's dates from `now`, which is what _rfc822 at the top of this file
-    is for."""
-    age = press.newest_item_age_days(press.parse(RSS, GLOBES))
+    fixture's dates from a clock, which is what _rfc822 at the top of this file
+    is for.
+
+    Stated twice, because the health checks below come in two kinds. The
+    stronger one first: LIVE_RSS is stamped from PINNED_NOW and read against
+    PINNED_NOW, two fixed instants, so this arithmetic is the same on every day
+    there will ever be."""
+    age = press.newest_item_age_days(press.parse(LIVE_RSS, GLOBES), now=PINNED_NOW)
     assert age is not None, "a fixture with no date cannot stand in for a live feed"
     assert age < press.STALE_AFTER_DAYS, (
-        f"the RSS fixture reads {age}d old against a {press.STALE_AFTER_DAYS}d "
-        "limit, so every check below that expects this feed to report 'ok' is "
-        "now wrong about the calendar rather than about the collector")
+        f"the pinned RSS fixture reads {age}d old against a "
+        f"{press.STALE_AFTER_DAYS}d limit, so every check below that expects "
+        "this feed to report 'ok' is wrong about its own arithmetic")
     assert age < press.STALE_AFTER_DAYS_AGENCY
+
+    # And the module-level RSS, which the tests that do NOT pin a clock still
+    # read, is live against the wall clock. That is the re-stamping helper's
+    # claim, and it is the one that went red on 2026-08-30 when the dates were
+    # calendar literals instead.
+    today = press.newest_item_age_days(press.parse(RSS, GLOBES))
+    assert today is not None and today < press.STALE_AFTER_DAYS, (
+        f"the re-stamped RSS fixture reads {today}d old against a "
+        f"{press.STALE_AFTER_DAYS}d limit — it is a countdown again")
 
 
 def test_a_dead_feed_is_named_rather_than_hidden_in_the_aggregate(tmp_path, capsys):
@@ -321,10 +361,11 @@ def test_a_dead_feed_is_named_rather_than_hidden_in_the_aggregate(tmp_path, caps
                       country="Nigeria", city="Lagos", coverage="National",
                       language="English", source_type="Technology News")
     session = FakeSession({
-        GLOBES.rss: FakeResponse(RSS),
+        GLOBES.rss: FakeResponse(LIVE_RSS),
         dead.rss: FakeResponse(b"", 403),
     })
-    items = press.collect(feeds=[GLOBES, dead], session=session, pause=0, dry_run=True)
+    items = press.collect(feeds=[GLOBES, dead], session=session, pause=0,
+                          dry_run=True, now=PINNED_NOW)
 
     assert len(items) == 2
     by_name = {r["name"]: r for r in press.FEED_HEALTH}
@@ -352,13 +393,69 @@ def test_a_feed_that_answers_but_stopped_publishing_is_stale_not_ok():
     parses cleanly, hands over 25 items — and its newest entry is from October
     2024. Any check that only asks "did it respond" calls that healthy, and
     Israel keeps a source that has published nothing in 21 months."""
-    old = RSS.replace(OLDER_PUBDATE, _rfc822(651)) \
-             .replace(NEWEST_PUBDATE, _rfc822(650))
+    old = _rss_aged(651, 650, now=PINNED_NOW)
     session = FakeSession({GLOBES.rss: FakeResponse(old)})
-    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True,
+                  now=PINNED_NOW)
     record = press.FEED_HEALTH[0]
     assert record["status"] == "stale"
     assert "stopped" in record["detail"]
+
+
+def test_the_staleness_verdict_is_read_from_the_clock_the_caller_hands_in():
+    """The seam itself, stated as the only thing a seam is for: the same bytes,
+    two clocks, two verdicts.
+
+    This could not be written before 2026-08-30. `newest_item_age_days` took an
+    injectable clock and `collect` called it without one, so the only way to
+    move a staleness verdict was to move the fixture — and a fixture aged from
+    today is a countdown, which is precisely how three checks here went red on
+    main with nothing wrong but the calendar. Neither assertion below knows what
+    day it is."""
+    press.collect(feeds=[GLOBES], pause=0, dry_run=True, now=PINNED_NOW,
+                  session=FakeSession({GLOBES.rss: FakeResponse(LIVE_RSS)}))
+    record = press.FEED_HEALTH[0]
+    assert record["status"] == "ok" and record["newest_days"] == 2
+
+    later = PINNED_NOW + timedelta(days=press.STALE_AFTER_DAYS + 1)
+    press.collect(feeds=[GLOBES], pause=0, dry_run=True, now=later,
+                  session=FakeSession({GLOBES.rss: FakeResponse(LIVE_RSS)}))
+    record = press.FEED_HEALTH[0]
+    assert record["status"] == "stale"
+    assert record["newest_days"] == press.STALE_AFTER_DAYS + 3
+
+
+def test_the_limit_is_a_boundary_with_a_different_verdict_on_each_side():
+    """A day either side of each limit, in literal days.
+
+    The literals are the point, and the first draft of this test did not have
+    them: it derived its ages from STALE_AFTER_DAYS, so widening the limit moved
+    the test along with it and the suite stayed green. That is the same silence
+    the fixture fix refused to buy, bought a different way. These numbers are the
+    promise — a national daily silent for 45 days is quiet, at 46 the publisher
+    has stopped, and an agency gets 150 because an agency announcing a programme
+    twice a year is not a broken source. Change either limit and this fails,
+    which is the intention."""
+    daily = _rss_aged(1, 0, now=PINNED_NOW)   # newest item dated PINNED_NOW itself
+    agency = press.Feed(name="Innovate UK", rss="https://www.gov.uk/x.atom",
+                        country="United Kingdom", city="Swindon", coverage="National",
+                        language="English", source_type="Government Agency")
+    agency_body = ATOM.replace(_RECORDED_ATOM, _iso(0, now=PINNED_NOW))
+
+    for feed, body, age, expected in (
+            (GLOBES, daily, 44, "ok"),
+            (GLOBES, daily, 45, "ok"),
+            (GLOBES, daily, 46, "stale"),
+            (agency, agency_body, 46, "ok"),
+            (agency, agency_body, 150, "ok"),
+            (agency, agency_body, 151, "stale")):
+        press.collect(feeds=[feed], pause=0, dry_run=True,
+                      now=PINNED_NOW + timedelta(days=age),
+                      session=FakeSession({feed.rss: FakeResponse(body)}))
+        record = press.FEED_HEALTH[0]
+        assert record["newest_days"] == age
+        assert record["status"] == expected, (
+            f"{feed.name} at {age}d read {record['status']}, wanted {expected}")
 
 
 def test_a_quarterly_agency_feed_is_not_called_stale():
@@ -370,15 +467,16 @@ def test_a_quarterly_agency_feed_is_not_called_stale():
                         language="English", source_type="Government Agency")
     # Older than a daily's limit (45d) and well inside an agency's (150d), and
     # it must stay between the two however long from now this runs.
-    aged = ATOM.replace(_RECORDED_ATOM, _iso(100))
+    aged = ATOM.replace(_RECORDED_ATOM, _iso(100, now=PINNED_NOW))
     session = FakeSession({agency.rss: FakeResponse(aged)})
-    press.collect(feeds=[agency], session=session, pause=0, dry_run=True)
+    press.collect(feeds=[agency], session=session, pause=0, dry_run=True,
+                  now=PINNED_NOW)
     assert press.FEED_HEALTH[0]["status"] == "ok"
 
     # The same gap on a daily newspaper is not fine.
-    press.collect(feeds=[GLOBES], pause=0, dry_run=True, session=FakeSession({
-        GLOBES.rss: FakeResponse(RSS.replace(OLDER_PUBDATE, _rfc822(101))
-                                    .replace(NEWEST_PUBDATE, _rfc822(100)))}))
+    press.collect(feeds=[GLOBES], pause=0, dry_run=True, now=PINNED_NOW,
+                  session=FakeSession({
+                      GLOBES.rss: FakeResponse(_rss_aged(101, 100, now=PINNED_NOW))}))
     assert press.FEED_HEALTH[0]["status"] == "stale"
 
 
@@ -388,17 +486,20 @@ def test_an_undated_feed_is_not_guessed_at():
     undated = RSS.replace(b"<pubDate>" + OLDER_PUBDATE + b"</pubDate>", b"") \
                  .replace(b"<pubDate>" + NEWEST_PUBDATE + b"</pubDate>", b"")
     session = FakeSession({GLOBES.rss: FakeResponse(undated)})
-    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True,
+                  now=PINNED_NOW)
     assert press.FEED_HEALTH[0]["status"] == "ok"
-    assert press.newest_item_age_days(press.parse(undated, GLOBES)) is None
+    assert press.newest_item_age_days(
+        press.parse(undated, GLOBES), now=PINNED_NOW) is None
 
 
 def test_a_thin_teaser_feed_is_not_recorded_as_a_broken_one():
     """Paywalled publishers serve headline-and-teaser feeds, so fewer of their
     items survive the gate. The ledger counts items separately from new ones so
     a low yield never reads as a dead feed."""
-    session = FakeSession({GLOBES.rss: FakeResponse(RSS)})
-    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    session = FakeSession({GLOBES.rss: FakeResponse(LIVE_RSS)})
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True,
+                  now=PINNED_NOW)
     record = press.FEED_HEALTH[0]
     assert record["status"] == "ok"
     assert record["items"] == 2 and record["new"] == 2
@@ -408,11 +509,13 @@ def test_a_dry_run_does_not_overwrite_the_ledger(tmp_path):
     """A rehearsal that rewrote the ledger would report the rehearsal as the
     live picture."""
     press.HEALTH_PATH = tmp_path / "health.json"
-    session = FakeSession({GLOBES.rss: FakeResponse(RSS)})
-    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
+    session = FakeSession({GLOBES.rss: FakeResponse(LIVE_RSS)})
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True,
+                  now=PINNED_NOW)
     assert not press.HEALTH_PATH.exists()
 
-    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=False)
+    press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=False,
+                  now=PINNED_NOW)
     written = json.loads(press.HEALTH_PATH.read_text())
     assert written["live"] == 1 and written["by_feed"][0]["name"] == "Globes"
 
