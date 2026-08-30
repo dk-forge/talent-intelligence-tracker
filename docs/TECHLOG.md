@@ -14,6 +14,71 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-30 - two classifiers disagreed and the corpus sat on the side nobody asked
+
+`docs/RULING-public-equity-proceeds.md` settled that equity sold into public
+markets is excluded from "money raised", and recorded the remedy for the two
+stored Alibaba rows as one queued run of `correct-money-basis`. That run would
+have done nothing.
+
+**The vocabulary fix and the correction pass were looking at different
+classifiers.** On 2026-08-29 `capital_event.classify()` learned the two
+phrasings it had been missing - "issue US$10 billion in new shares" and "record
+Hong Kong share sale" - and that fix governs NEW WRITES: `validate.build_signal`
+calls capital_event first and nulls the figure when it answers. The rows already
+in the database are the ones the ruling was about, and they predate it, so they
+carry `deal_type` NULL and `money_basis = company_raise`.
+
+`correct_money_basis.py` derives its verdict by calling `money_raised.basis()`,
+which is the right design - it cannot disagree with the pipeline. But `basis()`
+asked two questions, the stored `deal_type` and its own patterns, and never the
+instrument. On a row with no label and no pattern hit it returned
+`company_raise` by default. So the correction prescribed by the ruling was a
+no-op on the exact rows the ruling named, and would have reported success.
+
+**The defect is the shape this repo keeps finding**: not a wrong answer, but a
+question nobody was asking. `capital_event` knew these two rows were
+`public_offering` the whole time - it says so today, on the stored text - and
+the module that decides what may be summed had no route to it.
+
+### What changed
+
+`basis()` asks three sources in order of what each knows: the stored
+`deal_type`, this module's patterns, then `capital_event` for the instrument.
+Only an `EXCLUDING_DEAL_TYPES` kind is accepted from it, so an instrument no
+total acts on cannot become a verdict.
+
+**It is a no-op on the write path, and that is what makes it safe.** build_signal
+calls capital_event first and nulls the figure when it answers, so `basis()` is
+only ever reached on a write with text capital_event has already declined - the
+same call with the same inputs declines again. `tests/test_money_raised.py`
+asserts that property rather than reasoning about it.
+
+Measured on the whole corpus before shipping:
+
+| | |
+|---|---|
+| rows with a figure | 4,831 |
+| verdicts that change | **3** (0.06%, against a 10% refusal ceiling) |
+| of those, published | **0** |
+| published money total before / after | **$585,597,763,768 / unchanged** |
+
+The three are the two Alibaba rows -> `public_offering`, and Nvidia's $709bn
+"AI factory funding deal" -> `project_finance`, which `pipeline/validate.py`
+already names in its own comment as one of the four capital events that started
+all of this. All three are quarantined and unpublished, so nothing public moves;
+what closes is the exposure that a release from quarantine would have put
+$739.2bn straight into a total.
+
+The stored rows are still `company_raise` until the correction actually runs.
+That is a database write and is queued, not dispatched:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml \
+  -f inputs_json='{"dry_run":"false"}' -f reason='Alibaba public offering, per the ruling'
+```
+
+
 ## 2026-08-30 - the standing assertion nothing stood up, and it was reading the wrong corpus
 
 `correct_money_basis.py --check` is the guard CLAUDE.md names for "no live row

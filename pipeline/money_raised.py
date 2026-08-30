@@ -131,6 +131,8 @@ from __future__ import annotations
 
 import re
 
+from . import capital_event
+
 #: The verdict that is summed. Exactly one value, asked for by name.
 COMPANY_RAISE = "company_raise"
 
@@ -441,9 +443,16 @@ def basis(deal_type: str | None, company: str | None,
           *texts: str | None) -> str:
     """The three-state verdict for `money_basis`. NEVER None.
 
+    Three sources, asked in order of what each knows: the stored `deal_type`,
+    then this module's own patterns, then `capital_event` for the instrument.
+
     A `deal_type` already on the row normally wins, because it was decided by a
     model reading the whole document (or by capital_event reading the
-    instrument), and both of those know more than the patterns above.
+    instrument), and both of those know more than the patterns above. When the
+    row carries NO label and the patterns find nothing, the instrument is the
+    last question rather than an assumed `company_raise` -- see the comment on
+    that branch for why it is a no-op on the write path and matters only when
+    re-judging a stored row.
 
     THE ONE EXCEPTION IS A TRANSACTION PRICE BESIDE A NAMED ROUND. "Singapore's
     Graas raises $17 million Series B, acquires product-data startup Trustana"
@@ -466,7 +475,36 @@ def basis(deal_type: str | None, company: str | None,
         if not (priced and _PRIVATE_ROUND_MARKER.search(joined)):
             return deal_type
     kind = classify(company, *texts)
-    return kind or COMPANY_RAISE
+    if kind:
+        return kind
+
+    # AND LAST, THE INSTRUMENT, asked of the module that owns it.
+    #
+    # This branch is unreachable on the write path and exists entirely for
+    # re-judging a STORED row. validate.build_signal calls capital_event first
+    # and NULLS the figure when it answers, so `basis()` is only ever reached
+    # there with text capital_event has already declined -- the same call with
+    # the same inputs, so it declines again. Nothing about a new write changes.
+    #
+    # A row already in the database is the other case, and it is why this is
+    # here. `docs/RULING-public-equity-proceeds.md` settled that equity sold
+    # into public markets is excluded, and the two phrasings that missed it
+    # ("issue US$10 billion in new shares", "record Hong Kong share sale") were
+    # added to capital_event on 2026-08-29. That fix governed new writes only.
+    # The rows stored BEFORE it kept `deal_type` NULL and `money_basis =
+    # company_raise`, and correct_money_basis.py could not reach them: it
+    # derives its verdict by calling this function, and this function asked the
+    # stored label and its own patterns and never the instrument. So the
+    # correction pass the ruling prescribes was a no-op on the exact rows the
+    # ruling was about -- two classifiers disagreeing, with the corpus stuck on
+    # the side of whichever one nobody asked.
+    #
+    # Only an EXCLUDING kind counts. capital_event may name an instrument that
+    # is not one of ours, and a kind no total acts on must not become a verdict.
+    event = capital_event.classify(*texts)
+    if event and event in EXCLUDING_DEAL_TYPES:
+        return event
+    return COMPANY_RAISE
 
 
 def note(kind: str) -> None:

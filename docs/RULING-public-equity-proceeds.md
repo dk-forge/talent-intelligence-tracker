@@ -155,6 +155,24 @@ gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml \
 
 Confirm the reading first — it is your ruling being applied, not a new one.
 
+**2026-08-30: the prescribed correction was a NO-OP, and is not any more.**
+The command above was correct about what should happen and could not make it
+happen. `correct_money_basis.py` derives its verdict by calling
+`money_raised.basis()`, and `basis()` asked the stored `deal_type` and its own
+patterns and never the instrument. Both Alibaba rows are stored with
+`deal_type` NULL -- they predate the capital_event vocabulary fix, which is the
+whole reason they are wrong -- so `basis()` returned `company_raise` on both and
+the pass would have re-judged them to exactly what they already were, reported
+"3 rows to judge", and left the ruling unapplied. `basis()` now asks
+`capital_event` last, when the row carries no label and the patterns found
+nothing. Measured on the whole corpus: **3 rows of 4,831 with a figure change
+verdict, none of them published, and the published money total moves by $0.**
+The third is Nvidia's $709bn "AI factory funding deal" -> `project_finance`,
+one of the four capital events `pipeline/validate.py` already names in its own
+comment. The branch is unreachable on the write path (build_signal calls
+capital_event first and nulls the figure when it answers), so no new write
+changes behaviour. See `docs/TECHLOG.md`, 2026-08-30.
+
 **2026-08-29: the GUARDRAIL half of this is done and the DATABASE half is not.**
 Both Alibaba findings are now rejected, so neither row can publish and neither
 figure can reach a page. The stored `money_basis` on both is still
