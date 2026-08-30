@@ -137,7 +137,7 @@ def test_the_dates_publishers_actually_use_are_all_read():
     dc = RSS.replace(
         b"<rss version=\"2.0\"",
         b"<rss version=\"2.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"").replace(
-        b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>",
+        b"<pubDate>Mon, 24 Aug 2026 08:30:00 GMT</pubDate>",
         b"<dc:publishDate>2026-07-14</dc:publishDate>")
     assert press.parse(dc, GLOBES)[0]["published_date"] == "2026-07-14"
 
@@ -147,7 +147,7 @@ def test_an_item_with_no_date_anywhere_is_never_stamped_with_the_fetch_time():
     Review carry no item-level date at all. Stamping those with the collection
     time would file a month-old article as today's news and quietly corrupt
     every period column — a wrong date is worse than no date."""
-    undated = RSS.replace(b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>", b"")
+    undated = RSS.replace(b"<pubDate>Mon, 24 Aug 2026 08:30:00 GMT</pubDate>", b"")
     item = press.parse(undated, GLOBES)[0]
     assert item["published_date"] == ""
 
@@ -293,8 +293,8 @@ def test_a_feed_that_answers_but_stopped_publishing_is_stale_not_ok():
     parses cleanly, hands over 25 items — and its newest entry is from October
     2024. Any check that only asks "did it respond" calls that healthy, and
     Israel keeps a source that has published nothing in 21 months."""
-    old = RSS.replace(b"Mon, 14 Jul 2026 08:30:00 GMT", b"Mon, 14 Oct 2024 08:30:00 GMT") \
-             .replace(b"Tue, 15 Jul 2026 09:00:00 GMT", b"Tue, 15 Oct 2024 09:00:00 GMT")
+    old = RSS.replace(b"Mon, 24 Aug 2026 08:30:00 GMT", b"Mon, 14 Oct 2024 08:30:00 GMT") \
+             .replace(b"Tue, 25 Aug 2026 09:00:00 GMT", b"Tue, 15 Oct 2024 09:00:00 GMT")
     session = FakeSession({GLOBES.rss: FakeResponse(old)})
     press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
     record = press.FEED_HEALTH[0]
@@ -316,16 +316,16 @@ def test_a_quarterly_agency_feed_is_not_called_stale():
 
     # The same gap on a daily newspaper is not fine.
     press.collect(feeds=[GLOBES], pause=0, dry_run=True, session=FakeSession({
-        GLOBES.rss: FakeResponse(RSS.replace(b"Mon, 14 Jul 2026", b"Mon, 14 Jan 2026")
-                                    .replace(b"Tue, 15 Jul 2026", b"Tue, 15 Jan 2026"))}))
+        GLOBES.rss: FakeResponse(RSS.replace(b"Mon, 24 Aug 2026", b"Mon, 14 Jan 2026")
+                                    .replace(b"Tue, 25 Aug 2026", b"Tue, 15 Jan 2026"))}))
     assert press.FEED_HEALTH[0]["status"] == "stale"
 
 
 def test_an_undated_feed_is_not_guessed_at():
     """No date is not the same as an old date, and treating it as one would
     retire a working feed on no evidence."""
-    undated = RSS.replace(b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>", b"") \
-                 .replace(b"<pubDate>Tue, 15 Jul 2026 09:00:00 GMT</pubDate>", b"")
+    undated = RSS.replace(b"<pubDate>Mon, 24 Aug 2026 08:30:00 GMT</pubDate>", b"") \
+                 .replace(b"<pubDate>Tue, 25 Aug 2026 09:00:00 GMT</pubDate>", b"")
     session = FakeSession({GLOBES.rss: FakeResponse(undated)})
     press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
     assert press.FEED_HEALTH[0]["status"] == "ok"
