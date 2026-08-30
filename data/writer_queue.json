@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-30T20:56:59Z",
-  "last_tick": "2026-08-30T20:56:59Z",
+  "last_dispatch": "2026-08-30T21:24:18Z",
+  "last_tick": "2026-08-30T21:24:18Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -213,39 +213,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-30T20:56:59Z",
-      "history": [
-        {
-          "at": "2026-08-30T19:20:58Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-30T20:56:59Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260830T192058Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-30T19:20:58Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-30T21:24:18Z",
       "history": [
         {
           "at": "2026-08-30T20:56:55Z",
           "detail": "Apply the public-equity ruling to the stored rows: 3 verdicts change, none published, published money total unchanged. Requested by the owner 2026-08-30.",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-30T21:24:18Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260830T205655Z-correct-money-basis",
@@ -257,46 +235,8 @@
       "requested_at": "2026-08-30T20:56:55Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-money-basis.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-19T06:34:50Z",
-      "history": [
-        {
-          "at": "2026-08-19T05:53:31Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-19T06:34:50Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-19T06:41:12Z",
-          "detail": "run 32224017825",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-19T06:41:12Z",
-          "detail": "run 32224017825",
-          "event": "landed"
-        }
-      ],
-      "id": "20260819T055331Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-19T06:41:12Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-08-19T05:53:31Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32224017825",
-      "state": "landed",
-      "workflow": "link-check.yml"
     },
     {
       "attempts": 0,
@@ -2536,6 +2476,44 @@
       "run_id": "33317838790",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-30T20:56:59Z",
+      "history": [
+        {
+          "at": "2026-08-30T19:20:58Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-30T20:56:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-30T21:24:18Z",
+          "detail": "run 33335047681",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-30T21:24:18Z",
+          "detail": "run 33335047681",
+          "event": "landed"
+        }
+      ],
+      "id": "20260830T192058Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-30T21:24:18Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-08-30T19:20:58Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "33335047681",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
