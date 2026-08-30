@@ -204,13 +204,12 @@
       "created_at": "2026-08-29T14:33:53Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-08-29T14:34:17Z",
+      "resolved": "2026-08-30T16:43:25Z",
+      "resolved_note": "Owner decided not to replay: the displaced 2026-08-29 14:33 press dispatch was superseded by the green 17:39 dispatch and the 01:10 schedule, both of which collected the same catalogue after the plugin reached 1.87.1. Nothing to re-run; the record was what was stuck. (by dakotta-labs)",
       "run_id": "33257935038",
       "workflow": "collect national press"
     }
   ],
-  "red_marks": {
-    "orphan:33257935038": "2026-08-30T14:47:39Z"
-  },
   "tickets": [
     {
       "attempts": 0,
