@@ -1,0 +1,146 @@
+name: correct-money-basis
+
+# Re-judge `money_basis` on every live row that carries a figure, and carry the
+# verdict to the site.
+#
+# The script takes NO list of row ids. It calls pipeline.money_raised.basis() --
+# the SAME function validate.build_signal calls on the write path -- so it cannot
+# disagree with the pipeline, and re-running it after a change to the definition
+# re-judges the corpus under the new one. See correct_money_basis.py.
+#
+# WHY THIS EXISTS NOW. The script has been in the repo since 2026-08-20 and had
+# no workflow, while every one of its siblings had one: correct-form-d,
+# correct-company-key, correct-funding-amount, correct-city-country,
+# correct-sec-pillar, correct-layoff-scope, correct-sec-filer-name. So the one
+# correction the standing assertion can DEMAND was the one nothing could run,
+# and money-basis-check.yml would have had nothing to point a human at.
+#
+# ---------------------------------------------------------------------------
+# WHY IN PLACE ON THE SITE, AND NOT WITHDRAW-AND-REPUBLISH
+# ---------------------------------------------------------------------------
+# money_basis is DERIVED -- computed by us from text the row already holds,
+# never stated by a source -- so it is not an input to validate.content_hash.
+# Writing it moves no fingerprint and the row still matches its own history,
+# which is the entire reason correct_company_key.py and correct_sec_pillar.py
+# have to re-issue instead. It travels through /enrich, whose allowlist is
+# derived values only, so this cannot rewrite a headline, a company or an
+# amount even if it were wrong.
+#
+# ---------------------------------------------------------------------------
+# WHY IT MERGES RATHER THAN REBASES
+# ---------------------------------------------------------------------------
+# The correct-funding-amount.yml shape: reset to origin/main and merge our rows
+# back in, never copy our file over the top of it. A copy destroys every row
+# anyone else pushed while this run was correcting.
+#
+# ---------------------------------------------------------------------------
+# THERE IS NO `schedule:` HERE AND THERE MUST NOT BE
+# ---------------------------------------------------------------------------
+# This holds `talent-collect`. GitHub keeps exactly ONE pending run per group,
+# so a second scheduled writer arriving while one runs and one waits silently
+# EVICTS the waiter -- it ends `cancelled` having created no jobs, no steps, no
+# logs, nothing that says work was lost, and a dispatched run's inputs are not
+# exposed by the API so it cannot be replayed. Queue it, never dispatch it:
+#
+#   gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml \
+#     -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+      force:
+        description: 'Proceed past the excluded-share ceiling, having read the table'
+        type: boolean
+        default: false
+      top:
+        description: 'How many excluded rows to name (default 25)'
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db.
+  group: talent-collect
+  # It updates the live site and then appends the record of having done so. A
+  # run cancelled between those two steps is resumed cleanly by the next one --
+  # but only if it is allowed to finish rather than being killed by a dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # The judgement is local and free; the budget is for /enrich's batches
+    # against a shared host and its retry pauses, not for the work.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          # --dry-run is the DEFAULT of the input, so a dispatch that says
+          # nothing reports and writes nothing. --enrich is the only way the
+          # site is touched and it is reachable only by asking for it here.
+          ARGS="--dry-run"
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--enrich"; fi
+          [ "${{ inputs.force }}" = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.top }}" ] && ARGS="$ARGS --top ${{ inputs.top }}"
+          # No `|| true`: a refused share (MAX_EXCLUDED_SHARE, exit 2) or a
+          # failed enrich must fail the run rather than pass quietly.
+          python correct_money_basis.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our verdicts into the remote's database, never copy our file
+          # over the top of it. See merge_db.py.
+          cp data/talent_intel.db "$RUNNER_TEMP/corrected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/corrected_cache.db"
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/corrected.db" data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
+            if git diff --staged --quiet; then
+              echo "No data change."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "data: re-judge money_basis against money_raised.basis() $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" = "1" ]; then
+            exit 0
+          fi
+          # The site was updated BEFORE the database on purpose, so a run that
+          # cannot push has corrected the live verdicts and lost only the record
+          # of having done so. The worklist is DERIVED by calling the classifier
+          # rather than typed, so re-queueing finds exactly the same rows and
+          # re-sends values the site already holds. Loud, because nothing else
+          # would say so.
+          echo "::error::could not push the corrected database after 5 attempts."
+          echo "::error::The live site is already corrected; the verdicts are not"
+          echo "::error::committed. Re-queue this workflow — it is idempotent."
+          exit 1

@@ -500,9 +500,22 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   `tests/test_money_raised.py` fails on any `SUM(... funding_amount_usd ...)`
   in the plugin that carries no basis clause — the guard that was missing, and
   the sibling tracker's documented "the surface that forgot the filter".
-  `correct_money_basis.py --check` is the standing assertion that no live row
-  carries an unjudged figure; a number there means a write path is skipping
-  `validate.build_signal`.
+  `correct_money_basis.py --check` is the standing assertion that no row carries
+  an unjudged figure; a number there means a write path is skipping
+  `validate.build_signal`. **It asks BOTH corpora, because for its first ten
+  days it asked only the committed database and that is the one place the defect
+  cannot appear.** It passed - "every live figure has been judged", exit 0 -
+  while the site's own `/aggregate` reported `money.coverage.unjudged = 2`
+  (2026-08-30). Nothing ran it either: no workflow, no test. The live half reads
+  `money.coverage.unjudged`, which `tit_money_unjudged_where()` computes from
+  the identical predicate. PASS / FAIL / **UNKNOWN**, exit 0 / 1 / 3, and the
+  `unjudged` key is read BY NAME - `coverage.get("unjudged", 0)` would read a
+  plugin too old to report it as a clean corpus, and an unreachable site has not
+  told us anything. `money-basis-check.yml` runs it daily and **holds no lock**,
+  because it writes nothing and a reader in `talent-collect` can evict a real
+  writer out of GitHub's single pending slot. The correction is
+  `correct-money-basis.yml`, `workflow_dispatch` only with **no `schedule:`**,
+  queued through `drain-writers.yml` like every other writer.
 - **A leading backer qualifier is not part of an employer's name.** `company_key`
   strips `<somebody>-backed|-owned|-led|-funded|-founded|-controlled` from the
   front. Both dedup layers require key EQUALITY, so "Thrive Holdings" and

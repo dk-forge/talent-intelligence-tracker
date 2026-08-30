@@ -58,6 +58,7 @@ on:
       - correct-form-d-overcount
       - correct-funding-amount
       - correct-layoff-scope
+      - correct-money-basis
       - correct-sec-filer-name
       - correct-sec-pillar
       - enrich
