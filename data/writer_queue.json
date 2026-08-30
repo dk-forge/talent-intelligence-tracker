@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-30T14:47:39Z",
-  "last_tick": "2026-08-30T14:59:55Z",
+  "last_dispatch": "2026-08-30T20:56:59Z",
+  "last_tick": "2026-08-30T20:56:59Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -213,12 +213,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-30T20:56:59Z",
       "history": [
         {
           "at": "2026-08-30T19:20:58Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-30T20:56:59Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260830T192058Z-archive-sources",
@@ -230,8 +235,30 @@
       "requested_at": "2026-08-30T19:20:58Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-08-30T20:56:55Z",
+          "detail": "Apply the public-equity ruling to the stored rows: 3 verdicts change, none published, published money total unchanged. Requested by the owner 2026-08-30.",
+          "event": "queued"
+        }
+      ],
+      "id": "20260830T205655Z-correct-money-basis",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "Apply the public-equity ruling to the stored rows: 3 verdicts change, none published, published money total unchanged. Requested by the owner 2026-08-30.",
+      "requested_at": "2026-08-30T20:56:55Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "correct-money-basis.yml"
     },
     {
       "attempts": 0,
