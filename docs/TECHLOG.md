@@ -14,6 +14,86 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-08-30 - a test that was counting down, and a chart that named the wrong basis
+
+Two defects, one theme: a claim that was true on the day it was written and was
+never asked again.
+
+### `tests` went red on main for no reason but the calendar
+
+Three checks in `tests/test_national_press.py` failed on 2026-08-30 with
+`assert 'stale' == 'ok'`. Nothing about the collector had changed.
+`tests/fixtures/national_press_rss.xml` is a recorded Globes feed whose newest
+item is stamped 15 Jul 2026, `STALE_AFTER_DAYS` is 45, and on 2026-08-30 that
+item turned 46 days old. Every check that asserts this feed reads `ok` — the
+per-feed health record, the thin-teaser case, the ledger write — flipped
+together.
+
+A calendar date inside a freshness assertion is not a test, it is a countdown:
+it says nothing about the collector on any day but the one the fixture was
+recorded. The two RSS item dates are now stamped from `now` at import (3 and 2
+days old), and every test that needed an OLD date derives it the same way, so
+"stale", "quarterly agency", "undated" and "syndicated" all still discriminate.
+The recorded files are untouched; the ATOM fixture is still parsed byte for byte
+by the test that asserts the date it carries.
+
+`STALE_AFTER_DAYS` was NOT widened and the fixture was NOT re-recorded with a
+later date. Both buy the same silence again, on a schedule.
+
+**The next one was 19 days out.** `test_a_quarterly_agency_feed_is_not_called_stale`
+aged its Atom fixture to a fixed 2026-04-20 against `STALE_AFTER_DAYS_AGENCY = 150`,
+which it would have crossed on 2026-09-17. Same fix.
+
+Guarded by
+`test_the_feed_this_suite_calls_live_is_live_today_not_on_its_recording_day`,
+which fails FIRST and says what is wrong, instead of three health assertions
+failing later and reading like a collector regression. That is what the healer
+had to reason about at 01:46 UTC, and it is why the shape of the failure matters
+as much as the failure: `Self-heal` then went red itself on an upstream 429
+("session limit"), so nothing was proposed.
+
+Mutation proof: re-pin `OLDER_PUBDATE`/`NEWEST_PUBDATE` to the recorded literals
+and the three CI failures return, plus the new guard naming the cause.
+
+### Money Raised by Country did not say what it was counting
+
+`tit_country_expr()` is `COALESCE(country, hq_country)`, so a place ranking
+counts a row where the update says it happened OR, failing that, where the
+employer is based. Two of the three surfaces built on that said so — Updates by
+Country ("head office stands in when no place is named") and Money Raised by
+City ("or, failing that, the city the employer is based in"). Money Raised by
+Country said only *"Funding rounds added up, in US dollars, by country."*
+
+The card reads **$336.17bn for the United States** live. Measured against the
+committed corpus, of the $340.17bn US bar over 2,696 published rows,
+**$250.81bn — 73.7% of the dollars — arrives on 37 rows whose update names no
+country at all** and which are placed by head office alone: OpenAI $122bn,
+Anthropic $65bn/$30bn/$13bn, NVIDIA, Databricks. Only $89.36bn is money an
+update actually places in the United States. The subtitle invited "money raised
+IN the United States" over a bar that is three quarters head-office placement,
+and it was the longest bar on the card. One page stated the fallback twice and
+denied it once, and the denial sat over the biggest number.
+
+Fixed by giving the note its siblings' words. The numbers are correct and
+nothing about the query changed — this is a labelling defect, and the caveat was
+NOT widened to make a wrong label defensible; the label was made true.
+
+`test_a_money_chart_grouped_on_a_place_fallback_discloses_it` and
+`test_the_updates_by_country_card_still_discloses_the_same_fallback` read the
+expressions out of `api.php`, so the disclosure is required only for as long as
+the fallback is real: making a place expression strict RETIRES the requirement
+rather than leaving a caveat that has stopped being true.
+
+Mutation proof, three ways: restore the old note -> the money guard fails; strip
+"head office stands in" from Updates by Country -> the sibling guard fails; make
+`tit_country_expr()` return bare `country` -> the requirement skips and the
+suite is green.
+
+Plugin 1.87.4. **Pushed, NOT deployed** — the deploy is the session's call.
+
+---
+
+
 ## 2026-08-29 - the four adjudications made on another company's reasoning, redone
 
 Ledger and docs only; no code changed. On 2026-08-22/23 an agent pasted one

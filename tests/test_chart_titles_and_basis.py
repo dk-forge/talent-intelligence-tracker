@@ -29,6 +29,8 @@ somebody restores the shape it was written to keep out.
 import re
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SHORTCODES_PHP = (
     ROOT / "wordpress-plugin" / "talent-intelligence-tracker" / "includes" / "shortcodes.php"
@@ -263,3 +265,80 @@ def test_the_place_caveat_is_not_inside_the_collapsible_note():
         "the place caveat is being passed into tit_chart_head() again, which "
         "puts it inside the (i) panel that dashboard.js closes on load."
     )
+
+
+# --- THREE. A CHART GROUPED ON A FALLBACK SAYS SO ---------------------------
+#
+# Found 2026-08-30. `tit_country_expr()` is `COALESCE(country, hq_country)` and
+# `tit_city_expr()` is `COALESCE(city, hq_city)`, so a place ranking counts a
+# row where the update says it happened OR, failing that, where the employer is
+# based. Two of the three surfaces built on those expressions said so — Updates
+# by Country ("head office stands in when no place is named") and Money Raised
+# by City ("or, failing that, the city the employer is based in"). Money Raised
+# by Country said only "Funding rounds added up, in US dollars, by country."
+#
+# That is the same class as ONE above: the markup was valid and every figure was
+# correctly computed, and the card was wrong anyway. It read $336bn for the
+# United States, a total the fallback inflates by every round a US-headquartered
+# employer raised anywhere else — and the United States is the longest bar on the
+# card, so the undisclosed one was the biggest.
+#
+# The disclosure is required only FOR AS LONG AS the fallback is real: the test
+# reads the expressions out of api.php, so making a place expression strict
+# retires the requirement instead of leaving a caveat that has stopped being true.
+
+API_PHP = ROOT / "wordpress-plugin" / "talent-intelligence-tracker" / "includes" / "api.php"
+
+#: The words each surface is allowed to use for "we fell back to the employer's
+#: home". Kept as a set of phrases rather than one exact sentence because the
+#: three cards are written in their own voices, and pinning one wording would
+#: fail an honest rewrite while passing a dishonest deletion.
+_FALLBACK_PHRASES = ("head office", "the employer is based", "headquarter")
+
+
+def _place_expr_is_a_fallback(name):
+    """Does api.php's expression for this dimension still coalesce to the HQ?"""
+    src = strip_comments(API_PHP.read_text(encoding="utf-8"))
+    body = re.search(r"function\s+tit_%s_expr\s*\(\s*\)\s*\{(.*?)\}" % name, src, re.S)
+    assert body, f"tit_{name}_expr() is gone; the charts that group on it are not"
+    return "COALESCE" in body.group(1).upper() and "hq_" in body.group(1)
+
+
+def _money_chart_notes(src):
+    """{dimension: note} for every money card, notes joined across PHP concats."""
+    notes = {}
+    for dim, blob in re.findall(
+            r"tit_money_chart\(\s*'(\w+)',\s*'[^']*',\s*(.*?),\s*\$money\[", src, re.S):
+        notes[dim] = " ".join(re.findall(r'"([^"]*)"', blob))
+    return notes
+
+
+def test_a_money_chart_grouped_on_a_place_fallback_discloses_it():
+    src = strip_comments(read())
+    notes = _money_chart_notes(src)
+    assert {"country", "city"} <= set(notes), (
+        f"a place money card disappeared; found {sorted(notes)}")
+
+    for dim in ("country", "city"):
+        if not _place_expr_is_a_fallback(dim):
+            continue  # the expression is strict now, so there is nothing to admit
+        note = notes[dim].lower()
+        assert any(p in note for p in _FALLBACK_PHRASES), (
+            f"Money Raised by {dim.title()} groups on COALESCE({dim}, hq_{dim}) "
+            f"and its note does not say so: {notes[dim]!r}. A reader takes the "
+            f"bar for money raised IN that {dim}; with the fallback in force it "
+            f"is also every round raised elsewhere by an employer based there.")
+
+
+def test_the_updates_by_country_card_still_discloses_the_same_fallback():
+    """The card that had it right, pinned so the fix cannot be levelled down to
+    the defect instead of the defect up to the fix."""
+    if not _place_expr_is_a_fallback("country"):
+        pytest.skip("tit_country_expr() no longer falls back to the HQ")
+    src = strip_comments(read())
+    note = re.search(r"tit_chart_head\(\s*'Updates by Country',\s*(.*?),\s*'place'\)",
+                     src, re.S)
+    assert note, "the Updates by Country head call changed shape"
+    text = " ".join(re.findall(r'"([^"]*)"', note.group(1))).lower()
+    assert any(p in text for p in _FALLBACK_PHRASES), (
+        f"Updates by Country stopped disclosing the HQ fallback: {text!r}")
