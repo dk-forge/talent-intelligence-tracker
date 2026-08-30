@@ -55,6 +55,42 @@ as much as the failure: `Self-heal` then went red itself on an upstream 429
 Mutation proof: re-pin `OLDER_PUBDATE`/`NEWEST_PUBDATE` to the recorded literals
 and the three CI failures return, plus the new guard naming the cause.
 
+### and the collector it tested had no clock
+
+Re-stamping the fixture from `now` fixed the countdown and left the reason it
+could happen. `newest_item_age_days(items, now=None)` already took an injectable
+clock; `collect()` neither took one nor forwarded one, so it called that
+function with the wall clock and `national_press` was the only window-based
+collector in this repo with no clock seam. Every other one has had it for
+months: `singapore_acra.collect(today=)`, `companies_house`, `czechia_ares`,
+`estonia_ariregister`, `bse_india`, `edinet_japan`, `opendart_korea`,
+`spain_borme`, `israel_registrar`, `ats_boards.trajectory(today=)`.
+
+Without the seam, the only way to move a staleness verdict was to move the
+fixture, which is why every health check here had to be an argument about
+today's date. `collect(now=...)` closes it, and the health tests now pin the
+clock: `PINNED_NOW` is a fixed instant, `LIVE_RSS` is the recorded feed stamped
+from that same instant, and the verdict is arithmetic between two constants. The
+re-stamping helper stays and is still correct — the tests that do not pin a
+clock read it, and the guard test now makes both claims, the pinned one first.
+
+Two new tests. `test_the_staleness_verdict_is_read_from_the_clock_the_caller_hands_in`
+is the seam itself: the same bytes read `ok` against one clock and `stale`
+against another 46 days later. `test_the_limit_is_a_boundary_with_a_different_verdict_on_each_side`
+walks 44/45/46 days on a daily and 46/150/151 on an agency, **in literal days**.
+The literals matter and the first draft did not have them: it derived its ages
+from `STALE_AFTER_DAYS`, so widening the limit moved the test with it and the
+suite stayed green. That is the same silence this entry refused to buy, bought a
+different way.
+
+Mutation proof, each run with the bytecode cache cleared: invert the comparison
+to `age < limit` and 7 tests fail; `STALE_AFTER_DAYS` 45 to 60 or
+`STALE_AFTER_DAYS_AGENCY` 150 to 200 fails the boundary test; drop the `now=now`
+forwarding and the two new tests fail. Shifting the process wall clock by -900,
+-30, 0, +30, +900 and +5000 days leaves all 59 green, which is the claim that
+could not be made before. `STALE_AFTER_DAYS` was not widened and the fixtures
+were not re-recorded.
+
 ### Money Raised by Country did not say what it was counting
 
 `tit_country_expr()` is `COALESCE(country, hq_country)`, so a place ranking

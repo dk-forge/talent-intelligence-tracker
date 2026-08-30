@@ -920,12 +920,24 @@ def title_key(title: str) -> str:
 
 
 def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = None,
-            session=None, pause: float = PER_HOST_PAUSE) -> list[dict]:
+            session=None, pause: float = PER_HOST_PAUSE, now=None) -> list[dict]:
     """Read every catalogue feed once, de-duplicating by URL and by title.
 
     `queries` is accepted and ignored: this source has no search vocabulary, the
     catalogue IS the population. run_collect passes it positionally to every
     collector.
+
+    `now` is the clock the staleness verdict is measured against, and defaults
+    to the wall clock. It is the seam every other window-based collector here
+    already has — `singapore_acra.collect(today=)`, `companies_house`,
+    `bse_india`, `ats_boards.trajectory(today=)` — and this one did not, until
+    2026-08-30: `newest_item_age_days` took an injectable clock and `collect`
+    dropped it on the floor, so the only way to test "stale" or "live" was to
+    age a fixture from today and trust the arithmetic to keep holding. It
+    stopped holding — the recorded feed's newest item crossed the 45-day limit
+    and three health checks went red on main with nothing wrong but the
+    calendar. A test that pins this reads the same on every day there will
+    ever be.
     """
     for key in STATS:
         STATS[key] = 0
@@ -998,7 +1010,7 @@ def collect(queries=None, *, dry_run: bool = False, feeds: list[Feed] | None = N
             # way that hides best: the request succeeded. Say so explicitly.
             record.update(status="empty", detail="200 but no parseable items")
         elif record["status"] == "ok":
-            age = newest_item_age_days(items)
+            age = newest_item_age_days(items, now=now)
             limit = (STALE_AFTER_DAYS_AGENCY if feed.source_type in _AGENCY_TYPES
                      else STALE_AFTER_DAYS)
             record["newest_days"] = age
