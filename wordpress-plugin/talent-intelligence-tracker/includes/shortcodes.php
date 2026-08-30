@@ -2154,8 +2154,25 @@ function tit_dashboard_html() {
       <div class="tit-charts tit-charts-money">
         <?php
         tit_money_chart(
+            /* The subtitle names the BASIS as well as the dimension, for the
+               same reason the city card beside it does. This chart groups by
+               tit_country_expr(), which is COALESCE(country, hq_country), so a
+               round is counted where the update states it happened OR, failing
+               that, where the employer is based.
+
+               It read "Funding rounds added up, in US dollars, by country."
+               until 2026-08-30, which is a claim about where the money went. It
+               is not what the column holds: with the fallback in force, a
+               US-headquartered employer's round raised anywhere in the world
+               lands under the United States, and the United States is the
+               longest bar on this card. Its two siblings -- Updates by Country
+               ("head office stands in when no place is named") and Money Raised
+               by City -- both disclosed the same fallback, so one page stated it
+               twice and denied it once, and the denial sat over the biggest
+               number. */
             'country', 'Money Raised by Country',
-            "Funding rounds added up, in US dollars, by country.",
+            "Funding rounds added up, in US dollars, by the country an update"
+            . " states or, failing that, the country the employer is based in.",
             $money['by_country'], $money, 'country',
             function ($k) { return tit_country_label_html($k); }, true
         );

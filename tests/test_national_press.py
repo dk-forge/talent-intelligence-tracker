@@ -7,6 +7,7 @@ list. Nothing in this file touches the network or the model.
 import base64
 import csv
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -17,7 +18,44 @@ from collectors import national_press as press
 from pipeline import validate
 
 FIXTURES = Path(__file__).parent / "fixtures"
-RSS = (FIXTURES / "national_press_rss.xml").read_bytes()
+
+
+# The fixtures are recorded documents, so the dates the publishers served are
+# fixed in the past. Several checks below assert a feed reads LIVE, and "live"
+# is a distance from TODAY rather than a date — so those dates are re-stamped
+# relative to now when this module loads.
+#
+# They were pinned to 14/15 Jul 2026 until 2026-08-30, when the newer of the two
+# crossed STALE_AFTER_DAYS (45) and three tests went red on main for no reason
+# but the calendar. A pinned date in a freshness assertion is not a test, it is
+# a countdown: it says nothing about the collector on any day but the one the
+# fixture was recorded. Age each date from `now` and it holds for ever.
+def _rfc822(days_ago: float) -> bytes:
+    """The date format RSS serves, `days_ago` before this moment."""
+    stamp = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    return stamp.strftime("%a, %d %b %Y %H:%M:%S GMT").encode()
+
+
+def _iso(days_ago: float) -> bytes:
+    """The date format Atom serves, `days_ago` before this moment."""
+    stamp = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    return stamp.strftime("%Y-%m-%dT%H:%M:%S+00:00").encode()
+
+
+# What the recorded files say, and what this module reads them as.
+_RECORDED_OLDER = b"Mon, 14 Jul 2026 08:30:00 GMT"
+_RECORDED_NEWEST = b"Tue, 15 Jul 2026 09:00:00 GMT"
+_RECORDED_ATOM = b"2026-07-20T09:30:00+01:00"
+
+OLDER_PUBDATE = _rfc822(3)     # the first item
+NEWEST_PUBDATE = _rfc822(2)    # the second, and the one staleness is judged on
+
+RSS = ((FIXTURES / "national_press_rss.xml").read_bytes()
+       .replace(_RECORDED_OLDER, OLDER_PUBDATE)
+       .replace(_RECORDED_NEWEST, NEWEST_PUBDATE))
+# Read by exactly two tests: one parses the recorded document and asserts the
+# date it carries, so it keeps the file byte for byte; the other needs a date
+# measured from now and re-stamps it itself.
 ATOM = (FIXTURES / "national_press_atom.xml").read_bytes()
 
 GLOBES = press.Feed(name="Globes", rss="https://en.globes.co.il/feed",
@@ -137,7 +175,7 @@ def test_the_dates_publishers_actually_use_are_all_read():
     dc = RSS.replace(
         b"<rss version=\"2.0\"",
         b"<rss version=\"2.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"").replace(
-        b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>",
+        b"<pubDate>" + OLDER_PUBDATE + b"</pubDate>",
         b"<dc:publishDate>2026-07-14</dc:publishDate>")
     assert press.parse(dc, GLOBES)[0]["published_date"] == "2026-07-14"
 
@@ -147,7 +185,7 @@ def test_an_item_with_no_date_anywhere_is_never_stamped_with_the_fetch_time():
     Review carry no item-level date at all. Stamping those with the collection
     time would file a month-old article as today's news and quietly corrupt
     every period column — a wrong date is worse than no date."""
-    undated = RSS.replace(b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>", b"")
+    undated = RSS.replace(b"<pubDate>" + OLDER_PUBDATE + b"</pubDate>", b"")
     item = press.parse(undated, GLOBES)[0]
     assert item["published_date"] == ""
 
@@ -253,6 +291,27 @@ def test_the_real_catalogue_holds_no_aggregator_feed():
 
 # --- Per-feed health -------------------------------------------------------
 
+
+def test_the_feed_this_suite_calls_live_is_live_today_not_on_its_recording_day():
+    """The defect this stands on, in one line: on 2026-08-30 three tests below
+    went red because the recorded fixture's newest item turned 46 days old
+    against a 45-day limit. Nothing about the collector had changed, and the
+    healer that woke up to it would have been reasoning about the wrong thing.
+
+    A calendar date inside a freshness assertion is a countdown, not a test. If
+    this ever fails, do NOT raise STALE_AFTER_DAYS and do NOT re-record the
+    fixture with a later date — both buy the same silence again. Age the
+    fixture's dates from `now`, which is what _rfc822 at the top of this file
+    is for."""
+    age = press.newest_item_age_days(press.parse(RSS, GLOBES))
+    assert age is not None, "a fixture with no date cannot stand in for a live feed"
+    assert age < press.STALE_AFTER_DAYS, (
+        f"the RSS fixture reads {age}d old against a {press.STALE_AFTER_DAYS}d "
+        "limit, so every check below that expects this feed to report 'ok' is "
+        "now wrong about the calendar rather than about the collector")
+    assert age < press.STALE_AFTER_DAYS_AGENCY
+
+
 def test_a_dead_feed_is_named_rather_than_hidden_in_the_aggregate(tmp_path, capsys):
     """The failure this collector is most exposed to: one feed among a hundred
     goes dark, the run still returns hundreds of items and still reports ok, and
@@ -293,8 +352,8 @@ def test_a_feed_that_answers_but_stopped_publishing_is_stale_not_ok():
     parses cleanly, hands over 25 items — and its newest entry is from October
     2024. Any check that only asks "did it respond" calls that healthy, and
     Israel keeps a source that has published nothing in 21 months."""
-    old = RSS.replace(b"Mon, 14 Jul 2026 08:30:00 GMT", b"Mon, 14 Oct 2024 08:30:00 GMT") \
-             .replace(b"Tue, 15 Jul 2026 09:00:00 GMT", b"Tue, 15 Oct 2024 09:00:00 GMT")
+    old = RSS.replace(OLDER_PUBDATE, _rfc822(651)) \
+             .replace(NEWEST_PUBDATE, _rfc822(650))
     session = FakeSession({GLOBES.rss: FakeResponse(old)})
     press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
     record = press.FEED_HEALTH[0]
@@ -309,23 +368,25 @@ def test_a_quarterly_agency_feed_is_not_called_stale():
     agency = press.Feed(name="Innovate UK", rss="https://www.gov.uk/x.atom",
                         country="United Kingdom", city="Swindon", coverage="National",
                         language="English", source_type="Government Agency")
-    aged = ATOM.replace(b"2026-07-20T09:30:00+01:00", b"2026-04-20T09:30:00+01:00")
+    # Older than a daily's limit (45d) and well inside an agency's (150d), and
+    # it must stay between the two however long from now this runs.
+    aged = ATOM.replace(_RECORDED_ATOM, _iso(100))
     session = FakeSession({agency.rss: FakeResponse(aged)})
     press.collect(feeds=[agency], session=session, pause=0, dry_run=True)
     assert press.FEED_HEALTH[0]["status"] == "ok"
 
     # The same gap on a daily newspaper is not fine.
     press.collect(feeds=[GLOBES], pause=0, dry_run=True, session=FakeSession({
-        GLOBES.rss: FakeResponse(RSS.replace(b"Mon, 14 Jul 2026", b"Mon, 14 Jan 2026")
-                                    .replace(b"Tue, 15 Jul 2026", b"Tue, 15 Jan 2026"))}))
+        GLOBES.rss: FakeResponse(RSS.replace(OLDER_PUBDATE, _rfc822(101))
+                                    .replace(NEWEST_PUBDATE, _rfc822(100)))}))
     assert press.FEED_HEALTH[0]["status"] == "stale"
 
 
 def test_an_undated_feed_is_not_guessed_at():
     """No date is not the same as an old date, and treating it as one would
     retire a working feed on no evidence."""
-    undated = RSS.replace(b"<pubDate>Mon, 14 Jul 2026 08:30:00 GMT</pubDate>", b"") \
-                 .replace(b"<pubDate>Tue, 15 Jul 2026 09:00:00 GMT</pubDate>", b"")
+    undated = RSS.replace(b"<pubDate>" + OLDER_PUBDATE + b"</pubDate>", b"") \
+                 .replace(b"<pubDate>" + NEWEST_PUBDATE + b"</pubDate>", b"")
     session = FakeSession({GLOBES.rss: FakeResponse(undated)})
     press.collect(feeds=[GLOBES], session=session, pause=0, dry_run=True)
     assert press.FEED_HEALTH[0]["status"] == "ok"
