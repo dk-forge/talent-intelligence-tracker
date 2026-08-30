@@ -114,6 +114,46 @@ is on a grace clock.
 rows through `correct_company_key.py` — a decision about employer identity, not
 a side effect of a review tool.
 
+### 2026-08-30: measured, attempted, and NOT shipped. The recommendation is to leave it split.
+
+Attempted via `EMPLOYER_KEY_ALIASES` and **the suite refused it**, correctly.
+`tests/test_identity.py::test_an_alias_may_only_merge_two_spellings_of_one_name`
+holds that the map "may only ever collapse PUNCTUATION. Two keys that already
+differ in their letters are two employers, and renaming one to the other here
+would be an editorial decision hiding in a lookup table." `alibaba group
+holding` and `alibaba` differ in their letters. The change was reverted rather
+than the test weakened.
+
+What the attempt established, so nobody has to measure it again:
+
+| | |
+|---|---|
+| `alibaba group holding` | **1 stored row, and it is NOT published** |
+| `alibaba` | 4 rows, 3 published |
+| `alibaba cloud` | a **subsidiary** — must never merge into the parent |
+| a `strip trailing holding(s)` rule | **593 distinct stored keys** |
+
+That last figure is the general form of this merge and it is not close: it would
+fold `capri holdings`, `upstart holdings`, `labcorp holdings` and 590 others
+into names that may belong to somebody else. It is the same answer the map's own
+header already records for the slug-shaped rule (274 keys, three employers
+fused).
+
+**Three ways forward, and the recommendation is (a):**
+
+* **(a) Leave it split.** The merge is worth ONE unpublished row today. Both
+  Alibaba findings are `rejected`, so neither can publish and neither figure can
+  reach a page; the only cost of splitting is that a future announcement covered
+  under both spellings dedupes late. Cheapest, and reversible the day it matters.
+* **(b) Record a ruling and add a SEPARATE documented-merge map**, leaving
+  `EMPLOYER_KEY_ALIASES` and its punctuation invariant untouched. This satisfies
+  the test's own stated condition — it objects to a merge asserted "without a
+  document saying so" — rather than routing around it. ~20 lines plus the
+  document. Do this if the split ever costs a real duplicate.
+* **(c) The rule-shaped widening.** Refused twice on measurement. Do not.
+
+Still the owner's call, and still not urgent: nothing public is wrong either way.
+
 ---
 
 ## 3. The taxonomy question is ALREADY RULED. The classifier was missing two phrasings.
@@ -154,6 +194,24 @@ gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml \
 ```
 
 Confirm the reading first — it is your ruling being applied, not a new one.
+
+**2026-08-30: the prescribed correction was a NO-OP, and is not any more.**
+The command above was correct about what should happen and could not make it
+happen. `correct_money_basis.py` derives its verdict by calling
+`money_raised.basis()`, and `basis()` asked the stored `deal_type` and its own
+patterns and never the instrument. Both Alibaba rows are stored with
+`deal_type` NULL -- they predate the capital_event vocabulary fix, which is the
+whole reason they are wrong -- so `basis()` returned `company_raise` on both and
+the pass would have re-judged them to exactly what they already were, reported
+"3 rows to judge", and left the ruling unapplied. `basis()` now asks
+`capital_event` last, when the row carries no label and the patterns found
+nothing. Measured on the whole corpus: **3 rows of 4,831 with a figure change
+verdict, none of them published, and the published money total moves by $0.**
+The third is Nvidia's $709bn "AI factory funding deal" -> `project_finance`,
+one of the four capital events `pipeline/validate.py` already names in its own
+comment. The branch is unreachable on the write path (build_signal calls
+capital_event first and nulls the figure when it answers), so no new write
+changes behaviour. See `docs/TECHLOG.md`, 2026-08-30.
 
 **2026-08-29: the GUARDRAIL half of this is done and the DATABASE half is not.**
 Both Alibaba findings are now rejected, so neither row can publish and neither

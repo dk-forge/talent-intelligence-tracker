@@ -550,3 +550,88 @@ def test_two_outlets_reporting_one_round_now_dedupe(tmp_path):
         2_000_000_000, "$2000.0m",
         published_date="2026-07-20",
     ) == signal.signal_id
+
+
+# --- The instrument is the last question, not an assumed round ---------------
+#
+# `docs/RULING-public-equity-proceeds.md`: equity sold into public markets is
+# excluded. The two phrasings that missed it were added to capital_event on
+# 2026-08-29, and that fix governed NEW WRITES ONLY. The rows already stored
+# kept deal_type NULL and money_basis company_raise, and correct_money_basis.py
+# could not reach them, because it derives its verdict by calling basis() and
+# basis() never asked the instrument. The correction the ruling prescribes was
+# a no-op on the exact rows the ruling was about.
+
+@pytest.mark.parametrize("headline", [
+    "Alibaba to issue US$10 billion in new shares for huge AI push",
+    "Alibaba raises US$10 billion in record Hong Kong share sale",
+])
+def test_stored_public_equity_proceeds_are_excluded_on_rejudgement(headline):
+    """Both Alibaba rows, as they are actually stored: no deal_type at all."""
+    from pipeline import capital_event
+    assert capital_event.classify(headline) == "public_offering", (
+        "the capital_event vocabulary fix has regressed; this test is then "
+        "passing for the wrong reason")
+    assert money_raised.basis(None, "Alibaba", headline, "") == "public_offering"
+
+
+def test_basis_is_a_no_op_on_the_write_path():
+    """THE PROPERTY THAT MAKES THIS SAFE.
+
+    build_signal calls capital_event FIRST and nulls the figure when it answers,
+    so basis() is only ever reached on a write with text capital_event has
+    already declined. The new branch re-asks the same function with the same
+    inputs, so it declines again and nothing about a new write changes. Asserted
+    rather than reasoned: if capital_event ever declines here, basis() must not
+    manufacture an exclusion from it.
+    """
+    from pipeline import capital_event
+    for headline, summary in [
+        ("Acme raises $70M in Series B funding", "Acme has raised $70M."),
+        ("Beta closes $12M seed round", "Beta closed a $12M seed round."),
+        ("Gamma raises $400m led by Menlo Ventures", "A Series C."),
+    ]:
+        assert capital_event.classify(headline, summary) is None
+        assert money_raised.basis(None, "Acme", headline, summary) == \
+            money_raised.COMPANY_RAISE
+
+
+def test_every_capital_event_kind_is_one_a_total_acts_on():
+    """The two vocabularies must stay in step.
+
+    `basis()` only lets an EXCLUDING kind through, so a capital event that is
+    not in `EXCLUDING_DEAL_TYPES` would be silently dropped back to
+    `company_raise` -- an instrument we correctly identified and then summed
+    anyway, which is the original defect wearing a new hat. Today every kind is
+    excluding, so this asserts the state rather than a hypothetical; the day
+    somebody adds one, this fails and names it.
+    """
+    from pipeline import capital_event
+    stray = set(capital_event.STATS) - money_raised.EXCLUDING_DEAL_TYPES
+    assert not stray, (
+        f"capital_event can return {sorted(stray)}, which money_raised does not "
+        f"exclude. Add them to EXCLUDING_DEAL_TYPES and to "
+        f"tit_allowed_deal_types() in includes/api.php, or basis() will sum "
+        f"the figure it identified.")
+
+
+def test_the_site_can_filter_every_verdict_basis_can_write():
+    """A money_basis the site's closed vocabulary does not hold is a value a
+    reader can see on a row and never select."""
+    php = (PLUGIN / "includes/api.php").read_text()
+    allowed = php.split("function tit_allowed_deal_types()", 1)[1].split("}", 1)[0]
+    from pipeline import capital_event
+    for kind in sorted(capital_event.STATS):
+        assert f"'{kind}'" in allowed, (
+            f"{kind} can be written as a money_basis but is not in "
+            f"tit_allowed_deal_types()")
+
+
+def test_a_named_private_round_still_beats_the_instrument():
+    """The transaction-price exception is unchanged: a real round beside a
+    listing plan is still a round."""
+    signal = money_raised.basis(
+        None, "Delta",
+        "Delta raises $30M Series B ahead of a possible IPO next year",
+        "Delta has raised $30M in a Series B.")
+    assert signal == money_raised.COMPANY_RAISE

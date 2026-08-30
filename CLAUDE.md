@@ -516,6 +516,18 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   writer out of GitHub's single pending slot. The correction is
   `correct-money-basis.yml`, `workflow_dispatch` only with **no `schedule:`**,
   queued through `drain-writers.yml` like every other writer.
+- **`money_raised.basis()` asks THREE sources, and the third one was missing.**
+  The stored `deal_type`, then this module's patterns, then `capital_event` for
+  the instrument. Without the third, a correction pass could not apply the
+  public-equity ruling to the rows it was written for: the 2026-08-29
+  capital_event vocabulary fix governs NEW WRITES, and the stored Alibaba rows
+  predate it, so they carry `deal_type` NULL and `basis()` defaulted them to
+  `company_raise`. **The prescribed correction was a no-op that would have
+  reported success.** Only an `EXCLUDING_DEAL_TYPES` kind is accepted from
+  capital_event, and the branch is unreachable on the write path (build_signal
+  calls capital_event first and nulls the figure when it answers), so it changes
+  re-judgement only: 3 rows of 4,831 move, none published, published total
+  unchanged.
 - **A leading backer qualifier is not part of an employer's name.** `company_key`
   strips `<somebody>-backed|-owned|-led|-funded|-founded|-controlled` from the
   front. Both dedup layers require key EQUALITY, so "Thrive Holdings" and
