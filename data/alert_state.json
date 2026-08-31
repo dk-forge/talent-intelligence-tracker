@@ -5,17 +5,12 @@
       "last": 1788186420,
       "subject": "CI RED: money-basis check: VERDICT: FAIL"
     },
-    "recall:main:726d76af0651f20d": {
-      "first": 1787562118,
-      "last": 1787562118,
-      "subject": "CI RED: recall: nothing to merge: this run's cache file /home/runner/work/_temp/keep/data/talent_intel_cache.db does not exist"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-08-31T14:27:01+00:00",
+  "updated_at": "2026-08-31T16:09:36+00:00",
   "version": 1
 }
