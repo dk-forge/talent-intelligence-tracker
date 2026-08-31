@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-08-31T16:09:37Z",
-  "last_tick": "2026-08-31T16:09:37Z",
+  "last_dispatch": "2026-08-31T16:16:16Z",
+  "last_tick": "2026-08-31T16:16:16Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -213,39 +213,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-08-31T16:09:37Z",
-      "history": [
-        {
-          "at": "2026-08-31T11:42:50Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-31T16:09:37Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260831T114250Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-08-31T11:42:50Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-08-31T16:16:16Z",
       "history": [
         {
           "at": "2026-08-31T14:46:44Z",
           "detail": "scheduled link hygiene (0 7 * * 1,4)",
           "event": "queued"
+        },
+        {
+          "at": "2026-08-31T16:16:16Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260831T144644Z-tripwire",
@@ -257,7 +235,7 @@
       "requested_at": "2026-08-31T14:46:44Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "tripwire.yml"
     },
     {
@@ -280,44 +258,6 @@
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-19T17:22:01Z",
-      "history": [
-        {
-          "at": "2026-08-19T16:50:50Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-19T17:22:01Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-19T17:48:19Z",
-          "detail": "run 32281188547",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-19T17:48:19Z",
-          "detail": "run 32281188547",
-          "event": "landed"
-        }
-      ],
-      "id": "20260819T165050Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-19T17:48:19Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-19T16:50:50Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32281188547",
-      "state": "landed",
       "workflow": "archive-sources.yml"
     },
     {
@@ -2558,6 +2498,44 @@
       "run_id": "33378951650",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-08-31T16:09:37Z",
+      "history": [
+        {
+          "at": "2026-08-31T11:42:50Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-08-31T16:09:37Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-08-31T16:16:16Z",
+          "detail": "run 33412551342",
+          "event": "bound"
+        },
+        {
+          "at": "2026-08-31T16:16:16Z",
+          "detail": "run 33412551342",
+          "event": "landed"
+        }
+      ],
+      "id": "20260831T114250Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-08-31T16:16:16Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-08-31T11:42:50Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "33412551342",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
