@@ -1,5 +1,10 @@
 {
   "open": {
+    "money-basis-check:main:dedcf2329403bf13": {
+      "first": 1788186420,
+      "last": 1788186420,
+      "subject": "CI RED: money-basis check: VERDICT: FAIL"
+    },
     "recall:main:726d76af0651f20d": {
       "first": 1787562118,
       "last": 1787562118,
@@ -11,6 +16,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-08-30T17:20:24+00:00",
+  "updated_at": "2026-08-31T14:27:01+00:00",
   "version": 1
 }
