@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-17T08:54:02+00:00",
- "measured_on": "2026-08-17",
+ "generated_at": "2026-08-31T16:09:00+00:00",
+ "measured_on": "2026-08-31",
  "goldset_version": "2026-07-v2",
  "gold_events": 169,
  "misses": 132,
@@ -647,7 +647,7 @@
    "domain": "prtimes.jp",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 64,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -667,7 +667,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 137,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -706,7 +706,7 @@
    "domain": "bloomberg.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 23,
+   "urls_fetched_from_this_domain": 28,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -726,7 +726,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 15,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -746,7 +746,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 137,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -766,7 +766,7 @@
    "domain": "technode.global",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 23,
+   "urls_fetched_from_this_domain": 44,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -786,7 +786,7 @@
    "domain": "stocktitan.net",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news"
@@ -805,7 +805,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 40,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -825,7 +825,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 15,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -864,7 +864,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 81,
+   "urls_fetched_from_this_domain": 95,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -922,7 +922,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 40,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -961,7 +961,7 @@
    "domain": "latamlist.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 42,
+   "urls_fetched_from_this_domain": 48,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -981,7 +981,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -1001,7 +1001,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 137,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -1021,7 +1021,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 58,
+   "urls_fetched_from_this_domain": 79,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -1041,7 +1041,7 @@
    "domain": "latamlist.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 42,
+   "urls_fetched_from_this_domain": 48,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -1080,7 +1080,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 15,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1099,7 +1099,7 @@
    "domain": "sedaily.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 6,
+   "urls_fetched_from_this_domain": 7,
    "live_routes": [],
    "walkers_past_this_date": [],
    "stage": "outside_our_history",
@@ -1116,7 +1116,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 81,
+   "urls_fetched_from_this_domain": 95,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1135,7 +1135,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1154,7 +1154,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 137,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1173,7 +1173,7 @@
    "domain": "caixinglobal.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 1,
+   "urls_fetched_from_this_domain": 2,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1192,7 +1192,7 @@
    "domain": "prtimes.jp",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 64,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1211,7 +1211,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 137,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1230,7 +1230,7 @@
    "domain": "yahoo.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 432,
+   "urls_fetched_from_this_domain": 487,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1249,7 +1249,7 @@
    "domain": "betakit.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 23,
+   "urls_fetched_from_this_domain": 35,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1285,7 +1285,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 40,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1304,7 +1304,7 @@
    "domain": "globes.co.il",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 76,
+   "urls_fetched_from_this_domain": 119,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1342,7 +1342,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 15,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1361,7 +1361,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 58,
+   "urls_fetched_from_this_domain": 79,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1380,7 +1380,7 @@
    "domain": "tech.eu",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 15,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1399,7 +1399,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 129,
+   "urls_fetched_from_this_domain": 140,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1418,7 +1418,7 @@
    "domain": "satellitetoday.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [],
    "walkers_past_this_date": [],
    "stage": "outside_our_history",
@@ -1452,7 +1452,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 81,
+   "urls_fetched_from_this_domain": 95,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1471,7 +1471,7 @@
    "domain": "smartcompany.com.au",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 31,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1490,7 +1490,7 @@
    "domain": "smartcompany.com.au",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 31,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1509,7 +1509,7 @@
    "domain": "smartcompany.com.au",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 31,
+   "urls_fetched_from_this_domain": 36,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -1528,7 +1528,7 @@
    "domain": "latamlist.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 42,
+   "urls_fetched_from_this_domain": 48,
    "live_routes": [
     "google_news"
    ],
@@ -1547,7 +1547,7 @@
    "domain": "european-biotechnology.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 8,
    "live_routes": [
     "google_news"
    ],
@@ -1566,7 +1566,7 @@
    "domain": "yahoo.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 432,
+   "urls_fetched_from_this_domain": 487,
    "live_routes": [
     "google_news"
    ],
@@ -1585,7 +1585,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 40,
    "live_routes": [
     "google_news"
    ],
@@ -1604,7 +1604,7 @@
    "domain": "entrackr.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 52,
+   "urls_fetched_from_this_domain": 87,
    "live_routes": [
     "google_news"
    ],
@@ -1623,7 +1623,7 @@
    "domain": "finsmes.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 137,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [
     "google_news"
    ],
@@ -1661,7 +1661,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 81,
+   "urls_fetched_from_this_domain": 95,
    "live_routes": [
     "google_news"
    ],
@@ -1680,7 +1680,7 @@
    "domain": "pv-magazine.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 5,
+   "urls_fetched_from_this_domain": 7,
    "live_routes": [
     "google_news"
    ],
@@ -1699,7 +1699,7 @@
    "domain": "exame.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 31,
+   "urls_fetched_from_this_domain": 47,
    "live_routes": [
     "google_news"
    ],
@@ -1718,7 +1718,7 @@
    "domain": "techla.pro",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 6,
+   "urls_fetched_from_this_domain": 11,
    "live_routes": [
     "google_news"
    ],
@@ -1737,7 +1737,7 @@
    "domain": "calcalistech.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 40,
    "live_routes": [
     "google_news"
    ],
@@ -1756,7 +1756,7 @@
    "domain": "businesswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 81,
+   "urls_fetched_from_this_domain": 95,
    "live_routes": [
     "google_news"
    ],
@@ -1775,7 +1775,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [
     "google_news"
    ],
@@ -1813,7 +1813,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [
     "google_news"
    ],
@@ -1832,7 +1832,7 @@
    "domain": "presseportal.de",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 6,
+   "urls_fetched_from_this_domain": 20,
    "live_routes": [
     "gdelt",
     "google_news"
@@ -1852,7 +1852,7 @@
    "domain": "technode.global",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 23,
+   "urls_fetched_from_this_domain": 44,
    "live_routes": [
     "gdelt",
     "google_news"
@@ -1908,7 +1908,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -1964,7 +1964,7 @@
    "domain": "businessdailyafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 31,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -1985,7 +1985,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2005,7 +2005,7 @@
    "domain": "techcabal.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 5,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -2024,7 +2024,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2044,7 +2044,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [
     "google_news"
    ],
@@ -2063,7 +2063,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [
     "google_news"
    ],
@@ -2082,7 +2082,7 @@
    "domain": "disruptafrica.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 7,
+   "urls_fetched_from_this_domain": 14,
    "live_routes": [
     "google_news"
    ],
@@ -2101,7 +2101,7 @@
    "domain": "miningweekly.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 16,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2122,7 +2122,7 @@
    "domain": "financialafrik.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 6,
+   "urls_fetched_from_this_domain": 8,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -2141,7 +2141,7 @@
    "domain": "addisfortune.news",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 22,
    "live_routes": [
     "gdelt",
     "google_news"
@@ -2161,7 +2161,7 @@
    "domain": "netokracija.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2181,7 +2181,7 @@
    "domain": "therecursive.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 11,
+   "urls_fetched_from_this_domain": 19,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2220,7 +2220,7 @@
    "domain": "dev.ua",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 1,
+   "urls_fetched_from_this_domain": 9,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2240,7 +2240,7 @@
    "domain": "bankier.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 21,
+   "urls_fetched_from_this_domain": 38,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2260,7 +2260,7 @@
    "domain": "therecursive.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 11,
+   "urls_fetched_from_this_domain": 19,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2280,7 +2280,7 @@
    "domain": "cc.cz",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 7,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -2299,7 +2299,7 @@
    "domain": "portfolio.hu",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 5,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [
     "google_news"
    ],
@@ -2318,7 +2318,7 @@
    "domain": "mamstartup.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 5,
+   "urls_fetched_from_this_domain": 12,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2339,7 +2339,7 @@
    "domain": "bursa.ro",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 5,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2360,7 +2360,7 @@
    "domain": "portfolio.hu",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 5,
+   "urls_fetched_from_this_domain": 15,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2381,7 +2381,7 @@
    "domain": "parkiet.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 5,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2518,7 +2518,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [
     "google_news"
    ],
@@ -2537,7 +2537,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [
     "google_news"
    ],
@@ -2556,7 +2556,7 @@
    "domain": "ambito.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 18,
+   "urls_fetched_from_this_domain": 41,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2576,7 +2576,7 @@
    "domain": "elobservador.com.uy",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 10,
+   "urls_fetched_from_this_domain": 11,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -2595,7 +2595,7 @@
    "domain": "ecosistemastartup.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 13,
+   "urls_fetched_from_this_domain": 26,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2616,7 +2616,7 @@
    "domain": "df.cl",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 3,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2636,7 +2636,7 @@
    "domain": "startupslatam.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 5,
+   "urls_fetched_from_this_domain": 7,
    "live_routes": [
     "google_news"
    ],
@@ -2691,7 +2691,7 @@
    "domain": "aviacionline.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 10,
+   "urls_fetched_from_this_domain": 21,
    "live_routes": [
     "gdelt",
     "google_news"
@@ -2711,7 +2711,7 @@
    "domain": "elcomercio.pe",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 13,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2732,7 +2732,7 @@
    "domain": "jamaicaobserver.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 29,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2791,7 +2791,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 58,
+   "urls_fetched_from_this_domain": 79,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -2810,7 +2810,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 58,
+   "urls_fetched_from_this_domain": 79,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -2829,7 +2829,7 @@
    "domain": "wamda.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 58,
+   "urls_fetched_from_this_domain": 79,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -2870,7 +2870,7 @@
    "domain": "gulf-times.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 0,
+   "urls_fetched_from_this_domain": 1,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -2890,7 +2890,7 @@
    "domain": "muscatdaily.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 0,
+   "urls_fetched_from_this_domain": 1,
    "live_routes": [
     "google_news",
     "news_backstop"
@@ -2946,7 +2946,7 @@
    "domain": "patronlardunyasi.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 4,
+   "urls_fetched_from_this_domain": 5,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news"
@@ -3022,7 +3022,7 @@
    "domain": "cafef.vn",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 33,
+   "urls_fetched_from_this_domain": 47,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -3043,7 +3043,7 @@
    "domain": "cafebiz.vn",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 3,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news"
@@ -3062,7 +3062,7 @@
    "domain": "youngster.id",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 6,
+   "urls_fetched_from_this_domain": 9,
    "live_routes": [
     "google_news"
    ],
@@ -3081,7 +3081,7 @@
    "domain": "liputan6.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 16,
+   "urls_fetched_from_this_domain": 41,
    "live_routes": [
     "google_news"
    ],
@@ -3100,7 +3100,7 @@
    "domain": "newswire.lk",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 9,
+   "urls_fetched_from_this_domain": 27,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -3139,7 +3139,7 @@
    "domain": "technode.global",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 23,
+   "urls_fetched_from_this_domain": 44,
    "live_routes": [],
    "walkers_past_this_date": [
     "press_archive"
@@ -3158,7 +3158,7 @@
    "domain": "dealstreetasia.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 27,
+   "urls_fetched_from_this_domain": 30,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
