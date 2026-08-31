@@ -1,6 +1,6 @@
 {
-  "checked_on": "2026-08-24",
-  "checked_at": "2026-08-24T09:52:20+00:00",
+  "checked_on": "2026-08-31",
+  "checked_at": "2026-08-31T16:53:09+00:00",
   "landmarks_version": "2026-08-v1",
   "landmarks_digest": "ea0fb9518b3e51cf",
   "summary": {
@@ -490,7 +490,7 @@
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-24"
+      "last_held_on": "2026-08-31"
     },
     "2025q3-mistral-1-7b-eur": {
       "ever_stored": false,
@@ -526,25 +526,25 @@
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-24"
+      "last_held_on": "2026-08-31"
     },
     "2026q1-waymo-16b": {
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-24"
+      "last_held_on": "2026-08-31"
     },
     "2026q1-anthropic-30b": {
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-24"
+      "last_held_on": "2026-08-31"
     },
     "2026q1-openai-122b": {
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-24"
+      "last_held_on": "2026-08-31"
     },
     "2026q2-anduril-5b": {
       "ever_stored": false,
@@ -556,7 +556,7 @@
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-24"
+      "last_held_on": "2026-08-31"
     },
     "2026q3-helsing-1-8b": {
       "ever_stored": false,
