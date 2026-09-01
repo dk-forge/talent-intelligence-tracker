@@ -1,0 +1,25 @@
+{
+ "armed": true,
+ "artifact_sha": "af7551f5bc458473",
+ "drift": {},
+ "labels": 26125,
+ "reason": "replay 99.812% of 3724 stored rows kept over 32 days",
+ "replay": {
+  "candidates": 26125,
+  "confident_pct": 7.0,
+  "days": 32,
+  "kept": 3717,
+  "rate_pct": 99.812,
+  "routed": {
+   "irrelevant": 1614,
+   "relevant": 225,
+   "uncertain": 24286
+  },
+  "stored": 3724,
+  "window": [
+   "2026-08-01",
+   "2026-09-01"
+  ]
+ },
+ "trained_at": "2026-09-01T10:03:46Z"
+}
