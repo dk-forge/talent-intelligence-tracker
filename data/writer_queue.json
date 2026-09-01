@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-01T06:02:37Z",
-  "last_tick": "2026-09-01T06:02:37Z",
+  "last_dispatch": "2026-09-01T11:37:04Z",
+  "last_tick": "2026-09-01T11:37:04Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -213,12 +213,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-01T11:37:04Z",
       "history": [
         {
           "at": "2026-09-01T10:16:38Z",
           "detail": "scheduled link hygiene (30 5 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-01T11:37:04Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260901T101638Z-link-check",
@@ -230,7 +235,7 @@
       "requested_at": "2026-09-01T10:16:38Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "link-check.yml"
     },
     {
