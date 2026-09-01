@@ -415,15 +415,95 @@ def _report_employer_keys(conn) -> list[str]:
     return problems
 
 
+#: Characters WordPress's remove_accents() folds that NFKD does NOT decompose,
+#: because they are atomic letters rather than a base plus a combining mark.
+#: Without these the mirror below reports slugs this site does not serve --
+#: 'giay-thuong-inh' for a page published at 'giay-thuong-dinh', because NFKD
+#: drops the letter and WordPress folds it. A checker that computes a different
+#: slug from the one live is not checking the live slug.
+_ATOMIC_FOLDS = {
+    "\u00e6": "ae", "\u00f8": "o", "\u00fe": "th", "\u00df": "s",
+    "\u00f0": "d", "\u0111": "d", "\u0127": "h", "\u0131": "i",
+    "\u0133": "ij", "\u0138": "k", "\u0142": "l", "\u014b": "n",
+    "\u0153": "oe", "\u0167": "t", "\u017f": "s", "\u01a1": "o",
+    "\u01b0": "u",
+}
+
+#: Revised Romanization jamo, the same three tables as tit_romanize_hangul()
+#: in includes/company.php. A Hangul syllable is an arithmetic composition of
+#: three jamo, so this is a decomposition and a lookup with no knowledge of the
+#: language in it -- which is why Hangul is transliterated and Han, Hebrew and
+#: Arabic are not. tests/test_company_slug_parity.py runs the PHP and this
+#: side over the whole corpus and fails on any disagreement.
+_HANGUL_LEAD = ("g", "kk", "n", "d", "tt", "r", "m", "b", "pp", "s", "ss", "",
+                "j", "jj", "ch", "k", "t", "p", "h")
+_HANGUL_VOWEL = ("a", "ae", "ya", "yae", "eo", "e", "yeo", "ye", "o", "wa",
+                 "wae", "oe", "yo", "u", "wo", "we", "wi", "yu", "eu", "ui", "i")
+_HANGUL_TAIL = ("", "k", "k", "ks", "n", "nj", "nh", "t", "l", "lk", "lm", "lb",
+                "ls", "lt", "lp", "lh", "m", "p", "ps", "t", "t", "ng", "t",
+                "t", "t", "k", "t", "p", "h")
+
+
+def _romanize_hangul(text: str) -> str:
+    """Mirror of tit_romanize_hangul(). A RUN of Hangul is one word, and a
+    script boundary is a word boundary, so 'lg전자' is lg-jeonja."""
+    if not any(0xAC00 <= ord(c) <= 0xD7A3 for c in text):
+        return text
+    out = []
+    in_hangul = False
+    for ch in text:
+        index = ord(ch) - 0xAC00
+        is_hangul = 0 <= index <= (0xD7A3 - 0xAC00)
+        if is_hangul != in_hangul:
+            out.append(" ")
+            in_hangul = is_hangul
+        if not is_hangul:
+            out.append(ch)
+            continue
+        out.append(_HANGUL_LEAD[index // 28 // 21]
+                   + _HANGUL_VOWEL[index // 28 % 21]
+                   + _HANGUL_TAIL[index % 28])
+    return "".join(out)
+
+
 def _profile_slug(key: str) -> str:
-    """tit_company_slug() from includes/company.php: accents folded, "&" to
-    "and", every other run of non-alphanumerics to one hyphen."""
+    """tit_company_slug() from includes/company.php: accents folded, Hangul
+    romanised, "&" to "and", every other run of non-alphanumerics to one
+    hyphen.
+
+    This is a MIRROR of PHP the checker cannot execute, so it is only worth
+    what its fidelity is worth. tests/test_company_slug_parity.py runs the real
+    function over the real corpus and fails when the two disagree.
+    """
     import re
     import unicodedata
+    from urllib.parse import quote
 
-    folded = unicodedata.normalize("NFKD", key.lower())
+    # HANGUL FIRST, and the order is not cosmetic. The PHP folds accents with
+    # remove_accents(), which leaves Hangul alone, and romanises afterwards.
+    # Python's nearest fold DECOMPOSES a Hangul syllable into conjoining jamo
+    # (U+1100..) and so destroys the very codepoints the romaniser matches on.
+    # Romanising first reaches the same answer as the PHP; doing it in the PHP's
+    # order silently reduces every Korean name to its Latin fragment again,
+    # which is the bug this is here to catch.
+    lowered = _romanize_hangul(key.lower())
+    # NFD, NOT NFKD. NFKD additionally applies COMPATIBILITY folding, which
+    # remove_accents() does not do: it turns fullwidth 'ａｖａｎｔｉａ' into
+    # 'avantia', so the checker reported a clean slug for a key the site
+    # actually serves percent-encoded. Canonical decomposition alone is the
+    # operation remove_accents performs over the Latin ranges.
+    folded = unicodedata.normalize("NFD", lowered)
     folded = "".join(c for c in folded if not unicodedata.combining(c))
-    return re.sub(r"[^a-z0-9]+", "-", folded.replace("&", " and ")).strip("-")
+    folded = "".join(_ATOMIC_FOLDS.get(c, c) for c in folded)
+    slug = re.sub(r"[^a-z0-9]+", "-", folded.replace("&", " and ")).strip("-")
+    if slug != "":
+        return slug
+    # The plugin's last resort, and the mirror has to have it: a key with no
+    # ASCII in it does NOT have "no URL", it has a percent-encoded one. Reading
+    # an empty string here made the checker describe those employers as having
+    # no profile URL at all, which is a different (and rosier) problem than the
+    # unreachable one they actually have.
+    return quote(key.replace(" ", "-"), safe="")
 
 
 #: A status that is not an incident. `skipped` is the interesting one: the

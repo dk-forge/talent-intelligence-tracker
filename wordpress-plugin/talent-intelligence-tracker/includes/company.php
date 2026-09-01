@@ -192,12 +192,119 @@ function tit_company_slug($company_key) {
     $slug = strtolower((string) $company_key);
     // WordPress core, always loaded: Latin-1 and Latin Extended-A to ASCII.
     if (function_exists('remove_accents')) $slug = remove_accents($slug);
+    // Hangul, which remove_accents does not touch, BEFORE the collapse below
+    // deletes it. See tit_romanize_hangul() for why this one script and not
+    // the others.
+    $slug = tit_romanize_hangul($slug);
     $slug = str_replace('&', ' and ', $slug);
     $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
     $slug = trim((string) $slug, '-');
 
     if ($slug !== '') return $slug;
     return rawurlencode(str_replace(' ', '-', (string) $company_key));
+}
+
+/**
+ * Hangul -> ASCII, so a Korean employer name is not silently deleted.
+ *
+ * WHY THIS IS A CORRECTNESS FIX AND NOT A COSMETIC ONE.
+ *
+ * The collapse in tit_company_slug() turns every run of non-[a-z0-9] into one
+ * hyphen, which DELETES a script it cannot fold. For a name that is part Latin
+ * and part Hangul, the Latin fragment survives alone and becomes the whole
+ * slug. Measured on the 2026-09-01 corpus, 147 current keys carry Hangul and
+ * ten of them held a slug that was clean, unique and WRONG:
+ *
+ *     'lg전자'      (LG Electronics)  was published at /company/lg/
+ *     'cj제일제당'   (CJ CheilJedang)  was published at /company/cj/
+ *     'jb금융'      (JB Financial)    was published at /company/jb/
+ *     'dp월드'      (DP World)        was published at /company/dp/
+ *
+ * That is a subsidiary occupying its parent's URL, which is the exact harm
+ * tit_company_slug_index()'s collision refusal exists to prevent -- and the
+ * refusal never fired, because only ONE key happened to hold each fragment so
+ * there was no collision to refuse. A wrong page that nothing objects to is
+ * worse than a missing one.
+ *
+ * The rest of the 147 folded to an empty slug or to a shared fragment and were
+ * unpublishable: '오픈ai' (OpenAI) and '페르소나ai' (Persona AI) both became
+ * 'ai', '창원fc' and '화성fc' both became 'fc'. Those are recorded in
+ * pipeline/vocab.py DISTINCT_EMPLOYER_SLUG_COLLISIONS, which says in as many
+ * words that the fix belongs here and not in an alias.
+ *
+ * WHY HANGUL AND NOT EVERY SCRIPT. Revised Romanization is mechanical: a
+ * Hangul syllable is an arithmetic composition of three jamo, so the mapping
+ * below is a decomposition and a table lookup, with no knowledge of the
+ * language in it. Han is not: 日本 is nihon, nippon or riben depending on which
+ * language the name is in, and choosing one would be INVENTING A COMPANY NAME
+ * out of a reading we cannot derive. Hebrew and Arabic are unvocalised and have
+ * the same problem. vocab.py refuses to guess those and so does this: Han,
+ * Hebrew, Arabic, Thai and kana keep today's behaviour, and the pairs still
+ * blocked on them stay in ops_status.py's report rather than being papered over.
+ *
+ * This is a transliteration, not full Revised Romanization: RR also assimilates
+ * consonants ACROSS syllable boundaries, which is a pronunciation rule rather
+ * than an identity one. Syllable-by-syllable is deterministic, reversible
+ * enough to be recognisable, and stable -- which is what a URL needs. It gives
+ * '창원fc' -> changwon-fc and '화성fc' -> hwaseong-fc, which are the ordinary
+ * spellings of those two cities.
+ *
+ * Slugs that MOVE keep their old URL: the old form is still resolved by step 1
+ * and step 2 of tit_company_rows(), which then issues the canonical 301.
+ */
+function tit_romanize_hangul($text) {
+    // Cheap reject: no Hangul syllable block, nothing to do. Almost every key.
+    if (!preg_match('/[\x{AC00}-\x{D7A3}]/u', (string) $text)) return $text;
+
+    static $lead = array('g','kk','n','d','tt','r','m','b','pp','s','ss','',
+                         'j','jj','ch','k','t','p','h');
+    static $vowel = array('a','ae','ya','yae','eo','e','yeo','ye','o','wa',
+                          'wae','oe','yo','u','wo','we','wi','yu','eu','ui','i');
+    static $tail = array('','k','k','ks','n','nj','nh','t','l','lk','lm','lb',
+                         'ls','lt','lp','lh','m','p','ps','t','t','ng','t','t',
+                         't','k','t','p','h');
+
+    // A RUN of Hangul becomes one word, and the boundary between scripts
+    // becomes a word boundary: 'lg전자' is lg-jeonja, not lgjeonja. Without
+    // the boundary the Latin fragment and the romanisation fuse into one
+    // token that matches neither name. The space is what the collapse in
+    // tit_company_slug() turns into the hyphen.
+    $out = '';
+    $in_hangul = false;
+    foreach (preg_split('//u', (string) $text, -1, PREG_SPLIT_NO_EMPTY) as $ch) {
+        $cp = tit_utf8_codepoint($ch);
+        $is_hangul = ($cp >= 0xAC00 && $cp <= 0xD7A3);
+        if ($is_hangul !== $in_hangul) {
+            $out .= ' ';
+            $in_hangul = $is_hangul;
+        }
+        if (!$is_hangul) { $out .= $ch; continue; }
+        $index = $cp - 0xAC00;
+        // S = 0xAC00 + (lead * 21 + vowel) * 28 + tail. Arithmetic, not a table
+        // of names, which is the whole reason this script is safe to do here.
+        $out .= $lead[intdiv(intdiv($index, 28), 21)]
+              . $vowel[intdiv($index, 28) % 21]
+              . $tail[$index % 28];
+    }
+    return $out;
+}
+
+/**
+ * Codepoint of a single UTF-8 character, without requiring the mbstring or
+ * intl extension -- neither is guaranteed on this host, and a slug that
+ * depends on an optional extension would silently change shape the day the
+ * host's PHP build changed.
+ */
+function tit_utf8_codepoint($ch) {
+    $bytes = unpack('C*', (string) $ch);
+    if (!$bytes) return 0;
+    $n = count($bytes);
+    if ($n === 1) return $bytes[1];
+    if ($n === 2) return (($bytes[1] & 0x1F) << 6) | ($bytes[2] & 0x3F);
+    if ($n === 3) return (($bytes[1] & 0x0F) << 12) | (($bytes[2] & 0x3F) << 6)
+                       | ($bytes[3] & 0x3F);
+    return (($bytes[1] & 0x07) << 18) | (($bytes[2] & 0x3F) << 12)
+         | (($bytes[3] & 0x3F) << 6) | ($bytes[4] & 0x3F);
 }
 
 /**
