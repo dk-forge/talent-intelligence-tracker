@@ -320,6 +320,37 @@ function tit_company_legacy_slug($company_key) {
 }
 
 /**
+ * The canonical slug as it stood BEFORE 1.88.0 added Hangul romanisation.
+ *
+ * THIS FUNCTION IS FROZEN. It does not describe a rule, it describes history:
+ * the URLs this site published between 1.46.0 and 1.88.0. Changing it would
+ * not fix anything, it would forget something.
+ *
+ * Romanising Hangul moves ten slugs that were live, unique and INDEXED, all of
+ * them wrong in the same way -- 'lg전자' was published at /company/lg/, so LG
+ * Electronics sat on LG's URL. Every one of those ten answered HTTP 200 when
+ * this was written. Moving them without a redirect would turn ten indexed
+ * pages into ten 404s, which is a worse outcome than the bug: a reader with a
+ * bookmark and a crawler with an index both lose.
+ *
+ * So the old form is fed to the same map that already carries the pre-1.46
+ * form, under the same two refusals (see tit_company_slug_index): a slug a
+ * CURRENT key claims is never redirected away from that employer, and a slug
+ * two old forms both claim is ambiguous and refused. tit_company_template()
+ * then issues its ordinary canonical 301. No redirect list, no special case.
+ *
+ * The empty-slug fallback is deliberately absent. A key that folded to nothing
+ * had a percent-encoded URL nobody could reach, so there is no history to keep.
+ */
+function tit_company_slug_preromanisation($company_key) {
+    $slug = strtolower((string) $company_key);
+    if (function_exists('remove_accents')) $slug = remove_accents($slug);
+    $slug = str_replace('&', ' and ', $slug);
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+    return trim((string) $slug, '-');
+}
+
+/**
  * canonical slug -> company_key, for the keys where the two forms differ, plus
  * the slugs that two keys would both claim.
  *
@@ -389,6 +420,25 @@ function tit_company_slug_index() {
         if ($slug !== tit_company_legacy_slug($owners[0])) {
             $map[$slug] = $owners[0];
         }
+    }
+
+    // THE PRE-1.88.0 CANONICAL FORM, so romanising Hangul does not 404 the ten
+    // URLs it moves. Same map, same two refusals, and they are applied in that
+    // order deliberately: a live key's claim outranks any historical one, and
+    // an old form two keys both produced ('ai', from both '오픈ai' and
+    // '페르소나ai') is ambiguous and is refused rather than guessed -- which is
+    // no loss, because a colliding slug was never served in the first place.
+    $was = array();
+    foreach ($keys as $key) {
+        $old = tit_company_slug_preromanisation($key);
+        if ($old === '') continue;
+        $was[$old][] = $key;
+    }
+    foreach ($was as $old => $owners) {
+        if (count($owners) > 1) continue;      // ambiguous
+        if (isset($claims[$old])) continue;    // a live key holds it and wins
+        if (isset($map[$old])) continue;       // already resolvable
+        $map[$old] = $owners[0];
     }
 
     $memo = array(

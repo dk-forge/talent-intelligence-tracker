@@ -57,12 +57,36 @@ function set_transient($k, $v, $t = 0) { return true; }
 
 /**
  * WordPress ships this and company.php depends on it: the slug is only ASCII
- * because remove_accents runs first. Latin-1 and Latin Extended-A is all the
- * corpus needs, and it is all WordPress does for these ranges.
+ * because remove_accents runs first.
+ *
+ * TWO THINGS THIS STUB MUST GET RIGHT, and the plain
+ * `iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $string)` it used to be got both
+ * wrong.
+ *
+ * 1. IT MUST ONLY TOUCH THE LATIN RANGES. WordPress folds Latin-1, Latin
+ *    Extended-A/B and Latin Extended Additional and leaves every other script
+ *    alone. iconv//IGNORE DELETES what it cannot transliterate, so the stub ate
+ *    Hangul before tit_company_slug() could romanise it -- and the romanised
+ *    phase below failed with 'lg전자' still slugging to 'lg', which is the very
+ *    bug it was written to catch. A stub that is wrong in the same direction as
+ *    the defect makes the test agree with the bug.
+ *
+ * 2. IT MUST NOT DEPEND ON THE PLATFORM. GNU iconv renders 'é' as "e"; the
+ *    BSD build macOS ships renders it "'e". So this harness asserted different
+ *    slugs on a laptop and on the Linux runner -- 'the estée lauder companies'
+ *    was `the-estee-lauder-companies` in CI and `the-est-ee-lauder-companies`
+ *    locally. Keeping only the letters iconv returns makes both builds agree.
  */
 function remove_accents($string) {
-    $folded = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $string);
-    return $folded === false ? $string : $folded;
+    return preg_replace_callback(
+        '/[\x{00C0}-\x{024F}\x{1E00}-\x{1EFF}]/u',
+        function ($m) {
+            $folded = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $m[0]);
+            if ($folded === false) return $m[0];
+            $folded = preg_replace('/[^A-Za-z]/', '', $folded);
+            return $folded === '' ? $m[0] : $folded;
+        },
+        (string) $string);
 }
 
 function tit_table_name() { return 'wp_tit_signals'; }
@@ -198,7 +222,8 @@ $phase = $argv[1] ?? '';
 // --------------------------------------------------------------------------
 if ($phase === '') {
     $rc = 0;
-    foreach (array('before', 'after', 'ambiguous') as $each) {
+    foreach (array('before', 'after', 'ambiguous', 'romanised', 'romanised-live-key',
+                      'romanised-refused-collision') as $each) {
         $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' ' . escapeshellarg($each);
         passthru($command, $status);
         if ($status !== 0) $rc = 1;
@@ -314,6 +339,125 @@ if ($phase === 'after') {
     check(count($index['moved']) === 6,
           'two forms each of three moved keys, and nothing else: got '
           . count($index['moved']));
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'romanised') {
+// --------------------------------------------------------------------------
+    // 1.88.0 ROMANISES HANGUL, AND THAT MOVES TEN LIVE URLS.
+    //
+    // 'lg전자' is LG Electronics. It used to slug to 'lg', because the
+    // collapse deleted the Hangul and left the Latin fragment standing alone --
+    // so LG Electronics was published on LG's URL, and because no OTHER key
+    // produced 'lg' there was no collision for the refusal to catch. All ten
+    // such URLs answered HTTP 200 on 2026-09-01.
+    //
+    // Executed rather than reasoned about, because "the redirect looks right"
+    // is the confidence that shipped 22 broken sitemap URLs on 1.45.4.
+    $wpdb->insert_signal('lg1', 'LG Electronics Inc.', 'lg전자',
+                         array('published_date' => '2026-02-01'));
+    $wpdb->insert_signal('cj1', 'CJ CheilJedang Corp.', 'cj제일제당',
+                         array('published_date' => '2026-02-02'));
+    // Two DIFFERENT employers whose old form collided on 'ai'. Neither was
+    // ever served there and neither may be redirected there now.
+    $wpdb->insert_signal('oa1', 'OpenAI', '오픈ai',
+                         array('published_date' => '2026-02-03'));
+    $wpdb->insert_signal('pa1', 'Persona AI', '페르소나ai',
+                         array('published_date' => '2026-02-04'));
+
+    check(tit_company_slug('lg전자') === 'lg-jeonja',
+        "LG Electronics must not canonicalise to 'lg'; got '"
+        . tit_company_slug('lg전자') . "'");
+
+    // THE REGRESSION THIS PHASE EXISTS FOR.
+    check(resolves_to('lg') === 'lg-jeonja',
+        "/company/lg/ was a live, indexed URL and now 404s instead of "
+        . "redirecting. Romanising moved it; tit_company_slug_preromanisation "
+        . "is what keeps it reachable.");
+    check(resolves_to('cj') === 'cj-jeiljedang',
+        "/company/cj/ no longer redirects to CJ CheilJedang");
+
+    // The new URL is of course itself reachable.
+    check(resolves_to('lg-jeonja') === 'lg-jeonja', 'the new URL 404s');
+
+    // AN AMBIGUOUS OLD FORM IS REFUSED, NOT GUESSED. '오픈ai' and '페르소나ai'
+    // both used to produce 'ai'. Redirecting it would send readers looking for
+    // one company to the other.
+    check(resolves_to('ai') === '',
+        "/company/ai/ was claimed by two different employers and must stay a "
+        . "404 rather than silently picking one");
+    check(resolves_to('opeun-ai') === 'opeun-ai', 'OpenAI has no URL');
+    check(resolves_to('pereusona-ai') === 'pereusona-ai', 'Persona AI has no URL');
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'romanised-live-key') {
+// --------------------------------------------------------------------------
+    // A LIVE KEY STILL WINS. Its own process, because the index memoises in a
+    // static and this needs a different index from the phase above -- the same
+    // reason every other phase here is its own process.
+    //
+    // This is the refusal that makes the historical map safe. If LG Corp. is
+    // itself an employer we hold, /company/lg/ is ITS url and a claim from
+    // 1.87.4 must not take it away.
+    $wpdb->insert_signal('lg1', 'LG Electronics Inc.', 'lg전자',
+                         array('published_date' => '2026-02-01'));
+    $wpdb->insert_signal('lgc1', 'LG Corp.', 'lg',
+                         array('published_date' => '2026-02-05'));
+
+    check(resolves_to('lg') === 'lg',
+        "an employer that currently holds /company/lg/ was redirected away "
+        . "from its own URL by a historical claim");
+    check(resolves_to('lg-jeonja') === 'lg-jeonja',
+        'LG Electronics lost its own new URL');
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'romanised-refused-collision') {
+// --------------------------------------------------------------------------
+    // THE CASE THAT ISOLATES THE LIVE-KEY REFUSAL, and it took a failed
+    // mutation to find. Dropping `isset($claims[$old])` from the historical
+    // loop did not fail the phase above, because a live key normally
+    // contributes its OWN spelling to the historical map too and the ambiguity
+    // refusal catches it. There is one shape where it does not:
+    //
+    //   'indigo'  -> canonical 'indigo', historical 'indigo'
+    //   '인디고'   -> canonical 'indigo', historical ''  (all Hangul, so the
+    //                 old rule deleted the whole name and there is no history)
+    //
+    // The canonical slug 'indigo' is claimed by TWO keys, so the collision
+    // refusal REFUSES it and neither employer is published there -- which is
+    // the entire point of that refusal. But the historical map sees only one
+    // claimant, because the Hangul-only key contributed nothing, so without
+    // the live-key check it would happily map 'indigo' -> 'indigo' and serve
+    // one of two colliding employers under a URL the plugin had just decided
+    // was unsafe. A refusal undone by a redirect is not a refusal.
+    //
+    // This pair is real: ops_status [1c] reports /company/indigo/ as a new
+    // collision the moment Hangul is romanised.
+    $wpdb->insert_signal('ind1', 'Indigo Books & Music', 'indigo',
+                         array('published_date' => '2026-03-01'));
+    $wpdb->insert_signal('ind2', 'Indigo (Korea)', '인디고',
+                         array('published_date' => '2026-03-02'));
+
+    check(tit_company_slug('인디고') === 'indigo',
+        'the two keys must actually collide for this phase to mean anything');
+
+    $index = tit_company_slug_index();
+    check(isset($index['collisions']['indigo']),
+        "'indigo' is claimed by two current keys and must be REFUSED, which is "
+        . "what keeps it out of the sitemap until someone merges them");
+    check(!isset($index['map']['indigo']),
+        "the historical map added a claim for a slug the collision refusal had "
+        . "just refused. A refusal undone by a redirect is not a refusal: the "
+        . "live-key check in the historical loop is what stops it.");
+
+    // What is NOT claimed here, deliberately. /company/indigo/ still RESOLVES,
+    // because tit_company_rows() step 1 matches the ASCII key 'indigo' by
+    // direct SQL and always has. That is unchanged by romanisation and is not
+    // this phase's business; the page simply stops being INDEXABLE while the
+    // collision stands, which is the refusal doing its job. Asserting a 404
+    // here would be inventing a stricter rule than the plugin has ever had.
 }
 
 // --------------------------------------------------------------------------
