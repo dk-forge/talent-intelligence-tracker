@@ -312,7 +312,23 @@ def main(argv=None) -> int:
     parser.add_argument("--no-health", action="store_true",
                         help="skip the source_health entry (database untouched)")
     parser.add_argument("--results-dir", default=None)
+    # THE LEDGER ENTRY FOR A RUN THAT NEVER STARTED.
+    #
+    # main()'s not-spending branch already files this row, but it can only do
+    # so once main() runs, and tripwire.yml skips the paid step entirely when
+    # `spend.py --gate` says the ceiling is binding -- a workflow-level guard
+    # that tests/test_budget_stop_is_not_a_failure.py pins on purpose and that
+    # must not be removed to make this reachable. So the workflow calls this
+    # instead, from its own cheap step. It writes one health row and exits; it
+    # touches no key, asks nothing and cannot reach the paid path.
+    parser.add_argument("--report-declined", metavar="WHY", default=None,
+                        help="file the `skipped` health row for a run the "
+                             "spend gate stopped before it started, then exit")
     args = parser.parse_args(argv)
+
+    if args.report_declined:
+        print(f"health: {report_declined(args.report_declined)}")
+        return 0
 
     projection = planner.monthly_projection()
     print("=" * 72)

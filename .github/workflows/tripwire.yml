@@ -149,6 +149,35 @@ jobs:
             --workflow tripwire.yml \
             --reason "the monthly spend allowance was already exhausted, so no query was bought"
 
+      # AND SAY SO IN THE HEALTH LEDGER, which is a different ledger from the
+      # queue above and was the one nobody was writing to.
+      #
+      # run_tripwire.report_declined() was added on 2026-08-18 for exactly this
+      # case -- a run that RAN and correctly declined to buy files a `skipped`
+      # row, so the staleness clock can tell a collector that is alive and
+      # thrifty from one that died. staleness.py cut tripwire's leash from 336h
+      # to 168h on the strength of it. But its only caller is run_tripwire's
+      # main(), which the step above skips when the gate is closed, so on
+      # precisely the runs it was written for it never executed: runs
+      # 33413174671, 33132620831 and 31371431912 all show `skipped  Run the
+      # tripwire` and `source_health_added: 0`, and the ledger sat at
+      # 2026-08-02 for 736 hours while the workflow kept finishing green.
+      #
+      # THE GATE ABOVE STAYS. Letting the script run and decide for itself was
+      # tried here and is wrong: tests/test_budget_stop_is_not_a_failure.py
+      # ::test_the_paid_step_skips_itself_when_the_gate_is_closed pins the
+      # workflow-level gate deliberately -- "exiting 0 and then spending anyway
+      # would be the guard weakened, which is the one thing this change may not
+      # do". A second, cheaper step is the way to file the row without touching
+      # the guard. It buys nothing: --report-declined writes one health row and
+      # exits, and it never reaches the paid path.
+      - name: Say in the ledger that this run declined to buy
+        if: ${{ steps.spend.outputs.over == 'true' && !inputs.dry_run && !inputs.offline }}
+        run: |
+          set -euo pipefail
+          python run_tripwire.py --report-declined \
+            "the monthly spend allowance was already exhausted"
+
       # ONE email per allowance month, on the existing rails. The red run used
       # to be what told the owner; now that stopping is green, this is. Deduped
       # on the month through the committed ledger, so the eight remaining runs
@@ -255,8 +284,20 @@ jobs:
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
           git add data/tripwire_worklist.json analysis/tripwire/results \
-                  data/talent_intel.db data/spend_month.json \
-                  data/writer_deferrals 2>/dev/null || true
+                  data/talent_intel.db data/spend_month.json
+          # SEPARATE CALL, and that is the whole point. `git add` is ATOMIC: if
+          # any pathspec matches nothing the command stages NOTHING and exits
+          # non-zero. data/writer_deferrals exists only on a run where the
+          # spend gate CLOSED, so on every run that actually bought something
+          # the combined add aborted on the unmatched pathspec, `2>/dev/null`
+          # ate the fatal and `|| true` ate the status. `git diff --staged
+          # --quiet` was then trivially true, the step printed "No change." and
+          # exited 0 green. Runs 31682675950, 32347039753 and 32707606027 each
+          # logged "health: recorded" and a bought result, then threw all of it
+          # away on the runner: $0.0676 of queries, 43 leads and three dated
+          # result files, with the ledger left reading 2026-08-02 throughout.
+          # drain-writers.yml has always done this as its own call.
+          git add -A data/writer_deferrals 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change."
             exit 0
@@ -282,8 +323,9 @@ jobs:
             # The marker is UNTRACKED, so `git reset --hard` above leaves it
             # on disk; re-adding it here is what puts it back in the commit.
             git add data/tripwire_worklist.json analysis/tripwire/results \
-                    data/talent_intel.db data/spend_month.json \
-                    data/writer_deferrals 2>/dev/null || true
+                    data/talent_intel.db data/spend_month.json
+            # Its own call, for the reason spelled out above.
+            git add -A data/writer_deferrals 2>/dev/null || true
             if git diff --staged --quiet; then
               echo "Remote already has this run."
               exit 0

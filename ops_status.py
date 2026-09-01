@@ -787,6 +787,21 @@ def _scheduled_read_caps() -> dict[str, int]:
     return found
 
 
+def _parse_iso(value):
+    """An ISO timestamp from the committed queue, or None.
+
+    Returns None rather than raising, because a ticket with an unreadable
+    timestamp must not take the whole report down -- and must not silently
+    become "waiting since forever" either, which is why callers drop it.
+    """
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
 def _report_writer_queue() -> list[str]:
     """What is waiting for the one writer slot, and what fell out of it.
 
@@ -891,11 +906,42 @@ def _report_writer_queue() -> list[str]:
         except (TypeError, ValueError):
             pass
         if last and state["waiting"]:
-            idle = (datetime.now(timezone.utc) - last).total_seconds() / 3600
+            # MEASURED FROM WHEN THE WORK STARTED WAITING, not from the
+            # heartbeat alone. `writer_queue._cmd_tick` deliberately does NOT
+            # advance `last_tick` on a tick that found an empty queue -- its own
+            # comment says writing it every idle tick "would commit to main four
+            # times an hour forever". So after any quiet spell the heartbeat is
+            # arbitrarily old, and the instant a ticket arrives `state["waiting"]`
+            # flips true and this fired on a drainer that was ticking perfectly.
+            # It did exactly that on 2026-09-01: a ticket queued at 19:25:47Z was
+            # 13 minutes old, drain-writers had run green at 18:49, 15:32 and
+            # 14:36, and the report said "has not ticked in 5h — the drainer
+            # itself is down". That is guaranteed to fire on the FIRST
+            # ops_status run after any idle queue receives work, which makes it
+            # noise on the one channel a session is told to read first.
+            #
+            # The question this alarm is for is "has anything looked at this
+            # work since it was queued?", so the clock starts at the later of
+            # the last tick and the moment the oldest waiting ticket was asked
+            # for. A drainer that has genuinely stopped still trips it, on the
+            # same two hours: no tick after the ticket means the ticket's own
+            # age is what grows. This is NOT the other alarm's job -- a drainer
+            # that IS ticking and still not moving the queue is caught by
+            # writer_queue's `idle-stall` at 90 minutes, which is already in
+            # state["problems"]. Two failures, two clocks, as the comment above
+            # says; only one of them was reading the right one.
+            since = last
+            asked = [_parse_iso(t.get("requested_at"))
+                     for t in state["waiting"]]
+            asked = [a for a in asked if a]
+            if asked:
+                since = max(last, min(asked))
+            idle = (datetime.now(timezone.utc) - since).total_seconds() / 3600
             if idle > 2:
                 return state["problems"] + [
-                    f"work is queued but drain-writers.yml has not ticked in "
-                    f"{idle:.0f}h — the drainer itself is down"]
+                    f"work has been queued for {idle:.0f}h with no drain tick "
+                    f"since it was asked for (last tick {state['last_tick']}) "
+                    f"— the drainer itself is down"]
 
     return state["problems"]
 
