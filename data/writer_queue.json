@@ -213,72 +213,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-02T16:30:53Z",
-      "history": [
-        {
-          "at": "2026-09-02T16:30:49Z",
-          "detail": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-02T16:30:53Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260902T163049Z-retract",
-      "inputs": {
-        "reason": "Re-issue of the 2026-07-30 retraction, which no longer holds on the live site: the USD 4bn is the VALUATION, not the raise. The amount raised is not disclosed anywhere in the story, so there is no funding figure to publish.",
-        "signal_id": "5c5fb5dfa36a79ccad3f37886805207e"
-      },
-      "priority": 0,
-      "reason": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
-      "requested_at": "2026-09-02T16:30:49Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-22T16:48:30Z",
-      "history": [
-        {
-          "at": "2026-08-22T16:43:51Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-22T16:48:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-22T17:15:24Z",
-          "detail": "run 32585824783",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-22T17:15:24Z",
-          "detail": "run 32585824783",
-          "event": "landed"
-        }
-      ],
-      "id": "20260822T164351Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-22T17:15:24Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-22T16:43:51Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32585824783",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-23T02:48:55Z",
       "history": [
         {
@@ -2515,6 +2449,45 @@
       "run_id": "33654337905",
       "state": "landed",
       "workflow": "correct-money-basis.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-02T16:30:53Z",
+      "history": [
+        {
+          "at": "2026-09-02T16:30:49Z",
+          "detail": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-02T16:30:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-02T16:31:36Z",
+          "detail": "run 33655387141",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-02T16:31:36Z",
+          "detail": "run 33655387141",
+          "event": "landed"
+        }
+      ],
+      "id": "20260902T163049Z-retract",
+      "inputs": {
+        "reason": "Re-issue of the 2026-07-30 retraction, which no longer holds on the live site: the USD 4bn is the VALUATION, not the raise. The amount raised is not disclosed anywhere in the story, so there is no funding figure to publish.",
+        "signal_id": "5c5fb5dfa36a79ccad3f37886805207e"
+      },
+      "landed_at": "2026-09-02T16:31:36Z",
+      "priority": 0,
+      "reason": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
+      "requested_at": "2026-09-02T16:30:49Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "33655387141",
+      "state": "landed",
+      "workflow": "retract.yml"
     }
   ],
   "version": 1
