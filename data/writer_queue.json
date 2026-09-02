@@ -213,71 +213,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-02T16:20:44Z",
-      "history": [
-        {
-          "at": "2026-09-02T16:20:41Z",
-          "detail": "live money.coverage.unjudged is nonzero",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-02T16:20:44Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260902T162041Z-correct-money-basis",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "live money.coverage.unjudged is nonzero",
-      "requested_at": "2026-09-02T16:20:41Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-money-basis.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-22T09:58:47Z",
-      "history": [
-        {
-          "at": "2026-08-22T09:54:53Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-22T09:58:47Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-22T10:18:49Z",
-          "detail": "run 32566387821",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-22T10:18:49Z",
-          "detail": "run 32566387821",
-          "event": "landed"
-        }
-      ],
-      "id": "20260822T095453Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-22T10:18:49Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-08-22T09:54:53Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32566387821",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-22T16:48:30Z",
       "history": [
         {
@@ -2514,6 +2449,44 @@
       "run_id": "33646899600",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-02T16:20:44Z",
+      "history": [
+        {
+          "at": "2026-09-02T16:20:41Z",
+          "detail": "live money.coverage.unjudged is nonzero",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-02T16:20:44Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-02T16:27:59Z",
+          "detail": "run 33654337905",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-02T16:27:59Z",
+          "detail": "run 33654337905",
+          "event": "landed"
+        }
+      ],
+      "id": "20260902T162041Z-correct-money-basis",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-02T16:27:59Z",
+      "priority": 0,
+      "reason": "live money.coverage.unjudged is nonzero",
+      "requested_at": "2026-09-02T16:20:41Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "33654337905",
+      "state": "landed",
+      "workflow": "correct-money-basis.yml"
     }
   ],
   "version": 1
