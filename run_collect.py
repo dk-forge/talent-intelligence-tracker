@@ -15,6 +15,7 @@ import os
 import sys
 from dataclasses import asdict
 from datetime import date
+from pathlib import Path
 
 import source_registry as registry
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
@@ -158,7 +159,57 @@ SOURCES = {
     "primary_chase": primary_chase,
 }
 
-RUNS_PER_DAY = 2
+COLLECT_WORKFLOW = (Path(__file__).resolve().parent / ".github" / "workflows"
+                    / "collect.yml")
+
+
+def scheduled_runs_per_day(workflow: Path = COLLECT_WORKFLOW) -> int:
+    """How many times a day collect.yml fires, read from its LIVE cron lines.
+
+    A ROTATING QUERY SET MUST NEVER CARRY ITS OWN RUN COUNTER. This was the
+    literal `RUNS_PER_DAY = 2` from 2026-08-14, when the owner traded the second
+    daily run for its cost, until 2026-09-02, and every rotation in this file
+    stepped as if the second run still happened. `rotate()` advances the slice
+    by `(day * runs_per_day + run_index) * per_run`, so at one real run a day
+    the stride was 2 x per_run: a ring whose size shares a factor with that
+    stride is not swept more slowly, it is never completed. Measured on the
+    day it was found, at the real once-daily cadence:
+
+        Google News city ring, Canada   12 cities, 3 a run   6 reached, 6 never
+                                        (Toronto, Ottawa, Calgary, Edmonton,
+                                        Halifax, Quebec City)
+        Italy                            6 cities, 3 a run   3 reached (Milan never)
+        Poland                           6 cities, 3 a run   3 reached (Krakow never)
+        segment matrix                  56 terms,  4 a run  28 reached
+        locale ring                     34 editions, 4 a run  all reached, but the
+                                        revisit gap was up to 13 days against a
+                                        `when:6d` window derived from the same
+                                        constant, a seven-day hole in every
+                                        non-anchor market
+
+    Nothing reported any of it: a query that is never issued produces no
+    error, no health row and no log line. The sibling tracker lost half of
+    its euphemism ring the same way for six days (its TECHLOG, 2026-08-20).
+
+    Only uncommented `- cron:` lines count, because commenting the schedule
+    out is how this repo disarms a job. An unreadable workflow falls back to
+    ONE run a day, never two: repeating a slice is safe and skipping one is
+    not. tests/test_rotation_covers_ring.py walks every shipped ring at this
+    cadence and fails on a single unreached term.
+    """
+    try:
+        text = workflow.read_text(encoding="utf-8")
+    except OSError:
+        return 1
+    live = 0
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- cron:"):
+            live += 1
+    return max(1, live)
+
+
+RUNS_PER_DAY = scheduled_runs_per_day()
 SEGMENTS_PER_RUN = 4
 
 
