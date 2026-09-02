@@ -2,6 +2,33 @@
 
 ---
 
+## 2026-09-02: worldwide coverage audit, two branches, one owner decision
+
+Full measurement is the TECHLOG entry of the same date. State to inherit:
+
+- **`audit/worldwide-coverage` (green, mergeable).** Archive re-check window
+  now rotates least-recently-examined first (the 7-day promise was broken by
+  order, not capacity); sources.php stops typing edition and language counts
+  and says GDELT is read in English only; plugin 1.88.1 is **pushed, not
+  deployed**. After merge: `gh workflow run deploy-plugin.yml ... -f dry_run=false`
+  is the session's call, then verify the sources page callout live.
+- **`audit/rotation-cadence` (built on the first; two tests RED on purpose).**
+  `run_collect.RUNS_PER_DAY` is read from collect.yml instead of typed 2. At the
+  real once-daily cadence the typed value never queried Toronto, Ottawa, Milan
+  or Krakow and left a seven-day hole in every non-anchor Google News market.
+  The reds are `test_the_segment_matrix_still_sweeps_inside_its_budget` and
+  `test_the_segment_budget_is_the_real_ceiling_on_this_tuple`: 56 segments
+  once daily sweep in 14 days against a 7-day budget chosen at twice daily.
+  The segment matrix reaches no collector today. **Owner chooses:** raise
+  `SEGMENT_SWEEP_BUDGET_DAYS` to 14 knowingly, halve `MARKETS` terms, or
+  retire the matrix. Do not merge it red, and do not let a healer widen it.
+- **Open and unfixed:** 2,611 current rows (47.6% of everything google_news
+  stored) carry no country and 87.7% of those no `hq_country` either, so they
+  sit under "World" outside every filter. Placing them is a paid read.
+- **Not touched:** `tit_company_slug` (aec72f7 is the active hand). 460
+  non-Latin employer keys; Arabic, Hebrew, Japanese, Chinese and Cyrillic
+  names still fold to the percent-encoded fallback slug.
+
 ## 2026-08-19: `stash@{1}` holds work that is NOT on main. Do not clear the stash stack without reading this.
 
 **Nothing here is deployed, nothing here is a bug report. It is evidence, written
