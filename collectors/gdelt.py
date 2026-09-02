@@ -1,6 +1,9 @@
 """GDELT DOC 2.0 collector.
 
-Free, keyless, worldwide, machine-translated from 65 languages before indexing.
+Free, keyless, worldwide. GDELT machine-translates 65 languages before indexing,
+but every query in source_registry.GDELT_QUERIES carries `sourcelang:english`,
+so this collector reads English-language reporting only (measured 2026-07-28:
+reusing the multilingual Google News strings returned 216 noise in 219).
 
 The reason it leads rather than supplements: **GDELT returns the real article
 URL.** Google News RSS gives only the outlet homepage, its redirect no longer

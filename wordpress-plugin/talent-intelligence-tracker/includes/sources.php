@@ -294,8 +294,9 @@ function tit_sources_render($sources) {
       <div class="tit-callout">
         <strong>Country here means the home country of a source, not the places
         we cover.</strong> Most of what we read is not tied to one country. We
-        read Google News in 25 national editions across 7 languages, and GDELT
-        machine-translates from 65 languages. We file those as Worldwide, so
+        read Google News in each national edition's own language (the edition
+        and language count is on its row below), and we ask GDELT for
+        English-language articles only. We file those as Worldwide, so
         filtering by country narrows to sources that are specific to it rather
         than to everything that covers it.
       </div>

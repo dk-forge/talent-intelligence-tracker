@@ -304,3 +304,46 @@ def test_ops_status_goes_red_on_a_wrongly_terminal_url(stocked, capsys):
     capsys.readouterr()
     assert any("TERMINAL" in p and "--recheck-terminal" in p for p in problems), \
         problems
+
+
+def test_the_probed_tier_rotates_least_recently_examined_first(stocked):
+    """A bounded window has to MOVE, or the promise behind it is a fixed head.
+
+    Every examined miss is written back `pending` with a fresh `updated_at`.
+    Newest-capture order inside the probed tier therefore re-selected the same
+    newest misses on every run: measured 2026-09-02, 21 runs x 600 URLs of
+    capacity against a 2,653-URL in-scope queue, and 1,844 of them still older
+    than the 7-day re-check promise the pages print. The order inside the tier
+    is the ledger's own `updated_at`, oldest first, which is the clock
+    archive_recheck_overdue() judges the promise by.
+    """
+    # All three probed, so all three are tier 2. URLS[0] is the NEWEST capture.
+    # Stamp them so the newest capture is also the most recently examined,
+    # which is exactly the state the old ordering kept re-selecting.
+    for url, stamp in ((URLS[0], "2026-09-02T17:00:00+00:00"),
+                       (URLS[1], "2026-08-13T09:00:00+00:00"),
+                       (URLS[2], "2026-08-25T09:00:00+00:00")):
+        source_links.record_archive(stocked, url, state="pending", probes=1)
+        stocked.execute("UPDATE source_links SET updated_at = ? WHERE source_url = ?",
+                        (stamp, url))
+    stocked.commit()
+
+    order = [r["source_url"] for r in
+             source_links.archive_candidates(stocked, limit=50)]
+    assert order == [URLS[1], URLS[2], URLS[0]], order
+
+    # The window is one wide. Examining the head re-stamps it, and the next run
+    # must pick the next-oldest rather than the same URL again.
+    head = source_links.archive_candidates(stocked, limit=1)[0]["source_url"]
+    assert head == URLS[1]
+    source_links.record_archive(stocked, head, state="pending", probes=2)
+    stocked.commit()
+    assert source_links.archive_candidates(stocked, limit=1)[0]["source_url"] == URLS[2]
+    source_links.record_archive(stocked, URLS[2], state="pending", probes=2)
+    stocked.commit()
+    assert source_links.archive_candidates(stocked, limit=1)[0]["source_url"] == URLS[0]
+
+    # A URL nobody has ever had an answer about still outranks all of them.
+    source_links.record_archive(stocked, URLS[0], state="pending", probes=0)
+    stocked.commit()
+    assert source_links.archive_candidates(stocked, limit=1)[0]["source_url"] == URLS[0]

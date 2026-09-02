@@ -392,3 +392,41 @@ def test_an_alias_must_point_at_a_real_live_source():
         assert alias not in named, (
             f"{alias!r} is both an alias and a listed source; pick one"
         )
+
+
+def test_the_php_never_types_an_edition_or_language_count():
+    """A count typed into prose is a count nobody updates.
+
+    sources.php said "25 national editions across 7 languages" while the
+    manifest row two screens down said 35 and 16; the rotation had been
+    widened twice and the sentence followed neither time. The only place a
+    count of editions or languages may appear on this page is the generated
+    manifest, which derives it.
+    """
+    import re
+    text = SOURCES_PHP.read_text(encoding="utf-8")
+    typed = re.findall(r"\b\d+\s+(?:national\s+|country\s+)?(?:editions?|languages?)\b",
+                       text)
+    assert not typed, (
+        f"sources.php types a count into prose: {typed}. Say it through the "
+        f"manifest row, which is generated, or not at all.")
+
+
+def test_gdelt_coverage_copy_matches_what_the_queries_ask_for():
+    """The index speaks 65 languages; the read is whatever the queries allow.
+
+    Every GDELT query carries `sourcelang:english`, so a coverage line that
+    credits the collector with 65 languages describes GDELT and not us. If the
+    queries ever drop the language filter, this test is what makes the copy
+    follow them rather than the other way round.
+    """
+    english_only = all("sourcelang:english" in q for q in registry.GDELT_QUERIES)
+    gdelt = next(s for s in registry.SOURCES if s.name == "GDELT DOC 2.0")
+    if english_only:
+        assert "English" in gdelt.coverage, (
+            f"GDELT is queried in English only but the sources page says "
+            f"{gdelt.coverage!r}")
+        assert "65 languages" not in gdelt.coverage
+    else:
+        assert "English-language articles only" not in gdelt.coverage, (
+            "the queries no longer restrict the language; update the copy")

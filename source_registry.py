@@ -946,7 +946,12 @@ SOURCES = (
     # in Namibia and a V&A strike ballot are not in any edition we query.
     Source("GDELT DOC 2.0", "https://www.gdeltproject.org/", "live",
            "News aggregation", ("Hiring", "Office opening", "Leadership change"),
-           "Global, machine-translated from 65 languages",
+           # GDELT indexes 65 languages. Every query in GDELT_QUERIES carries
+           # `sourcelang:english`, so what WE read through it is English-language
+           # reporting from anywhere; the sources page said "machine-translated
+           # from 65 languages" until 2026-09-02, which described the index and
+           # not the read. tests/test_sources_page.py pins the two together.
+           "Global, English-language articles only",
            notes="Reaches markets no Google News edition we query covers, and "
                  "it is the only news route with an archive: DOC 2.0 takes "
                  "explicit start and end dates, so 2026 is recoverable through "

@@ -216,11 +216,27 @@ def archive_candidates(conn: sqlite3.Connection, *, limit: int,
     and NULL reads as 0 here on purpose: those rows genuinely predate any record
     of what we were told, so treating them as never-answered is the honest
     reading and costs one free availability call each.
+
+    TIER 2 IS LEAST-RECENTLY-EXAMINED FIRST, and until 2026-09-02 it was not.
+    A probed URL has already had the ingest-time pass that newest-first exists
+    for, and every examined miss is written back `pending` with a fresh
+    `updated_at`, so newest-capture order inside tier 2 made the same 600
+    newest misses the head of the list on every run: examined three times a
+    day, re-stamped three times a day, and the 1,844 older in-scope URLs behind
+    them never re-entered the window. Measured on the committed ledger that
+    day: 21 runs x 600 = 12,600 examinations in the 7-day promise window
+    against a 2,653-URL in-scope queue, capacity 4.7x the queue, and the
+    promise still broken for 1,844 of them. The capacity arithmetic in
+    build_archive_promise.py was right and could not see it, because it counts
+    examinations and assumed they were spread. Ordering tier 2 by the ledger's
+    own `updated_at` (the same clock archive_recheck_overdue judges by) is what
+    makes the window a rotation rather than a fixed head. A URL with no ledger
+    row at all still sorts into tier 1.
     """
     rows = distinct_source_urls(conn, collector=collector)
     known = {r["source_url"]: dict(r) for r in conn.execute(
         "SELECT source_url, archive_state, archive_attempts, archive_probes, "
-        "       archive_blind_rounds FROM source_links")}
+        "       archive_blind_rounds, updated_at FROM source_links")}
     tier_unprobed, tier_probed = [], []
     for row in rows:
         seen = known.get(row["source_url"]) or {}
@@ -230,7 +246,11 @@ def archive_candidates(conn: sqlite3.Connection, *, limit: int,
         row["archive_attempts"] = int(seen.get("archive_attempts") or 0)
         row["archive_probes"] = int(seen.get("archive_probes") or 0)
         row["archive_blind_rounds"] = int(seen.get("archive_blind_rounds") or 0)
+        row["last_examined"] = seen.get("updated_at") or ""
         (tier_unprobed if row["archive_probes"] == 0 else tier_probed).append(row)
+    # Stable sort: two URLs examined in the same second keep newest-capture
+    # order between them, which is the tier 1 property and harmless here.
+    tier_probed.sort(key=lambda r: r["last_examined"])
     return (tier_unprobed + tier_probed)[:limit]
 
 

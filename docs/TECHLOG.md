@@ -14,6 +14,121 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-02 - worldwide coverage audit: measured, not impressed
+
+The question was whether this is a worldwide tracker or a US/English tracker
+with worldwide branding. Measured on the committed database (32,999 current
+signals) and the shipped query files, the answer is: the FILING spine is three
+countries, the NEWS net is genuinely worldwide in its feeds and anglophone in
+its two aggregator routes, and a quarter of what the news net stores cannot be
+placed on the map at all.
+
+**What is stored.** 134 distinct countries; US 10,727 (32.5%), GB 8,184,
+IN 7,402, then a cliff: JP 437, BR 235, KR 223. US+GB+IN are 79.7% of the
+corpus and they are the three structured-filing sources (SEC, Companies House
+and UK pay gap, BSE India); every SEC collector is 92 to 100% US by
+construction. The news path (google_news, gdelt, national_press,
+press_archive) is 6,371 rows, of which US is 401 (6.3%), so the news net is
+NOT US-skewed; it is skewed by what it cannot place. **2,611 current rows
+(7.9%) carry no country; 2,285 of them are news-path rows, 47.6% of
+everything google_news has ever stored and 24.8% of national_press.** Of the
+1,881 unplaced google_news rows, 1,649 carry no `hq_country` either, so
+87.7% of them are invisible to every country and region filter and sit under
+"World". A blank-country bucket that size is under-coverage the country pages
+cannot show. Cause is `validate.build_signal`: a job location is stored only
+from the source text, guessing from the edition is (rightly) refused, and the
+model is not asked to place an employer it names. Open; a placement pass is a
+paid read and the owner's call.
+
+**Source domains.** News-path rows cite 2,584 distinct hosts; 34.2% sit on a
+country-code TLD, `.com` is 58.6% and carries most of the non-US world too
+(finsmes, ventureburn, wamda, entrackr, latamlist, calcalistech). The
+national_press catalogue is the worldwide half of the product: 664 wired
+feeds across 163 countries, 45.6% English, 6.6% United States. That is real.
+The two aggregator routes are the anglophone gate: every one of the ten
+`GDELT_QUERIES` carries `sourcelang:english`, so the collector the sources
+page credited with "machine-translated from 65 languages" reads English
+reporting only (its rows: US 246, IN 145, GB 93, ZA 56, PH 41, IE 22, all
+English-language markets). Google News is read in 34 non-English editions
+plus the US anchor, so that route is not anglophone; it is bounded by which
+languages have a phrase pack (16).
+
+**The rotation stride, same shape as the sibling's 2026-08-20 loss.**
+`run_collect.RUNS_PER_DAY = 2` was a literal, and the cron went once daily on
+2026-08-14. `rotate()` strides by `runs_per_day * per_run`, so every ring
+walked in strides of 2 x per_run while each run consumed per_run. Walked for
+400 days at the real cadence (run_index 1, the value the 22:00 UTC run
+computes): Canada's city ring (12 taken 3) reached 6 cities and NEVER Toronto,
+Ottawa, Calgary, Edmonton, Halifax or Quebec City; Italy and Poland (6 taken
+3) reached 3 each and never Milan or Krakow; the 56-term segment matrix
+reached 28 (that path reaches no fetch today, so no coverage was lost there,
+but the arithmetic is the same). The 34-edition locale ring was fully
+reached, but the revisit gap was 13 days against a `when:6d` window derived
+from the same wrong constant: a seven-day hole in every non-anchor market,
+indistinguishable from a quiet week. No error, no health row, no log line,
+nineteen days. `RUNS_PER_DAY` is now `scheduled_runs_per_day()`, read from
+collect.yml's live cron lines with a fallback of ONE (repeating a slice is
+safe, skipping one is not), and `tests/test_rotation_covers_ring.py` walks
+every shipped ring at that cadence and fails on one unreached term; proved
+by mutation (the typed 2 fails it on Canada). The derived window becomes
+`when:10d`, which costs nothing: already-seen URLs are skipped before any
+spend. **Two tests go red on the honest number and are left red on purpose:**
+`test_the_segment_matrix_still_sweeps_inside_its_budget` and
+`test_the_segment_budget_is_the_real_ceiling_on_this_tuple`, because 56
+segments at 4 a run once a day sweep in 14 days against the 7-day
+`SEGMENT_SWEEP_BUDGET_DAYS` the owner chose at two runs a day. The segment
+matrix reaches no collector, so nothing is lost, but the budget is a chosen
+number and widening it to fit is exactly what this repo forbids. Owner
+decision: raise it to 14 knowingly, halve MARKETS' terms, or retire the dead
+matrix. This half of the change is on branch `audit/rotation-cadence`, kept
+separate so the green half can merge.
+
+**Employer names across scripts.** 18,922 employer keys: 18,461 Latin, 156
+Hangul, 112 Arabic, 87 Hebrew, 55 Katakana, 34 CJK, 11 Cyrillic, 2 Thai, 2
+fullwidth. 460 keys are non-Latin-dominant, 388 Latin keys carry diacritics.
+Emulating the pre-Hangul slug fold: 435 keys fold to an EMPTY slug and fall
+to the percent-encoded fallback; 7 slugs are a non-Latin key folded onto a
+Latin fragment (`sk` from 'sk텔레콤', 'sk 电信', 'sk하이닉스'; `ai` from '오픈ai'
+and '페르소나ai'; `nh`, `bnk`, `ibk`, `fc`, `w`). The 12 dual-key slugs
+ops_status [1c] lists are eleven diacritic or punctuation twins (índia, aéreas,
+energía) and one genuine cross-script collision (`ibm` and `日本ibm`). The
+Hangul half is being handled in `tit_company_slug` (aec72f7, romanisation plus
+redirects for the ten live URLs it moves) and was NOT touched here; Arabic,
+Hebrew, Japanese, Chinese and Cyrillic still fold to the fallback, which is
+publishable but unreadable. Reported, not rewritten.
+
+**The archive promise was broken by ORDER, not by capacity.** ops_status
+[2c] read 1,844 in-scope URLs past the 7-day re-check promise while 21 runs x
+600 = 12,600 examinations a week stood against a 2,653-URL in-scope queue,
+capacity 4.7x the queue. `archive_candidates` sorted the probed tier
+newest-capture first, every examined miss was written back `pending` with a
+fresh `updated_at`, so the same 600 newest misses were the head of the list
+three times a day (599 of them re-stamped on 2026-09-02 alone) and nothing
+older ever re-entered the window. The Save Page Now half (about 15 captures
+a run) was never the promise; the promise is a re-check, and the free
+availability pass has the capacity. The probed tier now orders by the
+ledger's own `updated_at`, oldest first, the same clock
+`archive_recheck_overdue()` judges by; the never-answered tier still goes
+first. `test_the_probed_tier_rotates_least_recently_examined_first` pins it
+and fails on the old order (proved by mutation). At 600 a run the queue
+rotates in about 4.4 runs, well inside the window; nothing was widened.
+
+**Public copy.** sources.php said "25 national editions across 7 languages"
+(the manifest row on the same page says 35 and 16) and "GDELT
+machine-translates from 65 languages". Both typed. The sentence now defers
+to the generated manifest row and says GDELT is asked for English-language
+articles only; the manifest's GDELT coverage string says the same, sources.json
+is regenerated, and `tests/test_sources_page.py` fails on any count of
+editions or languages typed into the PHP and on GDELT copy that disagrees
+with what `GDELT_QUERIES` ask for. Plugin 1.88.1, **pushed, not deployed**.
+
+Not done, deliberately: no paid call, no backfill resumed (September projects
+$12.30 against $8.00), no refusal ledger re-probed, no threshold moved.
+`run_tripwire.RUNS_PER_DAY = 2` and `measure_city_queries.RUNS_PER_DAY = 2`
+are the same typed literal in two tools that do not drive the daily rotation
+(the tripwire is weekly and its cycle only needs to advance, the measurer is a
+hand-run probe); flagged, not changed.
+
 ## 2026-08-30 - two classifiers disagreed and the corpus sat on the side nobody asked
 
 `docs/RULING-public-equity-proceeds.md` settled that equity sold into public
