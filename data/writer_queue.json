@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-02T16:20:44Z",
-  "last_tick": "2026-09-02T16:20:44Z",
+  "last_dispatch": "2026-09-02T16:30:53Z",
+  "last_tick": "2026-09-02T16:30:53Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -211,6 +211,34 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-02T16:30:53Z",
+      "history": [
+        {
+          "at": "2026-09-02T16:30:49Z",
+          "detail": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-02T16:30:53Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260902T163049Z-retract",
+      "inputs": {
+        "reason": "Re-issue of the 2026-07-30 retraction, which no longer holds on the live site: the USD 4bn is the VALUATION, not the raise. The amount raised is not disclosed anywhere in the story, so there is no funding figure to publish.",
+        "signal_id": "5c5fb5dfa36a79ccad3f37886805207e"
+      },
+      "priority": 0,
+      "reason": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
+      "requested_at": "2026-09-02T16:30:49Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-22T16:48:30Z",
