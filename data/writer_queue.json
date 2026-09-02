@@ -213,72 +213,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-02T16:32:08Z",
-      "history": [
-        {
-          "at": "2026-09-02T16:32:04Z",
-          "detail": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-02T16:32:08Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260902T163204Z-retract",
-      "inputs": {
-        "reason": "Re-issue of the 2026-08-02 retraction, which no longer holds on the live site: a fund close, not a company round. Blackstone Life Sciences VI raised USD 6.3bn from limited partners to invest in the sector, not to build its own workforce.",
-        "signal_id": "4f07f453a527f15979bbc2759ed280c7"
-      },
-      "priority": 0,
-      "reason": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
-      "requested_at": "2026-09-02T16:32:04Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-23T02:48:55Z",
-      "history": [
-        {
-          "at": "2026-08-23T02:02:35Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-23T02:48:55Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-23T03:15:23Z",
-          "detail": "run 32613783742",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-23T03:15:23Z",
-          "detail": "run 32613783742",
-          "event": "landed"
-        }
-      ],
-      "id": "20260823T020235Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-23T03:15:23Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-08-23T02:02:35Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "32613783742",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-08-23T06:03:15Z",
       "history": [
         {
@@ -2514,6 +2448,45 @@
       "requested_at": "2026-09-02T16:30:49Z",
       "requested_by": "dakotta-labs",
       "run_id": "33655387141",
+      "state": "landed",
+      "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-02T16:32:08Z",
+      "history": [
+        {
+          "at": "2026-09-02T16:32:04Z",
+          "detail": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-02T16:32:08Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-02T16:32:49Z",
+          "detail": "run 33655516261",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-02T16:32:49Z",
+          "detail": "run 33655516261",
+          "event": "landed"
+        }
+      ],
+      "id": "20260902T163204Z-retract",
+      "inputs": {
+        "reason": "Re-issue of the 2026-08-02 retraction, which no longer holds on the live site: a fund close, not a company round. Blackstone Life Sciences VI raised USD 6.3bn from limited partners to invest in the sector, not to build its own workforce.",
+        "signal_id": "4f07f453a527f15979bbc2759ed280c7"
+      },
+      "landed_at": "2026-09-02T16:32:49Z",
+      "priority": 0,
+      "reason": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
+      "requested_at": "2026-09-02T16:32:04Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "33655516261",
       "state": "landed",
       "workflow": "retract.yml"
     }
