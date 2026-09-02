@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-02T16:30:53Z",
-  "last_tick": "2026-09-02T16:30:53Z",
+  "last_dispatch": "2026-09-02T16:32:08Z",
+  "last_tick": "2026-09-02T16:32:08Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -211,6 +211,34 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-02T16:32:08Z",
+      "history": [
+        {
+          "at": "2026-09-02T16:32:04Z",
+          "detail": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-02T16:32:08Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260902T163204Z-retract",
+      "inputs": {
+        "reason": "Re-issue of the 2026-08-02 retraction, which no longer holds on the live site: a fund close, not a company round. Blackstone Life Sciences VI raised USD 6.3bn from limited partners to invest in the sector, not to build its own workforce.",
+        "signal_id": "4f07f453a527f15979bbc2759ed280c7"
+      },
+      "priority": 0,
+      "reason": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
+      "requested_at": "2026-09-02T16:32:04Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-23T02:48:55Z",
