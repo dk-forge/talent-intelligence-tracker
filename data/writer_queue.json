@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-02T15:11:04Z",
-  "last_tick": "2026-09-02T15:11:04Z",
+  "last_dispatch": "2026-09-02T16:20:44Z",
+  "last_tick": "2026-09-02T16:20:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T07:05:35Z",
@@ -211,6 +211,33 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-02T16:20:44Z",
+      "history": [
+        {
+          "at": "2026-09-02T16:20:41Z",
+          "detail": "live money.coverage.unjudged is nonzero",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-02T16:20:44Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260902T162041Z-correct-money-basis",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "live money.coverage.unjudged is nonzero",
+      "requested_at": "2026-09-02T16:20:41Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "correct-money-basis.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-22T09:58:47Z",
