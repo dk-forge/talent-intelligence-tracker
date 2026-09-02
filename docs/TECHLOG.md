@@ -14,6 +14,85 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-02 - the 2,611 rows with no country, sorted by cause, and the placement bar that two of four writers were not carrying
+
+**The brief.** 2,611 current rows (7.9%) carry no job-location country;
+2,285 are news-path, 47.6% of everything google_news has ever stored. A row
+with no `country` and no `hq_country` is invisible to every country and
+region filter. Find out why each is blank, place what a signal in hand can
+place deterministically, guess nothing, price the rest.
+
+**Measured on the committed database** (`measure_unplaced.py`, read-only
+through `schema.connect_ro`, no model, no network):
+
+    no job-location country                  2,611
+      findable by employer HQ                  464   country_basis=any reaches these
+      NO place in either column              2,147   invisible to every filter
+        google_news 1,649 / national_press 270 / sec_form_d_bulk 83 /
+        ats_boards 64 / press_archive 40 / gdelt 22 / sec_edgar 19
+
+    (a) unknowable from what we hold         1,944   Wikidata does not know the
+                                                     employer (1,809) or knows
+                                                     no seat for it (135)
+    declined by the placement bar, on purpose  200   country with no HQ city
+                                                     (166), a name two
+                                                     organisations share (34)
+    (b) placeable now from the cache             3   Sparta Prague, Dropbox,
+                                                     Nextdoor: clean city-backed
+                                                     resolutions never applied
+    (c) needs the article body read          2,144   a paid classification per
+                                                     row; not run, not priced
+                                                     into the allowance
+
+The google_news number is the collector's own shape, not a defect: the
+classifier reads a headline and a snippet (`collectors/google_news.py`,
+`raw_text`), and a snippet that does not say where is honestly blank. The
+three signals the brief named were each checked and each refused, with the
+refusal already written where it was made: the edition
+(`collectors/google_news.py` docstring: it says where we asked, not where
+the story is), the ccTLD (the same fact, weaker), and a place name in the
+headline. The last one was measured rather than argued: 40 headlines name
+exactly one country alias and 25 exactly one gazetteer city, and the sample
+reads "HPE Aruba hire" as Aruba, "Latin America expansion" as the United
+States, "GoGig utser Sofia Fridell" as Bulgaria, and "Complexo Social de
+Santa Clara" as the US. `validate.build_signal` was right to refuse the
+edition and a scan is not better informed than the classifier that already
+read the text. 68 rows share a `company_key` with a row that does carry an
+`hq_country`; that value is the model's own knowledge on another row, and
+`company_key` is not an identity (on 2026-08-12 "CFS" resolved to a Canadian
+namesake while the same employer sat three rows later as Commonwealth Fusion
+Systems, US), so those stay blank too.
+
+**The defect the measurement found instead.** `identity.is_placeable` is the
+bar that keeps a country with no headquarters city behind it, and a name two
+organisations share, off a public page. It was the bar for
+`place_if_unplaced` and `place_backfill`, and for nothing else. `enrich()` on
+the ingestion path and `apply_identity()` under `--backfill` / `--apply-cache`
+copied every non-empty field off the cached row, so the refused class walked
+in as soon as the employer had a cache row. Counted: **276 current rows carry
+a cityless-cache `hq_country` written after the cache row resolved, 37 of them
+as the only place on the row, and one `--apply-cache` run would have stamped
+1,694 more (36 from ambiguous names).** `reverse_cityless_hq.py` says
+"nothing new joins the list"; it was joining daily. `identity.writable_fields`
+is now the one rule every writer iterates: a resolution that does not clear
+the bar may still fill a ticker, a CIK or an employer type and writes no
+geography anywhere. `apply_cache` now carries `detail` off the cached row,
+because that is where the ambiguity marker lives and a SELECT that dropped it
+would place a two-organisation name that happens to have a city.
+`tests/test_placement_bar_on_every_writer.py`: with the bar removed six of ten
+fail. The census's (b) count and `is_placeable` are pinned to be the same
+question (`tests/test_measure_unplaced.py`), so `--apply-cache` places
+exactly the set the census promised.
+
+**What was deliberately NOT done.** No row was written (the DB in this
+branch is byte-identical to main). No model was called. No backfill was
+resumed. The 3 placeable rows and the 58 mirror rows (cityless-cache country
+as the row's only place, plus 1 ambiguous) are the owner's to queue: the
+former through `place-unplaced.yml` / `--apply-cache`, which after this
+change writes only the clean class; the latter is a reversal in the shape of
+`reverse_cityless_hq.py`, and some of the 58 are right (Beretta IT was), so
+it is a review, not a sweep.
+
 ## 2026-08-30 - two classifiers disagreed and the corpus sat on the side nobody asked
 
 `docs/RULING-public-equity-proceeds.md` settled that equity sold into public

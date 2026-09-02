@@ -866,7 +866,7 @@ class IngestionActuallyEnrichs(unittest.TestCase):
                                        hq_city=None, hq_country=None,
                                        employer_type=None)
         identity.cache_put(conn, identity.Identity(
-            company_key="apple", company="Apple Inc.", hq_country="US",
+            company_key="apple", company="Apple Inc.", hq_city="Cupertino", hq_country="US",
             employer_type="public", resolved=True))
 
         def explode(*_a, **_k):     # any network call at all is the failure
@@ -879,7 +879,7 @@ class IngestionActuallyEnrichs(unittest.TestCase):
         finally:
             identity._get_json = original
 
-        self.assertEqual(sorted(filled), ["employer_type", "hq_country"])
+        self.assertEqual(sorted(filled), ["employer_type", "hq_city", "hq_country"])
         self.assertEqual(signal.hq_country, "US")
 
 

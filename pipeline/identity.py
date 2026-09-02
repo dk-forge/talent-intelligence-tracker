@@ -979,6 +979,31 @@ def is_placeable(ident) -> bool:
                 and not is_ambiguous(ident))
 
 
+def writable_fields(ident) -> tuple[str, ...]:
+    """The identity columns THIS resolution is allowed to write.
+
+    `is_placeable` was the bar for `place_if_unplaced` and `place_backfill`,
+    and only for them. The other two writers, `enrich()` on the ingestion path
+    and `apply_identity()` under `--backfill` / `--apply-cache`, kept copying
+    every non-empty field off the cached row, so the class the bar refuses
+    (a country with no headquarters city behind it, or a name two
+    organisations share) walked in through the front door as soon as the
+    employer had a cache row. Measured on the committed corpus 2026-09-02:
+    276 current rows carried a cityless-cache `hq_country` written AFTER the
+    cache row resolved, 37 of them as the only place on the row, and one
+    `--apply-cache` run would have stamped 1,694 more. The reversal script's
+    own docstring says "nothing new joins the list"; this is what makes that
+    sentence true.
+
+    Ticker, CIK and employer type are not geography and keep their old rule:
+    a value fills a blank. The two PLACEMENT_FIELDS are written only by a
+    resolution that clears the placement bar, on every path.
+    """
+    if is_placeable(ident):
+        return ENRICHED_FIELDS
+    return tuple(f for f in ENRICHED_FIELDS if f not in PLACEMENT_FIELDS)
+
+
 def place_if_unplaced(signal, conn: sqlite3.Connection | None = None) -> list[str]:
     """Resolve ONE employer over the network, but only to rescue a placeless row.
 
@@ -1041,7 +1066,7 @@ def enrich(signal, conn: sqlite3.Connection | None = None, *,
         ident = resolve(getattr(signal, "company"), conn=conn,
                         allow_network=allow_network)
         filled = []
-        for field in ENRICHED_FIELDS:
+        for field in writable_fields(ident):
             if getattr(signal, field, None):
                 continue  # <- rule 1. Sourced beats derived, every time.
             value = getattr(ident, field, None)
@@ -1117,7 +1142,7 @@ def apply_identity(conn: sqlite3.Connection, ident: Identity) -> dict:
     Every UPDATE carries `IS NULL OR = ''`: rule 1 again, at the SQL level.
     """
     counts = {}
-    for field in ENRICHED_FIELDS:
+    for field in writable_fields(ident):
         value = getattr(ident, field, None)
         if not value:
             continue
@@ -1142,15 +1167,18 @@ def apply_cache(conn: sqlite3.Connection, *, dry_run: bool = False) -> dict:
     what you want when something else on the machine is touching the live file.
     """
     ensure_cache(conn)
+    # `detail` travels with the row because that is where the cache keeps the
+    # ambiguity marker; without it `writable_fields` could not tell a
+    # two-organisation name from a clean one and would place it.
     rows = conn.execute(
-        f"SELECT company_key, {', '.join(ENRICHED_FIELDS)} "
+        f"SELECT company_key, {', '.join(ENRICHED_FIELDS)}, detail "
         "FROM employer_identity WHERE resolved = 1").fetchall()
 
     stats = {"employers": len(rows), "resolved": len(rows), "unresolved": 0,
              "rows": {f: 0 for f in ENRICHED_FIELDS}, "samples": []}
     for row in rows:
-        ident = Identity(company_key=row[0],
-                         **dict(zip(ENRICHED_FIELDS, row[1:])))
+        ident = Identity(company_key=row[0], detail=row[-1] or "",
+                         **dict(zip(ENRICHED_FIELDS, row[1:-1])))
         if ident.is_empty or dry_run:
             continue
         for field, n in apply_identity(conn, ident).items():
