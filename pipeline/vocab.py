@@ -1523,9 +1523,17 @@ DISTINCT_EMPLOYER_SLUG_COLLISIONS = {
     'bnk': ('bnk 피어엑스', 'bnk캐피탈'),
     # Two municipal South Korean football clubs, Changwon and Hwaseong.
     'fc': ('창원fc', '화성fc'),
-    # IBM and IBM Japan. The Japanese row is 日本IBM's own presidency changing
-    # hands, which is not a change at the parent.
-    'ibm': ('ibm', '日本ibm'),
+    # IBM and IBM Japan ('ibm' vs '日本ibm', the Japanese subsidiary's own
+    # presidency changing hands) is NOT here any more. It was the one live
+    # instance of this defect: 'ibm' is already ASCII, so nothing gets
+    # romanised or folded away from it, and '日本ibm' collapsed onto the same
+    # slug once its Han prefix was deleted. Fixed in tit_company_slug_index()
+    # (includes/company.php): a slug collision where exactly one owner's own
+    # spelling produced it and every other owner only arrived by having a
+    # script deleted now gives each deleted-script owner its own
+    # percent-encoded URL instead of refusing both. Left as a comment, not a
+    # dict entry, because there is no longer a collision for this report to
+    # classify.
     # SK Telecom and SK Hynix — two SK Group companies, and the one pair here
     # where a careless merge would have been most expensive.
     'sk': ('sk 电信', 'sk하이닉스'),

@@ -223,7 +223,7 @@ $phase = $argv[1] ?? '';
 if ($phase === '') {
     $rc = 0;
     foreach (array('before', 'after', 'ambiguous', 'romanised', 'romanised-live-key',
-                      'romanised-refused-collision') as $each) {
+                      'romanised-refused-collision', 'disambiguated-script-drop') as $each) {
         $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' ' . escapeshellarg($each);
         passthru($command, $status);
         if ($status !== 0) $rc = 1;
@@ -479,6 +479,75 @@ if ($phase === 'ambiguous') {
     // The unambiguous halves still work.
     check(resolves_to('northwind-alpha') === 'northwind-alpha', 'northwind alpha serves itself');
     check(resolves_to('northwind-beta') === 'northwind-beta', 'northwind beta serves itself');
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'disambiguated-script-drop') {
+// --------------------------------------------------------------------------
+    // THE LIVE DEFECT (ops_status [1c], /company/ibm/): 'ibm' is already
+    // ASCII, so tit_company_slug() folds it to itself untouched. '日本ibm'
+    // folds to the SAME 'ibm', because Han is a script this function does not
+    // romanise or transliterate the way it now does Hangul -- it is simply
+    // deleted by the final collapse. Before this phase's fix, that made
+    // /company/ibm/ a two-key collision like any other and, worse,
+    // tit_company_url('日本ibm') silently returned IBM'S OWN URL: a citation
+    // for the Japanese subsidiary's news landed a reader on the parent's page.
+    $wpdb->insert_signal('ibm1', 'IBM', 'ibm',
+                         array('published_date' => '2026-04-01'));
+    $wpdb->insert_signal('ibmjp1', '日本IBM', '日本ibm',
+                         array('published_date' => '2026-04-02'));
+
+    check(tit_company_slug('ibm') === 'ibm', 'sanity: IBM folds to itself');
+    check(tit_company_slug('日本ibm') === 'ibm',
+        "sanity: the PLAIN fold of both keys must still collide -- if this "
+        . "fails, tit_company_slug() itself changed and the rest of this "
+        . "phase is not testing what it says it is testing");
+
+    $index = tit_company_slug_index();
+    check(!isset($index['collisions']['ibm']),
+        "'ibm' is a clean ASCII key -- nothing of ITS OWN was dropped -- so it "
+        . "must not be refused just because a different key's script landed "
+        . "on the same slug");
+    check(isset($index['disambiguated']['日本ibm']),
+        "'日本ibm' lost its Han prefix to the plain fold and must be given its "
+        . "own URL instead of being blocked alongside 'ibm'");
+
+    // IBM keeps its own clean URL, unmoved by the disambiguation.
+    check(tit_company_url('ibm') === home_url('/' . TIT_COMPANY_BASE . '/ibm/'),
+        'IBM must not lose its own URL because a different key collided on it');
+    check(resolves_to('ibm') === 'ibm', '/company/ibm/ must still serve IBM');
+    check(tit_company_servable_slug('ibm') === true, 'IBM must stay servable');
+
+    // IBM Japan gets a DIFFERENT, reachable URL: not IBM's, not empty, not a
+    // guessed English or Japanese reading of '日本' -- the disambiguated form
+    // is the key's own bytes, percent-encoded.
+    $ibm_url = home_url('/' . TIT_COMPANY_BASE . '/ibm/');
+    $jp_url  = tit_company_url('日本ibm');
+    check($jp_url !== $ibm_url,
+        "IBM Japan's own citation must not point at IBM's page: got {$jp_url}");
+    check(tit_company_servable_slug('日本ibm') === true,
+        'IBM Japan must be servable, not silently blocked');
+
+    // THE ROUND TRIP. What tit_company_url() just published has to be exactly
+    // what a browser would request (decoding the href) and what
+    // tit_company_rows() then resolves -- back to IBM Japan's own key, never
+    // to IBM's and never to nothing.
+    $prefix = home_url('/' . TIT_COMPANY_BASE . '/');
+    check(strpos($jp_url, $prefix) === 0, "unexpected URL shape: {$jp_url}");
+    $requested_path = rawurldecode(rtrim(substr($jp_url, strlen($prefix)), '/'));
+    $rows = tit_company_rows($requested_path);
+    check(count($rows) === 1 && $rows[0]['company_key'] === '日本ibm',
+        'the URL tit_company_url() publishes for IBM Japan must resolve back '
+        . 'to IBM Japan. Got ' . count($rows) . ' row(s)'
+        . (count($rows) ? " for key '{$rows[0]['company_key']}'" : ''));
+
+    // NO SELF-REDIRECT LOOP: the canonical-redirect comparison in
+    // tit_company_template() decodes the published slug before comparing it
+    // to the requested one, so visiting IBM Japan's own canonical URL must
+    // compare equal to itself rather than bouncing forever.
+    check(rawurldecode(tit_company_canonical_slug('日本ibm')) === $requested_path,
+        'visiting the published URL for IBM Japan must not trigger a further '
+        . 'redirect');
 }
 
 if ($failures) {

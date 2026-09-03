@@ -358,8 +358,11 @@ def _report_employer_keys(conn) -> list[str]:
     claims: dict[str, list[str]] = {}
     for key in keys:
         claims.setdefault(_profile_slug(key), []).append(key)
+    # A slug two keys claim is not always a collision the report should carry:
+    # see _auto_disambiguated() for the one shape the plugin now resolves on
+    # its own ('ibm' vs '日본ibm').
     collisions = {slug: sorted(owners) for slug, owners in claims.items()
-                  if slug and len(owners) > 1}
+                  if slug and len(owners) > 1 and not _auto_disambiguated(owners)}
 
     # A pair the alias map already merges is not waiting on a decision, it is
     # waiting on the correction that moves its rows. Saying so is the difference
@@ -504,6 +507,39 @@ def _profile_slug(key: str) -> str:
     # no profile URL at all, which is a different (and rosier) problem than the
     # unreachable one they actually have.
     return quote(key.replace(" ", "-"), safe="")
+
+
+def _drops_script(key: str) -> bool:
+    """Mirror of tit_company_slug_drops_script() in company.php: true when
+    folding this key DELETES a script tit_company_slug() cannot romanise or
+    transliterate (Han, Hebrew, Arabic, Thai, kana...), as opposed to Latin
+    accents (folded intact) or Hangul (romanised intact). Same fold as
+    _profile_slug up to the point the regex collapse would erase the leftover
+    bytes; this stops one step earlier and asks whether there is anything left
+    to erase.
+    """
+    import unicodedata
+
+    lowered = _romanize_hangul(key.lower())
+    folded = unicodedata.normalize("NFD", lowered)
+    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    folded = "".join(_ATOMIC_FOLDS.get(c, c) for c in folded)
+    return any(ord(c) > 0x7F for c in folded)
+
+
+def _auto_disambiguated(owners: list[str]) -> bool:
+    """Mirror of the escape hatch tit_company_slug_index() applies in
+    includes/company.php: when exactly one owner's OWN spelling produced the
+    shared slug and every other owner only landed on it because a script got
+    deleted, the plugin gives each deleted-script owner its own
+    percent-encoded URL rather than refusing the whole slug. That is no
+    longer a collision for this report to carry -- '오픈ai' vs '페르소나ai'
+    ('ai') stays a real collision because Hangul is ROMANISED, not deleted, so
+    neither owner is "clean" by this test and both remain refused, same as
+    today; only '日본ibm' vs 'ibm' qualifies.
+    """
+    lossy = [o for o in owners if _drops_script(o)]
+    return len(lossy) == len(owners) - 1 and len(owners) - len(lossy) == 1
 
 
 #: A status that is not an incident. `skipped` is the interesting one: the

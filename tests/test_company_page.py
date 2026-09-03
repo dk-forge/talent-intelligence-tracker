@@ -221,7 +221,12 @@ def test_the_old_slug_redirects_to_the_canonical_one():
     tpl = tpl[:tpl.index("\n}\n")]
     assert "wp_safe_redirect(tit_company_url(" in tpl
     assert "301" in tpl
-    assert "$canonical !== $current['slug']" in tpl
+    assert "rawurldecode($canonical) !== $current['slug']" in tpl, (
+        "the comparison must decode $canonical before comparing: a "
+        "disambiguated (percent-encoded) canonical slug would otherwise never "
+        "equal the already-decoded $current['slug'] and would redirect to "
+        "itself forever. See tit_company_canonical_slug()."
+    )
     assert "tit_company_servable_slug(" in tpl, (
         "redirecting to a canonical form we cannot serve is a 301 into a 404"
     )

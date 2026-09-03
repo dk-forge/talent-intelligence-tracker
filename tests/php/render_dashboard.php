@@ -2016,18 +2016,18 @@ function measure_bytes($html) {
 function budget_phase() {
     global $wpdb;
 
-    // Nothing is memoised in a static across renders here, unlike the place
-    // pages: this page links employer profiles by transforming the key, and
-    // never asks company.php for its slug index. So the first render in a
-    // process costs exactly what every later cold one does, and if that stops
-    // being true the number below is where it shows up.
+    // company.php's slug index is built once per process and shared with the
+    // place pages (see tests/php/render_place_pages.php), because every card
+    // here links its employer through tit_company_url(). So the first render
+    // in THIS process pays for it -- two queries, memoised in a PHP static
+    // this harness cannot reach -- and no later one does.
     $GLOBALS['tit_transients'] = array();
     $wpdb->reset_reads();
     $html = render();
-    check($wpdb->reads === TIT_DASH_QUERY_BUDGET,
-          'the first cold render in a process must cost exactly '
-          . TIT_DASH_QUERY_BUDGET . ' queries and cost ' . $wpdb->reads
-          . trace($wpdb->log));
+    check($wpdb->reads === TIT_DASH_QUERY_BUDGET + 2,
+          'the first cold render in a process pays company.php\'s slug index '
+          . 'too, so it must cost ' . (TIT_DASH_QUERY_BUDGET + 2) . ' and cost '
+          . $wpdb->reads . trace($wpdb->log));
 
     /*
      * THE BYTE BUDGET, measured on the first cold render of a pinned clock and
@@ -2048,7 +2048,9 @@ function budget_phase() {
     $wpdb->reset_reads();
     render();
     check($wpdb->reads === TIT_DASH_QUERY_BUDGET,
-          'and so must every later cold one: cost ' . $wpdb->reads . trace($wpdb->log));
+          'and every cold render after the slug index is warm must cost '
+          . 'exactly ' . TIT_DASH_QUERY_BUDGET . ': cost ' . $wpdb->reads
+          . trace($wpdb->log));
 
     // THE WARM PATH, which is what a reader actually gets. Every aggregate on
     // this page is filter-independent -- the render reads no request state at

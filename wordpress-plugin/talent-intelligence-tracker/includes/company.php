@@ -201,7 +201,49 @@ function tit_company_slug($company_key) {
     $slug = trim((string) $slug, '-');
 
     if ($slug !== '') return $slug;
+    return tit_company_slug_disambiguated($company_key);
+}
+
+/**
+ * The percent-encoded, information-preserving form of a key: spaces to
+ * hyphens, everything else left as its real UTF-8 bytes and then
+ * rawurlencode()d for the href. Used two ways: tit_company_slug() falls back
+ * to it when nothing ASCII survives folding, and tit_company_slug_index()
+ * falls back to it for the non-Latin side of a collision (see
+ * tit_company_slug_drops_script()).
+ *
+ * NOT a translation and not a guess: it keeps the company_key's own bytes, so
+ * '日本ibm' becomes a URL that decodes back to '日本ibm', never to an invented
+ * English or Japanese reading of it. tit_company_rows() step 1 already
+ * resolves this shape -- it is the exact form tit_company_current() reproduces
+ * by rawurldecode()ing the requested path and comparing in raw-key space.
+ */
+function tit_company_slug_disambiguated($company_key) {
     return rawurlencode(str_replace(' ', '-', (string) $company_key));
+}
+
+/**
+ * Whether tit_company_slug() DELETES identifying content from this key rather
+ * than folding or transliterating it -- true whenever, after the accent fold
+ * and the Hangul romanisation, a script tit_company_slug() does not know how
+ * to render survives (Han, Hebrew, Arabic, Thai, kana...). Those bytes are
+ * exactly what the final regex in tit_company_slug() collapses into a hyphen
+ * and loses.
+ *
+ * This is the test tit_company_slug_index() uses to tell "two spellings of
+ * the same Latin name" (fold losslessly, may legitimately collide -- see the
+ * 'indigo' / '인디고' case, both of which romanise to real Latin content) apart
+ * from "a name in a script we cannot render, which happens to share a Latin
+ * fragment with something else" (fold destructively -- '日本ibm' loses '日本'
+ * and is left standing on IBM's own slug). Only the second shape gets the
+ * percent-encoded escape hatch; the first is a genuine ambiguity and stays
+ * refused.
+ */
+function tit_company_slug_drops_script($company_key) {
+    $s = strtolower((string) $company_key);
+    if (function_exists('remove_accents')) $s = remove_accents($s);
+    $s = tit_romanize_hangul($s);
+    return (bool) preg_match('/[^\x00-\x7F]/', $s);
 }
 
 /**
@@ -388,7 +430,8 @@ function tit_company_slug_index() {
     if ($memo !== null) return $memo;
 
     $cached = get_transient('tit_company_slug_index');
-    if (is_array($cached) && isset($cached['map']) && isset($cached['moved'])) {
+    if (is_array($cached) && isset($cached['map']) && isset($cached['moved'])
+            && isset($cached['disambiguated'])) {
         $memo = $cached;
         return $memo;
     }
@@ -410,16 +453,63 @@ function tit_company_slug_index() {
 
     $map = array();
     $collisions = array();
+    $disambiguated = array();
     foreach ($claims as $slug => $owners) {
-        if (count($owners) > 1) {
-            $collisions[$slug] = true;
+        if (count($owners) === 1) {
+            // Stored only when the canonical form differs from the legacy
+            // one; the rest are already reachable by the direct comparison.
+            if ($slug !== tit_company_legacy_slug($owners[0])) {
+                $map[$slug] = $owners[0];
+            }
             continue;
         }
-        // Stored only when the canonical form differs from the legacy one; the
-        // rest are already reachable by the direct comparison.
-        if ($slug !== tit_company_legacy_slug($owners[0])) {
-            $map[$slug] = $owners[0];
+
+        // More than one CURRENT key folds to this slug. If exactly one
+        // owner's own spelling is why -- the rest arrived only because
+        // tit_company_slug() deleted a script it does not render -- that one
+        // owner keeps the slug outright (a live key always wins, the same
+        // rule the historical map below applies) and every other owner gets
+        // its own percent-encoded URL instead of being refused. See
+        // tit_company_slug_drops_script(): 'indigo' vs '인디고' does NOT
+        // qualify for this, because '인디고' romanises to real Latin content
+        // rather than losing it, so both sides are a genuine ambiguity and
+        // stay refused below, exactly as before this function existed.
+        $lossy = array();
+        $clean = 0;
+        foreach ($owners as $owner) {
+            if (tit_company_slug_drops_script($owner)) {
+                $lossy[] = $owner;
+            } else {
+                $clean++;
+            }
         }
+
+        if ($clean === 1 && count($lossy) === count($owners) - 1) {
+            $ok = true;
+            $fallbacks = array();
+            foreach ($lossy as $owner) {
+                $fallback = tit_company_slug_disambiguated($owner);
+                // The fallback has to actually be free: not another CURRENT
+                // key's own canonical slug ($claims, built before any of this
+                // ran), and not already claimed by a sibling in this same
+                // collision. Neither happens today -- refusing instead of
+                // guessing if one ever does.
+                if ($fallback === '' || isset($claims[$fallback]) || isset($fallbacks[$fallback])) {
+                    $ok = false;
+                    break;
+                }
+                $fallbacks[$fallback] = $owner;
+            }
+            if ($ok) {
+                foreach ($fallbacks as $fallback => $owner) {
+                    $map[$fallback] = $owner;
+                    $disambiguated[$owner] = $fallback;
+                }
+                continue;
+            }
+        }
+
+        $collisions[$slug] = true;
     }
 
     // THE PRE-1.88.0 CANONICAL FORM, so romanising Hangul does not 404 the ten
@@ -442,9 +532,10 @@ function tit_company_slug_index() {
     }
 
     $memo = array(
-        'map'        => $map,
-        'collisions' => $collisions,
-        'moved'      => tit_company_moved_slugs($claims),
+        'map'           => $map,
+        'collisions'    => $collisions,
+        'moved'         => tit_company_moved_slugs($claims),
+        'disambiguated' => $disambiguated,
     );
     // Dropped by tit_flush_caches() on every write, so a new employer appears
     // as soon as its row lands rather than up to two hours later.
@@ -518,13 +609,34 @@ function tit_company_moved_slugs($claims) {
 }
 
 /**
+ * The slug actually PUBLISHED for this employer: the plain fold, unless the
+ * collision index gave this exact key a percent-encoded escape hatch (see
+ * tit_company_slug_drops_script() and tit_company_slug_index()), in which case
+ * that is the real, reachable, non-colliding URL for it.
+ *
+ * tit_company_url() and the redirect check in tit_company_template() both go
+ * through this rather than tit_company_slug() directly, so a link to '日本ibm'
+ * is never generated as '/company/ibm/' -- IBM's own URL -- again.
+ */
+function tit_company_canonical_slug($company_key) {
+    $index = tit_company_slug_index();
+    if (isset($index['disambiguated'][$company_key])) {
+        return $index['disambiguated'][$company_key];
+    }
+    return tit_company_slug($company_key);
+}
+
+/**
  * Whether this employer has a URL we can publish.
  *
- * Two ways to fail, and only two, now that the slug transliterates:
+ * Two ways to fail, and only two, now that the slug transliterates and a
+ * script-dropping collision can be disambiguated instead of refused:
  *
  *  - nothing survives canonicalisation, so there is no ASCII slug at all (one
  *    Hebrew key);
- *  - two keys claim the same canonical slug, so the URL would be ambiguous.
+ *  - two keys claim the same canonical slug, NEITHER of them because the other
+ *    side's script got silently deleted -- a genuine ambiguity ('indigo' /
+ *    '인디고'), so the URL stays refused rather than served to a guess.
  *
  * A key that fails either is not indexable AND not in the sitemap, which is the
  * same single decision the threshold goes through, for the same reason: a URL
@@ -532,14 +644,15 @@ function tit_company_moved_slugs($claims) {
  * showing half an employer is what gets a whole set distrusted.
  */
 function tit_company_servable_slug($company_key) {
+    $index = tit_company_slug_index();
+    if (isset($index['disambiguated'][$company_key])) return true;
     $slug = tit_company_slug($company_key);
     if ($slug === '' || preg_match('/[^a-z0-9-]/', $slug)) return false;
-    $index = tit_company_slug_index();
     return !isset($index['collisions'][$slug]);
 }
 
 function tit_company_url($company_key) {
-    return home_url('/' . TIT_COMPANY_BASE . '/' . tit_company_slug($company_key) . '/');
+    return home_url('/' . TIT_COMPANY_BASE . '/' . tit_company_canonical_slug($company_key) . '/');
 }
 
 function tit_company_sitemap_url() {
@@ -840,9 +953,18 @@ function tit_company_template() {
      * This cannot loop: the canonical slug resolves to the same key, and the
      * comparison is then equal. It is skipped for a key with no servable
      * canonical form, which would otherwise redirect to a URL that 404s.
+     *
+     * $current['slug'] is always rawurldecode()d (see tit_company_current()),
+     * raw UTF-8. tit_company_canonical_slug() is not, for a disambiguated key
+     * -- it is the percent-encoded href tit_company_url() publishes, by
+     * design the same shape tit_company_slug_disambiguated() produces. Decode
+     * before comparing so visiting that exact URL does not loop back on
+     * itself; for every other key this is a no-op, since their canonical
+     * slugs contain no '%' to decode.
      */
-    $canonical = tit_company_slug($current['rows'][0]['company_key']);
-    if ($canonical !== $current['slug'] && tit_company_servable_slug($current['rows'][0]['company_key'])) {
+    $canonical = tit_company_canonical_slug($current['rows'][0]['company_key']);
+    if (rawurldecode($canonical) !== $current['slug']
+            && tit_company_servable_slug($current['rows'][0]['company_key'])) {
         wp_safe_redirect(tit_company_url($current['rows'][0]['company_key']), 301);
         exit;
     }

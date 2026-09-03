@@ -284,6 +284,19 @@ def _humanise(amount: int) -> str:
     return f"${amount:,}"
 
 
+#: How many times to try one EFTS page before giving up, and how long to wait
+#: between tries. Measured, not guessed: EDGAR's search-index endpoint has
+#: handed back a bare HTTP 500 for a query that succeeded unmodified when
+#: replayed shortly after, twice now -- run 32307688627 (2026-08-19, per the
+#: comment in collect() below) and run 33696039069 (2026-09-03: page 0 of
+#: `q="equity"&forms=D&startdt=2026-08-29&enddt=2026-09-03` 500'd at
+#: 2026-09-03T00:05:06Z; the identical URL, replayed by hand, answered 200
+#: with 182 hits). Three tries, five seconds apart, is comfortably inside a
+#: single collect() run's budget and covers a blip measured in seconds.
+EFTS_RETRIES = 3
+EFTS_RETRY_WAIT = 5.0
+
+
 def search(days_back: int = 5, page: int = 0, *,
            startdt: str | None = None, enddt: str | None = None) -> list[dict]:
     """One EFTS page of Form D filings. Returns raw hits.
@@ -291,6 +304,18 @@ def search(days_back: int = 5, page: int = 0, *,
     Explicit startdt/enddt (YYYY-MM-DD) override days_back, the same shape
     sec_edgar.search already has: the backfill walks historical windows this
     way while the daily run keeps its rolling few days.
+
+    RETRIES A TRANSIENT 5xx, NEVER A 4xx -- the same split
+    collectors/czechia_ares.py's _request() already makes ("One call, retried
+    on a transient 5xx and never on a 404"). Before this, one EFTS 500 on page
+    0 was fatal to the whole call, and collect() (below) broke out of its page
+    loop on the first failure: one blip from EDGAR's own server zeroed out
+    found/stored/dup/rejected/deferred for the entire day, which reads
+    identically to a genuinely quiet window in the health ledger and in
+    ops_status until someone reads the log. A 4xx (a malformed query, a
+    revoked credential) is a real answer about OUR request and is raised
+    immediately, same as before; only a 5xx -- which is EDGAR's server, not
+    ours -- is worth a few seconds and another try.
     """
     if not (startdt and enddt):
         end = datetime.now(timezone.utc)
@@ -307,10 +332,15 @@ def search(days_back: int = 5, page: int = 0, *,
         # endpoint that answers with 100, so pages 0/1/2 overlapped by 90%.
         "from": page * sec_edgar.PAGE_SIZE,
     }
-    time.sleep(REQUEST_DELAY)
-    resp = requests.get(EFTS_URL, params=params,
-                        headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
-                        timeout=30)
+    resp = None
+    for attempt in range(EFTS_RETRIES):
+        time.sleep(REQUEST_DELAY)
+        resp = requests.get(EFTS_URL, params=params,
+                            headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+                            timeout=30)
+        if resp.status_code < 500 or attempt == EFTS_RETRIES - 1:
+            break
+        time.sleep(EFTS_RETRY_WAIT)
     resp.raise_for_status()
     return (resp.json().get("hits") or {}).get("hits") or []
 
