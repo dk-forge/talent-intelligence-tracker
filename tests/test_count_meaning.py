@@ -80,6 +80,47 @@ class ProjectionsAreLabelledNotCounted(unittest.TestCase):
                             headline="Firm opens hub", effective_date="2027-01-01"))
         self.assertTrue(m.projected)
 
+    def test_mine_reopening_headcount_named_only_in_summary(self):
+        # Real 2026-09-02 row: the headline names no year and no marker word
+        # ("Breaking: Tasmania's Mount Lyell copper mine to reopen in boost
+        # for west coast"). The "by 2029" and "plans to" that make this a
+        # projection appear only in `summary`/`talent_readthrough`, which a
+        # digest that read the headline alone would miss -- and a digest that
+        # skipped this module entirely (bypassing it, not misreading it) is
+        # exactly how "300 jobs" reached an inbox as a current opening when
+        # the mine does not reopen until 2029.
+        m = cm.classify(row(
+            headcount=300, headcount_scope="new_roles", signal_direction="hiring",
+            headline="Breaking: Tasmania's Mount Lyell copper mine to reopen "
+                     "in boost for west coast",
+            summary="Sibanye-Stillwater plans to reopen the Mt Lyell copper "
+                    "mine near Queenstown by 2029, creating 300 jobs.",
+            talent_readthrough="Sibanye-Stillwater's reopening of the Mount "
+                    "Lyell copper mine near Queenstown, Tasmania creates 300 "
+                    "operations and manufacturing jobs onsite when it "
+                    "restarts in 2029."))
+        self.assertEqual(m.type, cm.PLANNED_JOBS)
+        self.assertTrue(m.projected)
+        self.assertFalse(m.counts_as_roles)
+        self.assertIsNone(m.roles)
+
+    def test_training_cohort_ahead_of_future_plant_launch(self):
+        # Real 2026-09-02 row: 100 trainees for a plant that has not opened.
+        # The 100 is a training-programme headcount, not "100 jobs" today;
+        # the real jobs figure in the source (1,500) appears "upon
+        # completion" and is never stored as this row's headcount at all.
+        m = cm.classify(row(
+            headcount=100, headcount_scope="new_roles", signal_direction="hiring",
+            headline="Yicheng Plans China Training for 100 Cameroonians "
+                     "Ahead of Pharma Plant Launch",
+            summary="Yicheng Pharmaceutical Group is set to train 100 young "
+                    "Cameroonians in China for its upcoming pharmaceutical "
+                    "and medical-device complex in Meyo, Yaounde IV, aiming "
+                    "to create 1,500 direct jobs upon completion."))
+        self.assertEqual(m.type, cm.PLANNED_JOBS)
+        self.assertTrue(m.projected)
+        self.assertFalse(m.counts_as_roles)
+
 
 class PresentOpeningsStillCount(unittest.TestCase):
     def test_confirmed_present_tense_hiring(self):
