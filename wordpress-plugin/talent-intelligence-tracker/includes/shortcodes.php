@@ -80,6 +80,21 @@ if (!defined('ABSPATH')) exit;
  * render still costs zero. The direction ranking's own GROUP BY stays although
  * its card merged into the market chart, because the stated-headcount toggle's
  * figure is summed from it and /aggregate still serves the group.
+ *
+ * STILL 15, but no longer this page's OWN 15 to spend freely. Since
+ * tit_company_url() (includes/company.php) started consulting
+ * tit_company_slug_index() -- to keep two employers whose slugs collide (e.g.
+ * 'ibm' vs '日본ibm') off each other's URL -- every card this page renders
+ * links its employer through it, and the index costs two queries the FIRST
+ * time anything in the PROCESS asks for it (DISTINCT company_key, and the
+ * moved-revisions JOIN), memoised in a PHP static for the rest of the
+ * request. This page used to be the one page that built employer links
+ * without ever asking company.php anything and so never paid that cost; it no
+ * longer is. tests/php/render_dashboard.php prices the two shapes
+ * separately, the same way tests/php/render_place_pages.php already does for
+ * the place pages that share this same static: the first cold render in a
+ * process costs TIT_DASH_QUERY_BUDGET + 2, every cold render after that costs
+ * TIT_DASH_QUERY_BUDGET.
  */
 const TIT_DASH_QUERY_BUDGET = 15;
 
