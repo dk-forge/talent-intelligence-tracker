@@ -18,12 +18,40 @@ import os
 import sqlite3
 from datetime import date, datetime
 
+from pipeline import provider_names
+
 from .diff import HELD, MISSING, UNUSABLE
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 RESULTS_DIR = os.path.join(HERE, "results")
 WORKLIST_PATH = os.path.join(ROOT, "data", "tripwire_worklist.json")
+
+
+def _redact_for_write(obj):
+    """Recursively redact every string leaf before it can reach a written
+    file.
+
+    Two different things land in a tripwire result: the MODEL's own claims
+    (`ask.py`'s `claimed_outlet` / `claimed_url`, free text nothing here
+    controls) and rows pulled from OUR OWN `signals` table (`diff.py`'s
+    `matched.source_url`, which legitimately holds a provider's domain
+    because the database itself is exempt from the no-provider-names rule —
+    it is the system's memory, not a published artifact). Both are fine to
+    hold; neither is fine to publish verbatim. Rather than name every field
+    that could carry either kind of text — and miss the next one a future
+    query or a future schema column adds — this walks the whole structure
+    and redacts every string, so a field nobody thought to allowlist cannot
+    become the next tripwire-YYYY-MM-DD.json leak the way `source_url` just
+    did. See `pipeline/provider_names.py` for the redaction itself.
+    """
+    if isinstance(obj, str):
+        return provider_names.redact(obj)
+    if isinstance(obj, dict):
+        return {key: _redact_for_write(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [_redact_for_write(value) for value in obj]
+    return obj
 
 # What the chase collector reports as, so a confirmed miss can be counted.
 CHASE_COLLECTOR = "tripwire_chase"
@@ -204,6 +232,13 @@ def build_worklist(result: dict) -> dict:
 
 def write(result: dict, worklist: dict, *, results_dir: str = RESULTS_DIR,
           worklist_path: str = WORKLIST_PATH) -> tuple[str, str]:
+    # Redact at the write, not after it — `pipeline/provider_names.py`'s own
+    # rule, applied here because this is the choke point both committed files
+    # pass through. Whatever slipped past `usable()`, a query, or a schema
+    # change is caught here rather than by the CI guard three commits later.
+    result = _redact_for_write(result)
+    worklist = _redact_for_write(worklist)
+
     os.makedirs(results_dir, exist_ok=True)
     path = os.path.join(results_dir, f"tripwire-{result['ran_on']}.json")
     with open(path, "w", encoding="utf-8") as handle:
