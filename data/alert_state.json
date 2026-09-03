@@ -9,13 +9,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:main:346c84f5428fe1bd": {
-      "first": 1788453946,
-      "last": 1788453946,
-      "subject": "CI RED: tests: assert not ['analysis/tripwire/results/tripwire-2026-09-03.json (banned pattern #2)']"
     }
   },
-  "updated_at": "2026-09-03T16:45:46+00:00",
+  "updated_at": "2026-09-03T20:04:02+00:00",
   "version": 1
 }
