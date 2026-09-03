@@ -1,10 +1,5 @@
 {
   "open": {
-    "collect-structured:main:7f557f742ab96f36": {
-      "first": 1788427913,
-      "last": 1788427913,
-      "subject": "CI RED: collect-structured: PUBLISH FAILED: gave up after retries: 504: <!DOCTYPE html>"
-    },
     "collect:main:b21e9e4667a8f1b1": {
       "first": 1788393936,
       "last": 1788393936,
@@ -16,6 +11,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-03T09:31:54+00:00",
+  "updated_at": "2026-09-03T13:20:26+00:00",
   "version": 1
 }
