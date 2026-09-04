@@ -220,7 +220,7 @@ def archive_candidates(conn: sqlite3.Connection, *, limit: int,
     rows = distinct_source_urls(conn, collector=collector)
     known = {r["source_url"]: dict(r) for r in conn.execute(
         "SELECT source_url, archive_state, archive_attempts, archive_probes, "
-        "       archive_blind_rounds FROM source_links")}
+        "       archive_blind_rounds, updated_at FROM source_links")}
     tier_unprobed, tier_probed = [], []
     for row in rows:
         seen = known.get(row["source_url"]) or {}
@@ -230,7 +230,16 @@ def archive_candidates(conn: sqlite3.Connection, *, limit: int,
         row["archive_attempts"] = int(seen.get("archive_attempts") or 0)
         row["archive_probes"] = int(seen.get("archive_probes") or 0)
         row["archive_blind_rounds"] = int(seen.get("archive_blind_rounds") or 0)
+        row["archive_round_at"] = seen.get("updated_at") or ""
         (tier_unprobed if row["archive_probes"] == 0 else tier_probed).append(row)
+    # Within the probed tier, the URL whose last round is OLDEST goes first.
+    # Newest-capture order here is the same starvation by a slower route: the
+    # ledger stamps `updated_at` on every round, so a newest-first tier under a
+    # 600-row window re-examined the same recent 600 every pass while 1,841
+    # older pending URLs sat past the 7-day promise (ops_status [2c],
+    # 2026-09-04). Oldest-round-first is a round robin over the whole tier, so
+    # a window of any size reaches every URL within tier_size / window passes.
+    tier_probed.sort(key=lambda r: r["archive_round_at"])
     return (tier_unprobed + tier_probed)[:limit]
 
 
