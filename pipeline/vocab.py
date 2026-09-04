@@ -1480,6 +1480,29 @@ EMPLOYER_KEY_ALIASES = {
     # The full legal name would be the better canonical, but it is not
     # SQL-findable, so the trading name survives.
     '제너시스bbq': 'bbq',
+    # --- 2026-09-04 slug-collision review -----------------------------------
+    # ops_status flagged 11 slugs claimed by two keys. Nine are one employer
+    # under two spellings that differ only by a diacritic, a hyphen, an
+    # ampersand or a space, and they follow the rule above: the survivor is the
+    # ASCII-clean plainer form (hyphen -> space, accent -> plain, & -> and),
+    # which is the spelling tit_company_rows() can find without the slug index.
+    # Two were left for a human: 'indigo' / '인디고' may be two employers (the
+    # Korean rendering need not be the airline), and 'kcu npl 대부' has no
+    # spelling the sources use that is also ASCII, so naming one would be
+    # inventing it.
+    'air-india': 'air india',
+    'colgate palmolive índia': 'colgate palmolive india',
+    'colgate-palmolive india': 'colgate palmolive india',
+    'dolce & gabbana': 'dolce and gabbana',
+    'dolce&gabbana': 'dolce and gabbana',
+    'erco energía': 'erco energia',
+    'formosa hà tĩnh': 'formosa ha tinh',
+    'giày thượng đình': 'giay thuong dinh',
+    'giầy thượng đình': 'giay thuong dinh',
+    'gol linhas aéreas': 'gol linhas aereas',
+    'hc valais-wallis academy': 'hc valais wallis academy',
+    'n - able': 'n able',
+    'n-able': 'n able',
 }
 
 
