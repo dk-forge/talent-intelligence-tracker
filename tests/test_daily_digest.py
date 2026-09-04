@@ -157,3 +157,39 @@ class OpenVacanciesProvenance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NoEmDashInARenderedEdition(unittest.TestCase):
+    """Zero em-dashes in anything a reader might see is the house rule, and
+    this renderer carried four typed ones (a section heading and the three
+    row heads) until 2026-09-04. It is offline and wired to no sender, which
+    is exactly why nothing caught it: the tracker's own copy scan covers the
+    plugin, and a rendered edition is reader-facing whoever forwards it.
+
+    Every branch that typed one is driven here: a current-roles row, a
+    projected row, a workforce row (which also prints the heading), and a
+    funding/leadership row. Reintroducing any of the four reddens this.
+    """
+
+    def test_every_section_renders_without_an_em_dash(self):
+        rows = [
+            row(),
+            row(company="Planner", headcount=300, headcount_scope="new_roles",
+                headline="Planner plans to hire 300 by 2028",
+                summary="Planner plans to add 300 roles by 2028."),
+            row(company="GM", headcount=4600, headcount_scope="affected",
+                signal_direction="neutral",
+                headline="GM tentative agreement covering 4,600 workers",
+                summary="A labour agreement covering 4,600 existing employees."),
+            row(company="Fundco", headcount=None, headcount_scope=None,
+                signal_direction="neutral", pillar="company_development",
+                headline="Fundco raises $40M Series B",
+                summary="Fundco raised a $40M Series B.",
+                funding_amount="40000000"),
+        ]
+        out = dd.render(edition(rows))
+        self.assertNotIn("\u2014", out)
+        # And the sections the rows drive really rendered, so an empty edition
+        # cannot pass this by saying nothing.
+        self.assertIn("SIGNALS NAMING THE MOST ROLES", out)
+        self.assertIn("WORKFORCE EVENTS", out)
