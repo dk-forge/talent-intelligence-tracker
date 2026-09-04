@@ -304,3 +304,25 @@ def test_ops_status_goes_red_on_a_wrongly_terminal_url(stocked, capsys):
     capsys.readouterr()
     assert any("TERMINAL" in p and "--recheck-terminal" in p for p in problems), \
         problems
+
+
+def test_the_probed_tier_is_walked_oldest_round_first_so_a_limit_reaches_everyone(stocked):
+    """Tiering fixed WHICH tier starves; this fixes starvation INSIDE the tier.
+
+    Within `pending`, newest-capture order under a bound `limit` re-examines
+    the same recent window every pass and never reaches the older rows, which
+    is how 1,841 in-scope URLs sat past the 7-day promise while every archive
+    run reported success (2026-09-04). The probed tier is a round robin on the
+    ledger's `updated_at`: the URL whose last round is oldest is next.
+    """
+    source_links.record_archive(stocked, URLS[0], state="pending", probes=1)
+    source_links.record_archive(stocked, URLS[1], state="pending", probes=1)
+    stocked.execute(
+        "UPDATE source_links SET updated_at = '2026-01-01T00:00:00+00:00' "
+        " WHERE source_url = ?", (URLS[1],))
+    stocked.commit()
+    order = [r["source_url"] for r in
+             source_links.archive_candidates(stocked, limit=50)]
+    # URLS[2] was never probed and still leads; then the OLDEST round, then
+    # the newest capture, which pure newest-first would have put second.
+    assert order == [URLS[2], URLS[1], URLS[0]], order
