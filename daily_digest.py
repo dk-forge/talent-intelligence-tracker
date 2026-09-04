@@ -316,7 +316,7 @@ def render(ed: Edition) -> str:
         L.append("")
 
     if ed.workforce:
-        L.append("WORKFORCE EVENTS (existing employees — NOT hiring)")
+        L.append("WORKFORCE EVENTS (existing employees, NOT hiring)")
         for f in ed.workforce[:8]:
             L.extend(_render_item(f, workforce=True))
         L.append("")
@@ -334,15 +334,15 @@ def _render_item(f: Featured, show_roles=False, projected=False,
                  workforce=False) -> list[str]:
     tag = f"[{f.meaning.label} · {f.provenance()}]"
     if show_roles and f.meaning.roles is not None:
-        head = f"  {f.meaning.roles:,} roles — {f.company} {tag}"
+        head = f"  {f.meaning.roles:,} roles - {f.company} {tag}"
     elif projected:
         size = _projected_size(f)
         num = f"{size:,} projected" if size else "projected"
-        head = f"  {num} — {f.company} {tag}"
+        head = f"  {num} - {f.company} {tag}"
     elif workforce:
         size = _headcount(f)
         num = f"{size:,} existing staff" if size else "existing staff"
-        head = f"  {num} — {f.company} {tag}"
+        head = f"  {num} - {f.company} {tag}"
     else:
         head = f"  {f.company} {tag}"
     lines = [head, f"      {f.lead}"]
