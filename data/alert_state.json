@@ -1,16 +1,11 @@
 {
   "open": {
-    "collect:main:b21e9e4667a8f1b1": {
-      "first": 1788393936,
-      "last": 1788393936,
-      "subject": "CI RED: collect: [sec_form_d] EDGAR refused page 0: HTTPError: 500 Server Error: Internal Server Error for url: https://efts.sec.gov/LATEST/search-index?q=%22equity%22&forms=D&date"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-03T20:04:02+00:00",
+  "updated_at": "2026-09-04T00:11:07+00:00",
   "version": 1
 }
