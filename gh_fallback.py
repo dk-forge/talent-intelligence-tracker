@@ -56,6 +56,14 @@ MARKER = "<!-- alert-fallback:host-unreachable -->"
 
 TITLE = "Alerts are not reaching the owner (the /alert host is unreachable)"
 
+#: ONE ISSUE PER ORIGIN, NOT ONE ISSUE PER OUTAGE. Every function below takes
+#: the marker (and the title) as a keyword and defaults to the WordPress host's,
+#: so host_watch.py can watch a second and a third origin with the same
+#: open-once / edit-silently / close-once shape, without a sandbox outage
+#: hiding inside the host's issue or the host's issue being closed by a
+#: sandbox recovery. The marker is the identity; a different marker is a
+#: different issue.
+
 
 def _gh(args: list[str], repo: str) -> tuple[bool, str]:
     try:
@@ -72,34 +80,36 @@ def _gh(args: list[str], repo: str) -> tuple[bool, str]:
     return True, proc.stdout
 
 
-def find_open(repo: str) -> tuple[int | None, str, str]:
-    """(number, body, note) for the one open fallback issue, if any."""
+def find_open(repo: str, *, marker: str = MARKER) -> tuple[int | None, str, str]:
+    """(number, body, note) for the one open fallback issue carrying `marker`."""
     ok, out = _gh(["issue", "list", "--state", "open", "--limit", "50",
                    "--json", "number,body,title"], repo)
     if not ok:
         return None, "", out
     try:
         for issue in json.loads(out or "[]"):
-            if MARKER in (issue.get("body") or ""):
+            if marker in (issue.get("body") or ""):
                 return issue["number"], issue.get("body") or "", ""
     except ValueError as exc:
         return None, "", f"could not parse gh issue list output ({exc})"
     return None, "", ""
 
 
-def open_or_update(repo: str, *, line: str, preamble: str = "") -> tuple[bool, str]:
-    """Ensure the single fallback issue exists and carries `line`.
+def open_or_update(repo: str, *, line: str, preamble: str = "",
+                   marker: str = MARKER, title: str = TITLE,
+                   what: str = "the host") -> tuple[bool, str]:
+    """Ensure the single fallback issue for `marker` exists and carries `line`.
 
     Opening mails the owner once. Updating does not mail at all, which is the
     whole reason the accumulating detail goes in the BODY and not in a comment.
     """
-    number, body, note = find_open(repo)
+    number, body, note = find_open(repo, marker=marker)
     if note:
         return False, note
 
     if number is None:
         text = "\n".join([
-            MARKER,
+            marker,
             preamble or _default_preamble(),
             "",
             "## What has been held so far",
@@ -107,10 +117,10 @@ def open_or_update(repo: str, *, line: str, preamble: str = "") -> tuple[bool, s
             line,
             "",
             "_This issue is edited in place as more is held; editing does not "
-            "email. It closes itself when the host answers again and the queue "
+            f"email. It closes itself when {what} answers again and the queue "
             "drains, and that close is the second and last email._",
         ])
-        ok, out = _gh(["issue", "create", "--title", TITLE, "--body", text], repo)
+        ok, out = _gh(["issue", "create", "--title", title, "--body", text], repo)
         return (ok, "opened the fallback issue — this is the ONE email the "
                     "outage sends" if ok else out)
 
@@ -127,9 +137,9 @@ def open_or_update(repo: str, *, line: str, preamble: str = "") -> tuple[bool, s
     return (ok, f"updated issue #{number} silently (no email)" if ok else out)
 
 
-def close(repo: str, *, note: str) -> tuple[bool, str]:
-    """Close the fallback issue. This is the second and final email."""
-    number, _body, problem = find_open(repo)
+def close(repo: str, *, note: str, marker: str = MARKER) -> tuple[bool, str]:
+    """Close the fallback issue for `marker`. This is the second and final email."""
+    number, _body, problem = find_open(repo, marker=marker)
     if problem:
         return False, problem
     if number is None:

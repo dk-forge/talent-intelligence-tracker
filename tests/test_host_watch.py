@@ -493,3 +493,253 @@ class TestAnUnsendableKeyCannotEnterTheRetryLoop:
         # One definition. A second copy is a second thing to drift from the PHP,
         # and the copy that drifts passes here and 400s there.
         assert ci_alert.KEY_SAFE is alert_outbox.KEY_SAFE
+
+
+class TestTheSandboxOriginsRideTheSameTick:
+    """2026-09-05. The AskTheRecruiter sandbox is a separate product on a
+    separate Railway project, and nothing durable was watching it: an outage
+    was found by whichever laptop session happened to be open. The watch above
+    already runs every 15 minutes at $0 and already knows how to speak on a
+    channel that is not the thing it watches, so the sandbox origins ride it.
+
+    Same rules as the host, pinned here for the new origins specifically: one
+    issue per sustained outage, none for a blip, a RECOVERED on the way back,
+    and a /healthz judged strictly. No network anywhere in this class.
+    """
+
+    BACKEND = "https://sandbox.example.invalid/healthz"
+
+    # -- what UP means for a /healthz ---------------------------------------
+
+    def test_status_ok_with_a_version_is_up(self):
+        ok, detail = host_watch.judge_healthz(
+            200, b'{"status":"ok","version":"v1.0.944","uptime_seconds":7}')
+        assert ok and "v1.0.944" in detail
+
+    def test_status_degraded_is_down(self):
+        ok, detail = host_watch.judge_healthz(
+            200, b'{"status":"degraded","version":"v1.0.944"}')
+        assert not ok and "degraded" in detail
+
+    def test_a_non_json_body_is_down(self):
+        ok, detail = host_watch.judge_healthz(200, b"<html>ok</html>")
+        assert not ok and "non-JSON" in detail
+
+    def test_http_503_is_down(self):
+        ok, detail = host_watch.judge_healthz(503, b'{"status":"ok","version":"x"}')
+        assert not ok and "503" in detail
+
+    def test_an_empty_or_missing_version_is_down(self):
+        assert not host_watch.judge_healthz(200, b'{"status":"ok","version":""}')[0]
+        assert not host_watch.judge_healthz(200, b'{"status":"ok"}')[0]
+        assert not host_watch.judge_healthz(200, b'{"status":"ok","version":7}')[0]
+
+    def test_a_4xx_is_down_here_unlike_the_host_probe(self, monkeypatch):
+        """The host probe reads a 404 as 'WordPress is routing'. A /healthz that
+        404s is a service that is not serving its health check, which is DOWN."""
+        import urllib.error
+
+        def boom(*a, **k):
+            raise urllib.error.HTTPError("u", 404, "gone", {}, None)
+
+        monkeypatch.setattr(host_watch.urllib.request, "urlopen", boom)
+        ok, detail = host_watch.probe_healthz_once(self.BACKEND)
+        assert not ok and "404" in detail
+
+    def test_a_timeout_is_down_and_does_not_raise(self, monkeypatch):
+        import socket
+
+        def hang(*a, **k):
+            raise socket.timeout("timed out")
+
+        monkeypatch.setattr(host_watch.urllib.request, "urlopen", hang)
+        ok, detail = host_watch.probe_healthz_once(self.BACKEND)
+        assert not ok and "no answer" in detail
+
+    def test_the_probe_sends_the_repos_user_agent_and_a_ten_second_budget(self, monkeypatch):
+        seen = {}
+
+        class _Resp:
+            status = 200
+
+            def read(self, n):
+                return b'{"status":"ok","version":"v1"}'
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        def fake(req, timeout):
+            seen["ua"] = req.get_header("User-agent")
+            seen["timeout"] = timeout
+            seen["url"] = req.full_url
+            return _Resp()
+
+        monkeypatch.setattr(host_watch.urllib.request, "urlopen", fake)
+        ok, _ = host_watch.probe_healthz_once(self.BACKEND)
+        assert ok
+        assert seen["ua"] == host_watch.USER_AGENT
+        assert seen["timeout"] == host_watch.HEALTHZ_TIMEOUT == 10
+        assert seen["url"].startswith(self.BACKEND + "?cb="), "cache-busted"
+
+    # -- the outage semantics, per origin -----------------------------------
+
+    def _run(self, origin, answers, *, ledger=None, outbox=None, calls=None,
+             issues=None, monkeypatch=None, start=0):
+        """Drive watch_origin through a list of (ok, detail) probe answers with
+        a fake gh and no network. Returns (ledger, outbox, gh_calls). Pass the
+        same ledger/outbox/calls/issues back in to continue a run."""
+        import gh_fallback
+
+        ledger = ledger if ledger is not None else host_watch.load_ledger("/nonexistent")
+        outbox = outbox if outbox is not None else alert_outbox.empty()
+        calls = calls if calls is not None else []
+        issues = issues if issues is not None else {}
+
+        def fake_gh(args, repo):
+            calls.append(args[:2])
+            if args[:2] == ["issue", "list"]:
+                return True, json.dumps([{"number": n, "title": "", "body": b}
+                                         for n, b in issues.items()])
+            if args[:2] == ["issue", "create"]:
+                issues[len(issues) + 1] = args[args.index("--body") + 1]
+                return True, ""
+            if args[:2] == ["issue", "close"]:
+                issues.pop(int(args[2]), None)
+                return True, ""
+            return True, ""
+
+        monkeypatch.setattr(gh_fallback, "_gh", fake_gh)
+        for i, (ok, detail) in enumerate(answers, start=start):
+            host_watch.watch_origin(
+                origin, self.BACKEND, ledger, outbox, now=_at(i / 4),
+                repo="r/r", fallback=True, probe=lambda url, _a=(ok, detail): _a)
+        return ledger, outbox, calls
+
+    def test_one_sustained_outage_opens_exactly_one_issue_and_one_mail(self, monkeypatch):
+        origin = host_watch.ORIGINS[0]
+        ledger, outbox, calls = self._run(
+            origin, [(False, "HTTP 503 from /healthz")] * 10, monkeypatch=monkeypatch)
+        assert calls.count(["issue", "create"]) == 1, \
+            "one issue per outage, never one per tick"
+        held = alert_outbox.pending(outbox)
+        assert len(held) == 1 and held[0]["kind"] == "alert"
+        assert held[0]["scope"] == host_watch.origin_scope(origin)
+        assert alert_outbox.KEY_SAFE.match(held[0]["key"]), held[0]["key"]
+        assert "sandbox backend" in held[0]["payload"]["subject"].lower()
+
+    def test_a_blip_opens_nothing_and_mails_nothing(self, monkeypatch):
+        origin = host_watch.ORIGINS[0]
+        answers = [(False, "HTTP 503 from /healthz")] * (host_watch.SUSTAINED_FAILURES - 1)
+        answers.append((True, "HTTP 200 status=ok version=v1"))
+        ledger, outbox, calls = self._run(origin, answers, monkeypatch=monkeypatch)
+        assert ["issue", "create"] not in calls
+        assert not alert_outbox.pending(outbox), \
+            "a blip that never announced must not send a RECOVERED either"
+        assert ledger["origins"][origin["id"]]["state"] == "up"
+
+    def test_recovery_closes_the_issue_and_sends_one_recovered(self, monkeypatch):
+        origin = host_watch.ORIGINS[0]
+        down = [(False, "HTTP 503 from /healthz")] * host_watch.SUSTAINED_FAILURES
+        issues, calls = {}, []
+        ledger, outbox, _ = self._run(origin, down, issues=issues, calls=calls,
+                                      monkeypatch=monkeypatch)
+        # The drain ran between the ticks and the outage notice went out.
+        for entry in alert_outbox.pending(outbox):
+            alert_outbox.mark_delivered(entry, "emailed the owner")
+        up = [(True, "HTTP 200 status=ok version=v1")] * 3
+        self._run(origin, up, ledger=ledger, outbox=outbox, issues=issues,
+                  calls=calls, start=len(down), monkeypatch=monkeypatch)
+        assert calls.count(["issue", "create"]) == 1
+        assert calls.count(["issue", "close"]) == 1
+        recovered = [e for e in outbox["entries"] if e["kind"] == "resolve"]
+        assert len(recovered) == 1, "RECOVERED fires once, not once per healthy tick"
+        assert "RECOVERED" in recovered[0]["payload"]["subject"]
+        sub = ledger["origins"][origin["id"]]
+        assert not sub["announced"] and "outage_since" not in sub, \
+            "the next outage must be able to speak"
+
+    def test_a_recovery_before_the_outage_mail_left_cancels_both(self, monkeypatch):
+        """The relay was down too, the outage notice was never delivered, and
+        the origin came back: the owner is told nothing, because there is
+        nothing true left to tell. Same rule alert_outbox applies to CI reds."""
+        origin = host_watch.ORIGINS[0]
+        answers = [(False, "HTTP 503 from /healthz")] * host_watch.SUSTAINED_FAILURES
+        answers.append((True, "HTTP 200 status=ok version=v1"))
+        _, outbox, _ = self._run(origin, answers, monkeypatch=monkeypatch)
+        assert not alert_outbox.pending(outbox)
+        assert {e["state"] for e in outbox["entries"]} == {"cancelled"}
+
+    def test_the_two_origins_and_the_host_keep_separate_issues(self, monkeypatch):
+        """A sandbox outage must not hide inside the host's issue, and a
+        sandbox recovery must not close the host's. The marker is the identity."""
+        import gh_fallback
+
+        markers = {host_watch.origin_marker(o) for o in host_watch.ORIGINS}
+        assert len(markers) == 2 and gh_fallback.MARKER not in markers
+
+        calls = []
+
+        def fake(args, repo):
+            calls.append(args[:2])
+            if args[:2] == ["issue", "list"]:
+                return True, json.dumps([{"number": 7, "title": "host",
+                                          "body": gh_fallback.MARKER}])
+            return True, ""
+
+        monkeypatch.setattr(gh_fallback, "_gh", fake)
+        sandbox = host_watch.origin_marker(host_watch.ORIGINS[0])
+        ok, note = gh_fallback.close("r/r", note="x", marker=sandbox)
+        assert ok and note == "no fallback issue was open", \
+            "the host's open issue is not the sandbox's"
+        assert ["issue", "close"] not in calls
+
+    def test_the_issue_title_names_the_origin_plainly(self):
+        for origin in host_watch.ORIGINS:
+            title = host_watch.origin_title(origin, self.BACKEND)
+            assert origin["label"] in title and "down" in title
+            assert "sandbox.example.invalid" in title
+
+    def test_a_sandbox_outage_leaves_the_hosts_ledger_alone(self, monkeypatch):
+        ledger = host_watch.load_ledger("/nonexistent")
+        host_watch.apply_probe(ledger, True, "HTTP 200", now=_at())
+        self._run(host_watch.ORIGINS[1], [(False, "HTTP 503 from /healthz")] * 5,
+                  ledger=ledger, monkeypatch=monkeypatch)
+        assert ledger["state"] == "up" and ledger["consecutive_failures"] == 0
+        assert ledger["origins"]["sandbox-frontend"]["state"] == "down"
+
+    def test_a_sandbox_outage_is_a_reason_to_commit(self):
+        ledger = host_watch.load_ledger("/nonexistent")
+        d = host_watch.apply_probe(host_watch.origin_ledger(ledger, "sandbox-backend"),
+                                   False, "HTTP 503", now=_at())
+        assert host_watch.needs_commit(ledger, d, now=_at(), outbox_changed=False)
+
+    def test_an_unconfigured_origin_is_a_red_run_not_a_silent_skip(self, monkeypatch, tmp_path):
+        for origin in host_watch.ORIGINS:
+            monkeypatch.delenv(origin["env"], raising=False)
+        rc = host_watch.main(["--site", "https://example.invalid",
+                              "--no-fallback", "--ledger", str(tmp_path / "l.json"),
+                              "--outbox", str(tmp_path / "o.json")])
+        assert rc == 1, "a declared origin that is silently skipped measures nothing"
+
+    # -- the workflow --------------------------------------------------------
+
+    def test_the_workflow_lists_all_three_origins(self):
+        """The URLs live in the workflow and nowhere else; this is the list of
+        what is watched."""
+        wf = TestTheWorkflowsThatCarryThis()._wf("host-watch.yml")
+        steps = wf["jobs"]["watch"]["steps"]
+        probes = [s for s in steps if "host_watch.py" in (s.get("run") or "")]
+        assert probes
+        for step in probes:
+            env = step.get("env") or {}
+            assert env.get("WP_SITE_URL") == "https://asktherecruiter.com/blog"
+            assert env.get("SANDBOX_BACKEND_URL") == \
+                "https://sandbox.asktherecruiter.com/healthz"
+            assert env.get("SANDBOX_FRONTEND_URL") == \
+                "https://asktherecruiter-sandbox-production.up.railway.app/healthz"
+        for origin in host_watch.ORIGINS:
+            assert origin["env"] in probes[0]["env"], \
+                f"{origin['id']} is declared in the script but the workflow carries no URL"
