@@ -41,6 +41,18 @@ name: host-watch
 # ledger, the fallback channel is unusable, or the host is UP and held alerts
 # still will not deliver. Those a human can act on here.
 #
+# THE SANDBOX RIDES THE SAME TICK (2026-09-05). AskTheRecruiter's sandbox is a
+# separate product on a separate Railway project, and the only thing watching
+# it was whichever laptop session happened to be open. The two origins below
+# are probed by the same script, counted by the same RUNS-not-minutes rule,
+# and each opens its OWN issue (a different marker, a plainly named title) and
+# sends its own outage / RECOVERED mail through the same outbox. UP means
+# HTTP 200 within 10s with JSON status "ok" and a non-empty version; anything
+# else, including "degraded", is DOWN. The URLs live HERE and nowhere else, so
+# tests/test_host_watch.py can read the workflow as the list of what is watched:
+#   https://sandbox.asktherecruiter.com/healthz
+#   https://asktherecruiter-sandbox-production.up.railway.app/healthz
+#
 # COST: zero. No model, and Actions minutes are free on a public repo.
 on:
   schedule:
@@ -77,6 +89,12 @@ jobs:
         env:
           WP_SITE_URL: https://asktherecruiter.com/blog
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # The sandbox origins. Public URLs, not secrets; carried in BOTH
+          # steps because the commit step re-runs the probe after a rejected
+          # push, and an unset origin there is exit 1 for the same reason an
+          # unset WP_SITE_URL is.
+          SANDBOX_BACKEND_URL: https://sandbox.asktherecruiter.com/healthz
+          SANDBOX_FRONTEND_URL: https://asktherecruiter-sandbox-production.up.railway.app/healthz
           # The relay that carries operational mail. It is deliberately NOT on
           # the host these alerts are about: see opsmail.py. Without it the job
           # is green and its mail is silent, which is why
@@ -112,6 +130,12 @@ jobs:
         env:
           WP_SITE_URL: https://asktherecruiter.com/blog
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          # The sandbox origins. Public URLs, not secrets; carried in BOTH
+          # steps because the commit step re-runs the probe after a rejected
+          # push, and an unset origin there is exit 1 for the same reason an
+          # unset WP_SITE_URL is.
+          SANDBOX_BACKEND_URL: https://sandbox.asktherecruiter.com/healthz
+          SANDBOX_FRONTEND_URL: https://asktherecruiter-sandbox-production.up.railway.app/healthz
           # The relay that carries operational mail. It is deliberately NOT on
           # the host these alerts are about: see opsmail.py. Without it the job
           # is green and its mail is silent, which is why

@@ -112,6 +112,42 @@ LEDGER_STALE_HOURS = 24
 
 HISTORY_KEPT = 30
 
+# --- the other origins ------------------------------------------------------
+#
+# THE SANDBOX IS A SEPARATE PRODUCT ON A SEPARATE RAILWAY PROJECT. The only
+# thing it shares with this tracker is the owner, and until 2026-09-05 the only
+# thing watching it was whichever laptop session happened to be open. This
+# watch already runs every 15 minutes on a public repo at $0, already counts
+# failures in RUNS rather than minutes, and already knows how to speak on a
+# channel that is not the thing being watched. So the sandbox origins ride the
+# same tick, the same state machine and the same outbox, and each one gets its
+# OWN issue marker, its OWN outbox scope and its OWN sub-ledger under
+# `origins` in data/host_status.json. The WordPress host keeps the top level of
+# that file untouched, because ops_status.py reads it there.
+#
+# WHAT "UP" MEANS FOR A /healthz. Stricter than the host probe, on purpose. The
+# host probe accepts a 4xx as "WordPress is routing"; a health endpoint that
+# answers anything but `200 {"status":"ok","version":"<non-empty>"}` within
+# HEALTHZ_TIMEOUT seconds is DOWN. `degraded` is DOWN. HTML is DOWN. A version
+# of "" is DOWN, because a build that does not know its own version is not a
+# build anyone deployed on purpose.
+
+#: Seconds. Both origins answer in under 100ms when healthy; ten seconds is
+#: not a latency budget, it is the line past which a reader has given up.
+HEALTHZ_TIMEOUT = 10
+
+#: Each origin: a stable id (the sub-ledger key, the outbox scope and the
+#: issue marker all derive from it), a plain-language label for the issue title
+#: and the mail subject, and the env var the workflow carries its URL in. The
+#: URL is NOT hardcoded here: the workflow is the one place it lives, so the
+#: test that reads "the workflow lists all three origins" is reading the truth.
+ORIGINS = (
+    {"id": "sandbox-backend", "label": "sandbox backend",
+     "env": "SANDBOX_BACKEND_URL"},
+    {"id": "sandbox-frontend", "label": "sandbox frontend",
+     "env": "SANDBOX_FRONTEND_URL"},
+)
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -168,6 +204,73 @@ def probe(site: str, *, sleep=time.sleep) -> tuple[bool, str]:
     return False, detail
 
 
+def judge_healthz(status: int | None, body: bytes | str) -> tuple[bool, str]:
+    """Is this the answer of a healthy origin? Pure, so every DOWN shape is a
+    test rather than an outage nobody can schedule.
+
+    UP is exactly: HTTP 200, a JSON object, `status == "ok"`, and `version` a
+    non-empty string. Everything else is DOWN with a detail that says which
+    gate refused it, so an issue body reads "status=degraded" rather than
+    "unhealthy".
+    """
+    if status != 200:
+        return False, f"HTTP {status} from /healthz"
+    if isinstance(body, bytes):
+        body = body.decode("utf-8", "replace")
+    try:
+        doc = json.loads(body)
+    except ValueError:
+        return False, "non-JSON body from /healthz"
+    if not isinstance(doc, dict):
+        return False, "non-object JSON from /healthz"
+    st = doc.get("status")
+    if st != "ok":
+        return False, f"status={st!r} from /healthz"
+    version = doc.get("version")
+    if not isinstance(version, str) or not version.strip():
+        return False, "empty version from /healthz"
+    return True, f"HTTP 200 status=ok version={version}"
+
+
+def probe_healthz_once(url: str, *, timeout: int = HEALTHZ_TIMEOUT) -> tuple[bool, str]:
+    """One cache-busted GET of a /healthz. Returns (ok, detail).
+
+    Same User-Agent as the host probe. A timeout, a refused connection, any
+    non-200 and any body judge_healthz refuses are all DOWN; nothing here
+    raises, because a watchdog that raises has measured nothing.
+    """
+    sep = "&" if "?" in url else "?"
+    req = urllib.request.Request(f"{url}{sep}cb={random.randint(1, 10**9)}",
+                                 headers={"User-Agent": USER_AGENT})
+    started = time.monotonic()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = resp.read(4096)
+            ok, detail = judge_healthz(resp.status, body)
+    except urllib.error.HTTPError as exc:
+        return judge_healthz(exc.code, b"")
+    except urllib.error.URLError as exc:
+        return False, f"no answer from /healthz: {exc.reason}"
+    except Exception as exc:  # noqa: BLE001 - a watchdog must not raise
+        return False, f"no answer from /healthz: {exc}"
+    if ok:
+        detail += f" in {int((time.monotonic() - started) * 1000)}ms"
+    return ok, detail
+
+
+def probe_healthz(url: str, *, sleep=time.sleep) -> tuple[bool, str]:
+    """Up to PROBE_ATTEMPTS, spaced like the host probe. Any success is UP."""
+    detail = ""
+    for attempt in range(1, PROBE_ATTEMPTS + 1):
+        ok, detail = probe_healthz_once(url)
+        print(f"  probe {attempt}/{PROBE_ATTEMPTS}: {detail}")
+        if ok:
+            return True, detail
+        if attempt < PROBE_ATTEMPTS:
+            sleep(PROBE_GAP_SECONDS)
+    return False, detail
+
+
 # --- the ledger ------------------------------------------------------------
 
 def load_ledger(path: Path | str = LEDGER) -> dict:
@@ -183,13 +286,29 @@ def load_ledger(path: Path | str = LEDGER) -> dict:
     doc.setdefault("history", [])
     doc.setdefault("consecutive_failures", 0)
     doc.setdefault("state", "unknown")
+    doc.setdefault("origins", {})
     return doc
+
+
+def origin_ledger(doc: dict, origin_id: str) -> dict:
+    """The sub-ledger for one non-host origin, created empty on first sight.
+
+    Same shape as the top level, so `apply_probe` runs on it unchanged and the
+    boundary tests written for the host hold for every origin by construction.
+    """
+    sub = doc.setdefault("origins", {}).setdefault(origin_id, {})
+    sub.setdefault("history", [])
+    sub.setdefault("consecutive_failures", 0)
+    sub.setdefault("state", "unknown")
+    return sub
 
 
 def save_ledger(doc: dict, path: Path | str = LEDGER) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     doc["history"] = doc.get("history", [])[-HISTORY_KEPT:]
+    for sub in (doc.get("origins") or {}).values():
+        sub["history"] = sub.get("history", [])[-HISTORY_KEPT:]
     p.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
 
 
@@ -335,6 +454,164 @@ def outage_summary(doc: dict, *, now: datetime) -> dict:
     }
 
 
+def origin_scope(origin: dict) -> str:
+    """The outbox scope AND the ledger key prefix for one origin's outages.
+
+    One string for both so a recovery enqueued under it cancels an outage
+    notice that was never delivered (alert_outbox's `cancelled` outcome), which
+    is what keeps a sustained-then-healed blip from mailing twice about nothing.
+    """
+    return f"{origin['id']}-unreachable"
+
+
+def origin_marker(origin: dict) -> str:
+    return f"<!-- alert-fallback:{origin['id']}-unreachable -->"
+
+
+def origin_title(origin: dict, url: str) -> str:
+    host = url.split("://", 1)[-1].split("/", 1)[0]
+    return f"{origin['label']} down ({host} stopped answering /healthz)"
+
+
+def origin_outage_summary(origin: dict, doc: dict, url: str, *, now: datetime) -> dict:
+    """The mail the owner gets when a sandbox origin has been down for
+    SUSTAINED_FAILURES consecutive runs. Queued into the outbox and drained in
+    this same tick, so it leaves immediately; the outbox is the one delivery
+    path, and a second one would be a second thing to keep in step."""
+    since = doc.get("since", "unknown")
+    key = f"{origin_scope(origin)}:{ci_alert.slug(since)}"
+    return {
+        "subject": f"{origin['label'].upper()} DOWN: {url} stopped answering at {since}",
+        "dedupe_key": key,
+        "idempotency_key": f"tit-watch-{key}",
+        "body": "\n".join([
+            f"The {origin['label']} ({url}) is not answering its health check.",
+            "",
+            f"  first failed probe: {since}",
+            f"  consecutive failed probes: {doc.get('consecutive_failures')}",
+            f"  last detail: {doc.get('last_detail')}",
+            f"  probe: GET /healthz, {HEALTHZ_TIMEOUT}s timeout, expects",
+            "         HTTP 200 and JSON with status \"ok\" and a non-empty version",
+            "",
+            "THIS IS THE SANDBOX, NOT THE TRACKER. It is a separate product on a",
+            "separate Railway project; the only thing it shares with this repo",
+            "is the owner and this fifteen-minute tick. Nothing in this",
+            "repository can fix it: check the Railway service, its deploy log",
+            "and its domain, in that order.",
+            "",
+            "One GitHub issue is open for this outage and is edited silently as",
+            "it continues. It closes itself, and you get one RECOVERED mail,",
+            "when the origin answers again.",
+        ]),
+    }
+
+
+def origin_recovery_summary(origin: dict, doc: dict, url: str, *, now: datetime) -> dict:
+    """The one RECOVERED mail, sent only for an outage that was announced.
+
+    A blip that never reached SUSTAINED_FAILURES announced nothing, so it
+    recovers silently; that is the same rule the host follows.
+    """
+    since = doc.get("outage_since", "unknown")
+    key = f"{origin_scope(origin)}:{ci_alert.slug(since)}"
+    return {
+        "subject": f"RECOVERED: {origin['label']} is answering again ({url})",
+        "idempotency_key": f"tit-watch-recovered-{key}",
+        "body": "\n".join([
+            f"The {origin['label']} ({url}) answered its health check again.",
+            "",
+            f"  outage began: {since}",
+            f"  answered again: {_iso(now)}",
+            f"  detail: {doc.get('last_detail')}",
+            "",
+            "The GitHub issue for this outage is closed. This is the last mail",
+            "about it; the transitions are kept under `origins` in",
+            "data/host_status.json if the pattern is worth taking to Railway.",
+        ]),
+    }
+
+
+def watch_origin(origin: dict, url: str, ledger: dict, outbox: dict, *,
+                 now: datetime, repo: str, fallback: bool,
+                 probe=probe_healthz) -> dict:
+    """Probe one non-host origin and fold the answer into ledger, outbox and
+    the issue channel. Returns the apply_probe decision plus `outbox_changed`
+    and `problems`, so main() can merge it with the host's.
+
+    The order matters and mirrors the host: state machine first, then the
+    channels, and every channel failure is a note rather than an exception.
+    """
+    sub = origin_ledger(ledger, origin["id"])
+    was_announced = bool(sub.get("announced"))
+    print(f"probing {url}")
+    ok, detail = probe(url)
+    decision = apply_probe(sub, ok, detail, now=now)
+    decision["outbox_changed"] = False
+    decision["problems"] = []
+    marker = origin_marker(origin)
+
+    if decision["newly_sustained"]:
+        sub["announced"] = True
+        # Remembered separately because apply_probe rewrites `since` on the
+        # recovery, and the RECOVERED mail has to name the outage it closes.
+        sub["outage_since"] = sub.get("since")
+        summary = origin_outage_summary(origin, sub, url, now=now)
+        alert_outbox.enqueue(outbox, key=summary["dedupe_key"], kind="alert",
+                             scope=origin_scope(origin), payload=summary,
+                             reason=f"the {origin['label']} stopped answering")
+        decision["outbox_changed"] = True
+        if fallback:
+            good, note = gh_fallback.open_or_update(
+                repo, marker=marker, title=origin_title(origin, url),
+                what=f"the {origin['label']}",
+                preamble=(f"The {origin['label']} ({url}) is not answering its "
+                          f"health check. It is a separate product on a separate "
+                          f"Railway project; nothing in this repository serves it "
+                          f"and nothing here can fix it.\n\n**Nothing is required "
+                          f"of you here.** Check the Railway service, its deploy "
+                          f"log and its domain. This issue is edited in place while "
+                          f"the outage lasts and closes itself when the origin "
+                          f"answers again."),
+                line=(f"- **{_iso(now)}** the {origin['label']} has failed "
+                      f"{sub['consecutive_failures']} consecutive probes "
+                      f"(`{detail}`)."))
+            print(f"fallback channel ({origin['id']}): {note}")
+            if not good:
+                print(f"::error::the {origin['label']} is unreachable AND the "
+                      f"fallback issue could not be used: {note}.")
+                decision["problems"].append(
+                    f"fallback channel unusable for {origin['id']}")
+
+    if ok and was_announced:
+        recovery = origin_recovery_summary(origin, sub, url, now=now)
+        alert_outbox.enqueue(outbox, key=recovery["idempotency_key"],
+                             kind="resolve", scope=origin_scope(origin),
+                             payload=recovery, reason="")
+        decision["outbox_changed"] = True
+        sub.pop("outage_since", None)
+
+    if ok and fallback:
+        good, note = gh_fallback.close(
+            repo, marker=marker,
+            note=(f"The {origin['label']} answered again at {_iso(now)} "
+                  f"(`{detail}`). Closing; this is the last notice about this "
+                  "outage."))
+        if note != "no fallback issue was open":
+            print(f"fallback channel ({origin['id']}): {note}")
+
+    print(f"{origin['label']} is {sub['state'].upper()}: {detail}")
+    return decision
+
+
+def origin_urls(args, environ=os.environ) -> dict[str, str]:
+    """origin id -> URL, from the CLI or the env the workflow carries."""
+    urls = {}
+    for origin in ORIGINS:
+        flag = origin["id"].replace("-", "_")
+        urls[origin["id"]] = (getattr(args, flag, "") or environ.get(origin["env"], "")).rstrip("/")
+    return urls
+
+
 # --- the run ---------------------------------------------------------------
 
 def main(argv=None) -> int:
@@ -345,6 +622,9 @@ def main(argv=None) -> int:
     ap.add_argument("--no-fallback", action="store_true",
                     help="skip the GitHub issue channel (for local runs)")
     ap.add_argument("--dry-run", action="store_true")
+    for origin in ORIGINS:
+        ap.add_argument(f"--{origin['id']}", default="",
+                        help=f"{origin['label']} /healthz URL (env {origin['env']})")
     args = ap.parse_args(argv)
 
     site = (args.site or "").rstrip("/")
@@ -353,6 +633,16 @@ def main(argv=None) -> int:
               "all. This watchdog is the only thing that knows the site is up; "
               "unconfigured, it is a green run that measures nothing.")
         return 1
+    urls = origin_urls(args)
+    for origin in ORIGINS:
+        if not urls[origin["id"]]:
+            # Same rule as the host, for the same reason: an origin this
+            # watch is declared to cover and silently skips is a green run
+            # that measures nothing, which is the state the sandbox was in.
+            print(f"::error::{origin['env']} is not set, so the "
+                  f"{origin['label']} cannot be probed. Unconfigured, this is "
+                  "a green run that measures nothing.")
+            return 1
 
     now = _now()
     print(f"probing {site}{PROBE_PATH}")
@@ -394,6 +684,20 @@ def main(argv=None) -> int:
                       f"fallback could not be used: {note}. Nothing is currently "
                       "able to tell the owner about this outage.")
                 problems.append("fallback channel unusable")
+
+    # THE OTHER ORIGINS, after the host's own bookkeeping and BEFORE the drain,
+    # so an outage notice or a RECOVERED they enqueue leaves in this same tick
+    # rather than the next one. Each origin's decision is merged into the
+    # host's for the commit question only; the printed verdict, the outputs and
+    # the top of the ledger stay the host's, because ops_status reads them there.
+    for origin in ORIGINS:
+        od = watch_origin(origin, urls[origin["id"]], ledger, outbox, now=now,
+                          repo=repo, fallback=not args.no_fallback)
+        outbox_changed = outbox_changed or od["outbox_changed"]
+        problems.extend(od["problems"])
+        decision["state_changed"] = decision["state_changed"] or od["state_changed"]
+        decision["newly_sustained"] = decision["newly_sustained"] or od["newly_sustained"]
+    held_before = len(alert_outbox.pending(outbox))
 
     # THE DRAIN IS NO LONGER GATED ON THE HOST ANSWERING, and it must not be.
     # It was, because delivery went through `/alert` on that host, so "the host
