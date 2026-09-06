@@ -53,7 +53,7 @@ from datetime import date, datetime, timezone
 
 import requests
 
-from collectors import capped_fetch
+from collectors import capped_fetch, http_retry
 
 from analysis.recall.match import first_token
 from collectors import google_news, sec_edgar
@@ -149,6 +149,9 @@ def _fetch_feed(url: str, label: str, *, session=None) -> list[str]:
             max_bytes=capped_fetch.FEED_BYTES)
         if resp.status_code != 200:
             print(f"[{COLLECTOR}] feed {label}: HTTP {resp.status_code}")
+            if resp.status_code in http_retry.RATE_LIMIT_STATUS:
+                http_retry.record_throttled(f"benchmark_chase feed {label}",
+                                            resp.status_code)
             return []
         body = raw.decode("utf-8", errors="replace")
     except requests.RequestException as exc:

@@ -133,7 +133,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 import requests
-from collectors import capped_fetch
+from collectors import capped_fetch, http_retry
 
 from collectors.national_press import (
     USER_AGENT, DomainDrift, Feed, dateline, load_feeds, registrable_domain,
@@ -532,6 +532,14 @@ def find_sitemap(feed: Feed, *, session=None) -> tuple[str, bytes] | None:
         except requests.RequestException:
             continue
         if resp.status_code != 200:
+            # THE CDX PATH SAYS "the archive did not answer, which is NOT
+            # 'nothing archived'". This path is the same claim about the
+            # publisher and did not make it: a throttled sitemap read as a
+            # publisher with no sitemap. Recorded, never retried -- answering
+            # "slow down" with "no" is the mistake link_check names.
+            if resp.status_code in http_retry.RATE_LIMIT_STATUS:
+                http_retry.record_throttled(
+                    f"press_archive sitemap {feed.name}", resp.status_code)
             continue
         landed = registrable_domain(getattr(resp, "url", "") or url)
         expected = feed.expected_domains
@@ -584,6 +592,9 @@ def entries_in_window(feed: Feed, lo: str, hi: str, *, session=None,
         except requests.RequestException:
             return cache[loc]
         if resp.status_code != 200 or not looks_like_sitemap(resp.content):
+            if resp.status_code in http_retry.RATE_LIMIT_STATUS:
+                http_retry.record_throttled(
+                    f"press_archive sitemap page {loc[-60:]}", resp.status_code)
             return cache[loc]
         nested, rows = parse_sitemap(resp.content)
         # One level only. An index of indexes exists, and walking it without a
@@ -676,6 +687,9 @@ def head_text(url: str, *, session=None, timeout: int = TIMEOUT
                                         headers=_headers(_ACCEPT_HTML),
                                         timeout=timeout)
         if resp.status_code != 200:
+            if resp.status_code in http_retry.RATE_LIMIT_STATUS:
+                http_retry.record_throttled(
+                    f"press_archive head {url[-60:]}", resp.status_code)
             resp.close()
             return "", ""
         body = capped_fetch.read_capped(resp, capped_fetch.HEAD_BYTES)

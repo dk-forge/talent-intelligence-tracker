@@ -26,6 +26,8 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
+from collectors import http_retry
+
 from . import sec_edgar
 
 EFTS_URL = sec_edgar.EFTS_URL
@@ -332,15 +334,25 @@ def search(days_back: int = 5, page: int = 0, *,
         # endpoint that answers with 100, so pages 0/1/2 overlapped by 90%.
         "from": page * sec_edgar.PAGE_SIZE,
     }
-    resp = None
-    for attempt in range(EFTS_RETRIES):
-        time.sleep(REQUEST_DELAY)
-        resp = requests.get(EFTS_URL, params=params,
-                            headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
-                            timeout=30)
-        if resp.status_code < 500 or attempt == EFTS_RETRIES - 1:
-            break
-        time.sleep(EFTS_RETRY_WAIT)
+    # THE LADDER WAS 5xx-ONLY, AND A 429 IS NOT A 5xx. `status_code < 500`
+    # broke out on the FIRST attempt for the one status whose whole meaning is
+    # "ask again in a moment", so a throttled page was indistinguishable from a
+    # window with no filings in it. The rate-limit half is now http_retry's,
+    # which waits a CAPPED Retry-After and names the page in EXHAUSTED if it is
+    # still refused; the 5xx half stays here, on its own measured interval.
+    def _once():
+        resp = None
+        for attempt in range(EFTS_RETRIES):
+            time.sleep(REQUEST_DELAY)
+            resp = requests.get(EFTS_URL, params=params,
+                                headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+                                timeout=30)
+            if resp.status_code < 500 or attempt == EFTS_RETRIES - 1:
+                break
+            time.sleep(EFTS_RETRY_WAIT)
+        return resp
+
+    resp = http_retry.fetch(f"sec_form_d page {page}", _once)
     resp.raise_for_status()
     return (resp.json().get("hits") or {}).get("hits") or []
 
@@ -389,9 +401,13 @@ def collect(queries=None, *, days_back: int = 5, pages: int = 3,
             seen.add(url)
 
             try:
-                time.sleep(REQUEST_DELAY)
-                xml = requests.get(url, headers={"User-Agent": USER_AGENT},
-                                   timeout=30).text
+                def _doc(_url=url):
+                    time.sleep(REQUEST_DELAY)
+                    return requests.get(_url, headers={"User-Agent": USER_AGENT},
+                                        timeout=30)
+
+                xml = http_retry.fetch(f"sec_form_d filing {url[-60:]}",
+                                       _doc).text
             except requests.RequestException:
                 continue
 

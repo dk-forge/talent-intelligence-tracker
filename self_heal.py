@@ -137,6 +137,43 @@ FORBIDDEN = (
     "spend.py",
     "budget.py",
     "guardrails.py",
+    # ...and the guardrails THEMSELVES. `guardrails.py` is the CLI a human
+    # answers findings with; the arithmetic, the derived amount threshold and
+    # the vehicle-name patterns are in `pipeline/guardrails.py`, and the
+    # pattern above never matched it (fnmatch anchors the whole path). So for
+    # as long as this list has existed, the file the docstring means by
+    # "guardrail constants" was reachable and the file it actually named was
+    # a reader. Audited 2026-09-06.
+    "pipeline/guardrails.py",
+    # THE JUDGES. Everything below decides whether something is WRONG, and
+    # every one of them can be made to look fixed by being loosened -- which
+    # is the one failure mode a later green run cannot detect. A healer may
+    # fix a collector; it may never fix the thing that grades collectors.
+    #
+    # How long a collector may be silent before that silence is an incident.
+    # A stale-collector red has exactly one loosening available and it is one
+    # line: raise the leash.
+    "staleness.py",
+    # The recall floors, the Wilson interval every rate is published with, the
+    # gold set's required shape, and which population a number came from. A
+    # measurement that grades reach is worthless the moment the thing being
+    # graded can move the pass mark.
+    "analysis/recall/thresholds.py",
+    "analysis/recall/stats.py",
+    "analysis/recall/goldset.py",
+    "analysis/recall/family.py",
+    # The landmark floors. CLAUDE.md: an emptied set reads "0 of 0 held, 0
+    # regressions" and exits 0 for ever.
+    "analysis/landmarks/landmarks.py",
+    # The gate's ground truth. A hand-labelled set is not code and cannot be
+    # re-derived from a failing run.
+    "analysis/models/gate_goldset.py",
+    # The registry of figures published on the live site, which is what a
+    # live-data incident is measured against.
+    "published_figures.py",
+    # The cadence a reader is told. It is DERIVED from collect.yml, and the
+    # only way to make a cadence disagreement go green is to stop deriving it.
+    "generate_ingest_schedule.py",
     # The copy standard and its ceiling. A sentence that overran the ceiling is
     # MECHANICAL and the healer should rewrite the sentence; the ceiling that
     # caught it is a judgement. Forbidding the checker while leaving the page
@@ -160,6 +197,64 @@ FORBIDDEN = (
     "self_heal.py",
     "tests/test_self_heal.py",
 )
+
+
+#: What the healer's own summary is allowed to say. THREE outcomes, because
+#: for as long as there were two the log conflated the only pair that
+#: matters.
+#:
+#: On 2026-09-03 an EDGAR 500 zeroed a whole `collect` day. The chain fired
+#: correctly for three links -- `sec_form_d` filed a degraded health row at
+#: 00:05:03, `run_outcome` took the job red on `observed == 0`, and
+#: `ci_alert` raised `collect:main:b21e9e4667a8f1b1` at 00:05:37 and cleared
+#: it on the next green run. The fourth link did not. The gate said
+#: "healable", the healer was ARMED, it ran for six minutes, spent $0.91 over
+#: 21 turns with nine permission denials, opened nothing, and the summary
+#: job printed:
+#:
+#:     healable, but no draft was opened (dormant, or the healer judged it
+#:     unfixable)
+#:
+#: "dormant" and "it ran and produced nothing" are not variants of one
+#: outcome. The first is a secret nobody has added, fixed in ten seconds and
+#: costing nothing while it lasts. The second is money spent, an attempt made
+#: and a red left standing, and it is the only one that says the healer's
+#: tool allowlist or its prompt needs work. The run was green either way and
+#: the owner fixed the defect by hand 22 hours later (PR #110).
+#:
+#: WHAT THIS DOES NOT DO. It does not redden the run and it raises no alert.
+#: An email per unhealable red is exactly the "alarm that cries every day"
+#: this repo has written down twice, and whether an armed healer that
+#: declines is worth an email is the OWNER's call, not a session's. This
+#: makes the two states TELLABLE APART, which is the part that was simply
+#: wrong.
+SUMMARY_GATE_SKIPPED = "gate: skipped (see the heal job's gate step for the class)"
+SUMMARY_DORMANT = ("healable, and NOTHING WAS ATTEMPTED: the healer is dormant "
+                   "(no CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY secret). "
+                   "Add the secret to arm it.")
+SUMMARY_DECLINED = ("healable, the healer RAN and opened no draft. It was armed "
+                    "and it produced nothing, so this red is still standing and "
+                    "the attempt was paid for. Read the heal job's log: the "
+                    "usual causes are a tool the allowlist does not permit and a "
+                    "failure the prompt cannot reproduce.")
+
+
+def summary_line(*, heal: str, armed: str, pr: str) -> str:
+    """The one sentence the summary job prints. Pure, so it is testable.
+
+    `armed` is the heal job's own `steps.armed.outputs.armed`, which existed
+    and was never surfaced -- the summary guessed at it in a parenthesis
+    instead. An UNKNOWN arming (the step did not run, so the string is empty)
+    reads as DECLINED rather than as dormant: claiming "nothing was attempted"
+    about a run that may have spent a dollar is the direction that misleads.
+    """
+    if str(heal).strip() != "yes":
+        return SUMMARY_GATE_SKIPPED
+    if str(pr).strip():
+        return f"draft PR #{str(pr).strip()} is waiting for a human"
+    if str(armed).strip() == "no":
+        return SUMMARY_DORMANT
+    return SUMMARY_DECLINED
 
 
 def fingerprint(workflow: str, cause: str) -> str:
