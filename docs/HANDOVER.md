@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-09-06: the CI alert and self-heal listeners admitted a fork's run with the fork's own text in their shell (branch `ci-listeners-same-repo-only`, PR open, not merged)
+
+`ci-alert.yml` listens on `workflow_run: workflows: ['*']`, which also fires
+for a fork pull request's own run of `tests`, and its job holds WP_API_KEY,
+RESEND_API_KEY and a contents:write token. The run's workflow name and head
+branch were spliced into `run:` as `${{ }}` text; both are the fork author's to
+choose. `self-heal.yml` gated on `head_branch == 'main'`, which a fork's own
+main satisfies, and then ran an agent with write tokens over a log the fork
+author wrote. Found by the sibling layoff tracker's 2026-09-05 security review
+(its PRs #266 and #267); both files are shared by design, so the fix is the
+same shape.
+
+**Fix.** Both job `if:` conditions now require
+`github.event.workflow_run.head_repository.full_name == github.repository`.
+The six workflow_run fields in ci-alert's alert step ride in `env:` and are
+quoted in the shell. `self_heal.py classify()` is unchanged: it never sees the
+repository, and the boundary belongs in the workflow gate, before any token
+exists.
+
+**Guard.** `tests/test_workflow_run_fork_boundary.py`: both listeners carry
+the same-repository condition; no `run:` block of any workflow_run listener
+interpolates `workflow_run.name`, `head_branch` or `display_title`. The
+scanner matches the field anywhere inside one `${{ }}` expression, because
+the line main carried was `${{ workflow_run.name || 'manual proof' }}` and a
+bare-field pattern (the sibling's first cut) passed it. Proved by mutation:
+restoring main's ci-alert.yml reds both assertions.
+
+**Not proven from here:** that GitHub populates `head_repository.full_name`
+identically for a `workflow_dispatch` re-run (that path is admitted by
+`event_name == 'workflow_dispatch'` first, so it is not gated by this field).
+
 ## 2026-09-05: host-watch now also watches the AskTheRecruiter sandbox, so an outage there no longer depends on a laptop session being open.
 
 The sandbox is a separate product on a separate Railway project; the only thing
