@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-06T14:48:55Z",
-  "last_tick": "2026-09-06T14:48:55Z",
+  "last_dispatch": "2026-09-06T16:52:04Z",
+  "last_tick": "2026-09-06T16:52:04Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -211,6 +211,37 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-06T16:52:04Z",
+      "history": [
+        {
+          "at": "2026-09-06T16:52:01Z",
+          "detail": "resume backfill-gdelt-2026 at 2026-06-29, 7 slices to finish; max_readthroughs left BLANK so live_ration() takes todays 12 (not the recorded static 35), ceiling $0.0168/slice = $0.118 to finish against $0.8872 discretionary",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-06T16:52:04Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260906T165201Z-backfill-gdelt-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "max_readthroughs": "",
+        "start": "2026-01-01"
+      },
+      "priority": 10,
+      "reason": "resume backfill-gdelt-2026 at 2026-06-29, 7 slices to finish; max_readthroughs left BLANK so live_ration() takes todays 12 (not the recorded static 35), ceiling $0.0168/slice = $0.118 to finish against $0.8872 discretionary",
+      "requested_at": "2026-09-06T16:52:01Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "backfill-gdelt-2026.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-08-27T19:36:48Z",
