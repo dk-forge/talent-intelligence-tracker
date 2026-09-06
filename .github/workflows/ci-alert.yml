@@ -120,9 +120,13 @@ jobs:
     # The name check is a recursion guard. GitHub does not re-trigger
     # workflow_run for a run this token started, but a mail loop is not a
     # failure mode worth discovering empirically.
+    # FORK BOUNDARY (2026-09-06): a fork's pull_request run also completes here;
+    # only this repository's own runs are admitted (see
+    # tests/test_workflow_run_fork_boundary.py).
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.name != 'CI failure alert' &&
+      (github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.name != 'CI failure alert' &&
        contains(fromJSON('["failure","timed_out","startup_failure","cancelled","success"]'),
                 github.event.workflow_run.conclusion))
     runs-on: ubuntu-latest
@@ -182,18 +186,30 @@ jobs:
           # runner's disk and thrown away with it, so dedup becomes a property
           # of a single runner, which is not dedup. See alert_state.py.
           ALERT_STATE_COMMIT: 'true'
+          # workflow_run fires for a fork PR's own run too, and a fork chooses
+          # its workflow's `name:` and its branch name. Interpolating either
+          # with ${{ }} INSIDE `run:` pastes attacker text into a shell that
+          # holds WP_API_KEY, RESEND_API_KEY and a contents:write token. Read
+          # them from env, where the shell sees a value and never a command
+          # (tests/test_workflow_run_fork_boundary.py).
+          RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+          RUN_WORKFLOW: ${{ github.event.workflow_run.name || 'manual proof' }}
+          RUN_CONCLUSION: ${{ inputs.conclusion || github.event.workflow_run.conclusion }}
+          RUN_BRANCH: ${{ github.event.workflow_run.head_branch || 'main' }}
+          RUN_EVENT: ${{ github.event.workflow_run.event || 'workflow_dispatch' }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           # Needed by the ledger claim above, which commits data/alert_state.json
           # before anything is sent.
           git config user.name  'talent-intel-bot'
           git config user.email 'bot@users.noreply.github.com'
           python3 ci_alert.py \
-            --run-id     "${{ inputs.run_id || github.event.workflow_run.id }}" \
-            --workflow   "${{ github.event.workflow_run.name || 'manual proof' }}" \
-            --conclusion "${{ inputs.conclusion || github.event.workflow_run.conclusion }}" \
-            --branch     "${{ github.event.workflow_run.head_branch || 'main' }}" \
-            --event      "${{ github.event.workflow_run.event || 'workflow_dispatch' }}" \
-            --run-url    "${{ github.event.workflow_run.html_url }}"
+            --run-id     "$RUN_ID" \
+            --workflow   "$RUN_WORKFLOW" \
+            --conclusion "$RUN_CONCLUSION" \
+            --branch     "$RUN_BRANCH" \
+            --event      "$RUN_EVENT" \
+            --run-url    "$RUN_URL"
 
       # Only runs when the step above could not deliver. `!cancelled()` rather
       # than the default success check, because the envelope is worth committing

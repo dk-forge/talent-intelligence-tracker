@@ -83,11 +83,15 @@ concurrency:
 
 jobs:
   heal:
+    # FORK BOUNDARY (2026-09-06): `head_branch == 'main'` is satisfied by a
+    # fork's own main, and a fork also writes the log the healer reads. Only
+    # this repository's own runs are admitted (tests/test_workflow_run_fork_boundary.py).
     if: >-
       vars.SELF_HEAL_DISABLED != 'true' &&
       (github.event_name == 'workflow_dispatch' ||
        ((github.event.workflow_run.conclusion == 'failure' ||
          github.event.workflow_run.conclusion == 'cancelled') &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'main' &&
         github.event.workflow_run.name != 'Self-heal' &&
         github.event.workflow_run.name != 'CI failure alert' &&
