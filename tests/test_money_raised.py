@@ -478,6 +478,45 @@ def test_every_basis_a_reader_can_pick_has_words():
     missing = sorted(v for v in values if f"{v}:" not in labels)
     assert not missing, f"no reader-facing label for: {missing}"
 
+
+def test_every_deal_type_a_reader_can_pick_has_words():
+    """The same question asked of the OTHER control that offers these values.
+
+    The test above reads MONEY_BASIS_LABEL and passed while the Deal Type
+    control beside it was four values short: fund_raise, outbound_investment,
+    state_funding and pledge are `vocab.DEAL_TYPES` members, this module writes
+    its verdict into the deal_type column by design, and /facets served three
+    of the four in `deal_types` on 2026-09-06. A scan that only ever looked at
+    the money map shares the blind spot of the map it looked at.
+
+    So the vocabulary is read from tit_allowed_deal_types(), which is what
+    /query validates against and what /facets can serve, and every value in it
+    has to be named by DEAL_TYPE_LABEL.
+    """
+    js = _dashboard_js()
+    labels = js.split("var DEAL_TYPE_LABEL = {", 1)[1].split("};", 1)[0]
+    api = (PLUGIN / "includes/api.php").read_text()
+    allowed = api.split("function tit_allowed_deal_types()", 1)[1].split("\n}", 1)[0]
+    values = set(re.findall(r"'([a-z_]+)'", allowed))
+    assert values >= set(vocab.DEAL_TYPES), (
+        "the API's deal-type vocabulary no longer covers pipeline DEAL_TYPES; "
+        "this test would be reading the wrong list"
+    )
+    missing = sorted(v for v in values if f"{v}:" not in labels)
+    assert not missing, (
+        "the Deal Type control offers these with no reader-facing label, so "
+        f"they render under their stored names: {missing}"
+    )
+
+    # And the words are the shared vocabulary's, not a second opinion about
+    # what a fund close is called.
+    for value in ("fund_raise", "outbound_investment", "state_funding", "pledge"):
+        for word in vocab.DEAL_TYPE_LABELS[value].split():
+            assert word.capitalize() in labels or word in labels, (
+                f"{value} is labelled with words vocab.DEAL_TYPE_LABELS does "
+                f"not use ({vocab.DEAL_TYPE_LABELS[value]!r})"
+            )
+
     # And the words come from the shared vocabulary, not from a second opinion
     # about what a fund close is called.
     for value in ("fund_raise", "outbound_investment", "state_funding", "pledge"):

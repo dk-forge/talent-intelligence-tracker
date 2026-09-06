@@ -332,6 +332,11 @@ check('funding=0 is off and says so', query_answer(array('funding' => '0')), $UN
 check('country=US,GB filters', query_answer(array('country' => 'US,GB')), 4);
 check('country=us lowercases up', query_answer(array('country' => 'us')), 3);
 check('since narrows', query_answer(array('since' => '2026-08-15')), 3);
+// A leap day is a real day. The calendar check must refuse 2026-02-29 (below)
+// and accept 2024-02-29, or it is a stricter pattern and not a calendar.
+if (query_answer(array('since' => '2024-02-29')) === 'HTTP 400') {
+    fail('/query?since=2024-02-29 refused a real leap day');
+}
 check('detail=notable sets routine aside',
       query_answer(array('detail' => 'notable')), $UNFILTERED - 1);
 
@@ -365,6 +370,15 @@ $bad = array(
     array('state' => 'CAL'),
     array('since' => 'banana'),
     array('until' => '2026-13-99x'),
+    // The right shape and not a day. Until 2026-09-06 these passed the
+    // pattern and MySQL compared against an invalid date: until=2026-02-30
+    // answered a plausible count and since=2026-13-45 answered zero, both
+    // measurements a caller would print.
+    array('since' => '2026-02-30'),
+    array('until' => '2026-13-01'),
+    array('since' => '2026-00-15'),
+    array('until' => '2026-04-31'),
+    array('since' => '2026-02-29'),
     array('min_headcount' => 'lots'),
     array('min_funding_usd' => '10m'),
     array('sort' => 'nonsense'),

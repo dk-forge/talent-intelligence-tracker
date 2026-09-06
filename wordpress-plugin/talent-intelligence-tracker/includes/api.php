@@ -540,10 +540,17 @@ function tit_filter_spec() {
                            'upper' => true, 'shape' => 'a two-letter ISO country code'),
         'state'   => array('kind' => 'pattern', 'pattern' => '/^[A-Z]{2}$/',
                            'upper' => true, 'shape' => 'a two-letter state or province code'),
+        // `calendar` refuses a value that has the shape and is not a day:
+        // 2026-02-30 and 2026-13-01 passed the pattern until 2026-09-06, and
+        // MySQL answered them by comparing against an invalid date, so
+        // until=2026-02-30 returned a plausible count and since=2026-13-45
+        // returned zero. Both are measurements a caller would print.
         'since'   => array('kind' => 'pattern', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/',
-                           'shape' => 'a date written YYYY-MM-DD'),
+                           'calendar' => true,
+                           'shape' => 'a real calendar date written YYYY-MM-DD'),
         'until'   => array('kind' => 'pattern', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/',
-                           'shape' => 'a date written YYYY-MM-DD'),
+                           'calendar' => true,
+                           'shape' => 'a real calendar date written YYYY-MM-DD'),
 
         // Floors. Zero means no floor.
         'min_headcount'   => array('kind' => 'int', 'min' => 0),
@@ -610,6 +617,12 @@ function tit_filter_offender(array $rule, $raw) {
         $ok = isset($rule['pattern'])
             ? (bool) preg_match($rule['pattern'], $value)
             : in_array($value, isset($rule['allowed']) ? $rule['allowed'] : array(), true);
+        // The shape is necessary and not sufficient for a date: the month and
+        // the day have to exist. checkdate() is the whole of the calendar.
+        if ($ok && !empty($rule['calendar'])) {
+            list($y, $m, $d) = array_map('intval', explode('-', $value));
+            $ok = checkdate($m, $d, $y);
+        }
         if (!$ok) return $value;
     }
     return null;
