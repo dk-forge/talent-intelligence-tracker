@@ -24,6 +24,8 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
+from collectors import http_retry
+
 EFTS_URL = "https://efts.sec.gov/LATEST/search-index"
 ARCHIVES = "https://www.sec.gov/Archives/edgar/data"
 COLLECTOR = "sec_edgar"
@@ -89,8 +91,16 @@ def search(phrase: str, *, days_back: int = 7, page: int = 0,
         "forms": "8-K",
         "from": page * PAGE_SIZE,
     }
-    time.sleep(REQUEST_DELAY)
-    resp = requests.get(EFTS_URL, params=params, headers=_headers(), timeout=30)
+    def _once():
+        time.sleep(REQUEST_DELAY)
+        return requests.get(EFTS_URL, params=params, headers=_headers(),
+                            timeout=30)
+
+    # EDGAR throttles by IP and a runner shares one. A 429 here used to hit the
+    # caller's `except requests.RequestException: continue` and lose the phrase
+    # with nothing recorded; now it waits a capped Retry-After first, and if it
+    # is still refused the phrase is named in http_retry.EXHAUSTED.
+    resp = http_retry.fetch(f"sec_edgar phrase {phrase[:40]}", _once)
     resp.raise_for_status()
     return (resp.json().get("hits") or {}).get("hits") or []
 
@@ -172,8 +182,11 @@ def fetch_text(url: str, *, limit: int = 3000) -> str:
     Bounded and tag-stripped: an 8-K exhibit can be megabytes and the
     classifier only ever reads the first few thousand characters.
     """
-    time.sleep(REQUEST_DELAY)
-    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=30)
+    def _once():
+        time.sleep(REQUEST_DELAY)
+        return requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=30)
+
+    resp = http_retry.fetch(f"sec_edgar document {url[-60:]}", _once)
     resp.raise_for_status()
     text = resp.text[:500_000]
     text = re.sub(r"(?is)<(script|style).*?</\1>", " ", text)

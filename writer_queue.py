@@ -1096,13 +1096,36 @@ def mark_dispatched(ticket: dict, now: datetime | None = None) -> None:
     _log(ticket, "dispatched", "")
 
 
-def prune(queue: dict, keep_terminal: int = 60) -> dict:
+#: Resolved orphans kept as history. An orphan is a run the lock evicted; it
+#: is listed until a human decides what to do, and `resolve` stamps
+#: `resolved` rather than removing it -- correctly, because the decision is
+#: the record. But `prune` only ever touched `tickets`, so the resolved half
+#: grew for ever in a file this repo commits on EVERY drain tick (the
+#: most-written file in the repo). Every reader already filters them out
+#: (`[o for o in orphans if not o.get("resolved")]`), so past this window the
+#: bytes serve nobody and are pushed several times an hour.
+#:
+#: UNRESOLVED ORPHANS ARE NEVER TRIMMED, at any count. That is the same rule
+#: `tickets` follows and for the same reason: pending work is state, and a cap
+#: that can drop state is a cap that loses work. This bounds history only.
+KEEP_RESOLVED_ORPHANS = 40
+
+
+def prune(queue: dict, keep_terminal: int = 60,
+          keep_resolved_orphans: int = KEEP_RESOLVED_ORPHANS) -> dict:
     """Keep the file readable. Terminal tickets are history, not state."""
     tickets = queue.get("tickets", [])
     live = [t for t in tickets if t["state"] not in TERMINAL_STATES]
     done = [t for t in tickets if t["state"] in TERMINAL_STATES]
     done.sort(key=lambda t: t.get("requested_at") or "")
     queue["tickets"] = live + done[-keep_terminal:]
+
+    orphans = queue.get("orphans")
+    if orphans is not None:
+        open_ones = [o for o in orphans if not o.get("resolved")]
+        settled = [o for o in orphans if o.get("resolved")]
+        settled.sort(key=lambda o: o.get("resolved") or o.get("noticed_at") or "")
+        queue["orphans"] = open_ones + settled[-keep_resolved_orphans:]
     return queue
 
 

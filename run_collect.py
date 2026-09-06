@@ -16,11 +16,12 @@ import sys
 from dataclasses import asdict
 from datetime import date
 
+import run_deadline
 import source_registry as registry
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         czechia_ares, edinet_japan, estonia_ariregister, gdelt,
-                        google_news, irs_form_990, israel_registrar,
-                        national_press,
+                        google_news, http_retry, irs_form_990,
+                        israel_registrar, national_press,
                         opendart_korea, primary_chase, sec_edgar,
                         sec_execcomp, sec_form_d, singapore_acra, spain_borme,
                         tripwire_chase, uk_paygap, us_exec_wire)
@@ -420,7 +421,8 @@ _with_gate_labels = gate_ledger.around_run(
 
 def run_outcome(*, observed: int, everything_rejected: bool,
                 mostly_throttled: bool, running_degraded: bool,
-                mostly_errored: bool = False) -> tuple[bool, bool]:
+                mostly_errored: bool = False,
+                slots_throttled: bool = False) -> tuple[bool, bool]:
     """-> (health_is_degraded, the_run_failed). TWO QUESTIONS, TWO ANSWERS.
 
     "Is the page as deep as usual?" is the health status. "Does a human need to
@@ -455,18 +457,53 @@ def run_outcome(*, observed: int, everything_rejected: bool,
     On 2026-08-03 the rate was 85.7% for eight hours, every collector reported
     an ordinary run because errors and NOs were the same number in `rejected`,
     and all three copies of Anthropic's $65bn Series H died in that window.
+
+    `slots_throttled` joins `running_degraded` on the degrade-only side, and
+    the split is the same one. A third party answering 429 to some of our
+    slices is that party's decision, not a defect here; it costs depth, the
+    slices are read on the next run, and reddening the job would manufacture
+    an alarm for a rate limiter working. What it must never do is pass as
+    `ok`: before http_retry those slices were dropped with no counter at all,
+    so a throttled edition and an edition with no news were the same
+    observation. If EVERY slice was throttled then `observed == 0` and the run
+    fails on that, which needs no threshold of its own.
     """
     failed = bool(observed == 0 or everything_rejected or mostly_throttled
                   or mostly_errored)
-    return failed or bool(running_degraded), failed
+    return (failed or bool(running_degraded) or bool(slots_throttled)), failed
 
 
+@run_deadline.released
 @_with_gate_labels
 def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         source: str = "google_news") -> int:
     conn = schema.connect()
+    # The throttle ledger is process-local and this run owns it. One source per
+    # process in production, so this only matters to a caller that runs two in
+    # one process -- but a leaked slot from a previous source would be reported
+    # against this collector's health row, which is worse than not reporting it.
+    http_retry.reset()
     module = SOURCES.get(source, google_news)
     collector = module.COLLECTOR
+
+    # This run's own wall clock, strictly below the workflow's
+    # `timeout-minutes`. See run_deadline.py: a job killed by `timeout-minutes`
+    # is `cancelled()`, and every commit step in this repo is guarded on
+    # `!cancelled()`, so a self-timeout discards the whole run's rows, its
+    # seen-marks and its health row with nothing saying it happened.
+    deadline = run_deadline.Deadline()
+
+    def _interrupted_note(detail: str) -> None:
+        # A SEPARATE connection on purpose: this runs from a signal handler,
+        # which can land while `conn` is mid-statement.
+        killed = schema.connect()
+        try:
+            store.report_health(killed, collector, status="error", detail=detail)
+            killed.commit()
+        finally:
+            killed.close()
+
+    run_deadline.mark_open(collector, _interrupted_note)
 
     # The batch read-through path, off unless TIT_READ_BATCH is set. Two calls,
     # both outside the candidate loop, because that is all the flag needs:
@@ -653,7 +690,22 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 if extra_url:
                     store.mark_seen(conn, extra_url, collector, "clustered")
 
+    deadline_stopped = 0
+    reached = 0
+    # The loop header is deliberately unchanged: three tests read this source
+    # and split it on this exact line to prove what is upstream and downstream
+    # of the paid stage. A counter costs nothing and keeps that readable.
     for item in kept:
+        # Between candidates, never inside one: a run cut mid-candidate could
+        # leave a row stored and unmarked, or marked and unstored. Everything
+        # after this point is untouched -- not marked seen, not paid for --
+        # so it is read on the next run.
+        if deadline.expired():
+            deadline_stopped = len(kept) - reached
+            print(f"\n[{collector}] {deadline.detail(deadline_stopped)}")
+            break
+        reached += 1
+
         url = item.get("source_url") or item.get("discovery_url") or ""
 
         # Deduplicate BEFORE the LLM, never after (spec 4 rule 2).
@@ -1149,11 +1201,31 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # duplicate check a few hundred lines up, which shadows any module-level
     # function of that name and turns this call into a TypeError at the very
     # end of a run that has already spent its money.
+    # Slices a third party refused with 429/503 and would not release inside
+    # the capped waits. Read ONCE, here, from the shared helper, so no
+    # collector has to remember to report its own throttling.
+    throttled_slots = http_retry.exhausted_detail()
+
+    # The run reached its own end, so nothing is owed an interrupted note.
+    run_deadline.mark_closed(collector)
+
+    # Built here rather than inline in the health row below. They sit
+    # immediately after the DEGRADED marker, and ops_status prints only the
+    # first 70 characters of the detail, so the order is: rationing first,
+    # then what this run did not read, then the counts.
+    markers = ""
+    if deadline_stopped:
+        markers += f"DEADLINE: {deadline_stopped} unread | "
+    if throttled_slots:
+        markers += f"THROTTLED: {throttled_slots} | "
+
     broken, failed = run_outcome(observed=observed,
                                  everything_rejected=everything_rejected,
                                  mostly_throttled=mostly_throttled,
                                  mostly_errored=mostly_errored,
-                                 running_degraded=running_degraded)
+                                 running_degraded=running_degraded,
+                                 slots_throttled=bool(throttled_slots
+                                                      or deadline_stopped))
 
     # The health row is also the spend ledger now. Every number printed above
     # is persisted with it, so drift shows up the next time anyone runs
@@ -1182,6 +1254,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         detail=((f"DEGRADED: monthly allowance spent, {month_deferred} "
                  "candidate(s) deferred unread; free collectors unaffected | "
                  if running_degraded else "")
+                + markers
                 + f"{duplicates} dup, {rejected} rejected, {throttled} deferred"
                 # already-seen lived only in the step log, so the health page
                 # showed "0 dup, 0 rejected, 0 deferred" for a run that had in

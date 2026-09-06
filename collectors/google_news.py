@@ -64,7 +64,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 import requests
-from collectors import capped_fetch
+from collectors import capped_fetch, http_retry
 
 RSS_ENDPOINT = "https://news.google.com/rss/search"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
@@ -163,11 +163,20 @@ def build_query_url(query: str, *, lang: str = "en", country: str = "US") -> str
 
 
 def fetch(query: str, *, lang: str = "en", country: str = "US", timeout: int = 30) -> list[dict]:
-    """Fetch one query and return raw candidate dicts."""
-    resp, body = capped_fetch.capped_get(
-        build_query_url(query, lang=lang, country=country),
-        headers={"User-Agent": USER_AGENT}, timeout=timeout,
-        max_bytes=capped_fetch.FEED_BYTES)
+    """Fetch one query and return raw candidate dicts.
+
+    A 429 goes through `http_retry`, which waits a CAPPED `Retry-After` and,
+    if the edition is still throttled, records the slot before raising. The
+    caller's `except requests.RequestException: continue` is unchanged and
+    still keeps one bad edition from losing the other forty; what changed is
+    that the run can no longer report a throttled edition as an empty one.
+    """
+    url = build_query_url(query, lang=lang, country=country)
+    resp, body = http_retry.fetch(
+        f"google_news {country}:{lang} {query[:40]}",
+        lambda: capped_fetch.capped_get(
+            url, headers={"User-Agent": USER_AGENT}, timeout=timeout,
+            max_bytes=capped_fetch.FEED_BYTES))
     resp.raise_for_status()
     return parse(body, query, country=country, lang=lang)
 

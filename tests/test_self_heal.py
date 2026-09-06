@@ -201,7 +201,54 @@ VIOLATIONS = [
     ".github/workflows/self-heal.yml",  # the healer itself
     "self_heal.py",                 # its gate and guard
     "tests/test_self_heal.py",      # and the test pinning this boundary
+    # THE JUDGES (audited 2026-09-06). Each one decides whether something is
+    # WRONG, and each can be made to look fixed by being loosened.
+    "pipeline/guardrails.py",       # the guardrail arithmetic, NOT the CLI
+    "staleness.py",                 # how long silence is tolerated
+    "analysis/recall/thresholds.py",
+    "analysis/recall/stats.py",     # the one Wilson implementation
+    "analysis/recall/goldset.py",   # the gold set's required shape
+    "analysis/recall/family.py",    # which population a number came from
+    "analysis/landmarks/landmarks.py",
+    "analysis/models/gate_goldset.py",
+    "published_figures.py",         # the live-figure registry
+    "generate_ingest_schedule.py",  # the derived reader-facing cadence
 ]
+
+
+#: The one that was reachable while the docstring said it was not, kept apart
+#: so a regression names itself. `guardrails.py` (a reader) was on the list and
+#: `pipeline/guardrails.py` (the arithmetic) was not, because fnmatch anchors
+#: the whole path and the bare name never matched the nested file.
+def test_the_guardrail_ARITHMETIC_is_forbidden_and_not_only_its_reader():
+    assert self_heal.violations(["pipeline/guardrails.py"]) == \
+        ["pipeline/guardrails.py"]
+    assert self_heal.violations(["guardrails.py"]) == ["guardrails.py"]
+
+
+def test_a_healer_cannot_widen_the_staleness_leash():
+    """The whole class, by its worst instance. A collector that stopped running
+    reds a staleness check, and there is exactly one loosening available: raise
+    the number in staleness.py. A healer that can do that closes a true signal
+    about a source we are no longer collecting."""
+    assert self_heal.violations(["staleness.py"]) == ["staleness.py"]
+
+
+def test_a_healer_cannot_move_a_recall_floor_or_reshape_a_gold_set():
+    for judge in ("analysis/recall/thresholds.py", "analysis/recall/stats.py",
+                  "analysis/recall/goldset.py",
+                  "analysis/landmarks/landmarks.py",
+                  "analysis/models/gate_goldset.py"):
+        assert self_heal.violations([judge]) == [judge], judge
+
+
+def test_a_judge_mixed_into_a_benign_diff_still_fails_the_guard():
+    """A real healer PR is a handful of files. The guard must catch the judge
+    hiding among them, not merely a diff that is only the judge."""
+    changed = ["collectors/sec_edgar.py", "tests/test_sec_edgar_filer_name.py",
+               "staleness.py", "pipeline/classify.py"]
+    assert self_heal.violations(changed) == ["staleness.py"]
+    assert self_heal.main(["check", "--files", *changed]) == 1
 
 
 @pytest.mark.parametrize("path", VIOLATIONS)
@@ -439,3 +486,66 @@ def test_the_guard_runs_the_real_check():
 def test_the_prompt_forbids_what_the_guard_forbids():
     for pattern in self_heal.FORBIDDEN:
         assert pattern.rstrip("/") in WORKFLOW, pattern
+
+
+# -- the fourth link of the breakage chain, and the day it was invisible -----
+#
+# 2026-09-03, walked from this repo's own committed ledgers. An EDGAR 500
+# zeroed a whole `collect` day and the chain fired three times out of four:
+#
+#   1. HEALTH ROW    source_health: sec_form_d, 2026-09-03T00:05:03+00:00,
+#                    degraded, items_found=0
+#   2. RUN VERDICT   run_outcome(observed=0) -> failed -> collect red on main
+#   3. ALERT         data/alert_state.json, commit 65b5795 00:05:37Z,
+#                    "alert: claim raise collect:main:b21e9e4667a8f1b1",
+#                    subject "CI RED: collect: [sec_form_d] EDGAR refused
+#                    page 0: HTTPError: 500 ...", cleared by 25c2b63 on the
+#                    next green run ("alert: claim resolve collect:main")
+#   4. SELF-HEAL     run 33697977149: gate said "a code-shaped failure on main
+#                    with no standing owner: healable", the healer was armed,
+#                    it ran 21 turns for $0.9095 with nine permission denials
+#                    and opened NOTHING. The summary job printed "healable,
+#                    but no draft was opened (dormant, or the healer judged it
+#                    unfixable)" and the run was green. The owner fixed it by
+#                    hand 22 hours later (PR #110).
+#
+# The fourth link did not merely fail; its report could not say WHICH of two
+# opposite things had happened.
+
+def test_a_dormant_healer_and_a_declining_one_are_different_sentences():
+    dormant = self_heal.summary_line(heal="yes", armed="no", pr="")
+    declined = self_heal.summary_line(heal="yes", armed="yes", pr="")
+    assert dormant != declined
+    assert "dormant" in dormant.lower()
+    assert "NOTHING WAS ATTEMPTED" in dormant
+    assert "RAN" in declined and "paid for" in declined
+    assert "dormant" not in declined.lower(), (
+        "the old line said 'dormant, or ... unfixable' about a run that had "
+        "spent $0.91; that guess is the defect")
+
+
+def test_an_unknown_arming_reads_as_declined_not_as_dormant():
+    """Claiming "nothing was attempted" about a run that may have spent a
+    dollar is the direction that misleads."""
+    assert self_heal.summary_line(heal="yes", armed="", pr="") == \
+        self_heal.SUMMARY_DECLINED
+
+
+def test_a_draft_beats_every_other_outcome():
+    assert "#412" in self_heal.summary_line(heal="yes", armed="yes", pr="412")
+    assert "#412" in self_heal.summary_line(heal="yes", armed="no", pr=" 412 ")
+
+
+def test_a_gate_refusal_says_so_and_says_nothing_about_arming():
+    for armed in ("", "no", "yes"):
+        assert self_heal.summary_line(heal="no", armed=armed, pr="") == \
+            self_heal.SUMMARY_GATE_SKIPPED
+
+
+def test_the_workflow_prints_the_one_definition_and_not_its_own_copy():
+    """The shell version guessed. One definition, in a file with tests."""
+    assert "self_heal.summary_line" in WORKFLOW
+    assert "dormant, or the healer judged it unfixable" not in WORKFLOW
+    assert "armed: ${{ steps.armed.outputs.armed }}" in WORKFLOW, (
+        "the arming was known inside the heal job and never surfaced, which "
+        "is why the summary had to guess at it")

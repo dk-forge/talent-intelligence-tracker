@@ -14,6 +14,158 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-06 - the timeouts/self-heal/self-adjust audit: a 429 that dropped a slice, a run with no clock of its own, and ten judges the healer could edit
+
+**The brief.** Eight questions about what this repository does when something
+takes too long, breaks, or answers "slow down": timeouts, wall-clock
+deadlines and SIGTERM, the breakage chain end to end, the healer's forbidden
+list, 429 backoff, host-outage deferral, ledger caps, and the source-freshness
+judge. Read-only where it could be, fixed where it could not.
+
+**What was already right, and is now pinned.** Every outbound call in the
+tree carries an explicit timeout: an AST sweep found 61 HTTP call sites and 61
+timeouts, and `collectors/capped_fetch.py` bounds the bytes as well as the
+wait. Nothing tested that, so it was a fact about Tuesday rather than a
+property of the code. `tests/test_network_timeouts.py` is the sweep as a test,
+and it plants a `requests.get(url)` of its own and proves it is caught, because
+a guard whose clean zero has never seen a known instance is indistinguishable
+from a guard that matches nothing. The host-outage machinery is intact and
+exercised: `SUSTAINED_FAILURES = 3` in `host_watch.py`, `data/alert_outbox.json`
+holds 17 entries and all 17 are `delivered`, and the RECOVERED-once path is
+`alert_state.py` plus `data/alert_state.json`, whose whole history in git is
+raise/resolve pairs.
+
+**A 429 was a silent drop in five collectors.** `google_news` answered one with
+`except requests.RequestException: continue`, once per edition, across about
+forty editions, so a throttled edition and an edition with no news were the
+same observation and `store.report_health` graded the run on it. Same shape in
+`sec_edgar` (per phrase and per document), in `sec_form_d` (whose EFTS ladder
+was `resp.status_code < 500`, breaking out on the FIRST attempt for the one
+status that means "ask again in a moment"), in `benchmark_chase` (an `[]` with
+nothing printed) and in three paths of `press_archive` whose own CDX path says
+in as many words that a throttle "is NOT nothing archived". `collectors/http_retry.py`
+is the one answer: it honours `Retry-After`, CAPPED at 30 seconds because a
+server may legitimately say 3600 and a job with `timeout-minutes: 120` that
+sleeps an hour is killed with nothing committed. Exhaustion is RECORDED in
+`EXHAUSTED` and then raised as a `requests.RequestException` **on purpose** -
+the per-slot `continue` handlers are correct, one throttled edition must not
+lose the other forty, and making the exception escape them would trade a
+silent drop for a dead run. `run_collect` reads the ledger once at the end and
+the health row says which slices were not read. A throttled run is `degraded`
+and green, like the budget guard; a run where everything was throttled fails
+on `observed == 0` and needs no threshold of its own.
+
+**The collect run had no clock of its own, and that is not the same as having
+a ceiling.** `collect.yml` allows 180 minutes, `collect-press.yml` 120,
+`collect-structured.yml` 180. Those bound a hang. They do not bound the loss,
+because `timeout-minutes` CANCELS the job and every commit step here is
+guarded `if: ${{ !inputs.dry_run && !cancelled() }}` - correctly, for the
+failure case it was written for. So a self-timeout discarded every row the run
+had stored, every `seen_urls` mark (so the next run re-fetched and re-paid for
+the same candidates) and the health row, and the collector simply went quiet
+with `staleness.py` noticing a day later and naming no cause. That is the
+sibling tracker's orphaned-`running`-note defect in the other direction.
+`run_deadline.py` adds both halves: a 100-minute wall clock the candidate loop
+checks BETWEEN candidates, so the run stops itself, writes its health row and
+exits 0 and the commit step therefore RUNS; and a SIGTERM/SIGINT handler for
+every kill the clock cannot pre-empt, which writes a terminal note through its
+OWN connection (a signal handler can land mid-statement) and then hands the
+signal back, so the exit is still 143. The deadline is derived against the
+workflows in the test, not typed in one place and remembered in another.
+
+**The breakage chain, walked on one real case, fired three times out of four.**
+2026-09-03: EDGAR answered 500 to Form D page 0. `sec_form_d` filed a degraded
+health row at 00:05:03 with `items_found=0`; `run_outcome(observed=0)` took
+`collect` red on main; `ci_alert` raised `collect:main:b21e9e4667a8f1b1` at
+00:05:37 (commit 65b5795, subject "CI RED: collect: [sec_form_d] EDGAR refused
+page 0 ...") and cleared it on the next green run (25c2b63). The fourth link
+did not fire, and its report could not say why. Self-heal run 33697977149
+gated the failure "a code-shaped failure on main with no standing owner:
+healable", the healer was ARMED, it ran 21 turns for $0.9095 with nine
+permission denials, opened nothing, and the summary printed **"healable, but
+no draft was opened (dormant, or the healer judged it unfixable)"** on a green
+run. Those two are opposites: one is a secret nobody has added, free and fixed
+in ten seconds; the other is money spent, an attempt made and a red left
+standing, and it is the only one that says the allowlist or the prompt needs
+work. The arming was known inside the job and never surfaced, so the summary
+guessed. `self_heal.summary_line()` is now the one definition, the `armed`
+output is plumbed through, and an UNKNOWN arming reads as DECLINED rather than
+as dormant because claiming "nothing was attempted" about a run that spent a
+dollar is the direction that misleads. The owner fixed the EDGAR defect by
+hand 22 hours later (PR #110). **Whether an armed healer that declines should
+raise an email is the owner's call and was not taken here**: an alarm per
+unhealable red is the "cries every day" failure this repo has written down
+twice.
+
+**Ten judges were inside the healer's reach, and one of them was the file the
+docstring meant.** `FORBIDDEN` listed `guardrails.py`, which is the CLI a human
+answers findings with; the arithmetic, the derived amount threshold and the
+vehicle-name patterns are in `pipeline/guardrails.py`, and `fnmatch` anchors
+the whole path so the bare name never matched the nested file. Also reachable:
+`staleness.py` (a stale-collector red has exactly one loosening available and
+it is one line), `analysis/recall/thresholds.py`, `analysis/recall/stats.py`
+(the single Wilson implementation), `analysis/recall/goldset.py`,
+`analysis/recall/family.py`, `analysis/landmarks/landmarks.py`,
+`analysis/models/gate_goldset.py`, `published_figures.py` and
+`generate_ingest_schedule.py`. All ten are in `FORBIDDEN` now, in the
+workflow prompt, and in the test's explicit list, and the guard was proven by
+MUTATION rather than by a passing test that had never seen an instance: taking
+`pipeline/guardrails.py` and `staleness.py` back out reddens five assertions.
+A healer may fix a collector; it may never fix the thing that grades
+collectors.
+
+**One committed ledger grew without a ceiling.** `writer_queue.prune()` trimmed
+`tickets` and never touched `orphans`. An orphan is an evicted run listed until
+a human decides, and `resolve` correctly stamps it rather than removing it, so
+the resolved half accumulated for ever in the file this repo commits on every
+15-minute drain tick - 23 of them, all resolved, all filtered out by every
+reader. `KEEP_RESOLVED_ORPHANS = 40` bounds the history and **an unresolved
+orphan is never trimmed at any count**, which is tested as hard as the cap:
+pending work is state, and a cap that can reach state is a cap that loses work.
+Four ceilings that existed with no test (`alert_state.MAX_OPEN`,
+`backup_check.KEEP_CHECKS`, `ats_boards.HISTORY_LIMIT`, terminal tickets) now
+have one. Two ledgers are still unbounded and both are the owner's decision,
+not a session's: `docs/TECHLOG.md` and `docs/HEALING-LOG.md` (a horizon means
+deciding what history stops being worth keeping), and `data/backfill_state.json`
+(deleting a `done` job's record is how a finished campaign gets run again).
+
+**There is no statistical source-freshness judge here, and this entry does not
+invent one.** `staleness.py` is a hand-derived scalar leash per collector,
+compared against the single newest `source_health` row (`MAX(run_at)` collapses
+the history before any judgement happens). It cannot tell QUIET from BROKEN,
+because it fits nothing. Run over the committed ledger today, no collector is
+stale: the four `collect` collectors sit at 7.1-7.4h against 26h with median
+gaps of 12.6-14.5h, `national_press` 5.8h, `ats_boards` 18.6h against 48,
+`link_check` 19.1h against 36, the seven weekly structured sources 23-140h
+against 180 with median gaps of ~168h. The one worth a person's eye is
+`uk_paygap`: last run 2026-08-06, 739.8h against a leash of 840h, two runs in
+its whole history - four days from tripping, and nothing here can say whether
+that is an annual return behaving normally or a collector that stopped.
+`primary_chase` (797h) and `sec_form_d_bulk` (923h) sit under 2400h leashes
+that encode deliberate dormancy as a long number, which is the sibling's
+human-set UNAVAILABLE state without the human or the reviewer or the date. The
+data a real judge needs is already here: 518 `source_health` rows, 21
+collectors, 41 days, plus `status='skipped'` which already labels intentional
+silence. The constraint is that `ops_status.py` must run with no dependencies,
+so it would have to be stdlib-only or live behind a separate import boundary.
+**Building it is a piece of work, not a line, and it is not this entry's.**
+
+**Guard:** `tests/test_network_timeouts.py` (5 assertions, one of them a
+planted call site), `tests/test_http_retry.py` (22), `tests/test_run_deadline.py`
+(16, including a real child process killed with SIGTERM and SIGINT),
+`tests/test_ledger_caps.py` (12), and 10 new assertions in
+`tests/test_self_heal.py`. A `run()` that returns early no longer leaks its
+registration either: `run_deadline.released` is a decorator on `run` rather
+than a `mark_closed` each of six early returns has to remember, which is a
+defect the full suite found and a targeted run could not. Every one was proven by mutation: uncapping
+`Retry-After` and dropping the exhaustion record reds 6; removing the SIGTERM
+write, raising the budget past the ceiling and deleting the loop check reds 7;
+taking two judges out of `FORBIDDEN` reds 5; re-conflating the healer summary
+reds 2.
+
+---
+
+
 ## 2026-09-02 - the 2,611 rows with no country, sorted by cause, and the placement bar that two of four writers were not carrying
 
 **The brief.** 2,611 current rows (7.9%) carry no job-location country;

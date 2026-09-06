@@ -103,6 +103,7 @@ jobs:
       branch: ${{ steps.gate.outputs.branch }}
       cause: ${{ steps.gate.outputs.cause }}
       pr: ${{ steps.pr.outputs.pr }}
+      armed: ${{ steps.armed.outputs.armed }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -214,7 +215,14 @@ jobs:
             - never touch any of these. The guard re-checks the real diff,
               so editing one only wastes the attempt. Committed state and the
               spend/guardrail constants: data/ (anything under it), spend.py,
-              budget.py, guardrails.py. The copy standard and its ceiling:
+              budget.py, guardrails.py, pipeline/guardrails.py. The JUDGES
+              (anything that decides whether something is wrong -- a loosened
+              judge is a masked failure): staleness.py,
+              analysis/recall/thresholds.py, analysis/recall/stats.py,
+              analysis/recall/goldset.py, analysis/recall/family.py,
+              analysis/landmarks/landmarks.py,
+              analysis/models/gate_goldset.py, published_figures.py,
+              generate_ingest_schedule.py. The copy standard and its ceiling:
               docs/STYLE.md, style_check.py. The alarm channel: ci_alert.py,
               .github/workflows/ci-alert.yml. The hash-pinned locks:
               requirements.lock, requirements-dev.lock. The handover note:
@@ -442,10 +450,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      # ONE definition of what the outcome was, in self_heal.py where it is
+      # testable. The shell version conflated "the healer is not armed" with
+      # "the healer ran, was paid for, and produced nothing" -- see
+      # self_heal.summary_line.
       - env:
           HEAL: ${{ needs.heal.outputs.heal }}
           PR: ${{ needs.heal.outputs.pr }}
+          ARMED: ${{ needs.heal.outputs.armed }}
         run: |
-          if [ "$HEAL" != "yes" ]; then echo "gate: skipped (see the heal job's gate step for the class)";
-          elif [ -z "$PR" ]; then echo "healable, but no draft was opened (dormant, or the healer judged it unfixable)";
-          else echo "draft PR #$PR is waiting for a human"; fi
+          python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import os, self_heal
+          print(self_heal.summary_line(heal=os.environ.get("HEAL", ""),
+                                       armed=os.environ.get("ARMED", ""),
+                                       pr=os.environ.get("PR", "")))
+          PY
