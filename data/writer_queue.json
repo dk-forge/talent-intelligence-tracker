@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-06T16:52:04Z",
-  "last_tick": "2026-09-06T16:54:52Z",
+  "last_tick": "2026-09-06T16:58:17Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -298,6 +298,30 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-06T16:58:12Z",
+          "detail": "DRY RUN for the indigo split + felix merge (PR #118). Expect exactly 6 rows across 3 old keys: indigo->indigo airline (3), indigo->indigo insurance (1), \uc778\ub514\uace0->indigo airline (1), felix-acute->felix (1), plus one felix near-duplicate withdrawn (the same $200M Series C twice). 6/33624 = 0.018%, far under MAX_SHARE. Read the output, then re-queue with dry_run=false",
+          "event": "queued"
+        }
+      ],
+      "id": "20260906T165812Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true",
+        "force": "false",
+        "limit": ""
+      },
+      "priority": 0,
+      "reason": "DRY RUN for the indigo split + felix merge (PR #118). Expect exactly 6 rows across 3 old keys: indigo->indigo airline (3), indigo->indigo insurance (1), \uc778\ub514\uace0->indigo airline (1), felix-acute->felix (1), plus one felix near-duplicate withdrawn (the same $200M Series C twice). 6/33624 = 0.018%, far under MAX_SHARE. Read the output, then re-queue with dry_run=false",
+      "requested_at": "2026-09-06T16:58:12Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "correct-company-key.yml"
     },
     {
       "attempts": 0,
