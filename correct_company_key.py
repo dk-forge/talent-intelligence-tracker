@@ -144,7 +144,13 @@ def targets(rows: list[dict], *, force: bool = False) -> list[dict]:
     employers somebody knows about would have missed two of them, and would go
     stale the next time that function is touched.
     """
-    out = [r for r in rows if vocab.company_key(r["company"]) != r["company_key"]]
+    # .get, not [], and the default is the SAFE direction. A caller holding a
+    # partial row simply does not disambiguate a homonym, which leaves it on
+    # the ambiguous key where ops_status [1c] reports it — never on the wrong
+    # branch. Real rows come from current_rows() and always carry the column.
+    out = [r for r in rows
+           if vocab.company_key(r["company"], industry=r.get("industry"))
+           != r["company_key"]]
     share = len(out) / len(rows) if rows else 0
     if len(rows) >= MIN_ROWS and share > MAX_SHARE and not force:
         raise Unsafe(
@@ -166,7 +172,7 @@ def corrected_signal(row: dict) -> validate.Signal:
     copy would leave the row disagreeing with itself.
     """
     signal = validate.Signal(**{name: row[name] for name in _FIELDS})
-    signal.company_key = vocab.company_key(signal.company)
+    signal.company_key = vocab.company_key(signal.company, industry=signal.industry)
     signal.content_hash = validate.content_hash(
         signal.company_key, signal.pillar, signal.published_date,
         signal.headline, signal.source_name)
@@ -245,8 +251,37 @@ def _is_near(near: dict, row: dict) -> bool:
 
 
 def key_moves(rows: list[dict]) -> dict[str, str]:
-    """old key -> new key, for the employers in the worklist."""
-    return {r["company_key"]: vocab.company_key(r["company"]) for r in rows}
+    """old key -> new key, for the employers in the worklist.
+
+    A KEY THAT SPLIT HAS NO DESTINATION AND IS OMITTED. Every move here used to
+    be a merge, so one old key had exactly one new one and a dict was the whole
+    truth. vocab.HOMONYM_EMPLOYER_KEYS introduced the other direction: 'indigo'
+    becomes 'indigo airline' for some of its rows and 'indigo insurance' for
+    the rest, and a dict comprehension would silently keep whichever row came
+    last.
+
+    Dropping it is not a shortcut, it is the right answer for the one thing
+    this map feeds. carry_identity_cache copies the OLD key's resolved
+    identity onto the new one, and a split key's entry is a fact about the
+    ambiguity: pipeline.identity recorded "no organisation among 2 candidates"
+    against 'indigo' precisely BECAUSE two companies answered to it. Carrying
+    that onto either branch would tell the next enrichment pass that a
+    now-unambiguous employer is unresolvable, and it would be wrong on the
+    branch it landed on and missing on the other. Nothing is deleted; the stale
+    entry stays under the old key, costing one row in a cache, and each branch
+    resolves itself on its own next pass.
+    """
+    moves: dict[str, str] = {}
+    split: set[str] = set()
+    for r in rows:
+        old = r["company_key"]
+        new = vocab.company_key(r["company"], industry=r.get("industry"))
+        if old in moves and moves[old] != new:
+            split.add(old)
+        moves[old] = new
+    for old in split:
+        del moves[old]
+    return moves
 
 
 def carry_identity_cache(conn, moves: dict[str, str]) -> int:

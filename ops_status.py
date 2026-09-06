@@ -323,24 +323,30 @@ def _report_employer_keys(conn) -> list[str]:
     problems = []
 
     rows = conn.execute(
-        "SELECT company, company_key FROM signals WHERE is_current = 1 "
+        "SELECT company, company_key, industry FROM signals WHERE is_current = 1 "
         "  AND company_key IS NOT NULL AND company_key <> ''"
     ).fetchall()
 
-    stale: dict[str, tuple[str, int]] = {}
+    # Counted per (old key -> new key) PAIR, never per old key. It was per old
+    # key, which was exact while every move was a merge and became a lie the
+    # moment one could split: 'indigo' sends three rows to 'indigo airline' and
+    # one to 'indigo insurance', and keeping the first destination it happened
+    # to see reported all four as the airline — the very conflation this line
+    # is meant to be closing.
+    stale: dict[tuple[str, str], int] = {}
     keys = set()
     for row in rows:
         keys.add(row["company_key"])
-        fresh = vocab.company_key(row["company"])
+        fresh = vocab.company_key(row["company"], industry=row["industry"])
         if fresh != row["company_key"]:
-            old, count = stale.get(row["company_key"], (fresh, 0))
-            stale[row["company_key"]] = (old, count + 1)
+            stale[(row["company_key"], fresh)] = stale.get((row["company_key"], fresh), 0) + 1
 
     if stale:
-        n = sum(count for _, count in stale.values())
-        print(f"    {n} row(s) across {len(stale)} employer(s) carry a key this "
+        n = sum(stale.values())
+        employers = len({old for old, _ in stale})
+        print(f"    {n} row(s) across {employers} employer(s) carry a key this "
               f"name no longer normalises to")
-        for old, (new, count) in sorted(stale.items())[:6]:
+        for (old, new), count in sorted(stale.items())[:6]:
             print(f"      {count:>3}  {old!r} -> {new!r}")
         if len(stale) > 6:
             print(f"      ... and {len(stale) - 6} more")
@@ -350,6 +356,37 @@ def _report_employer_keys(conn) -> list[str]:
             f"(dry run first)")
     else:
         print(f"    {len(keys)} keys, all current with pipeline/vocab.py")
+
+    # THE THIRD STATE, which nothing above can show. A row whose employer is a
+    # known homonym but whose industry does not name a branch keeps the
+    # AMBIGUOUS BASE KEY, so its stored key equals what company_key returns and
+    # the staleness check calls it current. It is not current, it is
+    # unresolved: it sits on a key that means two companies, and it will be
+    # summed, counted and profiled as whichever of them a reader assumes.
+    # Reported by name because the fix is a human reading the row, either
+    # adding its industry to vocab.HOMONYM_EMPLOYER_KEYS or correcting the
+    # industry the classifier gave it. Never guessed at, never defaulted.
+    # The test is on what company_key RETURNS for the row, not on what the row
+    # currently stores. A row stored under 'indigo' that resolves to
+    # 'indigo airline' is already counted above as stale and the correction
+    # will move it; listing it here too would report the same four rows twice
+    # and make a queued job look like an open question.
+    ambiguous = sorted(
+        (row["company_key"], row["company"], row["industry"]) for row in rows
+        if vocab.company_key(row["company"], industry=row["industry"])
+        in vocab.HOMONYM_EMPLOYER_KEYS)
+    if ambiguous:
+        print(f"    {len(ambiguous)} row(s) still on a key that means TWO "
+              f"employers, because their industry names no branch:")
+        for key, company, industry in ambiguous[:6]:
+            print(f"      {key!r}  company={company!r} industry={industry!r}")
+        if len(ambiguous) > 6:
+            print(f"      ... and {len(ambiguous) - 6} more")
+        problems.append(
+            f"{len(ambiguous)} row(s) sit on an employer key that means two "
+            f"different companies (vocab.HOMONYM_EMPLOYER_KEYS): read each row "
+            f"and either add its industry to that registry or fix the industry "
+            f"the classifier gave it. Do NOT add a default branch")
 
     # A collision is two keys claiming one URL. Computed the way the slug is,
     # which is a deliberate duplicate of six lines of PHP: the alternative is
@@ -383,8 +420,18 @@ def _report_employer_keys(conn) -> list[str]:
                   if tuple(owners) == tuple(sorted(
                       vocab.SAME_EMPLOYER_NO_ASCII_KEY.get(slug, ())))}
 
+    # Two DIFFERENT employers under ONE key, which the alias map cannot express
+    # and merging would make permanent. Checked before the alias test below:
+    # '인디고' does alias to 'indigo', so this pair would otherwise read as a
+    # tidy merge whose rows have not moved, when what is actually happening is
+    # that one key is being taken apart. See vocab.HOMONYM_EMPLOYER_KEYS.
+    homonym = {slug: owners for slug, owners in collisions.items()
+               if any(vocab.company_key(o) in vocab.HOMONYM_EMPLOYER_KEYS
+                      for o in owners)}
+
     undecided = {slug: owners for slug, owners in collisions.items()
                  if slug not in distinct and slug not in unnameable
+                 and slug not in homonym
                  and not any(vocab.EMPLOYER_KEY_ALIASES.get(o) in owners for o in owners)}
 
     if collisions:
@@ -395,6 +442,9 @@ def _report_employer_keys(conn) -> list[str]:
                 note = "   (two DIFFERENT employers; blocked on the slug, do not merge)"
             elif slug in unnameable:
                 note = "   (one employer, but no ASCII spelling to survive; blocked on the slug)"
+            elif slug in homonym:
+                note = ("   (two DIFFERENT employers under one key; being SPLIT, "
+                        "not merged)")
             elif slug in undecided:
                 note = ""
             else:

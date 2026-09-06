@@ -866,7 +866,9 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     employer_type = vocab.normalize_employer_type(classified.get("employer_type", "") or "")
 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    ckey = vocab.company_key(company)
+    # industry is the ONLY discriminator two employers sharing a name have;
+    # it is inert for every other name. See vocab.HOMONYM_EMPLOYER_KEYS.
+    ckey = vocab.company_key(company, industry=industry)
     published = _normalize_date(raw.get("published_date"), raw.get("source_url"))
     chash = content_hash(ckey, pillar, published, headline, raw.get("source_name"))
 
