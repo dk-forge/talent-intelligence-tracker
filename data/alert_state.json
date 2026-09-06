@@ -1,5 +1,10 @@
 {
   "open": {
+    "backfill-gdelt-2026:main:50bce181f01d6d18": {
+      "first": 1788722284,
+      "last": 1788722284,
+      "subject": "CI RED: backfill-gdelt-2026: next cursor        2026-07-01"
+    },
     "backfill-gdelt-2026:main:778035478ffb17ad": {
       "first": 1788716343,
       "last": 1788716343,
@@ -16,6 +21,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-06T17:39:30+00:00",
+  "updated_at": "2026-09-06T19:18:05+00:00",
   "version": 1
 }
