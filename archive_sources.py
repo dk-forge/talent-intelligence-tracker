@@ -9,6 +9,7 @@ the publisher's own URL.
     python3 archive_sources.py --plan-only               # the gap and how it splits
     python3 archive_sources.py --recheck-terminal --dry-run   # count wrongly-retired URLs
     python3 archive_sources.py --recheck-terminal        # and put them back
+    python3 archive_sources.py --check-promise           # is the printed promise true?
 
 A NON-ANSWER IS NOT AN ANSWER, AND IT COST US TWICE
 ---------------------------------------------------
@@ -93,11 +94,15 @@ Zero. No model is called, ever.
 
 Exit codes: 0 the run completed (even if Wayback throttled everything)
             1 the run could not do its job at all
+            1 --check-promise only: the printed promise is BROKEN
+            3 --check-promise only: UNKNOWN, the check could not be made. Never
+              a pass; an unread ledger has not told us the promise is kept.
 """
 
 from __future__ import annotations
 
 import argparse
+import sqlite3
 import sys
 import time
 from pathlib import Path
@@ -405,6 +410,83 @@ def run(conn, *, limit: int, collector: str | None, dry_run: bool,
             "unexamined": gave_up_blind}
 
 
+def check_promise(db: Path | None = None) -> int:
+    """Is the sentence the listing pages print actually true? 0 / 1 / 3.
+
+    Every publisher-sourced row without a snapshot renders "No archive snapshot
+    yet. We re-check weekly; next check by <date>". Everything ELSE about that
+    sentence is already pinned: tests/test_archive_promise.py checks the shipped
+    JSON against the schedule and checks that the schedule has the CAPACITY to
+    keep it. What nothing checked was REALITY — whether the sweep is in fact
+    reaching every in-scope URL inside the window.
+
+    ops_status.py [2c] computes it and exits 2, and that is the right place for
+    a session to read it. It is not enforcement: every one of the five
+    invocations of ops_status.py in .github/workflows/ is `python ops_status.py
+    || true`, correctly, because that tool exits 2 for a dozen unrelated
+    reasons and a collector must not go red because two employer keys collide.
+    So between two human sessions the promise had no keeper at all, and a
+    broken one is not a stale source — it is a false sentence already published.
+
+    This is that keeper, and it belongs to the archiver because the archiver is
+    what owes the promise. Read-only, no model, no key, no network. UNKNOWN is
+    its own answer with its own exit code: a check that could not run has not
+    told us the promise is kept.
+    """
+    days = source_links.RECHECK_PROMISE_DAYS
+    scope = source_links.scheduled_archive_scope()
+    if not scope:
+        print(f"UNKNOWN: the archive scope could not be read from "
+              f"archive-sources.yml, so there is no population to judge the "
+              f"{days}-day promise over. This has NOT reported that the "
+              f"promise is kept.")
+        return 3
+    # connect_ro, not connect. connect() CREATES a database that is not there
+    # and migrates one that is, so a missing or half-fetched ledger would open
+    # empty, find nothing overdue and report the promise KEPT with the greatest
+    # possible confidence. Read-only refuses both, and refusing is the answer:
+    # reading zero overdue rows because the file was never there looks exactly
+    # like a promise being kept.
+    try:
+        conn = schema.connect_ro(db)
+    except Exception as exc:                                  # noqa: BLE001
+        print(f"UNKNOWN: the ledger could not be opened read-only ({exc}). "
+              f"This has NOT reported that the {days}-day promise is kept.")
+        return 3
+    try:
+        overdue = source_links.archive_recheck_overdue(conn, scope, days=days)
+    except sqlite3.OperationalError as exc:
+        print(f"UNKNOWN: the source-link ledger could not be read ({exc}). "
+              f"This has NOT reported that the {days}-day promise is kept.")
+        return 3
+    finally:
+        conn.close()
+
+    if not overdue:
+        print(f"PASS: every in-scope URL without a snapshot has been "
+              f"re-attempted inside the {days}-day promise, across "
+              f"{len(scope)} collector(s): {', '.join(scope)}.")
+        return 0
+
+    print(f"FAIL: {len(overdue)} in-scope URL(s) without a snapshot have NOT "
+          f"been re-attempted within the {days} days the listing pages "
+          f"promise. Those pages are printing a re-check nothing is making.")
+    for row in overdue[:10]:
+        print(f"  overdue  {row['source_url'][:90]}  "
+              f"(last attempt {(row['last_attempt'] or 'never')[:10]}, "
+              f"state {row['state']})")
+    if len(overdue) > 10:
+        print(f"  ... and {len(overdue) - 10} more")
+    print("\nCheck that the archive slot in schedule-link-hygiene.yml still "
+          "fires and that drain-writers is moving, then queue a pass:")
+    print("  gh workflow run drain-writers.yml -f enqueue=archive-sources.yml "
+          "-f inputs_json='{\"dry_run\":\"false\"}' -f reason='promise'")
+    print("Do NOT answer this by widening RECHECK_PROMISE_DAYS. The number is "
+          "the floor the pages already published; moving it edits the promise "
+          "rather than keeping it.")
+    return 1
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dry-run", action="store_true",
@@ -417,6 +499,10 @@ def main(argv=None) -> int:
                              "a definitive negative from archive.org, then stop. "
                              "Makes no request. Combine with --dry-run to count "
                              "them without writing.")
+    parser.add_argument("--check-promise", action="store_true",
+                        help="assert the reader-facing re-check promise against "
+                             "the ledger, then stop. Makes no request and "
+                             "writes nothing. PASS 0 / FAIL 1 / UNKNOWN 3.")
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT)
     parser.add_argument("--collector", default=None)
     parser.add_argument("--spn-max", type=int, default=DEFAULT_SPN_MAX,
@@ -430,6 +516,11 @@ def main(argv=None) -> int:
     parser.add_argument("--deadline", type=float, default=DEFAULT_DEADLINE)
     parser.add_argument("--db", type=Path, default=None)
     args = parser.parse_args(argv)
+
+    # Before the connection, because its UNKNOWN branch has to be able to
+    # answer "the ledger would not open" rather than raise through it.
+    if args.check_promise:
+        return check_promise(args.db)
 
     conn = schema.connect(args.db)
     try:

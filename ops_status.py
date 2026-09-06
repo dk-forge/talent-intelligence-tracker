@@ -1388,8 +1388,23 @@ def _report_link_rot(conn) -> list[str]:
                 f"moving, then queue a pass: gh workflow run drain-writers.yml "
                 f"-f enqueue=archive-sources.yml "
                 f"-f inputs_json='{{\"dry_run\":\"false\"}}' -f reason='promise'")
-    except sqlite3.OperationalError:
-        pass
+    except sqlite3.OperationalError as exc:
+        # An unreadable ledger is UNKNOWN, and UNKNOWN gets a line and a
+        # problem. This used to `pass`, so the promise line simply VANISHED
+        # from the section and a reader saw a [2c] with no verdict in it —
+        # indistinguishable, on a glance, from a section that had nothing to
+        # report. Absence of a signal is not a pass anywhere else in this
+        # repo and it is not one here.
+        print(f"    promise   UNKNOWN — the source-link ledger could not be "
+              f"read ({exc}).")
+        print(f"              This has NOT reported that the "
+              f"{source_links.RECHECK_PROMISE_DAYS}-day promise is kept.")
+        problems.append(
+            f"the reader-facing {source_links.RECHECK_PROMISE_DAYS}-day "
+            f"archive re-check promise could NOT be checked: the source-link "
+            f"ledger would not read ({exc}). The listing pages are still "
+            f"printing the sentence. Repair the ledger, then: "
+            f"python3 archive_sources.py --check-promise")
 
     drifted = summary["states"].get("drifted", 0)
     if drifted:

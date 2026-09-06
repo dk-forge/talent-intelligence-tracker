@@ -14,6 +14,108 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-06 - the promise with no keeper between sessions, and 39 "possible takeovers" that were all the same employer
+
+**The brief.** Are the sources all working, and is it running as optimised as
+possible. Then: the listing pages promise a 7-day archive re-check and 1,843
+URLs were reported outside it; three Greenhouse boards and 39 cited URLs now
+resolve to a different domain, possibly a takeover.
+
+**The 1,843 were a stale checkout and nothing else.** `ops_status.py` reads
+COMMITTED state out of the working tree, so an un-pulled `data/` invents
+outages. After `git merge --ff-only origin/main` the promise reads KEPT, 0
+in-scope URLs never answered about, newest snapshot 20 minutes old, and
+`archive-sources` has run three times a day without a gap for a fortnight
+(`workflow_dispatch` from the drainer, exactly as designed). The mechanism was
+never broken. **Pull before believing this tool**; that is now the first line of
+every brief for a reason.
+
+**But the promise genuinely had no keeper between two human sessions, and that
+is the real finding.** Three links of the chain were pinned by tests: the
+shipped `archive_promise.json` matches the schedule, the schedule has the
+CAPACITY to sweep the queue inside the window, and the sentence has exactly one
+composer. The fourth link - whether the sweep is REALLY reaching every in-scope
+URL - was computed in one place, `ops_status.py [2c]`, which exits 2. And every
+one of the five invocations of `ops_status.py` under `.github/workflows/` is
+`python ops_status.py || true`.
+
+That `|| true` is CORRECT and stays. The tool exits 2 for a dozen unrelated
+reasons - an employer-key collision, a spend projection, a stalled backfill -
+and a collector that goes red because two Korean spellings claim one slug is
+the filtered-alarm problem in a new hat. The defect was not the `|| true`; it
+was that a reader-facing promise had no assertion of its own anywhere. A stale
+source is data we have not gathered. A broken promise is a false sentence
+already published, on every listing page, to every reader.
+
+So `archive_sources.py --check-promise` is that assertion, and it belongs to
+the archiver because the archiver is what owes the promise. Free: no model, no
+key, no network, one read. **PASS 0 / FAIL 1 / UNKNOWN 3**, and the UNKNOWN is
+not decoration - it caught its own author. Written with `schema.connect()` it
+CREATED the database it could not find, opened it empty, found nothing overdue
+and reported the promise kept with total confidence. It uses `connect_ro` now
+and lets the refusal be the answer, because reading zero overdue rows out of a
+ledger that was never fetched looks exactly like a promise being kept. It runs
+in `archive-sources.yml` AFTER the commit step, so the run's snapshots are
+pushed whatever the verdict says, and `ci-alert.yml` mails the real assertion.
+
+Proven by mutation on the real corpus, not on a fixture: aging the 2,723
+pending ledger rows in a COPY of the committed database turns PASS into
+`FAIL: 2705 in-scope URL(s)`, exit 1. A missing ledger returns 3 and creates no
+file.
+
+**`ops_status.py [2c]` was also swallowing its own UNKNOWN.** The promise block
+ended `except sqlite3.OperationalError: pass`, so an unreadable ledger deleted
+the verdict LINE from the section - which at a glance is a section with nothing
+to report. It prints UNKNOWN and raises a problem now, and the test proves that
+branch by making the read fail rather than by grepping for the word.
+
+**The 39 drifted URLs are 0 takeovers.** Every one was fetched, paced, with a
+browser User-Agent, and every one lands on the same employer or the same
+publisher:
+
+* **35 are Greenhouse ATS boards redirecting to the employer's own careers
+  site** - `job-boards.greenhouse.io/cloudflare` to `cloudflare.com/careers`,
+  `/pinterest` to `pinterestcareers.com`, and so on. The title names the
+  employer in all 35. This is the OPPOSITE of losing provenance: the evidence
+  moved to the employer's own domain. Two of them (`braze`,
+  `stokespacetechnologies`) did not redirect at all on this pass, so the
+  redirect is conditional and the stored verdict is not even stable.
+* **3 are one publisher consolidating its own domains** - `m.economictimes.com`
+  to `economictimes.indiatimes.com`, `sentinelsource.com` to
+  `keenesentinel.com`, `capitalfm.co.ke` to `capitalfm.africa`. Same article,
+  same headline, in all three.
+* **1 is a real casualty.** `b2b-cambodia.com` rebranded to `b2b-asianews.com`
+  and the article did not survive the move: HTTP 404 at the successor. Not a
+  takeover - a dead document.
+
+`link_check.classify()` is not wrong and was NOT touched. It answers "is
+somebody else serving this now" with "did the registrable domain change", which
+is right for a news publisher and structurally wrong for an ATS board, where
+the redirect target being the employer's own domain is the whole point. That is
+a judge, and a healer may fix a collector and never a judge, so the measurement
+is written down here and the change is the owner's to rule on.
+`job-boards.greenhouse.io` reading 39.3% rot (35/89) is that one shape, not 35
+problems.
+
+**What was NOT touched, and why.** Three stalled backfills consume paid
+extraction while the 7-day window already projects $8.98 against an $8.00
+allowance, so they are costed and left alone. The 2 funding figures worth
+$304.9bn in the amount queue are the owner's ruling by standing instruction.
+The 4 slug collisions are an identity adjudication and one of them proves why:
+merging the Korean spelling into `indigo` would fuse IndiGo the airline with an
+InsurTech called Indigo that is ALREADY sharing that key.
+
+**Source health, measured.** 21 collectors report, every one inside its own
+leash in `staleness.py`. Five ids carry a leash and have NEVER filed a health
+row: `spain_borme`, `israel_registrar` and `singapore_acra` are dormant by
+documented decision in `collect-structured.yml` (no cron, or one commented
+out); `benchmark_chase` is dormant behind an absent secret; `press_archive`
+runs inside the press backfill and records into `backfill_slices` instead.
+`collectors/news_backstop.py` is referenced by nothing at all - no workflow, no
+`run_collect.py` entry. That is the sibling's "a declared collector that was
+never built" shape and it is written here rather than fixed, because the fix is
+either to build it or to delete it and say so.
+
 ## 2026-09-06 - the timeouts/self-heal/self-adjust audit: a 429 that dropped a slice, a run with no clock of its own, and ten judges the healer could edit
 
 **The brief.** Eight questions about what this repository does when something

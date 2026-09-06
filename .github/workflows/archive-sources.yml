@@ -168,3 +168,30 @@ jobs:
           echo "::error::Could not push the archive ledger after 5 attempts. \
           This run's snapshots exist only on the runner and are lost."
           exit 1
+
+      # THE PROMISE, ASSERTED WHERE IT IS OWED.
+      #
+      # The listing pages print "No archive snapshot yet. We re-check weekly;
+      # next check by <date>" on every in-scope row without a snapshot. Three
+      # links of that chain were already pinned by tests: the shipped JSON
+      # matches the schedule, the schedule has the capacity, and the sentence
+      # has one composer. The fourth — whether the sweep is REALLY reaching
+      # every in-scope URL inside the window — was computed by ops_status.py
+      # [2c] and by nothing else, and every invocation of that tool in this
+      # directory is `|| true`. Correctly so: it exits 2 for a dozen unrelated
+      # reasons and a collector must not go red because two employer keys
+      # collide. The consequence was that between two human sessions the
+      # promise had no keeper, and a broken promise is not a stale source —
+      # it is a false sentence already published.
+      #
+      # It runs AFTER the commit deliberately. The ledger is the run's product
+      # and must be pushed whatever this says; `!cancelled()` is what makes a
+      # red here a report rather than a way to lose snapshots.
+      #
+      # Free: no model, no key, no network, one read of the committed ledger.
+      # Non-zero is FAIL (1) or UNKNOWN (3), and ci-alert.yml mails the owner
+      # with the real assertion either way. Do NOT answer a red here by
+      # widening RECHECK_PROMISE_DAYS.
+      - name: Keep the re-check promise
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: python archive_sources.py --check-promise
