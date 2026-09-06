@@ -51,7 +51,7 @@
       "workflow": "backfill-funding-bulk.yml"
     },
     "backfill-gdelt-2026:2026-01-01..2026-07-26": {
-      "cursor": "2026-06-29",
+      "cursor": "2026-07-01",
       "end": "2026-07-26",
       "history": [
         {
@@ -665,6 +665,18 @@
             "stored": 0,
             "windows": 4
           }
+        },
+        {
+          "at": "2026-09-06T17:38:29Z",
+          "run": "",
+          "slice": "2026-06-29..2026-07-02",
+          "stopped_early": "2026-07-01 could not be FETCHED (4 queries throttled out or rejected, none answered). Stopping here: the cursor does not move past a window nobody collected, because nothing would ever come back for it.",
+          "totals": {
+            "duplicates": 3,
+            "rejected": 13,
+            "stored": 5,
+            "windows": 3
+          }
         }
       ],
       "inputs": {
@@ -675,17 +687,17 @@
       "label": "",
       "opened_at": "2026-07-30T19:22:59Z",
       "slice_size": 4,
-      "slices": 51,
+      "slices": 52,
       "start": "2026-01-01",
       "state": "running",
       "totals": {
-        "duplicates": 135,
-        "rejected": 1819,
-        "stored": 715,
-        "windows": 191
+        "duplicates": 138,
+        "rejected": 1832,
+        "stored": 720,
+        "windows": 194
       },
       "unit": "days",
-      "updated_at": "2026-08-03T07:51:13Z",
+      "updated_at": "2026-09-06T17:38:29Z",
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
