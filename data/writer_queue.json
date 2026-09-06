@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-06T16:52:04Z",
-  "last_tick": "2026-09-06T16:52:04Z",
+  "last_tick": "2026-09-06T16:52:35Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -224,6 +224,11 @@
           "at": "2026-09-06T16:52:04Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-09-06T16:52:35Z",
+          "detail": "run 34046814947",
+          "event": "bound"
         }
       ],
       "id": "20260906T165201Z-backfill-gdelt-2026",
@@ -238,9 +243,35 @@
       "reason": "resume backfill-gdelt-2026 at 2026-06-29, 7 slices to finish; max_readthroughs left BLANK so live_ration() takes todays 12 (not the recorded static 35), ceiling $0.0168/slice = $0.118 to finish against $0.8872 discretionary",
       "requested_at": "2026-09-06T16:52:01Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "34046814947",
       "state": "dispatched",
       "workflow": "backfill-gdelt-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-06T16:52:32Z",
+          "detail": "resume backfill-gnews-2026:2026-07-13..2026-08-14, 0 slices done of 8; ration BLANK so the budget-derived 13/day-window applies (not the recorded 18), ceiling $0.0115/slice = $0.092 to finish",
+          "event": "queued"
+        }
+      ],
+      "id": "20260906T165232Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-08-14",
+        "fetch_only": "false",
+        "ration": "",
+        "start": "2026-07-13"
+      },
+      "priority": 10,
+      "reason": "resume backfill-gnews-2026:2026-07-13..2026-08-14, 0 slices done of 8; ration BLANK so the budget-derived 13/day-window applies (not the recorded 18), ceiling $0.0115/slice = $0.092 to finish",
+      "requested_at": "2026-09-06T16:52:32Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "backfill-gnews-2026.yml"
     },
     {
       "attempts": 0,
