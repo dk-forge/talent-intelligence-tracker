@@ -1504,6 +1504,15 @@ EMPLOYER_KEY_ALIASES = {
     'hc valais-wallis academy': 'hc valais wallis academy',
     'n - able': 'n able',
     'n-able': 'n able',
+    # --- 2026-09-06 slug-collision review -----------------------------------
+    # One employer, one round, counted TWICE in the public money total: the
+    # Latino-immigrant fintech's $200M Series C, reported by LatamList as
+    # 'Felix' and by Startups.com.br as 'Felix' with the acute. Both dedup
+    # layers require the keys to be EQUAL, so the two rows never met and
+    # $400M was summed where $200M was raised. Same defect as the
+    # OpenAI-backed Thrive Holdings double count in company_key's docstring,
+    # arriving through a diacritic instead of a backer prefix.
+    'félix': 'felix',
 }
 
 
@@ -1517,13 +1526,123 @@ EMPLOYER_KEY_ALIASES = {
 # way: once tit_company_slug keeps those characters (or transliterates them),
 # each spelling gets its own URL and one of them can become the survivor.
 SAME_EMPLOYER_NO_ASCII_KEY = {
-    # NH證 is how the Korean business press abbreviates NH투자증권 (NH
-    # Investment & Securities). Both rows are the same CEO succession race.
-    'nh': ('nh證', 'nh투자증권'),
+    # NH證 / NH투자증권 (NH Investment & Securities, one CEO succession race
+    # under a Han abbreviation and the full Hangul name) is NOT here any more,
+    # and is left as a comment for the same reason IBM is left as one below:
+    # there is no longer a collision for this report to classify. When the
+    # entry was written both spellings slugged to 'nh', the Han and the Hangul
+    # each being deleted. tit_company_slug romanises Hangul now, so 'nh투자증권'
+    # claims '/company/nh-tujajeunggwon/' and 'nh證' keeps '/company/nh/', and
+    # each is reachable. What did NOT change is that they are one employer
+    # under two non-Latin spellings with no ASCII survivor between them, so
+    # they remain two keys and two profiles; that is a smaller problem than
+    # the unreachable URL this entry was recording, and it is the one the slug
+    # cannot fix.
+    #
+    # Found by tests/test_employer_homonyms.py's stale-key guard on the day it
+    # was written, which is the argument for that guard: nothing else looks at
+    # a registry entry that has stopped matching.
     # One diacritic apart: "Giày" is the correct Vietnamese word for shoe,
     # "Giầy" the variant. Same company, same Vinaconex-linked CEO appointment,
     # reported by tuoitre.vn and vietstock.vn.
-    'giay-thuong-inh': ('giày thượng đình', 'giầy thượng đình'),
+    #
+    # THE KEY HERE WAS 'giay-thuong-inh' AND WENT STALE, WHICH PUT A REVIEWED
+    # PAIR BACK IN FRONT OF A HUMAN AS AN UNDECIDED ONE (2026-09-06). These
+    # dicts are keyed by the SLUG, and the slug moved underneath them: the đ
+    # used to be deleted outright ('giay-thuong-inh'), and once U+0111 joined
+    # _ATOMIC_FOLDS it folds to 'd' like every other stroked letter, so the
+    # pair now claims 'giay-thuong-dinh'. The lookup in ops_status missed,
+    # the pair fell out of `unnameable` and into `undecided`, and the report
+    # went back to saying "decide which spelling wins, add it to
+    # EMPLOYER_KEY_ALIASES" about a pair a previous session had correctly
+    # refused to alias. Nothing went red: a registry keyed on a derived value
+    # cannot notice the value deriving differently.
+    # tests/test_employer_homonyms.py::test_every_reviewed_collision_key_is_a
+    # _slug_something_actually_claims is the guard, and it fails on a key no
+    # live employer produces rather than waiting for the next review.
+    'giay-thuong-dinh': ('giày thượng đình', 'giầy thượng đình'),
+    # 대부 ("daebu", lending) with and without the space before it, from
+    # Ajunews and thedailyeconomy.kr covering one event: Lee Jong-seong's
+    # inauguration as 대표이사 of the Shinhyup asset-management subsidiary.
+    # One employer, and NEITHER spelling can survive: the alias map needs a
+    # key that slugifies to itself, and 'kcu npl daebu' is a romanisation no
+    # source uses. Recording it beats inventing a name.
+    'kcu-npl-daebu': ('kcu npl 대부', 'kcu npl대부'),
+}
+
+
+# TWO DIFFERENT EMPLOYERS SHARING ONE KEY. Not one employer under two
+# spellings (EMPLOYER_KEY_ALIASES) and not two employers whose distinct keys
+# collide only in the slug (DISTINCT_EMPLOYER_SLUG_COLLISIONS) — this is the
+# strictly worse case those two do not cover, and it had no home until
+# 2026-09-06: the employers are genuinely NAMED THE SAME, so one key holds both
+# and every query that groups by company_key fuses them IN THE DATABASE, not
+# merely in the URL.
+#
+# What that looked like live. /company/indigo/ served one profile titled
+# "IndiGo: 4 tracked updates on hiring, funding and leadership", whose meta
+# description read "$50M disclosed funding, 2 leadership changes" — attributing
+# an American medical-malpractice insurtech's Series B to the Indian airline,
+# in the one line search engines index. tit_company_rows() reaches those rows
+# on its FIRST query (REPLACE(company_key,' ','-') = slug), so the slug index
+# refusing to publish a collided slug never applied: the refusal governs the
+# index, and the fast path never consults it.
+#
+# THE DISCRIMINATOR CANNOT BE THE NAME, which is the whole difficulty.
+# company_key() sees a string, both companies write theirs "Indigo", and
+# neither has a fuller name to fall back on: the airline trades as IndiGo
+# (InterGlobe Aviation Limited, NSE: INDIGO) and the insurtech calls itself
+# Indigo on its own site (getindigo.com) and in every outlet that covered the
+# round. pipeline/identity.py had already reached this conclusion on its own
+# and recorded it against this key: "no organisation among 2 candidates".
+#
+# So the branch is taken from the ROW's industry, and ONLY from an industry
+# written down here. That is deliberately narrow:
+#
+#   * a row whose industry is listed moves to that branch;
+#   * a row whose industry is NOT listed — including NULL — KEEPS THE
+#     AMBIGUOUS BASE KEY and is reported by ops_status [1c].
+#
+# There is no default branch and there must not be one. Industry is
+# model-assigned and the airline's own rows already disagree about it
+# (transport_logistics on two, hospitality_travel on a third), so a fallback
+# would eventually put an insurtech row on the airline or the reverse, silently
+# and permanently. Unresolved is a THIRD STATE, it is visible, and it is the
+# correct answer when the row does not say enough. Do not add an 'else'.
+#
+# The branch names are DISAMBIGUATORS, not claimed legal names. They are keys;
+# every page still shows the `company` string the source used, so a reader sees
+# "IndiGo" and "Indigo" exactly as before. Each one must slugify to itself,
+# the same rule EMPLOYER_KEY_ALIASES survivors follow.
+_INDIGO_BRANCHES = {
+    # IndiGo / InterGlobe Aviation, India's largest carrier. Pieter Elbers
+    # resigning after the crew rest-time cancellations, Willie Walsh
+    # succeeding him, and the Istanbul route hiring drive. Two industries
+    # because the classifier used both for the same airline.
+    'transport_logistics': 'indigo airline',
+    'hospitality_travel': 'indigo airline',
+    # Indigo, the AI-driven medical professional liability platform that
+    # raised a $50m Series B led by Rubicon Founders. US, unrelated.
+    'financial_services': 'indigo insurance',
+}
+
+HOMONYM_EMPLOYER_KEYS: dict[str, dict[str, str]] = {
+    'indigo': _INDIGO_BRANCHES,
+    # THE KOREAN RENDERING IS ITS OWN BASE KEY, NOT AN ALIAS ONTO 'indigo',
+    # and the reason is a guard that was right. The first attempt wrote
+    # "'인디고': 'indigo'" into EMPLOYER_KEY_ALIASES and let the homonym map
+    # take it from there; test_identity's
+    # test_an_alias_may_only_merge_two_spellings_of_one_name refused it,
+    # because the check for "two spellings of one name" is that both slug the
+    # same and '인디고' is entirely Hangul, so it slugs to the empty string
+    # against 'indigo'. That rule is what stops the alias map being used to
+    # merge two genuinely different companies, and it should not be widened to
+    # let this through: '인디고' is ambiguous in EXACTLY the way 'indigo' is
+    # (the Korean press writes the airline this way, and nothing stops an
+    # insurtech row arriving under it), so the honest statement is that it is a
+    # second name for the same pair of employers, not a spelling of one of
+    # them. Same dict object, so the two can never drift apart.
+    '인디고': _INDIGO_BRANCHES,
 }
 
 
@@ -1538,29 +1657,42 @@ SAME_EMPLOYER_NO_ASCII_KEY = {
 # "two different employers, blocked on the slug" instead of asking someone to
 # decide which spelling wins. Choosing one WOULD silently destroy an employer:
 # every pair below is two distinct companies.
-DISTINCT_EMPLOYER_SLUG_COLLISIONS = {
-    # OpenAI (US, covered by Korean press) and Persona AI, a Korean defence-
-    # tech startup raising from LIG Nex1. Unrelated.
-    'ai': ('오픈ai', '페르소나ai'),
-    # Two subsidiaries of BNK Financial Group: BNK PierX (renamed PierX Co.)
-    # and BNK Capital. Separate companies, separate CEOs.
-    'bnk': ('bnk 피어엑스', 'bnk캐피탈'),
-    # Two municipal South Korean football clubs, Changwon and Hwaseong.
-    'fc': ('창원fc', '화성fc'),
-    # IBM and IBM Japan ('ibm' vs '日本ibm', the Japanese subsidiary's own
-    # presidency changing hands) is NOT here any more. It was the one live
-    # instance of this defect: 'ibm' is already ASCII, so nothing gets
-    # romanised or folded away from it, and '日本ibm' collapsed onto the same
-    # slug once its Han prefix was deleted. Fixed in tit_company_slug_index()
-    # (includes/company.php): a slug collision where exactly one owner's own
-    # spelling produced it and every other owner only arrived by having a
-    # script deleted now gives each deleted-script owner its own
-    # percent-encoded URL instead of refusing both. Left as a comment, not a
-    # dict entry, because there is no longer a collision for this report to
-    # classify.
-    # SK Telecom and SK Hynix — two SK Group companies, and the one pair here
-    # where a careless merge would have been most expensive.
-    'sk': ('sk 电信', 'sk하이닉스'),
+DISTINCT_EMPLOYER_SLUG_COLLISIONS: dict[str, tuple[str, ...]] = {
+    # EMPTY, AND EVERY ENTRY THAT WAS HERE WAS RETIRED ON 2026-09-06 BECAUSE
+    # THE SLUG STOPPED LOSING THE NAME, not because anyone decided differently.
+    # tit_company_slug romanises Hangul now, so each of these gets its own URL
+    # and there is no collision left for this report to classify:
+    #
+    #   'ai'   '오픈ai' -> opeun-ai            '페르소나ai' -> pereusona-ai
+    #          OpenAI in the Korean press, and Persona AI, the Korean
+    #          defence-tech startup raising from LIG Nex1.
+    #   'bnk'  'bnk 피어엑스' -> bnk-pieoekseu   'bnk캐피탈' -> bnk-kaepital
+    #          BNK PierX (renamed PierX Co.) and BNK Capital, two subsidiaries
+    #          of BNK Financial Group with separate CEOs.
+    #   'fc'   '창원fc' -> changwon-fc          '화성fc' -> hwaseong-fc
+    #          Two municipal South Korean football clubs.
+    #   'sk'   'sk 电信' -> sk                  'sk하이닉스' -> sk-hainikseu
+    #          SK Telecom and SK Hynix, and the pair where a careless merge
+    #          would have been most expensive.
+    #
+    # ALL FOUR WERE FOUND BY A TEST, NOT BY A REVIEW, and that is the part
+    # worth keeping. A registry keyed on a derived value goes stale silently
+    # when the value moves: ops_status looks these up by slug, the lookups had
+    # all been missing for as long as the romaniser has existed, and the
+    # symptom was the report saying "0 held by two DIFFERENT employers" — a
+    # true sentence that read like an all-clear and was really an empty
+    # lookup. tests/test_employer_homonyms.py::
+    # test_every_reviewed_collision_key_is_claimed_by_a_live_employer is the
+    # guard, and it has caught five real instances (these four plus the NH
+    # pair above) rather than starting life as a clean zero.
+    #
+    # KEEP THIS DICT AND ITS HEADER. The defect class is not gone, it is only
+    # gone for Hangul: tit_company_slug still deletes Han, Hebrew and Arabic,
+    # so the next two employers whose names are written in one of those will
+    # collapse onto one slug exactly as these did. The rule for a new entry is
+    # unchanged and it is the important one: these pairs are DIFFERENT
+    # employers, choosing a survivor would destroy one, and the fix is
+    # tit_company_slug rather than an alias.
 }
 
 
@@ -1585,7 +1717,7 @@ def _strip_backer_prefix(k: str) -> str:
     return stripped if stripped else k
 
 
-def company_key(name: str) -> str:
+def company_key(name: str, *, industry: str | None = None) -> str:
     """Stable join key for a company. Strips common legal suffixes so
     'Acme Inc.' and 'Acme, Inc' collapse to one employer.
 
@@ -1635,6 +1767,16 @@ def company_key(name: str) -> str:
 
     The last step applies EMPLOYER_KEY_ALIASES, three curated merges of one
     employer recorded under two spellings. See the note above that map.
+
+    `industry` IS OPTIONAL AND CHANGES NOTHING FOR ANY NAME THAT IS NOT A KNOWN
+    HOMONYM. It exists because two employers can genuinely share a name, and a
+    function that sees only the string cannot tell them apart; see
+    HOMONYM_EMPLOYER_KEYS. Callers that hold a row pass it; callers that hold
+    only a name (a recall match, a landmark lookup, an ATS board) do not, and
+    they get the ambiguous base key, which is the honest answer to a question
+    asked with too little information. Every other key in the corpus is byte
+    identical with and without it, and test_employer_homonyms proves that over
+    the whole stored corpus rather than by assertion.
     """
     k = _key(name)
     k = re.sub(r"[^\w\s&-]", " ", k)
@@ -1648,7 +1790,17 @@ def company_key(name: str) -> str:
     # After the suffix strip, never before: the alias is written in the form the
     # rest of this function produces, so a reader can check an entry against a
     # stored key by eye.
-    return EMPLOYER_KEY_ALIASES.get(k, k)
+    k = EMPLOYER_KEY_ALIASES.get(k, k)
+    # AFTER the alias map, so a non-Latin spelling of a homonym reaches its
+    # branch in two documented steps ('인디고' -> 'indigo' -> 'indigo airline')
+    # instead of needing a second entry in every map.
+    branches = HOMONYM_EMPLOYER_KEYS.get(k)
+    if branches is None:
+        return k
+    # .get with no default: an industry this registry does not name leaves the
+    # row on the ambiguous key, where ops_status [1c] reports it. This is the
+    # third state, and it is not a failure.
+    return branches.get((industry or '').strip().lower(), k)
 
 
 # --- Funding stage ---------------------------------------------------------
