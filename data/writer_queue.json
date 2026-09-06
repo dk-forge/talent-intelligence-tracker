@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-06T18:09:37Z",
-  "last_tick": "2026-09-06T18:09:37Z",
+  "last_dispatch": "2026-09-06T18:38:52Z",
+  "last_tick": "2026-09-06T18:38:52Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -216,37 +216,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-06T18:09:37Z",
-      "history": [
-        {
-          "at": "2026-09-06T16:54:48Z",
-          "detail": "resume backfill-gnews-2026:2026-01-01..2026-07-26 at 2026-07-13, 4 slices to finish; ration BLANK so the budget-derived 13/day-window applies (not the recorded 37), ceiling $0.0115/slice = $0.046 to finish. Re-enqueued: the first attempt was evicted out of drain-writers own pending slot by a dispatch 5s later",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-06T18:09:37Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260906T165448Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "resume backfill-gnews-2026:2026-01-01..2026-07-26 at 2026-07-13, 4 slices to finish; ration BLANK so the budget-derived 13/day-window applies (not the recorded 37), ceiling $0.0115/slice = $0.046 to finish. Re-enqueued: the first attempt was evicted out of drain-writers own pending slot by a dispatch 5s later",
-      "requested_at": "2026-09-06T16:54:48Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -299,12 +268,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-06T18:38:52Z",
       "history": [
         {
           "at": "2026-09-06T18:23:47Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-06T18:38:52Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260906T182347Z-archive-sources",
@@ -316,7 +290,7 @@
       "requested_at": "2026-09-06T18:23:47Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
     {
@@ -344,44 +318,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "backfill-gnews-2026.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-08-28T01:21:40Z",
-      "history": [
-        {
-          "at": "2026-08-28T01:21:37Z",
-          "detail": "re-queue 20260827T180302Z-tripwire: run 33109280109 failed only in the spend-ceiling notice step, which carried the old WP credentials instead of RESEND_API_KEY after the 2026-08-20 mail move; fixed on main at d5a8788, re-running so the notice sends and the chain lands",
-          "event": "queued"
-        },
-        {
-          "at": "2026-08-28T01:21:40Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-08-28T01:22:24Z",
-          "detail": "run 33132620831",
-          "event": "bound"
-        },
-        {
-          "at": "2026-08-28T01:22:24Z",
-          "detail": "run 33132620831",
-          "event": "landed"
-        }
-      ],
-      "id": "20260828T012137Z-tripwire",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-08-28T01:22:24Z",
-      "priority": 0,
-      "reason": "re-queue 20260827T180302Z-tripwire: run 33109280109 failed only in the spend-ceiling notice step, which carried the old WP credentials instead of RESEND_API_KEY after the 2026-08-20 mail move; fixed on main at d5a8788, re-running so the notice sends and the chain lands",
-      "requested_at": "2026-08-28T01:21:37Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33132620831",
-      "state": "landed",
-      "workflow": "tripwire.yml"
     },
     {
       "attempts": 0,
@@ -2593,6 +2529,48 @@
       "requested_at": "2026-09-06T16:52:32Z",
       "requested_by": "dakotta-labs",
       "run_id": "34049332609",
+      "state": "landed",
+      "workflow": "backfill-gnews-2026.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-06T18:09:37Z",
+      "history": [
+        {
+          "at": "2026-09-06T16:54:48Z",
+          "detail": "resume backfill-gnews-2026:2026-01-01..2026-07-26 at 2026-07-13, 4 slices to finish; ration BLANK so the budget-derived 13/day-window applies (not the recorded 37), ceiling $0.0115/slice = $0.046 to finish. Re-enqueued: the first attempt was evicted out of drain-writers own pending slot by a dispatch 5s later",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-06T18:09:37Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-06T18:38:52Z",
+          "detail": "run 34050827405",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-06T18:38:52Z",
+          "detail": "run 34050827405",
+          "event": "landed"
+        }
+      ],
+      "id": "20260906T165448Z-backfill-gnews-2026",
+      "inputs": {
+        "dry_run": "false",
+        "end": "2026-07-26",
+        "fetch_only": "false",
+        "ration": "",
+        "start": "2026-01-01"
+      },
+      "landed_at": "2026-09-06T18:38:52Z",
+      "priority": 10,
+      "reason": "resume backfill-gnews-2026:2026-01-01..2026-07-26 at 2026-07-13, 4 slices to finish; ration BLANK so the budget-derived 13/day-window applies (not the recorded 37), ceiling $0.0115/slice = $0.046 to finish. Re-enqueued: the first attempt was evicted out of drain-writers own pending slot by a dispatch 5s later",
+      "requested_at": "2026-09-06T16:54:48Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34050827405",
       "state": "landed",
       "workflow": "backfill-gnews-2026.yml"
     },
