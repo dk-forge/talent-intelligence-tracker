@@ -10,6 +10,11 @@
       "last": 1788716343,
       "subject": "CI RED: backfill-gdelt-2026: [backfill-gdelt-2026.yml] gate labels: 22 decision(s) recorded for the classifier training set (data/gate_labels/)"
     },
+    "backfill-gnews-2026:main:a047230c7fc280e6": {
+      "first": 1788728374,
+      "last": 1788728374,
+      "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
+    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -21,6 +26,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-06T19:18:05+00:00",
+  "updated_at": "2026-09-06T20:59:35+00:00",
   "version": 1
 }
