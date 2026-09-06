@@ -2381,7 +2381,7 @@
       "slice_size": 4,
       "slices": 3,
       "start": "2026-07-13",
-      "state": "running",
+      "state": "stalled",
       "totals": {
         "duplicates": 22,
         "left_for_later": 7496,
@@ -2390,7 +2390,7 @@
         "windows": 12
       },
       "unit": "days",
-      "updated_at": "2026-09-06T20:28:35Z",
+      "updated_at": "2026-09-06T20:59:05Z",
       "workflow": "backfill-gnews-2026.yml"
     },
     "backfill-press-2026:2026-01-01..2026-06-30:0..16": {
