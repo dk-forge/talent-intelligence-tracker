@@ -1,25 +1,7 @@
 {
-  "last_dispatch": "2026-09-05T18:47:52Z",
-  "last_tick": "2026-09-05T18:47:52Z",
+  "last_dispatch": "2026-09-06T08:56:05Z",
+  "last_tick": "2026-09-06T08:56:05Z",
   "orphans": [
-    {
-      "created_at": "2026-07-29T07:05:35Z",
-      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
-      "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-30T05:38:04Z",
-      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
-      "run_id": "30430391475",
-      "workflow": "collect"
-    },
-    {
-      "created_at": "2026-07-29T06:56:12Z",
-      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
-      "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-30T05:39:05Z",
-      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
-      "run_id": "30429827776",
-      "workflow": "enrich"
-    },
     {
       "created_at": "2026-07-29T06:56:09Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
@@ -39,24 +21,6 @@
       "workflow": "correct-sec-pillar"
     },
     {
-      "created_at": "2026-07-29T06:35:58Z",
-      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
-      "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-30T05:39:30Z",
-      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
-      "run_id": "30428695347",
-      "workflow": "recall"
-    },
-    {
-      "created_at": "2026-07-29T06:27:29Z",
-      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
-      "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-30T05:40:10Z",
-      "resolved_note": "orphaned 2026-07-29 eviction; correction workflow, NOT replayed because GitHub does not expose a dispatched runs inputs and these default to dry_run=true; outstanding corrections are queued separately (by dakotta-labs)",
-      "run_id": "30428223266",
-      "workflow": "correct-sec-pillar"
-    },
-    {
       "created_at": "2026-07-29T06:24:20Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T07:23:42Z",
@@ -64,15 +28,6 @@
       "resolved_note": "Triaged 2026-07-29: all 15 were evictions from the one-pending-slot bug. The two that mattered (correct-form-d, correct-sec-pillar) are re-queued with explicit dry_run=false; recall re-ran; collect and the backfills run on their own schedules. (by dakotta-labs)",
       "run_id": "30428056186",
       "workflow": "enrich"
-    },
-    {
-      "created_at": "2026-07-29T05:55:56Z",
-      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
-      "noticed_at": "2026-07-29T07:23:42Z",
-      "resolved": "2026-07-30T05:40:36Z",
-      "resolved_note": "orphaned 2026-07-29 eviction; correction workflow, NOT replayed because GitHub does not expose a dispatched runs inputs and these default to dry_run=true; outstanding corrections are queued separately (by dakotta-labs)",
-      "run_id": "30426534748",
-      "workflow": "correct-form-d"
     },
     {
       "created_at": "2026-07-29T05:41:56Z",
@@ -138,6 +93,42 @@
       "workflow": "backfill-funding-2026"
     },
     {
+      "created_at": "2026-07-29T09:51:08Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T09:55:39Z",
+      "resolved": "2026-07-29T10:54:16Z",
+      "resolved_note": "Both were direct (cron) dispatches evicted while the GDELT backfill held the lock. enrich already re-ran successfully from the queue at 10:51; collect national press is being re-queued through drain-writers so it cannot be evicted again. (by dakotta-labs)",
+      "run_id": "30441306949",
+      "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-07-29T07:05:35Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "resolved": "2026-07-30T05:38:04Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
+      "run_id": "30430391475",
+      "workflow": "collect"
+    },
+    {
+      "created_at": "2026-07-29T06:56:12Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "resolved": "2026-07-30T05:39:05Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
+      "run_id": "30429827776",
+      "workflow": "enrich"
+    },
+    {
+      "created_at": "2026-07-29T06:35:58Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "resolved": "2026-07-30T05:39:30Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; cron job, later scheduled runs covered the same ground; not replayed (by dakotta-labs)",
+      "run_id": "30428695347",
+      "workflow": "recall"
+    },
+    {
       "created_at": "2026-07-29T07:18:22Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
       "noticed_at": "2026-07-29T09:51:29Z",
@@ -147,13 +138,22 @@
       "workflow": "enrich"
     },
     {
-      "created_at": "2026-07-29T09:51:08Z",
+      "created_at": "2026-07-29T06:27:29Z",
       "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
-      "noticed_at": "2026-07-29T09:55:39Z",
-      "resolved": "2026-07-29T10:54:16Z",
-      "resolved_note": "Both were direct (cron) dispatches evicted while the GDELT backfill held the lock. enrich already re-ran successfully from the queue at 10:51; collect national press is being re-queued through drain-writers so it cannot be evicted again. (by dakotta-labs)",
-      "run_id": "30441306949",
-      "workflow": "collect national press"
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "resolved": "2026-07-30T05:40:10Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; correction workflow, NOT replayed because GitHub does not expose a dispatched runs inputs and these default to dry_run=true; outstanding corrections are queued separately (by dakotta-labs)",
+      "run_id": "30428223266",
+      "workflow": "correct-sec-pillar"
+    },
+    {
+      "created_at": "2026-07-29T05:55:56Z",
+      "detail": "displaced from the pending slot; inputs unknowable, so it cannot be replayed automatically",
+      "noticed_at": "2026-07-29T07:23:42Z",
+      "resolved": "2026-07-30T05:40:36Z",
+      "resolved_note": "orphaned 2026-07-29 eviction; correction workflow, NOT replayed because GitHub does not expose a dispatched runs inputs and these default to dry_run=true; outstanding corrections are queued separately (by dakotta-labs)",
+      "run_id": "30426534748",
+      "workflow": "correct-form-d"
     },
     {
       "created_at": "2026-07-31T09:52:33Z",
@@ -213,12 +213,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-06T08:56:05Z",
       "history": [
         {
           "at": "2026-09-06T04:48:32Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-06T08:56:05Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260906T044832Z-archive-sources",
@@ -230,7 +235,7 @@
       "requested_at": "2026-09-06T04:48:32Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
     {
