@@ -2822,14 +2822,24 @@ function tit_signal_defs() {
  * Row definitions use existing columns only, and they OVERLAP by design (a
  * funded employer can also be hiring), which the note under the matrix says
  * out loud so the columns are not read as sums:
- *   Hiring up          signal_direction = 'hiring'
- *   Funding raised     funding_amount present
- *   Leadership moves   pillar = 'leadership_change'
- *   Pay changes        signal_direction = 'comp_shift' — the direction column,
- *                      NOT pillar = 'rewards_comp': direction is a closed
- *                      vocabulary the pipeline always sets, and it also
- *                      catches a pay change filed under another pillar.
- *   All updates        every row in the period (the emphasised total row)
+ * READ tit_signal_defs() FOR THE PREDICATES. This block described three of the
+ * six rows with SQL the function has not held for some time, which is worse
+ * than no list at all: a reader auditing the board against its own docblock
+ * would have "found" two defects that are not there and missed the one that
+ * was. What the rows actually are, as of 2026-09-06:
+ *   Adding Roles       signal_direction = 'hiring'          -> direction=hiring
+ *   Funding Rounds     tit_funding_where(): an amount OR a stage, so a round
+ *                      announced without a figure counts    -> funding=1
+ *   Total Raised       SUM over tit_money_where(), i.e. money_basis =
+ *                      'company_raise' alone                -> funding=1 plus
+ *                      that basis, which is the pair the link has to carry
+ *   Leadership Moves   pillar = 'leadership_change'         -> pillar=...
+ *   Pay and Benefits   pillar = 'rewards_comp'              -> pillar=...
+ *   Everything in This View   every row in the period (the emphasised total)
+ *
+ * Each row's cell SQL and the filter its cell links to are the two halves of
+ * one claim, and they are written side by side in tit_signal_defs() so they
+ * cannot be edited apart.
  *
  * One query, not twenty-five: conditional aggregation over the widest window,
  * one SUM per cell. Dates come from published_date, the date the source

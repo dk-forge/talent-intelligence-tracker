@@ -2,6 +2,62 @@
 
 ---
 
+## 2026-09-06: the Deal Type control served three values under their stored names, and a date filter of the right shape but no such day was silently dropped (branch `filters-deal-type-labels-and-calendar-dates`, PR open, not merged)
+
+A filter-and-totals audit of the live dashboard. The live half is clean: 20
+single filter values across every family and 8 two-filter combinations all
+returned rows that satisfy the filter, and `/aggregate`'s total equalled
+`/query`'s own reported total on every one of the 28. All 11 sort keys answered
+200 with the same total. Two offline defects, both fixed here.
+
+**1. `DEAL_TYPE_LABEL` was four values short of `tit_allowed_deal_types()`.**
+`fund_raise`, `outbound_investment`, `state_funding` and `pledge` are
+`vocab.DEAL_TYPES` members because `pipeline/money_raised.py` stores its verdict
+in the deal_type column by design. `/facets` served three of the four in
+`deal_types` on 2026-09-06, so the Deal Type control on the live page listed
+them as `fund_raise`, `outbound_investment` and `state_funding`, and a chip read
+the same, while the identical value picked from Kind of Money read "Fund Close"
+or "Government Funding". One value, two names, decided by which control the
+reader touched.
+
+The existing parity test `test_every_basis_a_reader_can_pick_has_words` walks
+this same vocabulary and passed throughout, because it reads `MONEY_BASIS_LABEL`
+and only that. A scan sharing its target's blind spot.
+`test_every_deal_type_a_reader_can_pick_has_words` reads the deal-type map
+against the API's own list. Proved by mutation: deleting the `state_funding`
+line from the deal-type map reds the new test alone, deleting it from the money
+map reds the old one alone.
+
+**2. `since` / `until` accepted the shape and not the day.** The rule was
+`/^\d{4}-\d{2}-\d{2}$/`, so `until=2026-02-30` reached MySQL and was compared
+against an invalid date. `since=2026-02-29` was worse than lenient: the WHERE
+clause dropped the filter and the endpoint answered THE UNFILTERED TOTAL under
+the label the caller asked for. A `calendar` flag on those two rules runs
+`checkdate()` after the pattern; `2024-02-29` still passes because a leap day is
+a real day. `tests/php/filter_validation.php` covers five bad dates and the real
+leap day, and reds without the flag.
+
+Also corrected: the `tit_glance_matrix()` docblock described three of the six
+board rows with SQL the function has not held for some time (it claimed Pay
+changes read `signal_direction = 'comp_shift'`, where the code reads
+`pillar = 'rewards_comp'`). The cells and their links always agreed with each
+other; only the docblock disagreed with both.
+
+**Named, not fixed:** every clickable chart repaints from `/aggregate` under the
+filter it sets, so clicking one industry leaves the industry chart showing a
+single bar at 100%. The counts are true under the filters and the click is
+reversible, so this is a design question rather than a wrong number, but the
+same endpoint already gives `detail` and `stated_headcount` an `$ignore` pass
+for exactly the "a control must not count itself" reason.
+
+**UNKNOWN:** a SQL-ish `q` (`a' OR 1=1 -- x`) is answered 406 by the host's
+ModSecurity before WordPress sees it, so this repo's own handling of that string
+is untested from outside. Unicode, quotes and tags, and a 280-character `q` all
+returned 200 with an empty result set. Live testing stopped at the 406, as the
+pacing rule requires.
+
+---
+
 ## 2026-09-06: the CI alert and self-heal listeners admitted a fork's run with the fork's own text in their shell (branch `ci-listeners-same-repo-only`, PR open, not merged)
 
 `ci-alert.yml` listens on `workflow_run: workflows: ['*']`, which also fires

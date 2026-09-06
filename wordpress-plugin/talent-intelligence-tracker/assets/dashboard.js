@@ -355,7 +355,27 @@
     divestiture: 'Divestiture', joint_venture: 'Joint Venture',
     ipo: 'Initial Public Offering',
     bond_issue: 'Bond Issue', public_offering: 'Public Share Offering',
-    project_finance: 'Project Financing'
+    project_finance: 'Project Financing',
+    // THE FOUR MONEY-BASIS KINDS, which are deal_type values too and had no
+    // entry here until 2026-09-06. pipeline/money_raised.py stores its verdict
+    // in BOTH columns on purpose ("the verdict's home is the deal_type
+    // column"), so /facets offers fund_raise, outbound_investment and
+    // state_funding in the Deal Type control on the live site today. With no
+    // label the control listed them under their stored names and a chip read
+    // `state_funding`, while the same value picked from Kind of Money read
+    // "Government Funding": one value, two names, decided by which control the
+    // reader touched. The parity test beside the money map now walks the
+    // deal-type vocabulary as well, which is what would have caught this.
+    //
+    // These four DO read the same in both controls, and that is right rather
+    // than the collision the IPO note above is about: for them the two columns
+    // carry ONE verdict from one module, so "Fund Close" answers both "what
+    // happened" and "what is this figure". ipo and acquisition are the case
+    // where the two genuinely differ, and they still differ.
+    fund_raise: 'Fund Close',
+    outbound_investment: 'Outbound Investment',
+    state_funding: 'Government Funding',
+    pledge: 'Investment Pledge'
   };
 
   // WHAT THE DOLLARS ON A ROW ACTUALLY ARE, which is a different question from
