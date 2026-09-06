@@ -689,7 +689,7 @@
       "slice_size": 4,
       "slices": 52,
       "start": "2026-01-01",
-      "state": "running",
+      "state": "stalled",
       "totals": {
         "duplicates": 138,
         "rejected": 1832,
@@ -697,7 +697,7 @@
         "windows": 194
       },
       "unit": "days",
-      "updated_at": "2026-09-06T17:38:29Z",
+      "updated_at": "2026-09-06T19:17:41Z",
       "workflow": "backfill-gdelt-2026.yml"
     },
     "backfill-gnews-2026:2026-01-01..2026-07-26": {
