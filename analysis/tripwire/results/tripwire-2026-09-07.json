@@ -1,0 +1,439 @@
+{
+ "ran_at": "2026-09-07T13:48:19+00:00",
+ "ran_on": "2026-09-07",
+ "plan": {
+  "cycle": 500,
+  "planned_on": "2026-09-07",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-08-31 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "TH",
+    "name": "Thailand",
+    "tier": "zero",
+    "measured": {
+     "total": 2,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "TR",
+    "name": "Turkey",
+    "tier": "zero",
+    "measured": {
+     "total": 2,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "TW",
+    "name": "Taiwan",
+    "tier": "zero",
+    "measured": {
+     "total": 2,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "HU",
+    "name": "Hungary",
+    "tier": "weak",
+    "measured": {
+     "total": 3,
+     "held": 1,
+     "held_pct": 33.3
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "TH",
+   "tier": "zero",
+   "measured": {
+    "total": 2,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "TR",
+   "tier": "zero",
+   "measured": {
+    "total": 2,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "TW",
+   "tier": "zero",
+   "measured": {
+    "total": 2,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "HU",
+   "tier": "weak",
+   "measured": {
+    "total": 3,
+    "held": 1,
+    "held_pct": 33.3
+   }
+  }
+ ],
+ "counts": {
+  "leads": 13,
+  "held": 3,
+  "missing": 10,
+  "unusable": 0,
+  "usable": 13
+ },
+ "by_country": {
+  "TW": {
+   "leads": 5,
+   "held": 0,
+   "missing": 5,
+   "unusable": 0
+  },
+  "TR": {
+   "leads": 4,
+   "held": 1,
+   "missing": 3,
+   "unusable": 0
+  },
+  "HU": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  },
+  "TH": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0225,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0017,
+  "usd_per_candidate_miss": 0.0023,
+  "lifetime_usd": 0.2729,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:TH",
+   "leads": 2,
+   "usd": 0.00548,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 148,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:TR",
+   "leads": 5,
+   "usd": 0.00575,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 420,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:TW",
+   "leads": 5,
+   "usd": 0.00568,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 344,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:HU",
+   "leads": 3,
+   "usd": 0.0056,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 263,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "TH",
+   "dimension_tier": "zero",
+   "claimed_company": "Thaicom",
+   "claimed_country": "TH",
+   "claimed_city": "Bangkok",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-07-13",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "TFEX",
+   "claimed_url": "https://www.tfex.co.th/en/market-data/news-and-notice/trading-notice/newsdetails?id=105402700&symbol=THCOM",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TH",
+   "dimension_tier": "zero",
+   "claimed_company": "Bayer (Thailand) Ltd.",
+   "claimed_country": "TH",
+   "claimed_city": "Bangkok",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-07-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "ThaiRath",
+   "claimed_url": "https://en.thairath.co.th/news/local/2943288",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "6ac45e5e0853c84d114d0c85a0c61083",
+    "company": "Bayer",
+    "pillar": "how_we_work",
+    "country": "CL",
+    "published_date": "2026-08-24",
+    "source_url": "https://www.larepublica.net/bayer-anuncia-215-nuevos-puestos-en-su-centro-de-servicios-compartidos/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TR",
+   "dimension_tier": "zero",
+   "claimed_company": "HubX",
+   "claimed_country": "TR",
+   "claimed_city": "Izmir",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-29",
+   "claimed_amount": "$75M",
+   "claimed_stage": "",
+   "claimed_outlet": "T\u00fcrkiye Today",
+   "claimed_url": "https://www.turkiyetoday.com/business/hubx-becomes-turkiyes-8th-unicorn-after-75m-overseas-investment-3227035",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "8e1cb777e37525b222e6dc2a54131d82",
+    "company": "HubX",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-28",
+    "source_url": "https://app.[dp-c8cff1].co/news/note/hubx-raises-75m-series-a-at-1-28b-valuation-joining-unicorn-ranks"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TR",
+   "dimension_tier": "zero",
+   "claimed_company": "Surge Games",
+   "claimed_country": "TR",
+   "claimed_city": "Istanbul",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-25",
+   "claimed_amount": "$3M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "PocketGamer.biz",
+   "claimed_url": "https://www.pocketgamer.biz/surge-games-raises-3m-pre-seed-to-build-ai-native-mobile-games/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TR",
+   "dimension_tier": "zero",
+   "claimed_company": "kayIQ.ai",
+   "claimed_country": "TR",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-17",
+   "claimed_amount": "$500,000",
+   "claimed_stage": "seed",
+   "claimed_outlet": "The SaaS News",
+   "claimed_url": "https://www.thesaasnews.com/news/kayiq-ai-raises-500000-seed/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TR",
+   "dimension_tier": "zero",
+   "claimed_company": "ICU Giri\u015fim Sermayesi Yat\u0131r\u0131m Ortakl\u0131\u011f\u0131 A.\u015e.",
+   "claimed_country": "TR",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-26",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "TipRanks",
+   "claimed_url": "https://www.tipranks.com/news/company-announcements/icu-venture-capital-firm-implements-unanimous-board-leadership-changes",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TW",
+   "dimension_tier": "zero",
+   "claimed_company": "Nextlink Technology",
+   "claimed_country": "TW",
+   "claimed_city": "Taipei",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-27",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Nextlink Cloud",
+   "claimed_url": "https://www.nextlink.cloud/en/news/nextlink-appoints-jerry-chen-as-ceo-to-drive-its-next-phase-of-ai-led-growth/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TW",
+   "dimension_tier": "zero",
+   "claimed_company": "Origins Network",
+   "claimed_country": "TW",
+   "claimed_city": "Taichung",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-05-28",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Business Insider",
+   "claimed_url": "https://markets.businessinsider.com/news/stocks/origins-network-appoints-robles-carlos-as-ceo-doubling-down-on-blockchain-infrastructure-and-ai-driven-user-growth-1036201520",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TW",
+   "dimension_tier": "zero",
+   "claimed_company": "Xgene Pharmaceutical",
+   "claimed_country": "TW",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-07-28",
+   "claimed_amount": "NT$7691",
+   "claimed_stage": "Series D",
+   "claimed_outlet": "[dp-288518]",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TW",
+   "dimension_tier": "zero",
+   "claimed_company": "Fontrip Technology Co., Ltd.",
+   "claimed_country": "TW",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-07-29",
+   "claimed_amount": "NT$180 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Findit",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TW",
+   "dimension_tier": "zero",
+   "claimed_company": "Astron Medtech Co., Ltd",
+   "claimed_country": "TW",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-25",
+   "claimed_amount": "US$2.5 million",
+   "claimed_stage": "Seed+",
+   "claimed_outlet": "Findit",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "HU",
+   "dimension_tier": "weak",
+   "claimed_company": "Ominimo",
+   "claimed_country": "HU",
+   "claimed_city": "Budapest",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-07-28",
+   "claimed_amount": "$22.5M",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "The Insurer",
+   "claimed_url": "https://www.theinsurer.com/ti/news/hungarian-insurtech-ominimo-valued-at-16-billion-in-ebrd-led-round-2026-07-28/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "734d99623f823e79e2d549649cd1abdf",
+    "company": "Ominimo",
+    "pillar": "company_development",
+    "country": "RS",
+    "published_date": "2026-07-27",
+    "source_url": "https://www.therecursive.com/1st-serbian-unicorn-ominimo-1-6b-valuation-ebrd-series-b/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "HU",
+   "dimension_tier": "weak",
+   "claimed_company": "KPMG Hungary",
+   "claimed_country": "HU",
+   "claimed_city": "Budapest",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-07-05",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "KPMG Hungary",
+   "claimed_url": "https://kpmg.com/hu/en/media/press-releases/2026/07/agnes-rako-appointed-as-new-ceo.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
