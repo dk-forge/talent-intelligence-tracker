@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-08-31T16:09:02+00:00",
- "measured_on": "2026-08-31",
+ "generated_at": "2026-09-07T14:16:18+00:00",
+ "measured_on": "2026-09-07",
  "goldset_version": "2026-06-us-v1",
  "gold_events": 51,
- "misses": 29,
+ "misses": 28,
  "feed_backlog_days": 3,
  "catalogue_rows": 1333,
  "feeds_swept": 652,
@@ -33,16 +33,16 @@
   "uk_paygap": "2026-07-28"
  },
  "walked_through": {
-  "gdelt": "2026-06-28",
-  "google_news": "2026-07-12",
+  "gdelt": "2026-06-30",
+  "google_news": "2026-07-24",
   "press_archive": "2026-07-30"
  },
  "stages": {
   "stored_unmatched": 0,
   "stored_not_current": 0,
-  "fetched_then_dropped": 2,
-  "outside_our_history": 2,
-  "walked_never_read": 25,
+  "fetched_then_dropped": 1,
+  "outside_our_history": 0,
+  "walked_never_read": 27,
   "feed_read_item_missed": 0,
   "publisher_not_wired": 0,
   "publisher_unknown": 0
@@ -58,37 +58,37 @@
   "publisher_unknown": "source (not researched)"
  },
  "split": {
-  "filter": 2,
+  "filter": 1,
   "source": 0,
-  "history": 2,
-  "budget": 25,
+  "history": 0,
+  "budget": 27,
   "neither": 0
  },
  "sensitivity_to_feed_backlog_days": {
   "1": {
-   "outside_our_history": 2,
-   "walked_never_read": 25,
+   "outside_our_history": 0,
+   "walked_never_read": 27,
    "feed_read_item_missed": 0,
    "publisher_not_wired": 0,
    "publisher_unknown": 0
   },
   "3": {
-   "outside_our_history": 2,
-   "walked_never_read": 25,
+   "outside_our_history": 0,
+   "walked_never_read": 27,
    "feed_read_item_missed": 0,
    "publisher_not_wired": 0,
    "publisher_unknown": 0
   },
   "7": {
-   "outside_our_history": 2,
-   "walked_never_read": 25,
+   "outside_our_history": 0,
+   "walked_never_read": 27,
    "feed_read_item_missed": 0,
    "publisher_not_wired": 0,
    "publisher_unknown": 0
   },
   "14": {
-   "outside_our_history": 2,
-   "walked_never_read": 21,
+   "outside_our_history": 0,
+   "walked_never_read": 23,
    "feed_read_item_missed": 1,
    "publisher_not_wired": 3,
    "publisher_unknown": 0
@@ -96,9 +96,8 @@
  },
  "by_country": {
   "US": {
-   "walked_never_read": 25,
-   "outside_our_history": 2,
-   "fetched_then_dropped": 2
+   "walked_never_read": 27,
+   "fetched_then_dropped": 1
   }
  },
  "cell_label": "metros",
@@ -107,16 +106,14 @@
    "walked_never_read": 3
   },
   "New York": {
-   "walked_never_read": 7,
-   "outside_our_history": 1
+   "walked_never_read": 8
   },
   "Rest of US": {
    "walked_never_read": 6,
-   "fetched_then_dropped": 2
+   "fetched_then_dropped": 1
   },
   "San Francisco": {
-   "walked_never_read": 9,
-   "outside_our_history": 1
+   "walked_never_read": 10
   }
  },
  "unwired_publishers": [],
@@ -131,7 +128,7 @@
    "domain": "fortune.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 72,
+   "urls_fetched_from_this_domain": 84,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -152,7 +149,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 88,
+   "urls_fetched_from_this_domain": 104,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -213,7 +210,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 88,
+   "urls_fetched_from_this_domain": 104,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -234,7 +231,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 88,
+   "urls_fetched_from_this_domain": 104,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -255,7 +252,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 88,
+   "urls_fetched_from_this_domain": 104,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -279,6 +276,7 @@
    "urls_fetched_from_this_domain": 2,
    "live_routes": [],
    "walkers_past_this_date": [
+    "gdelt",
     "google_news"
    ],
    "stage": "walked_never_read",
@@ -295,7 +293,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 88,
+   "urls_fetched_from_this_domain": 104,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -315,10 +313,12 @@
    "domain": "pulse2.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 204,
+   "urls_fetched_from_this_domain": 245,
    "live_routes": [],
-   "walkers_past_this_date": [],
-   "stage": "outside_our_history",
+   "walkers_past_this_date": [
+    "google_news"
+   ],
+   "stage": "walked_never_read",
    "earliest_reachable": "2026-07-20",
    "widest_route": "google_news",
    "cell": "San Francisco"
@@ -332,7 +332,7 @@
    "domain": "fortune.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 72,
+   "urls_fetched_from_this_domain": 84,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -353,7 +353,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -373,7 +373,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -414,8 +414,10 @@
    "domain_in_catalogue": false,
    "urls_fetched_from_this_domain": 0,
    "live_routes": [],
-   "walkers_past_this_date": [],
-   "stage": "outside_our_history",
+   "walkers_past_this_date": [
+    "google_news"
+   ],
+   "stage": "walked_never_read",
    "earliest_reachable": "2026-07-20",
    "widest_route": "google_news",
    "cell": "New York"
@@ -429,9 +431,10 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
+    "google_news",
     "press_archive"
    ],
    "stage": "walked_never_read",
@@ -448,9 +451,10 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
+    "google_news",
     "press_archive"
    ],
    "stage": "walked_never_read",
@@ -467,9 +471,10 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
+    "google_news",
     "press_archive"
    ],
    "stage": "walked_never_read",
@@ -506,7 +511,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -566,7 +571,7 @@
    "domain": "refreshmiami.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 23,
+   "urls_fetched_from_this_domain": 31,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -608,7 +613,7 @@
    "domain": "geekwire.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 34,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -628,9 +633,10 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 140,
+   "urls_fetched_from_this_domain": 148,
    "live_routes": [],
    "walkers_past_this_date": [
+    "google_news",
     "press_archive"
    ],
    "stage": "walked_never_read",
@@ -647,30 +653,15 @@
    "domain": "geekwire.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 28,
+   "urls_fetched_from_this_domain": 34,
    "live_routes": [],
    "walkers_past_this_date": [
+    "google_news",
     "press_archive"
    ],
    "stage": "walked_never_read",
    "earliest_reachable": "2026-07-20",
    "widest_route": "google_news",
-   "cell": "Rest of US"
-  },
-  {
-   "id": "rest_funding-12-atoms",
-   "country": "US",
-   "signal_type": "funding",
-   "event_date": "2026-07-24",
-   "publisher": "dot.LA",
-   "domain": "dot.la",
-   "domain_is_swept_feed": true,
-   "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 17,
-   "stage": "fetched_then_dropped",
-   "dropped_by": "national_press",
-   "outcome": "rejected",
-   "dropped_at": "gate_reject",
    "cell": "Rest of US"
   },
   {
@@ -689,7 +680,7 @@
    "cell": "Rest of US"
   }
  ],
- "verdict": "BUDGET, not sources: 25 of 29 misses fall on days a historical walker has already finished, so the event was available to us and the ration did not reach it. Only 0 are publishers no collector reads and only 2 predate every route. HIGH confidence that the day was walked, since a cursor is a fact on disk. MEDIUM that a deeper walk would hold the event: nothing records which candidates a rationed day left behind, so this names the stage and not the outcome.",
+ "verdict": "BUDGET, not sources: 27 of 28 misses fall on days a historical walker has already finished, so the event was available to us and the ration did not reach it. Only 0 are publishers no collector reads and only 0 predate every route. HIGH confidence that the day was walked, since a cursor is a fact on disk. MEDIUM that a deeper walk would hold the event: nothing records which candidates a rationed day left behind, so this names the stage and not the outcome.",
  "limits": [
   "A fetched-and-dropped item can be attributed only as far back as 2026-08-01, when pipeline/gate_ledger.py began recording a per-candidate outcome. Before that seen_urls holds a URL and the word 'rejected', and the keyword gate, the gate model, extraction, validate and dedupe all write exactly that.",
   "Nothing records the items a feed carried and a run did not reach, so 'feed_read_item_missed' is inferred from the publisher being swept, not observed.",

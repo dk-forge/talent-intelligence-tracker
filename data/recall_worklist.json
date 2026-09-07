@@ -1,21 +1,21 @@
 {
- "generated_at": "2026-08-31T16:06:42+00:00",
- "measured_on": "2026-08-31",
+ "generated_at": "2026-09-07T14:14:05+00:00",
+ "measured_on": "2026-09-07",
  "goldset_version": "2026-07-v2",
  "overall": {
   "total": 169,
   "found": 14,
-  "found_partial": 23,
-  "missed": 132,
-  "held": 37,
-  "held_pct": 21.9,
+  "found_partial": 31,
+  "missed": 124,
+  "held": 45,
+  "held_pct": 26.6,
   "clean_pct": 8.3,
   "held_interval": {
-   "pct": 21.9,
-   "low_pct": 16.3,
-   "high_pct": 28.7,
-   "width_pct": 12.4,
-   "successes": 37,
+   "pct": 26.6,
+   "low_pct": 20.5,
+   "high_pct": 33.8,
+   "width_pct": 13.2,
+   "successes": 45,
    "total": 169
   }
  },
@@ -65,12 +65,6 @@
   },
   {
    "key": "CN",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "DE",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
@@ -160,19 +154,7 @@
    "held_pct": 0.0
   },
   {
-   "key": "CH",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
    "key": "CR",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "CY",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -190,12 +172,6 @@
    "held_pct": 0.0
   },
   {
-   "key": "ES",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
    "key": "ET",
    "total": 1,
    "held": 0,
@@ -203,12 +179,6 @@
   },
   {
    "key": "FI",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "FR",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -398,14 +368,8 @@
   {
    "key": "US",
    "total": 34,
-   "held": 14,
-   "held_pct": 41.2
-  },
-  {
-   "key": "IL",
-   "total": 10,
-   "held": 4,
-   "held_pct": 40.0
+   "held": 16,
+   "held_pct": 47.1
   },
   {
    "key": "AU",
@@ -448,20 +412,20 @@
   {
    "key": "trade_press",
    "total": 96,
-   "held": 22,
-   "held_pct": 22.9
+   "held": 25,
+   "held_pct": 26.0
   },
   {
    "key": "national_news",
    "total": 33,
-   "held": 3,
-   "held_pct": 9.1
+   "held": 6,
+   "held_pct": 18.2
   },
   {
    "key": "press_release",
    "total": 30,
-   "held": 9,
-   "held_pct": 30.0
+   "held": 11,
+   "held_pct": 36.7
   },
   {
    "key": "filing",
@@ -474,20 +438,14 @@
   {
    "key": "non-US funding",
    "total": 92,
-   "held": 20,
-   "held_pct": 21.7
+   "held": 25,
+   "held_pct": 27.2
   },
   {
    "key": "non-US leadership",
    "total": 43,
-   "held": 3,
-   "held_pct": 7.0
-  },
-  {
-   "key": "US funding",
-   "total": 22,
-   "held": 9,
-   "held_pct": 40.9
+   "held": 4,
+   "held_pct": 9.3
   },
   {
    "key": "US leadership",
@@ -497,9 +455,9 @@
   }
  ],
  "field_defects": {
-  "country_missing": 16,
-  "amount_missing": 6,
-  "country_wrong": 2,
+  "country_missing": 21,
+  "amount_missing": 8,
+  "country_wrong": 5,
   "amount_mismatch": 1
  },
  "missed_examples": [
@@ -680,14 +638,6 @@
    "event_date": "2026-07-09"
   },
   {
-   "company": "Helsing",
-   "country": "DE",
-   "signal_type": "funding",
-   "source_name": "Tech.eu",
-   "source_url": "https://tech.eu/2026/07/13/european-defence-ai-leader-helsing-secures-18b-series-e-at-18b-valuation/",
-   "event_date": "2026-07-13"
-  },
-  {
    "company": "Holiday Robotics",
    "country": "KR",
    "signal_type": "funding",
@@ -776,14 +726,6 @@
    "event_date": "2026-07-15"
   },
   {
-   "company": "Oak",
-   "country": "IL",
-   "signal_type": "funding",
-   "source_name": "Globes",
-   "source_url": "https://en.globes.co.il/en/article-israeli-ai-cybersecurity-co-oak-raises-60m-1001549415",
-   "event_date": "2026-07-15"
-  },
-  {
    "company": "Starlight Engine",
    "country": "JP",
    "signal_type": "funding",
@@ -822,16 +764,32 @@
    "source_name": "PR Newswire",
    "source_url": "https://www.prnewswire.com/news-releases/senra-systems-announces-65-million-series-b-plans-for-third-manufacturing-facility-302825664.html",
    "event_date": "2026-07-15"
+  },
+  {
+   "company": "Hyperion Robotics",
+   "country": "FI",
+   "signal_type": "funding",
+   "source_name": "Finnish AI Region (FAIR EDIH)",
+   "source_url": "https://www.fairedih.fi/en/2026/07/16/hyperion-robotics-raises-e6-4m-to-bring-ai-powered-manufacturing-to-european-infrastructure/",
+   "event_date": "2026-07-16"
+  },
+  {
+   "company": "BlueNexus",
+   "country": "AU",
+   "signal_type": "funding",
+   "source_name": "SmartCompany (StartupSmart)",
+   "source_url": "https://www.smartcompany.com.au/startupsmart/australian-startup-raises-july-2026-bluenexus-hyades-esgaagent/",
+   "event_date": "2026-07-17"
   }
  ],
- "missed_total": 132,
+ "missed_total": 124,
  "next_goldset": {
-  "due": false,
-  "reason": "the current set is still current and still moving",
+  "due": true,
+  "reason": "the current set covers a window that closed 41 days ago, so it no longer describes what we reach today",
   "suggested_window": {
-   "start": "2026-07-01",
-   "end": "2026-07-31"
+   "start": "2026-08-01",
+   "end": "2026-08-31"
   },
-  "instruction": "Build a new recall gold set for 2026-07-01 to 2026-07-31 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-07.json with sealed=true, family=\"world\" and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
+  "instruction": "Build a new recall gold set for 2026-08-01 to 2026-08-31 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-08.json with sealed=true, family=\"world\" and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
  }
 }

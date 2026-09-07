@@ -1,33 +1,27 @@
 {
- "generated_at": "2026-08-31T16:08:57+00:00",
- "measured_on": "2026-08-31",
+ "generated_at": "2026-09-07T14:16:12+00:00",
+ "measured_on": "2026-09-07",
  "goldset_version": "2026-06-us-v1",
  "overall": {
   "total": 51,
   "found": 5,
-  "found_partial": 17,
-  "missed": 29,
-  "held": 22,
-  "held_pct": 43.1,
+  "found_partial": 18,
+  "missed": 28,
+  "held": 23,
+  "held_pct": 45.1,
   "clean_pct": 9.8,
   "held_interval": {
-   "pct": 43.1,
-   "low_pct": 30.5,
-   "high_pct": 56.7,
-   "width_pct": 26.2,
-   "successes": 22,
+   "pct": 45.1,
+   "low_pct": 32.3,
+   "high_pct": 58.6,
+   "width_pct": 26.3,
+   "successes": 23,
    "total": 51
   }
  },
  "spread_group": "by_metro",
  "zero_countries": [],
  "weak_countries": [
-  {
-   "key": "Rest of US",
-   "total": 14,
-   "held": 6,
-   "held_pct": 42.9
-  },
   {
    "key": "San Francisco",
    "total": 13,
@@ -45,8 +39,8 @@
   {
    "key": "trade_press",
    "total": 24,
-   "held": 10,
-   "held_pct": 41.7
+   "held": 11,
+   "held_pct": 45.8
   },
   {
    "key": "national_news",
@@ -59,12 +53,12 @@
   {
    "key": "US funding",
    "total": 51,
-   "held": 22,
-   "held_pct": 43.1
+   "held": 23,
+   "held_pct": 45.1
   }
  ],
  "field_defects": {
-  "country_missing": 13,
+  "country_missing": 14,
   "country_wrong": 3,
   "amount_mismatch": 1
  },
@@ -286,14 +280,6 @@
    "event_date": "2026-07-16"
   },
   {
-   "company": "Atoms",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "dot.LA",
-   "source_url": "https://dot.la/hadrian-valar-ai-infrastructure-funding-2677671747.html",
-   "event_date": "2026-07-24"
-  },
-  {
    "company": "TYBR Health",
    "country": "US",
    "signal_type": "funding",
@@ -302,14 +288,14 @@
    "event_date": "2026-07-28"
   }
  ],
- "missed_total": 29,
+ "missed_total": 28,
  "next_goldset": {
-  "due": false,
-  "reason": "the current set is still current and still moving",
+  "due": true,
+  "reason": "the current set covers a window that closed 38 days ago, so it no longer describes what we reach today",
   "suggested_window": {
-   "start": "2026-07-01",
-   "end": "2026-07-31"
+   "start": "2026-08-01",
+   "end": "2026-08-31"
   },
-  "instruction": "Build a new UNITED STATES recall gold set for 2026-07-01 to 2026-07-31 and seal it. Run eight INDEPENDENT research passes, one per metro and event type (San Francisco Bay Area, New York City, Austin, rest of the United States, each for funding and for leadership), every pass forbidden from consulting asktherecruiter.com, this repository, our database or our source registry: a set drawn from the feeds we already watch measures memory rather than reach. Enumerate candidates CHRONOLOGICALLY within the window and take them in that order rather than picking the interesting ones. A commercial deal database or people-data service may be used to FIND a candidate and must never be stored, named or linked: every item cites the original publisher, which is the company's own announcement, the filing, or a named news outlet's own article, and no commercial service's name may appear anywhere in the repository. Fetch every source URL and confirm the company, the date, the metro and the amount on the page itself before writing the row down; drop what will not verify and record why. Write it to analysis/recall/us/goldset-us-2026-07.json with sealed=true, family=\"us\", a metro on every item and an assembled_on date. `python3 measure_recall.py --family us --check` must pass before it is used; analysis/recall/goldset.py US_REQUIRED_SHAPE is the guard that stops the set being quietly rebuilt out of large SEC filers, which is the one part of the US this tracker already reads well."
+  "instruction": "Build a new UNITED STATES recall gold set for 2026-08-01 to 2026-08-31 and seal it. Run eight INDEPENDENT research passes, one per metro and event type (San Francisco Bay Area, New York City, Austin, rest of the United States, each for funding and for leadership), every pass forbidden from consulting asktherecruiter.com, this repository, our database or our source registry: a set drawn from the feeds we already watch measures memory rather than reach. Enumerate candidates CHRONOLOGICALLY within the window and take them in that order rather than picking the interesting ones. A commercial deal database or people-data service may be used to FIND a candidate and must never be stored, named or linked: every item cites the original publisher, which is the company's own announcement, the filing, or a named news outlet's own article, and no commercial service's name may appear anywhere in the repository. Fetch every source URL and confirm the company, the date, the metro and the amount on the page itself before writing the row down; drop what will not verify and record why. Write it to analysis/recall/us/goldset-us-2026-08.json with sealed=true, family=\"us\", a metro on every item and an assembled_on date. `python3 measure_recall.py --family us --check` must pass before it is used; analysis/recall/goldset.py US_REQUIRED_SHAPE is the guard that stops the set being quietly rebuilt out of large SEC filers, which is the one part of the US this tracker already reads well."
  }
 }
