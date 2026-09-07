@@ -1,18 +1,18 @@
 {
-  "checked_on": "2026-08-31",
-  "checked_at": "2026-08-31T16:53:09+00:00",
+  "checked_on": "2026-09-07",
+  "checked_at": "2026-09-07T14:55:00+00:00",
   "landmarks_version": "2026-08-v1",
   "landmarks_digest": "ea0fb9518b3e51cf",
   "summary": {
     "total": 20,
-    "held": 6,
+    "held": 8,
     "held_not_live": 0,
     "wrong_amount": 0,
-    "missing": 14,
-    "standing_gaps": 14,
+    "missing": 12,
+    "standing_gaps": 12,
     "regressions": 0,
     "live_lens": "not read",
-    "one_line": "landmarks: 6 of 20 held, 14 standing gaps, 0 regressions"
+    "one_line": "landmarks: 8 of 20 held, 12 standing gaps, 0 regressions"
   },
   "by_quarter": {
     "2025Q1": {
@@ -59,8 +59,8 @@
     },
     "2026Q3": {
       "total": 2,
-      "held": 0,
-      "missing": 2,
+      "held": 2,
+      "missing": 0,
       "wrong_amount": 0,
       "held_not_live": 0
     }
@@ -421,13 +421,20 @@
       "event_date": "2026-07-13",
       "amount_usd": 1800000000,
       "source_url": "https://helsing.ai/newsroom/helsing-raises-1-8bn-in-series-e",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "7a4b9354cb16173e9a4e4f5a708bfa30",
+        "company": "Helsing",
+        "headline": "Helsing raises $1.8 billion in Europe’s biggest defense-startup round - Defense News",
+        "funding_amount_usd": 1800000000,
+        "published_date": "2026-07-13",
+        "source_url": "https://www.defensenews.com/global/europe/2026/07/13/helsing-raises-18-billion-in-europes-biggest-defense-startup-round/"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -438,13 +445,20 @@
       "event_date": "2026-07-16",
       "amount_usd": 1505000000,
       "source_url": "https://fireworks.ai/blog/series-d-announcement",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "5fc4ebe60060eea01b7f54450e1fa698",
+        "company": "Fireworks AI",
+        "headline": "Fireworks AI Closes Over $1.5 Billion in Series D Funding - orrick.com",
+        "funding_amount_usd": 1500000000,
+        "published_date": "2026-07-23",
+        "source_url": "https://www.orrick.com/en/News/2026/07/Fireworks-AI-Closes-Over-1-5-Billion-in-Series-D-Funding"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     }
@@ -490,7 +504,7 @@
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-31"
+      "last_held_on": "2026-09-07"
     },
     "2025q3-mistral-1-7b-eur": {
       "ever_stored": false,
@@ -526,25 +540,25 @@
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-31"
+      "last_held_on": "2026-09-07"
     },
     "2026q1-waymo-16b": {
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-31"
+      "last_held_on": "2026-09-07"
     },
     "2026q1-anthropic-30b": {
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-31"
+      "last_held_on": "2026-09-07"
     },
     "2026q1-openai-122b": {
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-31"
+      "last_held_on": "2026-09-07"
     },
     "2026q2-anduril-5b": {
       "ever_stored": false,
@@ -556,19 +570,19 @@
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-08-31"
+      "last_held_on": "2026-09-07"
     },
     "2026q3-helsing-1-8b": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-07",
+      "last_held_on": "2026-09-07"
     },
     "2026q3-fireworks-1-5b": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-07",
+      "last_held_on": "2026-09-07"
     }
   }
 }
