@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-structured:main:109ab9c11d1ceb69": {
+      "first": 1788873860,
+      "last": 1788873860,
+      "subject": "CI RED: collect-structured: BOARD FAILED  lever:cyngn: returned zero postings"
+    },
     "collect-structured:main:2830aeeb5d6053e2": {
       "first": 1788857086,
       "last": 1788857086,
@@ -36,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-08T08:44:47+00:00",
+  "updated_at": "2026-09-08T13:24:21+00:00",
   "version": 1
 }
