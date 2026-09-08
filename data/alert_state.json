@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-structured:main:2830aeeb5d6053e2": {
+      "first": 1788857086,
+      "last": 1788857086,
+      "subject": "CI RED: collect-structured: PUBLISH FAILED: 409: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.content"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1788739150,
       "last": 1788739150,
@@ -31,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-06T23:59:11+00:00",
+  "updated_at": "2026-09-08T08:44:47+00:00",
   "version": 1
 }
