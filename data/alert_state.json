@@ -25,11 +25,6 @@
       "last": 1788857086,
       "subject": "CI RED: collect-structured: PUBLISH FAILED: 409: <script>document.cookie = \"humans_21909=1\"; document.location.reload(true)</script><script>(function(){function c(){var b=a.content"
     },
-    "collect:main:ff39486b701e7338": {
-      "first": 1788739150,
-      "last": 1788739150,
-      "subject": "CI RED: collect: [publish] sent=0 stored=0 duplicate=0 errors=0"
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-08T13:24:21+00:00",
+  "updated_at": "2026-09-09T00:28:13+00:00",
   "version": 1
 }
