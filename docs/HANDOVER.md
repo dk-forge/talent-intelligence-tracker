@@ -2,6 +2,130 @@
 
 ---
 
+## 2026-09-09: Denmark's CVR is built and dormant, and it has never authenticated (branch `feat/denmark-cvr-collector`)
+
+`collectors/denmark_cvr.py`, `denmark_cvr_probe.py`,
+`tests/test_denmark_cvr.py`. The registry sweep called CVR "the single
+highest-value ask on this page" and it was right: of the fourteen national
+registers that sweep fetched live, **CVR is the only one that states BOTH a
+start date and an end date per participant AND publishes an employee band**.
+Estonia reports arrivals and can never report a departure. Norway reports that a
+board changed and not who. Denmark reports both directions, per person, with a
+size filter.
+
+**IT IS DORMANT AND IT MUST STAY DORMANT UNTIL THE OWNER ACTS.** Two locks: no
+cron anywhere, and `TIT_DK_CVR` defaults off, so a run makes no request and
+sends no credential. It is deliberately NOT a live source on the sources page -
+`_DORMANT_COLLECTORS` in `tests/test_sources_page.py` holds it there - because
+claiming Danish coverage before a single row has been stored is the exact
+failure that file exists to prevent, in the flattering direction.
+
+**THE OWNER ACTION IS TWO SECRETS, AND THEY ALREADY EXIST.**
+`DENMARK_DATA_USER` and `DENMARK_DATA_PASSWORD` are GitHub secrets on the
+SIBLING repository, `dk-forge/ai-layoff-tracker`. They need copying to
+`dk-forge/talent-intelligence-tracker`. Nothing in this checkout can read their
+values, and this session never had them. Erhvervsstyrelsen issues them free on
+request (`cvrselvbetjening@erst.dk`) against a signed agreement covering
+advertising-protected (`reklamebeskyttet`) entities. **Read that agreement
+before arming**: the collector cannot, so it takes the conservative side and
+declines every `reklamebeskyttet` company. If the signed terms permit
+otherwise, that is a deliberate one-line change somebody makes knowing what
+they signed.
+
+**THE CREDENTIAL TRAVELS IN PLAINTEXT, AND IT IS NOT A CHOICE WE MADE.**
+`distribution.virk.dk` listens on **port 80 only** - measured on 2026-09-09
+against all three of its ELB addresses (16.170.8.208, 13.62.170.52,
+13.63.232.241): 80 accepts, 443 times out on every one. So HTTP Basic over
+cleartext is the only shape Erhvervsstyrelsen offers, which is what their own
+guide documents and what every open-source client of this endpoint does. The
+owner has accepted that. It is stated in the module docstring, in the workflow,
+and at the top of the probe's output every single time, rather than buried. Two
+consequences are enforced in code and proved by mutation: **redirects are never
+followed**, and **every request asserts its own hostname** before it is sent, so
+the credential cannot walk to another host.
+
+### What was verified against production, and what was not
+
+This is the unusual part, and it is why the honest ceiling matters more here
+than in any other connector.
+
+**VERIFIED LIVE, unauthenticated, 2026-09-09.** `GET /` answers 200 with
+`cluster_name Erst.Distribution.AWS.Prod.Cluster`, Elasticsearch 6.8.23.
+`POST /cvr-permanent/virksomhed/_search` answers 401 from nginx. And the finding
+that made a blind build possible at all: **`GET /cvr-permanent/_mapping` is
+PUBLIC.** Every single field path this collector reads was read out of the
+production mapping rather than guessed, that response is committed verbatim as
+`tests/fixtures/denmark_cvr_mapping.json`, and `mapping_check()` re-reads it on
+every run and refuses rather than run against a shape that moved. A renamed
+field would otherwise answer 200 with no hits, which is the silent zero.
+
+**NOT VERIFIED, and named so nobody reads a fixture as a measurement.** No
+`_search` response body has ever been seen by this repository.
+`tests/fixtures/denmark_cvr_search.json` is **assembled, not captured**, and
+says so in its own `_provenance`. The band-code vocabulary
+(`ANTAL_0_0` ... `ANTAL_1000_999999`) is second-hand, from two independent
+open-source clients of this same endpoint. And the mapping type in the path is
+UNKNOWN: the mapping reports `_doc` while every client and guide uses
+`/virksomhed/`, and under Elasticsearch 6.8 the wrong one answers **200 with
+zero hits**. So the run does not assume - `resolve_search_url()` asks for one
+known-live CVR number first, tries the other path if that answers zero, and
+refuses if both do. A scan whose clean zero has never caught one known instance
+is worth nothing.
+
+**THE YIELD IS UNMEASURED AND THERE IS DELIBERATELY NO EMPTINESS FLOOR.**
+`czechia_ares` refuses a run below one event per 25 material employers;
+`estonia_ariregister` below one per week of window. Both numbers came from a
+measurement. This one has none, so `MEASURED_YIELD` is `None` and
+`emptiness_floor()` returns 0 at every population, with a test that fails if
+somebody replaces it with a plausible-looking guess. **The first armed run's job
+is to produce that number.** The probe's step 5 prints a count per employee band
+and is the cheapest way to get it: it reads counts only and touches no person.
+
+### The materiality floor's lower edge is 200, not 250
+
+`companies_house` and `czechia_ares` both draw the line at 250, the European
+Commission's large-enterprise boundary. **Denmark publishes no 250 boundary.**
+Its bands are ... `ANTAL_100_199`, `ANTAL_200_499`, `ANTAL_500_999`,
+`ANTAL_1000_999999`, so the floor is `ANTAL_200_499` and a stored row says the
+employer is in the "200 to 499" band, never that it has 250 staff. Being one
+band wider than the sibling connectors is the honest direction: the alternative
+silently drops every Danish employer between 250 and 499 to make a docstring
+number match.
+
+### Arming it, in order
+
+1. copy `DENMARK_DATA_USER` and `DENMARK_DATA_PASSWORD` from the sibling repo;
+2. `python3 denmark_cvr_probe.py` and READ IT - credential state, liveness,
+   the public-mapping field check, the exact query body, and the live
+   population per band. It stores nothing and calls no model;
+3. write the counts into the module docstring and derive an emptiness floor;
+4. a real dry run through the standing gate:
+
+```bash
+gh workflow run drain-writers.yml \
+  -f enqueue=collect-structured.yml \
+  -f inputs_json='{"source":"denmark_cvr","dry_run":"true"}' \
+  -f reason='first real CVR run'
+```
+
+5. only then set the repository variable `TIT_DK_CVR`, choose a cron slot, add
+   the source to `SOURCES` and `COLLECTOR_BY_SOURCE_NAME`, take it out of
+   `_DORMANT_COLLECTORS`, add a `tit_collector_label` entry in
+   `shortcodes.php`, and **tighten the staleness leash from 2400 to 180 in the
+   same change** - a dormant 100-day entry keeps a newly armed collector
+   looking healthy for three months.
+
+Proved by mutation, thirteen times: removing the arming lock, following
+redirects, dropping the hostname assertion, trusting the canary's zero, reading
+the organisation's period instead of the membership's, accepting a legal person
+as a participant, dropping the advertising-protection refusal, carrying a
+participant's address onto a row, widening the band floor below 200, accepting
+an unknown function as a near-miss, dropping the mapping check from the run,
+inventing an emptiness floor, and disabling the modulus-11 check each turn the
+suite red on their own targeted tests. Baseline: 60 pass, full suite green.
+
+---
+
 ## 2026-09-09: a live job board with nothing open was reported as a broken scraper for a month (branch `fix/quiet-board-not-broken`)
 
 `collect-structured` on main printed `BOARD FAILED lever:cyngn: returned zero

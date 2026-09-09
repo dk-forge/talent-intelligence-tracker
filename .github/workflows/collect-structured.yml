@@ -84,6 +84,36 @@
 # fresh full snapshot — but widening it recovers less than it looks like,
 # because the file lists CURRENT office-holders only and an appointment that
 # has already ended is not in it at all.
+# denmark_cvr has NO cron line and is not in the rotation, and that absence is
+# the same kind as israel_registrar's rather than spain_borme's: there is
+# nowhere to put it (one structured collector a day, seven days spoken for) AND
+# it cannot run yet. CVR's distribution service answers 401 to everything, the
+# credentials Erhvervsstyrelsen issues free on request exist today only as
+# secrets on the SIBLING repository (dk-forge/ai-layoff-tracker), and the
+# collector has therefore never seen a live response. It carries a SECOND lock
+# besides the missing cron: `TIT_DK_CVR` defaults off, so even a dispatch that
+# named it makes no request and sends no credential.
+#
+# ARMING IT IS THREE THINGS, IN THIS ORDER, AND NONE OF THEM IS A SCHEDULE:
+#   1. the owner copies DENMARK_DATA_USER and DENMARK_DATA_PASSWORD into this
+#      repository's secrets;
+#   2. somebody runs `python3 denmark_cvr_probe.py` locally and READS IT — it
+#      prints the credential state, the live liveness, the public-mapping field
+#      check and the exact query body, and stores nothing;
+#   3. a real dry run through the standing gate, with the flag on:
+#
+#        gh workflow run drain-writers.yml \
+#          -f enqueue=collect-structured.yml \
+#          -f inputs_json='{"source":"denmark_cvr","dry_run":"true"}' \
+#          -f reason='first real CVR run'
+#
+# Only then a cron, and the staleness leash tightens in the SAME change.
+#
+# THE CREDENTIAL TRAVELS IN CLEARTEXT. distribution.virk.dk listens on port 80
+# only (measured on all three of its ELB addresses, 2026-09-09: 443 times out),
+# so HTTP Basic over plain HTTP is the only shape the service offers. The owner
+# has accepted that. The collector refuses redirects and asserts the hostname of
+# every request so the credential cannot walk to another host.
 name: collect-structured
 
 on:
@@ -147,7 +177,7 @@ on:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra]
+        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra, denmark_cvr]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -288,6 +318,21 @@ jobs:
           # Neither owner secret exists and neither should be requested.
           TIT_IL_DAYS: ${{ inputs.days }}
           TIT_SG_DAYS: ${{ inputs.days }}
+          # Denmark is the one collector here that needs a secret which does
+          # NOT exist in this repository yet, so this mapping deliberately
+          # breaks the rule the header states for ARES and Ariregister. It is
+          # safe for the reason EDINET's is not: an absent secret maps to empty
+          # string, and an empty credential here is a LOUD refusal
+          # (CvrCredentialsMissing) before a single request is built, never an
+          # HTTP 200 carrying a zero. Mapping it now means the day the owner
+          # copies the two secrets across, nothing in this file changes.
+          DENMARK_DATA_USER: ${{ secrets.DENMARK_DATA_USER }}
+          DENMARK_DATA_PASSWORD: ${{ secrets.DENMARK_DATA_PASSWORD }}
+          # The second lock, and it is deliberately NOT wired to an input: a
+          # dispatch cannot arm this collector. Setting it is a repository
+          # variable change somebody makes on purpose.
+          TIT_DK_CVR: ${{ vars.TIT_DK_CVR }}
+          TIT_DK_DAYS: ${{ inputs.days }}
         run: |
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \
