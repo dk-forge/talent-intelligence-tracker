@@ -150,7 +150,7 @@ import json
 import os
 import re
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -198,7 +198,7 @@ ACCEPTS_DRY_RUN = True
 # `read` — boards successfully counted — and reports that instead. A run that
 # reads nothing is still, correctly, degraded.
 LAST_RUN = {"boards": 0, "read": 0, "robots_blocked": 0, "failed": 0,
-            "movements": 0}
+            "quiet": 0, "movements": 0}
 
 BOARD_URLS = {
     "greenhouse": "https://job-boards.greenhouse.io/{slug}",
@@ -278,6 +278,53 @@ HISTORY_LIMIT = 800
 # More than this share of the watchlist failing means the run is broken, not
 # that a few employers closed their boards.
 MAX_FAILURE_RATE = 0.34
+
+# --- A QUIET BOARD IS NOT A BROKEN BOARD -----------------------------------
+#
+# A board that answers 200 with an empty list used to be counted as a FAILURE,
+# on the stated premise that "Greenhouse, Ashby and Workable answer 200 with an
+# EMPTY list for a slug that does not exist, so a slug that was mistyped looks
+# exactly like an employer with nothing open". That premise was measured on
+# 2026-09-09 and is false for every provider on the watchlist:
+#
+#   provider         missing slug                       empty board
+#   greenhouse       404 {"status":404,...}             200 {"jobs":[],"meta":{"total":0}}
+#   ashby            404 Not Found                      200 {"jobs":[],"apiVersion":"1"}
+#   lever            404 {"ok":false,...}               200 []
+#   workable         404 Not Found                      200 with no jobs
+#
+# So the two states ARE distinguishable, they are distinguished by the status
+# code, and a dead slug already lands in `failures` through the HTTPError path
+# without any help from the zero rule. What the zero rule actually reported was
+# employers with nothing open: on 2026-09-08 all six boards it failed
+# (lever:cyngn, lever:bumbleinc, ashby:complete-robot, greenhouse:doubleverify,
+# greenhouse:nerdy, greenhouse:threatlocker) were re-fetched by hand and every
+# one of them served a live, branded, empty board -- Lever's own page reads
+# "No job postings currently open. Check back later!". Reporting a hiring
+# freeze as a scraper breakage is the same defect the sibling tracker names as
+# "the collector ran is not the collector brought back anything new", pointed
+# the other way: a quiet source called broken.
+#
+# So an individual zero is QUIET and is not a failure. Two things keep that
+# from becoming a place for a real breakage to hide:
+#
+#   MAX_QUIET_RATE   A parse change or an API shape change empties EVERY board
+#                    of one provider at once, which no hiring market does.
+#                    Judged PER PROVIDER, because a Greenhouse response-shape
+#                    change touches 203 boards and no Lever ones, and a rate
+#                    over the whole watchlist would dilute it to 71% healthy.
+#   MAX_QUIET_DAYS   A board that has been empty for a quarter is not a hiring
+#                    freeze anybody is still waiting out. It escalates into
+#                    `failures` naming the run of days, so a board that was
+#                    abandoned without the ATS account being deleted is
+#                    reviewed rather than quietly carried for ever.
+#
+# MIN_QUIET_SAMPLE is what stops the rate firing on a provider too small to
+# have one: at 9 Lever boards, two employers with nothing open is 22% and
+# ordinary, and on a provider with 2 boards no share is evidence of anything.
+MAX_QUIET_RATE = 0.34
+MIN_QUIET_SAMPLE = 8
+MAX_QUIET_DAYS = 90
 
 
 class BoardError(RuntimeError):
@@ -942,6 +989,22 @@ FALLING_CAVEAT = ("A board that shrinks is not evidence of job cuts: roles "
                   "leave a board when they are filled, withdrawn or reposted.")
 
 
+def _days_between(start: str, end: str) -> int:
+    """Whole days from one ISO date to another, or 0 if either is unreadable.
+
+    Unreadable resolves to 0 rather than to a large number on purpose: a state
+    file written by an older version carries no `quiet_since`, and a missing
+    date must not be able to escalate a board into `failures` on the strength
+    of not being parseable.
+    """
+    try:
+        a = date.fromisoformat(start)
+        b = date.fromisoformat(end)
+    except (TypeError, ValueError):
+        return 0
+    return max((b - a).days, 0)
+
+
 def trajectory(history: list[dict], *, today: str | None = None,
                window_days: int = TRAJECTORY_WINDOW_DAYS) -> dict:
     """Direction of a board's volume over the window, or 'unknown'.
@@ -1338,6 +1401,12 @@ def collect(queries=None, *, dry_run: bool = False,
     out: list[dict] = []
     failures: list[str] = []
     blocked: list[str] = []
+    # Boards that answered 200 with nothing open. Tallied per provider as well,
+    # because the breaker that catches a changed response shape is a share of
+    # ONE provider's boards and not of the whole watchlist.
+    quiet: list[str] = []
+    quiet_by_ats: dict[str, int] = {}
+    attempted_by_ats: dict[str, int] = {}
     read = 0
 
     for entry in boards:
@@ -1362,6 +1431,7 @@ def collect(queries=None, *, dry_run: bool = False,
             record["status"] = "robots"
             continue
         record["status"] = "ok"
+        attempted_by_ats[entry["ats"]] = attempted_by_ats.get(entry["ats"], 0) + 1
 
         try:
             postings = fetch_postings(entry)
@@ -1373,14 +1443,34 @@ def collect(queries=None, *, dry_run: bool = False,
             continue
 
         current = snapshot(postings)
-        # Greenhouse, Ashby, Workable and SmartRecruiters all answer 200 with an
-        # empty list for a slug that does not exist, so an employer that HAD
-        # roles and now has none is a renamed slug far more often than an
-        # employer that stopped hiring entirely. (Lever is the exception and is
-        # caught above, with its own error.)
+        # An empty board is QUIET, not broken. Every provider here answers 404
+        # for a slug that does not exist, so a dead or renamed board has
+        # already failed above; a 200 carrying no postings is an employer with
+        # nothing open. See MAX_QUIET_RATE for the measurement and for the two
+        # breakers that stop this becoming a hiding place.
         if current["total"] == 0:
-            failures.append(f"{board_id}: returned zero postings")
+            since = record.get("quiet_since") or day
+            record["quiet_since"] = since
+            record["status"] = "quiet"
+            days = _days_between(since, day)
+            if days >= MAX_QUIET_DAYS:
+                # Not a silencing and not a scraper verdict: the board is up
+                # and the employer has advertised nothing for a quarter, which
+                # is a watchlist decision a human owes rather than a state to
+                # carry for ever. It enters `failures` so it is printed and
+                # counted, and one board can no more redden the run here than
+                # anywhere else.
+                failures.append(f"{board_id}: open board, nothing posted for "
+                                f"{days} days (quiet since {since})")
+            else:
+                quiet.append(f"{board_id}: nothing open (quiet since {since})")
+                quiet_by_ats[entry["ats"]] = quiet_by_ats.get(entry["ats"], 0) + 1
+            # It WAS read: the request succeeded and the answer was zero. The
+            # health signal run_collect takes from `read` must say the
+            # collector worked, because it did.
+            read += 1
             continue
+        record.pop("quiet_since", None)
         read += 1
 
         previous = record.get("last")
@@ -1430,14 +1520,19 @@ def collect(queries=None, *, dry_run: bool = False,
         record["trajectory"] = trajectory(history, today=day)
 
     LAST_RUN.update(boards=len(boards), read=read, robots_blocked=len(blocked),
-                    failed=len(failures), movements=len(out))
+                    failed=len(failures), quiet=len(quiet), movements=len(out))
 
     print(f"[{COLLECTOR}] {len(boards)} boards, {read} read, "
-          f"{len(blocked)} robots-blocked, {len(failures)} failed, "
-          f"{len(out)} movements")
+          f"{len(blocked)} robots-blocked, {len(quiet)} quiet, "
+          f"{len(failures)} failed, {len(out)} movements")
     for board_id in blocked:
         print(f"  ROBOTS        {board_id}: the ATS disallows this endpoint, "
               f"so it was not requested")
+    # Printed with its own word. "BOARD FAILED" is what a human greps for and
+    # what ci_alert lifts out of a log as a cause, so an employer with nothing
+    # open must never be able to spell it.
+    for board_id in quiet:
+        print(f"  BOARD QUIET   {board_id}")
     for failure in failures:
         print(f"  BOARD FAILED  {failure}")
 
@@ -1454,6 +1549,22 @@ def collect(queries=None, *, dry_run: bool = False,
             f"{len(failures)} of {attempted} boards failed, which is past "
             f"the {MAX_FAILURE_RATE:.0%} tolerance. This is a breakage, not a "
             f"quiet day. First: {failures[0] if failures else 'none'}")
+
+    # AND FAIL LOUD ON MASS QUIET, which is the risk of no longer failing on
+    # one. A response-shape change -- a renamed key, a provider moving jobs
+    # under a wrapper -- parses to zero postings on every board it touches and
+    # would otherwise read as the whole of one ATS going on holiday on the same
+    # afternoon. Judged per provider and only where there are enough boards for
+    # a share to mean anything.
+    for ats in sorted(quiet_by_ats):
+        sample = attempted_by_ats.get(ats, 0)
+        empty = quiet_by_ats[ats]
+        if sample >= MIN_QUIET_SAMPLE and empty / sample > MAX_QUIET_RATE:
+            raise BoardError(
+                f"{empty} of {sample} {ats} boards returned an empty list, "
+                f"which is past the {MAX_QUIET_RATE:.0%} tolerance. Employers "
+                f"do not empty their boards together; read this as a changed "
+                f"response shape for {ats}, not as a quiet day.")
 
     if persist if persist is not None else not dry_run:
         save_state(store)

@@ -371,16 +371,6 @@ class FailLoud(_Boards):
                                state={"version": 1, "boards": {}},
                                today="2026-07-01", persist=False)
 
-    def test_a_board_returning_zero_counts_as_a_failure(self):
-        """All three APIs answer 200 with an empty list for a slug that does
-        not exist, so a mistyped slug looks exactly like an employer with
-        nothing open."""
-        ats_boards._get = lambda url, **kwargs: {"jobs": [], "content": []}
-        with self.assertRaises(ats_boards.BoardError):
-            ats_boards.collect(watchlist=self.entries,
-                               state={"version": 1, "boards": {}},
-                               today="2026-07-01", persist=False)
-
     def test_an_unreadable_state_file_stops_the_run(self):
         bad = FIXTURES / "not-json-state.json"
         bad.write_text("{ this is not json")
@@ -390,6 +380,210 @@ class FailLoud(_Boards):
         finally:
             bad.unlink()
 
+
+class QuietIsNotBroken(_Boards):
+    """A QUIET board and a DEAD board are different states.
+
+    Until 2026-09-09 they were one: any board answering 200 with no postings
+    was counted a failure, on the premise that a mistyped slug is
+    indistinguishable from an employer with nothing open. That premise was
+    measured and is false for all four providers -- every one of them answers
+    404 for a slug that does not exist -- and what the rule actually reported
+    was hiring freezes. On 2026-09-08 it failed lever:cyngn, whose board serves
+    "No job postings currently open. Check back later!" under the employer's
+    own name.
+
+    These tests hold both directions at once. Neither is safe alone: pinning
+    only the quiet half invites a silencing, and pinning only the loud half is
+    what shipped.
+    """
+
+    #: A watchlist big enough for the per-provider quiet breaker to have a
+    #: sample, since MIN_QUIET_SAMPLE deliberately refuses to judge a provider
+    #: with two boards on it.
+    def many(self, ats, n):
+        return [{"ats": ats, "slug": f"{ats}{i}", "company": f"Co {i}"}
+                for i in range(n)]
+
+    #: What each provider actually returns for a board that exists and has
+    #: nothing open, recorded from the live endpoints on 2026-09-09. The shapes
+    #: differ and that matters: an empty Lever board is a bare list, an empty
+    #: Greenhouse board is a wrapper whose own meta says total 0.
+    EMPTY_PAYLOADS = {
+        "greenhouse": {"jobs": [], "meta": {"total": 0}},
+        "ashby": {"jobs": [], "apiVersion": "1"},
+        "lever": [],
+        "workable": {"jobs": []},
+        "smartrecruiters": {"content": [], "totalFound": 0},
+    }
+
+    def responder(self, empty: set[str]):
+        """Serve the recorded fixture, except for providers named in `empty`,
+        which answer 200 with no postings. Matched on the API base URL rather
+        than on the slug, since the slug is the one part of the URL that says
+        nothing about which provider is being asked."""
+        bases = {ats: url.split("{")[0]
+                 for ats, url in ats_boards.API_URLS.items()}
+
+        def fake_get(url, **kwargs):
+            for ats in empty:
+                if url.startswith(bases[ats]):
+                    return self.EMPTY_PAYLOADS[ats]
+            return self._real_fake(url, **kwargs)
+
+        return fake_get
+
+    def setUp(self):
+        super().setUp()
+        self._real_fake = ats_boards._get
+
+    def test_one_employer_with_nothing_open_does_not_redden_the_run(self):
+        """THE DEFECT. lever:cyngn was a live board with nothing posted, and
+        it was reported as a broken scraper for a month."""
+        state = {"version": 1, "boards": {}}
+        ats_boards._get = self.responder({"lever"})
+        # No raise, and the other three boards are still collected.
+        ats_boards.collect(watchlist=self.entries, state=state,
+                           today="2026-07-01", persist=False)
+        record = state["boards"]["lever:matchgroup"]
+        self.assertEqual(record["status"], "quiet")
+        self.assertEqual(record["quiet_since"], "2026-07-01")
+        self.assertEqual(ats_boards.LAST_RUN["quiet"], 1)
+        self.assertEqual(ats_boards.LAST_RUN["failed"], 0)
+
+    def test_a_quiet_board_is_never_reported_with_the_word_failed(self):
+        """`ci_alert.extract_cause` lifts a line carrying "FAILED" out of a run
+        log and puts it in the subject of the owner's email. That is how "BOARD
+        FAILED lever:cyngn" became the reported cause of a run it did not
+        break, so the word is part of the contract and not decoration."""
+        import io
+        import contextlib
+
+        ats_boards._get = self.responder({"lever"})
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            ats_boards.collect(watchlist=self.entries,
+                               state={"version": 1, "boards": {}},
+                               today="2026-07-01", persist=False)
+        printed = buf.getvalue()
+        self.assertIn("BOARD QUIET", printed)
+        # No line that NAMES the board may carry the word. The run summary's
+        # own "0 failed" counter is not one of those and is left alone.
+        for line in printed.splitlines():
+            if "lever:matchgroup" in line:
+                self.assertNotIn("FAILED", line.upper(), line)
+
+        # And end to end: what the alerter would lift out of this log as the
+        # cause must not be an employer with nothing open.
+        import ci_alert
+        cause, _ = ci_alert.extract_cause(printed)
+        self.assertNotIn("lever:matchgroup", cause)
+
+    def test_a_quiet_board_still_counts_as_read(self):
+        """The request succeeded and the answer was zero. run_collect grades
+        collector health on LAST_RUN['read'], so calling this unread would
+        report the collector degraded for someone else's hiring freeze."""
+        ats_boards._get = self.responder({"lever"})
+        ats_boards.collect(watchlist=self.entries,
+                           state={"version": 1, "boards": {}},
+                           today="2026-07-01", persist=False)
+        self.assertEqual(ats_boards.LAST_RUN["read"], len(self.entries))
+
+    def test_a_board_that_fills_again_clears_its_quiet_clock(self):
+        state = {"version": 1, "boards": {}}
+        ats_boards._get = self.responder({"lever"})
+        ats_boards.collect(watchlist=self.entries, state=state,
+                           today="2026-07-01", persist=False)
+        self.assertIn("quiet_since", state["boards"]["lever:matchgroup"])
+        ats_boards._get = self.responder(set())
+        ats_boards.collect(watchlist=self.entries, state=state,
+                           today="2026-07-02", persist=False)
+        self.assertNotIn("quiet_since", state["boards"]["lever:matchgroup"])
+
+    def test_a_board_empty_past_the_window_escalates_rather_than_resting(self):
+        """Not a silencing. A board that is up and has advertised nothing for a
+        quarter is a watchlist decision somebody owes, so it stops being quiet
+        and starts being printed and counted."""
+        state = {"version": 1, "boards": {
+            "lever:matchgroup": {"quiet_since": "2026-01-01"}}}
+        ats_boards._get = self.responder({"lever"})
+        ats_boards.collect(watchlist=self.entries, state=state,
+                           today="2026-07-01", persist=False)
+        self.assertEqual(ats_boards.LAST_RUN["failed"], 1)
+        self.assertEqual(ats_boards.LAST_RUN["quiet"], 0)
+
+    def test_a_dead_slug_is_still_a_failure(self):
+        """The other direction. A slug that does not exist 404s on every
+        provider, and that must keep landing in `failures` -- otherwise this
+        change is a silencing wearing a measurement's clothes."""
+        import requests
+
+        def gone(url, **kwargs):
+            if "matchgroup" in url:
+                raise requests.HTTPError("404 Client Error: Not Found")
+            return self._real_fake(url, **kwargs)
+
+        ats_boards._get = gone
+        ats_boards.collect(watchlist=self.entries,
+                           state={"version": 1, "boards": {}},
+                           today="2026-07-01", persist=False)
+        self.assertEqual(ats_boards.LAST_RUN["failed"], 1)
+        self.assertEqual(ats_boards.LAST_RUN["quiet"], 0)
+
+    def test_a_whole_provider_emptying_at_once_is_a_breakage(self):
+        """The risk of no longer failing on one zero. A renamed response key
+        parses to zero postings on every board of that provider, and employers
+        do not empty their boards together."""
+        boards = self.many("greenhouse", 12)
+        ats_boards._get = lambda url, **kwargs: {"jobs": [], "meta": {"total": 0}}
+        with self.assertRaises(ats_boards.BoardError) as caught:
+            ats_boards.collect(watchlist=boards,
+                               state={"version": 1, "boards": {}},
+                               today="2026-07-01", persist=False)
+        self.assertIn("greenhouse", str(caught.exception))
+        self.assertIn("response shape", str(caught.exception))
+
+    def test_the_quiet_breaker_is_judged_per_provider_not_per_watchlist(self):
+        """A greenhouse parse change touches 203 boards and no lever ones. A
+        rate over the whole watchlist would read that as 71% healthy."""
+        boards = self.many("greenhouse", 10) + self.many("lever", 30)
+        greenhouse = ats_boards.API_URLS["greenhouse"].split("{")[0]
+
+        def serve(url, **kwargs):
+            if url.startswith(greenhouse):
+                return self.EMPTY_PAYLOADS["greenhouse"]
+            return _fixture("ats_lever_matchgroup.json")
+
+        ats_boards._get = serve
+        with self.assertRaises(ats_boards.BoardError) as caught:
+            ats_boards.collect(watchlist=boards,
+                               state={"version": 1, "boards": {}},
+                               today="2026-07-01", persist=False)
+        self.assertIn("greenhouse", str(caught.exception))
+
+    def test_a_provider_too_small_to_measure_does_not_trip_the_breaker(self):
+        """No share of two boards is evidence of anything. Below
+        MIN_QUIET_SAMPLE the 404 path is the only thing that may convict."""
+        boards = self.many("lever", ats_boards.MIN_QUIET_SAMPLE - 1)
+        ats_boards._get = lambda url, **kwargs: []
+        ats_boards.collect(watchlist=boards,
+                           state={"version": 1, "boards": {}},
+                           today="2026-07-01", persist=False)
+        self.assertEqual(ats_boards.LAST_RUN["quiet"], len(boards))
+
+
+class FailLoudStill(_Boards):
+    def test_every_board_returning_zero_is_still_a_breakage(self):
+        """The old test, kept and re-argued. It passed for the wrong reason --
+        that one zero was a failure -- and it must keep passing for the right
+        one: four providers cannot all empty on the same afternoon."""
+        ats_boards._get = lambda url, **kwargs: {"jobs": [], "content": []}
+        with self.assertRaises(ats_boards.BoardError):
+            ats_boards.collect(
+                watchlist=[{"ats": "greenhouse", "slug": f"s{i}",
+                            "company": f"Co {i}"} for i in range(12)],
+                state={"version": 1, "boards": {}},
+                today="2026-07-01", persist=False)
 
 class Watchlist(unittest.TestCase):
     def test_the_shipped_watchlist_is_usable(self):
@@ -483,8 +677,15 @@ class RobotsIsTheGate(_Boards):
         self.assertEqual(ats_boards.LAST_RUN["robots_blocked"], 3)
         self.assertEqual(ats_boards.LAST_RUN["failed"], 0)
 
-        # Same run, but the one board we were allowed to read is broken.
-        ats_boards._get = lambda url, **kw: {"jobs": [], "content": []}
+        # Same run, but the one board we were allowed to read is broken. It
+        # used to be stubbed with an empty payload, which stopped being a
+        # breakage on 2026-09-09 when an empty board became QUIET; the point of
+        # this half is the DENOMINATOR, so the stub is now something that is
+        # actually broken and the assertion is unchanged.
+        def unreachable(url, **kw):
+            raise ValueError("connection reset")
+
+        ats_boards._get = unreachable
         with self.assertRaises(ats_boards.BoardError):
             ats_boards.collect(watchlist=self.entries,
                                state={"version": 1, "boards": {}},
