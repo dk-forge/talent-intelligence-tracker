@@ -28,7 +28,7 @@ from staleness import max_age_hours
 # (it imports pipeline.vocab, which is re and unicodedata), so this does not
 # cost this file its "no dependencies" promise — and importing it is what stops
 # a second, drifting definition of where the cache file lives.
-from pipeline import schema
+from pipeline import gate_classifier, schema
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
@@ -63,6 +63,7 @@ def main() -> int:
     conn = schema.connect_ro(DB)
 
     problems += _report_collection_armed()
+    problems += _report_gate_classifier()
     problems += _report_data(conn)
     problems += _report_employer_keys(conn)
     problems += _report_health(conn)
@@ -258,6 +259,61 @@ def _report_collection_armed() -> list[str]:
         print("    schedule in .github/workflows/collect.yml (needs")
         print("    OPENROUTER_API_KEY in repo secrets first).")
     return []
+
+
+def _report_gate_classifier() -> list[str]:
+    """Is the local gate classifier actually classifying, and how much.
+
+    Two facts, because until 2026-09-09 a session could read neither and the
+    difference between them cost a whole investigation.
+
+    The STATE answers "is it working": an armed flag whose model will not load
+    routes every candidate to the paid LLM gate and is invisible everywhere
+    else, so BROKEN is an ACTION NEEDED item. See pipeline/gate_classifier.py.
+
+    The COVERAGE answers "how much is it saving", and a low number here is a
+    measurement, not a fault. It is printed rather than raised because the
+    honest ceiling at the 99.5% recall bar is nowhere near the coverage the
+    plan assumed, and turning a known ceiling into a permanent alarm is how a
+    session learns to scroll past this list.
+    """
+    problems: list[str] = []
+    state, detail = gate_classifier.health()
+    print(f"\n[0b] GATE CLASSIFIER  {state}")
+    print(f"     {detail}")
+
+    if state == gate_classifier.BROKEN:
+        print("     Every candidate is failing open to the PAID LLM gate.")
+        print("     Nothing is dropped and no data is wrong; it is only")
+        print("     costing money while the flag says it should not be.")
+        print("     Next: git status data/gate_classifier/, the artifact is")
+        print("     committed, so a missing or truncated one is a checkout")
+        print("     problem. Do NOT hand-clear the armed flag to quiet this.")
+        problems.append(
+            "GATE CLASSIFIER BROKEN: armed flag, no loadable model, "
+            "every candidate is paying the LLM gate")
+
+    try:
+        with open(gate_classifier.status_path(), encoding="utf-8") as fh:
+            status = json.load(fh)
+    except Exception:  # noqa: BLE001, no flag is not a fault
+        return problems
+
+    replay = status.get("replay") or {}
+    confident = replay.get("confident_pct")
+    if confident is not None:
+        print(f"     last replay: {confident}% of {replay.get('candidates')} "
+              f"candidates routed confidently, "
+              f"{replay.get('rate_pct')}% of stored rows kept "
+              f"over {replay.get('days')} days")
+    drift = status.get("drift") or {}
+    if drift.get("open"):
+        print(f"     drift alarm OPEN since {drift.get('since')}, the "
+              "uncertain share is past the alarm line.")
+        print("     Measured 2026-09-09: this is the classifier's real")
+        print("     ceiling at the 99.5% recall bar, not a broken load and")
+        print("     not new-language drift. docs/TECHLOG.md 2026-09-09.")
+    return problems
 
 
 def _report_data(conn) -> list[str]:

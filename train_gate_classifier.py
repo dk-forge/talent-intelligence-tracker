@@ -584,14 +584,29 @@ def check_drift(out_dir: str, status: dict, real, poster=None,
     print(f"[gate-classifier] uncertain share, last {DRIFT_WINDOW_DAYS} days: "
           f"{share:.1f}% of {scored} routed candidates")
     if share > DRIFT_ALERT_PCT and not drift.get("open"):
+        state, detail = gate_classifier.health()
         sent = _alert(
-            f"Classifier gate drift: uncertain share {share:.0f}%",
+            f"Classifier gate uncertain share {share:.0f}%",
             (f"Over the last {DRIFT_WINDOW_DAYS} days, {share:.1f}% of routed "
-             "candidates fell in the UNCERTAIN band and paid the LLM gate — "
-             f"past the {DRIFT_ALERT_PCT:.0f}% alarm line. That is vocabulary "
-             "drift or a new language, and it quietly re-inflates the gate "
-             "bill. The weekly retrain may absorb it; if this repeats, look "
-             "at which languages dominate the uncertain band in "
+             f"candidates fell in the UNCERTAIN band and paid the LLM gate, "
+             f"past the {DRIFT_ALERT_PCT:.0f}% alarm line.\n\n"
+             f"Classifier health right now: {state} ({detail}).\n\n"
+             "Check them in this order, because they cost very different "
+             "amounts of time:\n"
+             "1. BROKEN above means the committed flag says armed and no "
+             "model loads, so EVERY candidate is paying the gate. That is a "
+             "checkout or artifact problem and it is the whole explanation. "
+             "ops_status.py [0b] says the same thing.\n"
+             "2. OK above means the classifier is routing correctly and this "
+             "number is its real coverage, not a fault. Measured on "
+             "2026-09-09: at the 99.5% recall bar the drop band can claim "
+             "about a fifth of traffic and the earned skip band about a "
+             "tenth, so a high uncertain share is the expected steady state "
+             "until the WEIGHTS get better. Raising the alarm line is not "
+             "the answer and neither is loosening the recall bar.\n"
+             "3. Only then vocabulary or a new language. Confirm it before "
+             "believing it: count how much of the window is in a language "
+             "the roster does not hold before reading anything into "
              "data/gate_labels/."),
             dedupe_key=f"gate-classifier-drift:{_fingerprint('uncertain share high')}",
             poster=poster)

@@ -749,6 +749,38 @@ languages, it is positive-heavy so it measures recall far better than
 precision, and at 75 items it can reject a model but cannot certify one at 98%.
 Extend it; do not re-derive it.
 
+**THE CLASSIFIER GATE IS ARMED, AND ITS UNCERTAIN SHARE IS A CEILING, NOT AN
+INCIDENT.** Armed 2026-09-01. `pipeline/gate_classifier.py` routes three ways
+in front of the paid gate and fails open to UNCERTAIN on every doubt, which
+protects recall and costs money. On 2026-09-08 the drift alarm mailed
+"uncertain share 95%, that is vocabulary drift or a new language". It was
+neither, and the alarm had not checked. Measured 2026-09-09: the artifact
+loads (its offline routing reproduces that day's production ledger exactly,
+70/131/851), unseen languages are 1.9% of the window, and the uncertain band
+is dominated by English. At the 99.5% recall bar the drop band can claim about
+a fifth of traffic and the earned skip band about a tenth, so ~70-80%
+uncertain is the honest steady state with these weights. The plan's ~80%
+confident coverage was labelled "to be measured"; it has been, and it is not
+reachable at this bar. **Do not raise `DRIFT_ALERT_PCT`, do not lower the
+99.5% bar, and do not widen `t_lo` to chase it** - a leakage budget in
+`choose_thresholds` was measured on the real holdout and buys 4 points of
+coverage for $0.022 a week, which is recall traded for cents (TECHLOG
+2026-09-09). The gap is in the weights.
+
+**A HIGH UNCERTAIN SHARE AND A BROKEN CLASSIFIER LOOK IDENTICAL FROM OUTSIDE,
+so read `ops_status.py [0b]` before reading anything into the number.** It
+prints four states and only one needs a human: OK, OFF, UNARMED (legitimate,
+the pre-classifier world) and **BROKEN**, an armed flag with no loadable model,
+which routes 100% of candidates to the paid gate while every other surface
+reads normal. Until 2026-09-09 that state was invisible: `load()` returned
+early when the artifact file was absent, before the cache write and before the
+stderr line, so the likeliest failure of all was the only silent one. Do not
+answer a BROKEN by hand-clearing the armed flag - the flag is the trainer's to
+write, and clearing it turns a fault into an UNARMED nobody will look at again.
+The whole gate is ~$2.04/month at 9,283 calls a week and $0.0000512 a call, so
+a broken load is a small bill and a large blind spot; the blind spot was the
+defect.
+
 Until the gate is free, `spend.py --degrade` is what keeps the promise: it
 switches paid reads off partway through the month and lets every free
 collector, the free prefilter and both dedup layers keep running. Degraded is
