@@ -2,6 +2,98 @@
 
 ---
 
+## 2026-09-09: a live job board with nothing open was reported as a broken scraper for a month (branch `fix/quiet-board-not-broken`)
+
+`collect-structured` on main printed `BOARD FAILED lever:cyngn: returned zero
+postings`. It had been printing it every day since 2026-08-08, and five other
+boards alongside it.
+
+**The board is fine, and so is Cyngn.** `api.lever.co/v0/postings/cyngn` answers
+200 with `[]`, and `jobs.lever.co/cyngn` renders the employer's own branded page
+reading "No job postings currently open. Check back later!". This is an employer
+with nothing open, which is a fact about a hiring market and not a fault in a
+scraper.
+
+**The rule that convicted it rested on a premise that is no longer true.** The
+watchlist stated, and `collect()` implemented, that "Greenhouse, Ashby and
+Workable answer 200 with an EMPTY list for a slug that does not exist, so a slug
+that was mistyped looks exactly like an employer with nothing open". Measured
+against all four live providers on 2026-09-09 with a slug that certainly does
+not exist:
+
+    provider         missing slug                      empty board
+    greenhouse       404 {"status":404,...}            200 {"jobs":[],"meta":{"total":0}}
+    ashby            404 Not Found                     200 {"jobs":[],"apiVersion":"1"}
+    lever            404 {"ok":false,...}              200 []
+    workable         404 Not Found                     200 with no jobs
+
+Every one of them distinguishes the two states, by status code, and a dead slug
+already lands in `failures` through the HTTPError path without help from the
+zero rule. So the zero rule was not catching mistyped slugs. It was reporting
+hiring freezes, and it had no way not to.
+
+All six boards it failed on 2026-09-08 were re-fetched by hand and every one
+served a live, branded, empty board: `lever:cyngn`, `lever:bumbleinc`,
+`ashby:complete-robot`, `greenhouse:doubleverify`, `greenhouse:nerdy`,
+`greenhouse:threatlocker`. The other five failures in the same run were real
+404s and are unaffected.
+
+**The fix is at the judgement, not at the watchlist.** No board was removed, no
+board was added to an ignore list, and no threshold was lowered. An empty board
+is now `quiet`: recorded with `quiet_since`, printed as `BOARD QUIET`, counted
+as READ because the request succeeded and the answer was zero, and kept out of
+`failures`. Two breakers stop that becoming a hiding place, and neither is
+optional:
+
+- `MAX_QUIET_RATE` (0.34, per PROVIDER, floor `MIN_QUIET_SAMPLE` = 8). A renamed
+  response key parses to zero on every board of one provider at once, which no
+  hiring market does. Per provider because a Greenhouse shape change touches 203
+  boards and no Lever ones, and a share of the whole watchlist would read that
+  as 71% healthy.
+- `MAX_QUIET_DAYS` (90). A board that is up and has advertised nothing for a
+  quarter escalates into `failures` naming the run of days, so an employer that
+  abandoned its board without deleting the ATS account is reviewed rather than
+  carried quietly for ever.
+
+`tests/test_ats_boards.py::QuietIsNotBroken` holds both directions. Proved by
+mutation, three times: restoring the old zero rule reds
+`test_one_employer_with_nothing_open_does_not_redden_the_run` and six others;
+removing the per-provider breaker reds
+`test_a_whole_provider_emptying_at_once_is_a_breakage` and two others; removing
+the 90-day escalation reds
+`test_a_board_empty_past_the_window_escalates_rather_than_resting` alone. All
+78 pass restored.
+
+**Two things this run turned up that are NOT fixed here.**
+
+1. **The alert named the wrong cause.** `lever:cyngn` did not fail run
+   34231276878. The run went red on `PUBLISH FAILED: gave up after retries:
+   503 ... "Briefly unavailable for scheduled maintenance"` from
+   `run_collect.publish` -- WordPress in maintenance mode. Eleven of 286 boards
+   failed, which is 3.8% against a 34% tolerance, so the collector raised
+   nothing. `ci_alert.extract_cause` puts both `PUBLISH FAILED:` and
+   `BOARD FAILED` in its `loose` bucket and takes the LAST one, and the
+   collector's stdout summary lands after `run_collect`'s stderr line in the
+   merged log. So the owner was sent to a healthy board while a host outage went
+   unnamed. Reproduced by running `extract_cause` over the saved log. The new
+   `BOARD QUIET` wording removes this specific misattribution, because a quiet
+   board can no longer spell the word, and
+   `test_a_quiet_board_is_never_reported_with_the_word_failed` pins that end to
+   end through `extract_cause`. The general defect -- a survivable diagnostic
+   outranking the line that actually returned non-zero -- is untouched, and
+   changing bucket precedence changes what gets fingerprinted for dedup, which
+   is not a change to make in passing.
+
+2. **Five genuinely dead Greenhouse slugs have been failing for up to 37 days
+   with nobody acting**, because one board can never redden the run and nothing
+   escalates a repeat: `aurorainnovation` (37d), `10xgenomics` (27d), `matx`
+   (24d), `blackforestlabs` (13d), `marqeta` (9d). All five re-confirmed 404 on
+   2026-09-09. They are left in the watchlist deliberately -- retiring a board
+   is a decision with evidence, not a tidy-up -- but a 404 that repeats for a
+   month deserves the same escalation `MAX_QUIET_DAYS` now gives a quiet one.
+
+---
+
 ## 2026-09-06: the Deal Type control served three values under their stored names, and a date filter of the right shape but no such day was silently dropped (branch `filters-deal-type-labels-and-calendar-dates`, PR open, not merged)
 
 A filter-and-totals audit of the live dashboard. The live half is clean: 20
