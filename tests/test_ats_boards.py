@@ -572,6 +572,174 @@ class QuietIsNotBroken(_Boards):
         self.assertEqual(ats_boards.LAST_RUN["quiet"], len(boards))
 
 
+class A404IsNotForever(_Boards):
+    """A board that has failed every run for a week is DEAD, not failing.
+
+    The hole MAX_QUIET_DAYS left open. A failed fetch lands in `failures`, is
+    printed once, and counts toward MAX_FAILURE_RATE, which one board can never
+    reach: five of 286 is 1.7% against 34%. So on 2026-09-09 five greenhouse
+    slugs were found that had 404ed on every run for up to 37 days, printing
+    "BOARD FAILED" daily and escalating to nobody. Four of them had moved to
+    Ashby and were still hiring. This was not five employers going quiet; it
+    was four live boards we had stopped reading and could not tell.
+
+    Both directions again. A repeat must escalate, and a flicker must not.
+    """
+
+    def setUp(self):
+        super().setUp()
+        #: The fixture responder the base class installed. Held here because
+        #: every test below replaces `_get` and most of them need to put it
+        #: back, and `self._get` is already the REAL fetch tearDown restores.
+        self._fixtures = ats_boards._get
+
+    def gone(self, slug):
+        """404 for one board, the recorded fixtures for the rest."""
+        import requests
+
+        def fake_get(url, **kwargs):
+            if f"/{slug}" in url or f"={slug}" in url:
+                raise requests.HTTPError("404 Client Error: Not Found")
+            return self._fixtures(url, **kwargs)
+
+        return fake_get
+
+    def run_days(self, state, days, *, start="2026-07-01", slug="matchgroup"):
+        """One collect per day, the named board 404ing on every one of them."""
+        from datetime import date, timedelta
+
+        first = date.fromisoformat(start)
+        ats_boards._get = self.gone(slug)
+        for offset in range(days):
+            ats_boards.collect(watchlist=self.entries, state=state,
+                               today=(first + timedelta(days=offset)).isoformat(),
+                               persist=False)
+        return state["boards"]["lever:matchgroup"]
+
+    def test_a_board_that_404s_every_day_escalates_past_the_window(self):
+        """THE DEFECT. Seven days of the same 404 is a slug that is gone, and
+        until now the seventh day looked exactly like the first."""
+        state = {"version": 1, "boards": {}}
+        record = self.run_days(state, ats_boards.MAX_FAILURE_DAYS + 1)
+        self.assertEqual(record["status"], "dead")
+        self.assertEqual(record["failing_since"], "2026-07-01")
+        self.assertEqual(ats_boards.LAST_RUN["dead"], 1)
+
+    def test_a_failing_board_is_not_recorded_as_ok(self):
+        """`status` was assigned "ok" before the fetch and never corrected on
+        the failure path, so a board unread for 37 days sat in the archive
+        marked ok. The archive is what ops_status reads."""
+        state = {"version": 1, "boards": {}}
+        record = self.run_days(state, 1)
+        self.assertEqual(record["status"], "failing")
+        self.assertEqual(record["failing_runs"], 1)
+        self.assertIn("404", record["last_error"])
+
+    def test_one_bad_day_does_not_start_a_death_clock(self):
+        """A flicker is not a repeat. Any answer at all clears the run, so a
+        board that fails once a fortnight can never accumulate its way to a
+        verdict it has not earned."""
+        state = {"version": 1, "boards": {}}
+        self.run_days(state, 3)
+        self.assertIn("failing_since", state["boards"]["lever:matchgroup"])
+        ats_boards._get = self._fixtures
+        ats_boards.collect(watchlist=self.entries, state=state,
+                           today="2026-07-04", persist=False)
+        record = state["boards"]["lever:matchgroup"]
+        self.assertNotIn("failing_since", record)
+        self.assertNotIn("failing_runs", record)
+        self.assertNotIn("last_error", record)
+
+    def test_an_outage_of_our_own_collector_cannot_convict_a_board(self):
+        """The second gate, and it is not redundant. A workflow disabled for a
+        fortnight and then one 404 is seven days old and one observation deep.
+        A clock alone would read that as a dead board and send somebody to
+        rewrite a watchlist entry that was never wrong."""
+        state = {"version": 1, "boards": {"lever:matchgroup": {
+            "failing_since": "2026-06-01", "failing_runs": 1}}}
+        ats_boards._get = self.gone("matchgroup")
+        ats_boards.collect(watchlist=self.entries, state=state,
+                           today="2026-07-01", persist=False)
+        record = state["boards"]["lever:matchgroup"]
+        self.assertEqual(record["failing_runs"], 2)
+        self.assertLess(record["failing_runs"], ats_boards.MIN_FAILURE_RUNS)
+        self.assertEqual(record["status"], "failing")
+        self.assertEqual(ats_boards.LAST_RUN["dead"], 0)
+
+    def test_a_dead_board_still_counts_toward_the_failure_rate(self):
+        """An escalation, not an exemption. If every board dies the run is
+        still broken, and a board that stopped being printed as today's news
+        must not stop being counted."""
+        state = {"version": 1, "boards": {}}
+        self.run_days(state, ats_boards.MAX_FAILURE_DAYS + 1)
+        self.assertEqual(ats_boards.LAST_RUN["failed"], 1)
+
+    def test_a_dead_board_is_not_the_cause_of_somebody_elses_red_run(self):
+        """`ci_alert.extract_cause` lifts a line carrying "FAILED" out of a log
+        and puts it in the subject of the owner's email. A board that has been
+        gone for a month did not break a run that broke this morning, which is
+        the same argument BOARD QUIET rests on."""
+        import contextlib
+        import io
+
+        import ci_alert
+
+        state = {"version": 1, "boards": {}}
+        self.run_days(state, ats_boards.MAX_FAILURE_DAYS)
+        buf = io.StringIO()
+        ats_boards._get = self.gone("matchgroup")
+        with contextlib.redirect_stdout(buf):
+            ats_boards.collect(watchlist=self.entries, state=state,
+                               today="2026-07-08", persist=False)
+        printed = buf.getvalue()
+        self.assertIn("BOARD DEAD", printed)
+        for line in printed.splitlines():
+            if "lever:matchgroup" in line:
+                self.assertNotIn("FAILED", line.upper(), line)
+        cause, _ = ci_alert.extract_cause(printed)
+        self.assertNotIn("lever:matchgroup", cause)
+
+    def test_a_board_under_the_window_is_still_printed_as_failed(self):
+        """The other direction. Today's 404 is today's news and keeps the word
+        it has always had; only a repeat changes channel."""
+        import contextlib
+        import io
+
+        buf = io.StringIO()
+        ats_boards._get = self.gone("matchgroup")
+        with contextlib.redirect_stdout(buf):
+            ats_boards.collect(watchlist=self.entries,
+                               state={"version": 1, "boards": {}},
+                               today="2026-07-01", persist=False)
+        self.assertIn("BOARD FAILED  lever:matchgroup", buf.getvalue())
+        self.assertNotIn("BOARD DEAD", buf.getvalue())
+
+    def test_the_status_report_and_the_collector_share_one_definition(self):
+        """`ops_status` reads the verdict the collector recorded rather than
+        re-deriving it, and `dead_boards` is what the two agree on."""
+        state = {"version": 1, "boards": {}}
+        self.run_days(state, ats_boards.MAX_FAILURE_DAYS + 1)
+        found = ats_boards.dead_boards(state, today="2026-07-08",
+                                       watchlist=self.entries)
+        self.assertEqual([board_id for board_id, _ in found],
+                         ["lever:matchgroup"])
+
+    def test_a_board_no_longer_on_the_watchlist_is_not_reported(self):
+        """The archive keeps a withdrawn board for ever. Reporting one would be
+        nagging about a decision that has already been taken."""
+        state = {"version": 1, "boards": {}}
+        self.run_days(state, ats_boards.MAX_FAILURE_DAYS + 1)
+        remaining = [e for e in self.entries if e["ats"] != "lever"]
+        self.assertEqual(ats_boards.dead_boards(state, today="2026-07-08",
+                                                watchlist=remaining), [])
+
+    def test_a_state_file_from_before_this_rule_is_not_dead(self):
+        """No `failing_since` means the board has not failed since it was last
+        read. An absent field is never evidence."""
+        self.assertFalse(ats_boards.is_dead({"status": "ok"}, "2026-07-01"))
+        self.assertFalse(ats_boards.is_dead({"failing_runs": 99}, "2026-07-01"))
+
+
 class FailLoudStill(_Boards):
     def test_every_board_returning_zero_is_still_a_breakage(self):
         """The old test, kept and re-argued. It passed for the wrong reason --

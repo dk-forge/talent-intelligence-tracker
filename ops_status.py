@@ -66,6 +66,7 @@ def main() -> int:
     problems += _report_data(conn)
     problems += _report_employer_keys(conn)
     problems += _report_health(conn)
+    problems += _report_dead_boards()
     problems += _report_run_cost(conn)
     problems += _report_read_rations()
     problems += _report_writer_queue()
@@ -640,6 +641,68 @@ def _report_health(conn) -> list[str]:
         if row["status"] not in BENIGN_STATUSES:
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
+    return problems
+
+
+#: The ATS collector's archive. Read as JSON rather than through
+#: collectors.ats_boards, which imports requests: this file promises no
+#: dependencies, and that promise is what lets a bare python3 run it.
+BOARD_STATE = ROOT / "data" / "ats_board_state.json"
+BOARD_WATCHLIST = ROOT / "collectors" / "ats_watchlist.json"
+
+
+def _report_dead_boards() -> list[str]:
+    """Job boards whose fetch has failed on every run for a week or more.
+
+    THE VERDICT IS THE COLLECTOR'S, not this file's. `ats_boards` writes
+    `status: dead` on a board once the run of consecutive failures passes both
+    of its gates, and this reads that back; re-deriving the rule here would put
+    two definitions of "dead" one directory apart.
+
+    It exists because `failures` was never an escalation. A board that fails is
+    printed once per run and counted toward a 34% tolerance one board cannot
+    reach, so five greenhouse slugs that had been 404ing for up to 37 days were
+    found on 2026-09-09 by reading a log, not by being told. A repeat needs a
+    surface a session reads at the start, whether or not anything went red.
+    """
+    if not BOARD_STATE.exists():
+        # The archive is committed, so an absence is not "nothing collected
+        # yet"; it is a file somebody deleted. Either way this section could
+        # not look, and "could not look" is never "nothing to report".
+        print("\n[2h] JOB BOARDS  UNKNOWN, the archive is missing")
+        return [f"{BOARD_STATE.name} is missing, so no board can be judged "
+                f"live or dead. Restore it: git checkout -- data/"]
+    try:
+        state = json.loads(BOARD_STATE.read_text())
+        watchlist = json.loads(BOARD_WATCHLIST.read_text())
+    except (OSError, ValueError) as exc:
+        print("\n[2h] JOB BOARDS  UNKNOWN, the archive could not be read")
+        return [f"ats_board_state.json or ats_watchlist.json is unreadable "
+                f"({exc}): the dead-board check could not run"]
+
+    current = {f"{b.get('ats')}:{b.get('slug')}"
+               for b in watchlist.get("boards") or []}
+    records = state.get("boards") or {}
+    # Boards no longer on the watchlist keep their record for ever: the state
+    # file is the archive and nothing is deleted from it. Reporting one would
+    # be nagging about a decision that has already been taken.
+    dead = sorted((board_id, rec) for board_id, rec in records.items()
+                  if board_id in current and rec.get("status") == "dead")
+
+    print(f"\n[2h] JOB BOARDS  {len(current)} on the watchlist, "
+          f"{len(dead)} dead")
+    problems = []
+    for board_id, rec in dead:
+        since = rec.get("failing_since") or "?"
+        runs = rec.get("failing_runs") or "?"
+        print(f"    DEAD     {board_id:<34} {rec.get('company') or ''}")
+        print(f"             failing since {since} across {runs} runs; "
+              f"last answer {(rec.get('last_error') or 'unrecorded')[:60]}")
+        problems.append(
+            f"{board_id} ({rec.get('company') or 'unknown employer'}) has "
+            f"failed every fetch since {since}. Find out whether it moved "
+            f"(resolve_ats_boards.py --verify), then re-point the entry or "
+            f"move it to 'withdrawn' in collectors/ats_watchlist.json")
     return problems
 
 
