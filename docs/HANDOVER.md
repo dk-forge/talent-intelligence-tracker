@@ -2,6 +2,101 @@
 
 ---
 
+## 2026-09-09: four of the five dead Greenhouse boards were still hiring, on Ashby (branch `fix/ats-404-escalation`, stacked on `fix/quiet-board-not-broken`)
+
+The open finding at the bottom of the `fix/quiet-board-not-broken` entry below,
+resolved. Five greenhouse slugs had been answering 404 on every
+`collect-structured` run for between 9 and 37 days, printing one `BOARD FAILED`
+line a day and escalating to nobody.
+
+**Four of the five were not dead employers. They were live boards we had stopped
+reading.** Each was resolved by the employer's own site naming its destination,
+not by trying slugs until one answered:
+
+| entry | now | open roles | how it was established |
+|---|---|---|---|
+| `greenhouse:aurorainnovation` | `ashby:aurora-operations-inc` | 81 | `aurora.tech/careers` publishes `ashbyOrgSlug: "aurora-operations-inc"` |
+| `greenhouse:matx` | `ashby:matx` | 40 | `matx.com/jobs` links `jobs.ashbyhq.com/matx` and calls the Ashby posting API |
+| `greenhouse:marqeta` | `ashby:marqeta-inc` | 41 | a Marqeta job page's Apply button points at `jobs.ashbyhq.com/marqeta-inc` |
+| `greenhouse:blackforestlabs` | `ashby:black-forest-labs` | 15 | the board publishes exactly "Black Forest Labs"; roles are FLUX-shaped |
+
+All four were then fetched through the real collector: 4 read, 0 failed, and
+each one keys to the company_key its old greenhouse record carried, so the
+profile join is unchanged. The board titles are NOT used as names. Aurora's
+board is titled "Aurora", which keys as a different employer, so the entry keeps
+"Aurora Innovation": the Recursion rule the watchlist already states.
+
+**`greenhouse:10xgenomics` is withdrawn, and the destination is UNKNOWN.** The
+slug 404s, every variant of it 404s, and there is no board for that employer on
+greenhouse, ashby, lever or workable. Where 10x Genomics publishes now could not
+be established without working around a bot wall: `www.10xgenomics.com/careers`
+answers 429 `Vercel Security Checkpoint`, and a paywall or a bot wall is a
+source left unread, not a source to get around. The Workday tenant probe was
+inconclusive (422 for every site name tried, which is the same answer a wrong
+tenant gives). So the finding is "the board we had is gone" and the destination
+is unknown, which is a state and not a pass. It is recorded in `withdrawn` with
+a reason and the date, never deleted.
+
+**A trap worth keeping.** `apply.workable.com/api/v1/widget/accounts/10xgenomics`
+answers **200**, under the name **Cognizant Technology Solutions**. A slug that
+answers is not an employer. Every re-point above rests on published-name or
+own-site evidence, which is the rule `resolve_ats_boards.py` already enforces
+for discovery and which applies exactly as hard to a re-point.
+
+**The old greenhouse series is not spliced onto the new board.** `build_series`
+reads the watchlist, so the four old records drop out of the published artefact
+and each new board starts its own baseline. They are two instruments with a gap
+of 9 to 37 unread days between them, and one line across that gap would assert a
+continuity nobody observed. The archive keeps both under their own ids.
+
+### And the escalation that would have caught it
+
+`MAX_QUIET_DAYS` gave a board that is UP and empty for 90 days a way to reach a
+human. A board that is GONE had none: a failed fetch lands in `failures`, is
+printed once per run, and counts toward `MAX_FAILURE_RATE`, which one board can
+never reach. Five of 286 is 1.7% against a 34% tolerance. So the daily line was
+the whole of the alarm, and a daily line for a month is wallpaper.
+
+The mirror image, in `collectors/ats_boards.py`:
+
+- The run of consecutive failures is recorded per board: `failing_since`,
+  `failing_runs`, `last_error`, cleared by any answer at all. A board that
+  flickers once a fortnight can no longer accumulate its way to a verdict.
+- **`MAX_FAILURE_DAYS` = 7 and `MIN_FAILURE_RUNS` = 5, and both must agree.**
+  Seven consecutive daily runs: an ATS outage is measured in hours and nothing
+  transient survives a week. The second gate is not redundant. A clock alone
+  converts an outage of the COLLECTOR into a verdict about a BOARD, because a
+  workflow disabled for a fortnight and then one 404 is seven days old and one
+  observation deep. Five failed readings tolerates two missed runs in the window
+  and refuses to convict on a gap in our own record.
+- Past both gates the board is `dead`: printed as `BOARD DEAD` with the run of
+  days and runs, still counted toward the failure tolerance (an escalation, not
+  an exemption), and reported by `ops_status.py [2h] JOB BOARDS` at session
+  start with the next step. The state file is where the verdict lives;
+  `ops_status` reads it rather than re-deriving the rule.
+- `BOARD DEAD` carries no error token, and the HTTP answer is deliberately kept
+  off that line. `ci_alert.extract_cause` lifts any line matching
+  `error|fatal|failed` out of a log as the cause of a red run, and "404 Client
+  Error: Not Found" matches it. A board that has been gone for a month did not
+  break a run that broke this morning. This is the same argument `BOARD QUIET`
+  rests on, and `test_a_dead_board_is_not_the_cause_of_somebody_elses_red_run`
+  holds it end to end through `extract_cause`.
+- A board on the failure path recorded `status: "ok"`, because `status` was
+  assigned before the fetch and never corrected. A board unread for 37 days sat
+  in the archive marked ok. Fixed at the failure path, not by moving the
+  assignment: the fields written above it are the board's identity and are meant
+  to be written whatever the fetch does.
+
+`tests/test_ats_boards.py::A404IsNotForever` holds both directions, the way
+`QuietIsNotBroken` does: a repeat must escalate, a flicker must not, a dead board
+must still count toward the tolerance, and today's 404 keeps the word it has
+always had.
+
+Suite: 4767 passed, 6 skipped, 0 failed (4757 on the branch this is stacked on,
+plus these 10 tests).
+
+---
+
 ## 2026-09-09: a live job board with nothing open was reported as a broken scraper for a month (branch `fix/quiet-board-not-broken`)
 
 `collect-structured` on main printed `BOARD FAILED lever:cyngn: returned zero

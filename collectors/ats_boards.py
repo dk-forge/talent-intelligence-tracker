@@ -198,7 +198,7 @@ ACCEPTS_DRY_RUN = True
 # `read` — boards successfully counted — and reports that instead. A run that
 # reads nothing is still, correctly, degraded.
 LAST_RUN = {"boards": 0, "read": 0, "robots_blocked": 0, "failed": 0,
-            "quiet": 0, "movements": 0}
+            "quiet": 0, "dead": 0, "movements": 0}
 
 BOARD_URLS = {
     "greenhouse": "https://job-boards.greenhouse.io/{slug}",
@@ -325,6 +325,41 @@ MAX_FAILURE_RATE = 0.34
 MAX_QUIET_RATE = 0.34
 MIN_QUIET_SAMPLE = 8
 MAX_QUIET_DAYS = 90
+
+# --- A BOARD THAT HAS 404ED EVERY DAY FOR A WEEK IS DEAD, NOT FAILING -------
+#
+# The mirror of MAX_QUIET_DAYS, and the hole it was written to close. A board
+# whose fetch fails lands in `failures`, is printed, and is counted toward
+# MAX_FAILURE_RATE. One board can never reach that tolerance: five of 286 is
+# 1.7% against 34%. So a slug that has been gone for a month prints the same
+# line every day, forever, and nothing ever asks a human to look at it. On
+# 2026-09-09 five greenhouse slugs were found in exactly that state, the oldest
+# unread for 37 days: aurorainnovation, 10xgenomics, matx, blackforestlabs,
+# marqeta. Four of them had simply moved to Ashby and were still hiring, so
+# this was not five employers going quiet. It was four live boards we had
+# stopped reading and could not tell we had stopped reading.
+#
+# A repeat is the signal a single failure cannot be. So the run of consecutive
+# failures is recorded per board (`failing_since`, `failing_runs`, cleared by
+# any successful read), and past the window the board stops being today's
+# failure and becomes a WATCHLIST DECISION somebody owes: `ops_status` lists it
+# at session start, which is the surface a repeat needs and `failures` is not.
+#
+# TWO GATES THAT MUST BOTH AGREE, and the second is not redundant:
+#
+#   MAX_FAILURE_DAYS  Seven consecutive daily runs. An ATS outage is measured
+#                     in hours and a maintenance window in a morning; nothing
+#                     transient survives a week. Early is cheap here, because
+#                     the escalation is a line in a status report and not a red
+#                     run, and late is what bought 37 days of silence.
+#   MIN_FAILURE_RUNS  Five actual failed readings. A clock on its own converts
+#                     an outage of the COLLECTOR into a verdict about a BOARD:
+#                     a workflow disabled for a fortnight, then one 404, is
+#                     seven days old and one observation deep. Five tolerates
+#                     two missed runs in the window and refuses to convict on
+#                     a gap in our own record.
+MAX_FAILURE_DAYS = 7
+MIN_FAILURE_RUNS = 5
 
 
 class BoardError(RuntimeError):
@@ -1005,6 +1040,47 @@ def _days_between(start: str, end: str) -> int:
     return max((b - a).days, 0)
 
 
+def is_dead(record: dict, day: str) -> bool:
+    """Whether this board's run of consecutive failures has passed the window.
+
+    Both gates or neither, and the record must actually carry a start date: a
+    board with no `failing_since` has never failed since it was last read, and
+    a state file written before this rule existed carries none at all. Neither
+    may be read as a death.
+    """
+    since = record.get("failing_since")
+    if not since:
+        return False
+    runs = int(record.get("failing_runs") or 0)
+    return (_days_between(since, day) >= MAX_FAILURE_DAYS
+            and runs >= MIN_FAILURE_RUNS)
+
+
+def dead_boards(state: dict, *, today: str | None = None,
+                watchlist: list[dict] | None = None) -> list[tuple[str, dict]]:
+    """Every board on the watchlist whose fetch has failed past the window.
+
+    THE ONE DEFINITION. `collect` calls `is_dead` as it goes and `ops_status`
+    calls this at session start, so the verdict a status report prints is the
+    verdict the collector reached and not a second implementation of the same
+    rule drifting alongside it.
+
+    Boards no longer on the watchlist are skipped. The state file is the
+    archive and nothing is deleted from it, so a slug that was withdrawn months
+    ago would otherwise be reported for ever as a decision nobody had taken.
+    """
+    day = today or datetime.now(timezone.utc).date().isoformat()
+    if watchlist is None:
+        try:
+            watchlist = load_watchlist()
+        except BoardError:
+            watchlist = []
+    current = {f"{b['ats']}:{b['slug']}" for b in watchlist}
+    return [(board_id, record)
+            for board_id, record in sorted((state.get("boards") or {}).items())
+            if board_id in current and is_dead(record, day)]
+
+
 def trajectory(history: list[dict], *, today: str | None = None,
                window_days: int = TRAJECTORY_WINDOW_DAYS) -> dict:
     """Direction of a board's volume over the window, or 'unknown'.
@@ -1407,6 +1483,11 @@ def collect(queries=None, *, dry_run: bool = False,
     quiet: list[str] = []
     quiet_by_ats: dict[str, int] = {}
     attempted_by_ats: dict[str, int] = {}
+    # Parallel to `failures`, one board id per entry, so a board that has
+    # failed past the window can be printed under its own word without the
+    # failure line being parsed back apart to find out which board it was.
+    failure_ids: list[str] = []
+    dead: list[tuple[str, str]] = []
     read = 0
 
     for entry in boards:
@@ -1439,8 +1520,44 @@ def collect(queries=None, *, dry_run: bool = False,
             # BoardError included on purpose: Lever answers a missing slug with
             # an error object, and one dead slug is one dead board, not a dead
             # run. The tolerance below still catches it if it spreads.
+            #
+            # The RUN of failures is what gets recorded, not just this one.
+            # `status` was set to "ok" a few lines above and left there on this
+            # path until 2026-09-09, so a board unread for 37 days sat in the
+            # archive marked ok. It is corrected here rather than by moving the
+            # assignment: the fields written above are the board's identity and
+            # are meant to be written whatever happens to the fetch.
+            since = record.get("failing_since") or day
+            record["failing_since"] = since
+            record["failing_runs"] = int(record.get("failing_runs") or 0) + 1
+            record["last_error"] = f"{type(exc).__name__} {exc}"[:200]
+            record["status"] = "failing"
             failures.append(f"{board_id}: {type(exc).__name__} {exc}")
+            failure_ids.append(board_id)
+            if is_dead(record, day):
+                # Still a failure, still counted toward the tolerance: this is
+                # an escalation and not an exemption. What changes is that it
+                # stops being reported as today's news, because it is not.
+                record["status"] = "dead"
+                # The answer itself is NOT echoed here, and that is not an
+                # oversight. This line must not be liftable as the cause of a
+                # red run, and an HTTP error string is unavoidably error-
+                # shaped: "404 Client Error: Not Found" matches the same loose
+                # pattern "BOARD FAILED" does. It is recorded in the state file
+                # and printed by ops_status, which is where a human goes to act
+                # on it rather than where an alerter goes to guess.
+                dead.append((board_id,
+                             f"{board_id}: no fetch has succeeded in "
+                             f"{_days_between(since, day)} days across "
+                             f"{record['failing_runs']} runs (since {since})"))
             continue
+
+        # It answered. Whatever it said, the run of failures is over, and a
+        # cleared clock is what stops a board that flickers once a fortnight
+        # from accumulating its way to a verdict.
+        record.pop("failing_since", None)
+        record.pop("failing_runs", None)
+        record.pop("last_error", None)
 
         current = snapshot(postings)
         # An empty board is QUIET, not broken. Every provider here answers 404
@@ -1519,12 +1636,15 @@ def collect(queries=None, *, dry_run: bool = False,
         # generations of verdict in one file.
         record["trajectory"] = trajectory(history, today=day)
 
+    dead_ids = {board_id for board_id, _ in dead}
+
     LAST_RUN.update(boards=len(boards), read=read, robots_blocked=len(blocked),
-                    failed=len(failures), quiet=len(quiet), movements=len(out))
+                    failed=len(failures), quiet=len(quiet), dead=len(dead),
+                    movements=len(out))
 
     print(f"[{COLLECTOR}] {len(boards)} boards, {read} read, "
           f"{len(blocked)} robots-blocked, {len(quiet)} quiet, "
-          f"{len(failures)} failed, {len(out)} movements")
+          f"{len(failures)} failed ({len(dead)} dead), {len(out)} movements")
     for board_id in blocked:
         print(f"  ROBOTS        {board_id}: the ATS disallows this endpoint, "
               f"so it was not requested")
@@ -1533,7 +1653,20 @@ def collect(queries=None, *, dry_run: bool = False,
     # open must never be able to spell it.
     for board_id in quiet:
         print(f"  BOARD QUIET   {board_id}")
-    for failure in failures:
+    # Same reasoning, pointed at a repeat. A board that has been gone for a
+    # week is not the cause of a run that broke this morning, and printing it
+    # under "FAILED" every day for a month is how it became wallpaper. The word
+    # here carries no error token on purpose, so ci_alert cannot lift it as the
+    # cause of somebody else's red run; the escalation is ops_status, which a
+    # session reads at the start whether or not anything went red.
+    for _board_id, line in dead:
+        print(f"  BOARD DEAD    {line}")
+        print(f"                Next: python3 resolve_ats_boards.py --verify, "
+              f"then re-point the entry or move it to 'withdrawn' in "
+              f"collectors/ats_watchlist.json with a reason and the date")
+    for board_id, failure in zip(failure_ids, failures):
+        if board_id in dead_ids:
+            continue
         print(f"  BOARD FAILED  {failure}")
 
     # FAIL LOUD. A handful of employers closing a board is normal; a third of
