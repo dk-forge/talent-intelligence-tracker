@@ -32,6 +32,44 @@ may cost money; it must never become a silent drop. This project's signature
 failure is the thing that looks healthy while broken (TECHLOG 2026-07-29), so
 every degraded load also says WHY, once, on stderr.
 
+FAIL OPEN, BUT NEVER FAIL QUIET
+-------------------------------
+Fail-open protects recall and stays. Being quiet about it does not, and until
+2026-09-09 the single likeliest failure of all was silent: `load()` returned
+early on `OSError` when the artifact file was absent, BEFORE the cache write
+and BEFORE the stderr line, so a checkout missing `model.json.gz` printed
+nothing, routed every candidate to the paid gate forever, and left every
+surface reading normal. `health()` below is the discriminator that was
+missing. Four states, and the four are not interchangeable:
+
+    OK        an armed flag and a model that loads: routing for real.
+    OFF       TIT_GATE_CLASSIFIER=off: a human chose the LLM gate.
+    UNARMED   no flag, or the trainer reverted one: the pre-classifier world,
+              which is a legitimate state and costs exactly what it used to.
+    BROKEN    the committed flag CLAIMS armed and no model could be loaded.
+              Nothing is dropped and nothing is wrong with the data; every
+              candidate is simply paying the LLM gate while the dashboard
+              says the gate was replaced. A human is needed.
+
+BROKEN is reported by `ops_status.py` and exits it 2. Do not answer a BROKEN
+by reverting the armed flag to make the tool quiet: the flag is the trainer's
+to write, and a hand-cleared one turns a fault into an UNARMED that nobody
+will ever look at again.
+
+WHAT AN UNCERTAIN SHARE DOES AND DOES NOT MEAN
+----------------------------------------------
+A high uncertain share is NOT evidence of a broken load, and reading it that
+way costs a session. Measured on 2026-09-09 against the live ledger: the
+committed artifact loads, and its offline routing of 2026-09-09's candidates
+reproduces that day's production ledger exactly (70 relevant, 131 irrelevant,
+851 uncertain). The classifier was routing perfectly and was still ~85%
+uncertain, because at the 99.5% recall bar the drop band can only claim about
+a fifth of traffic and the earned skip band about a tenth. The plan's ~80%
+confident coverage was a hypothesis it labelled "to be measured"; it has now
+been measured and it is not reachable at this bar with these weights. That is
+a finding to act on in the model, not a number to relax, and `health()` is
+what lets the two be told apart without a day of archaeology.
+
 NO NEW RUNTIME DEPENDENCY
 -------------------------
 scikit-learn fits the weights inside the weekly training workflow and nowhere
@@ -247,6 +285,15 @@ def weights_sha(blob_b64: str) -> str:
 _CACHE: dict = {"key": None, "model": None, "why": ""}
 
 
+def _mtime(path: str):
+    """The file's mtime, or None when it is not there. None is a legitimate
+    cache key: "absent" is a state to remember, not a reason to stop early."""
+    try:
+        return os.path.getmtime(path)
+    except OSError:
+        return None
+
+
 def _read_artifact(path: str) -> tuple[Model, str]:
     with gzip.open(path, "rt", encoding="utf-8") as fh:
         doc = json.load(fh)
@@ -304,15 +351,19 @@ def load(now: datetime | None = None) -> tuple[Model | None, str]:
     once, while a test that swaps TIT_GATE_CLASSIFIER_DIR gets a fresh read.
     """
     mpath, spath = model_path(), status_path()
-    try:
-        key = (mpath, os.path.getmtime(mpath), os.path.getmtime(spath))
-    except OSError:
-        return None, "no committed artifact (model or status file missing)"
+    # An absent file is a KEY, not an early return. This used to bail here,
+    # which skipped both the cache and the stderr line below, so the commonest
+    # failure of all -- a checkout with no model.json.gz -- was the only one
+    # that degraded in complete silence while every candidate paid the gate.
+    key = (mpath, _mtime(mpath), _mtime(spath))
     if _CACHE["key"] == key:
         return _CACHE["model"], _CACHE["why"]
 
     model, why = None, ""
     try:
+        if key[1] is None or key[2] is None:
+            raise FileNotFoundError(
+                "no committed artifact (model or status file missing)")
         with open(spath, encoding="utf-8") as fh:
             status = json.load(fh)
         why = _replay_ok(status)
@@ -322,6 +373,8 @@ def load(now: datetime | None = None) -> tuple[Model | None, str]:
                 model, why = None, ("replay report describes different weights "
                                     f"(status {status.get('artifact_sha')!r} != "
                                     f"artifact {model.sha!r})" if model else "")
+    except FileNotFoundError as exc:  # the absent-artifact case, named plainly
+        model, why = None, str(exc)
     except Exception as exc:  # noqa: BLE001 — fail open, always
         model, why = None, f"artifact unreadable ({exc})"
     _CACHE.update(key=key, model=model, why=why)
@@ -329,6 +382,45 @@ def load(now: datetime | None = None) -> tuple[Model | None, str]:
         print(f"[gate-classifier] failing open to the LLM gate — {why}",
               file=sys.stderr)
     return model, why
+
+
+# --- Health: an honest shrug and a broken one are different states ------------
+
+OK = "OK"
+OFF = "OFF"
+UNARMED = "UNARMED"
+BROKEN = "BROKEN"
+
+
+def armed_flag() -> bool:
+    """What the committed flag CLAIMS, read without decoding 1 MB of weights.
+
+    Deliberately separate from `load()`: the claim and the ability to honour
+    it are two facts, and `health()` is BROKEN exactly where they disagree.
+    """
+    try:
+        with open(status_path(), encoding="utf-8") as fh:
+            return bool(json.load(fh).get("armed"))
+    except Exception:  # noqa: BLE001, an unreadable flag claims nothing
+        return False
+
+
+def health(now: datetime | None = None) -> tuple[str, str]:
+    """(state, detail), one of OK / OFF / UNARMED / BROKEN, never raises.
+
+    BROKEN is the only state that needs a human, and it is the whole point of
+    this function: an armed flag with no loadable model routes 100% of
+    candidates to the paid gate and looks, from every other surface, exactly
+    like a classifier doing its job on hard traffic.
+    """
+    if not enabled():
+        return OFF, "TIT_GATE_CLASSIFIER=off, a human chose the LLM gate"
+    model, why = load(now=now)
+    if model is not None:
+        return OK, f"artifact {model.sha} trained {model.trained_at}"
+    if armed_flag():
+        return BROKEN, why or "armed flag, but no model could be loaded"
+    return UNARMED, why or "no armed classifier, the LLM gate, as before"
 
 
 def reset_cache() -> None:

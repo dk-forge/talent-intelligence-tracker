@@ -513,7 +513,9 @@ def test_drift_alarm_fires_once_and_clears_once(classifier_dir):
     high = _drift_lines(40, 60, now)                 # 60% uncertain
     trainer.check_drift(str(classifier_dir), status, high, poster, now)
     trainer.check_drift(str(classifier_dir), status, high, poster, now)
-    drift_mails = [p for p in posted if "drift" in p["subject"].lower()]
+    drift_mails = [p for p in posted
+                   if (p.get("dedupe_key") or "").startswith(
+                       "gate-classifier-drift:")]
     assert len(drift_mails) == 1, "the alarm must dedupe"
     assert drift_mails[0]["dedupe_key"].startswith("gate-classifier-drift:")
 
@@ -609,3 +611,114 @@ def test_the_real_fit_learns_the_synthetic_corpus():
     report = trainer.replay(real, [], fit_fn=trainer.fit)
     assert report["rate_pct"] >= gate_classifier.SHIP_BAR_PCT
     assert trainer.bar_passes(report)
+
+
+# --- The silent-degradation guard ------------------------------------------------
+#
+# 2026-09-09. A 95.5% uncertain share arrived as a cost alarm and the first
+# question was "has the classifier stopped loading?", a question nothing in
+# this repo could answer, because every failure mode routes UNCERTAIN and only
+# one of them is a fault. These four are that answer. The load-bearing one is
+# `test_an_armed_flag_that_cannot_load_is_BROKEN`: break the model artifact
+# and it fails by name instead of quietly costing money forever.
+
+
+def _repo_root():
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def test_a_missing_artifact_is_never_silent(classifier_dir, capsys):
+    """The regression. `load()` used to return early on the absent-file
+    OSError, skipping both the cache and the stderr line, so the commonest
+    failure of all was the only one that degraded in complete silence."""
+    armed_setup(classifier_dir)
+    (classifier_dir / "model.json.gz").unlink()
+    gate_classifier.reset_cache()
+
+    assert gate_classifier.route(FUNDING, lang="en") == gate_classifier.UNCERTAIN
+    err = capsys.readouterr().err
+    assert "failing open" in err, (
+        "an absent artifact degraded without saying so, every candidate is "
+        "paying the LLM gate and nothing anywhere reports it")
+
+
+def test_an_armed_flag_that_cannot_load_is_BROKEN(classifier_dir):
+    """The state that costs money: the committed flag claims ARMED and no
+    model loads, so 100% of candidates fail open to the paid gate while every
+    other surface looks normal. It must not read as UNARMED, which is a
+    legitimate state nobody investigates."""
+    armed_setup(classifier_dir)
+    assert gate_classifier.health()[0] == gate_classifier.OK
+
+    (classifier_dir / "model.json.gz").write_bytes(b"not a model")
+    gate_classifier.reset_cache()
+    state, detail = gate_classifier.health()
+    assert state == gate_classifier.BROKEN, (
+        f"an armed flag with an unloadable model reported {state}, not BROKEN")
+    assert detail, "BROKEN must say why"
+    # Fail-open is the correct routing and stays. Loud, not different.
+    assert gate_classifier.route(FUNDING, lang="en") == gate_classifier.UNCERTAIN
+
+
+def test_health_tells_the_four_states_apart(classifier_dir, monkeypatch):
+    assert gate_classifier.health()[0] == gate_classifier.UNARMED
+    armed_setup(classifier_dir)
+    assert gate_classifier.health()[0] == gate_classifier.OK
+    monkeypatch.setenv("TIT_GATE_CLASSIFIER", "off")
+    assert gate_classifier.health()[0] == gate_classifier.OFF
+
+
+def test_the_committed_classifier_is_not_silently_all_uncertain(monkeypatch):
+    """The shipped artifact, against the shipped labels.
+
+    Every other test here builds a synthetic model, so all of them would pass
+    on a checkout whose real model.json.gz is missing or scores everything the
+    same. This one refuses that: if the committed flag CLAIMS armed, the
+    committed weights must load and must route at least one real candidate
+    confidently. A classifier that routes nothing confidently is not a
+    classifier, it is a receipt for the LLM gate.
+
+    Deliberately a floor of one and not a percentage, the honest coverage
+    ceiling at the 99.5% recall bar is a measurement that moves, and a
+    percentage here would become a second alarm line to argue with. This
+    asserts the difference between working and not working.
+    """
+    monkeypatch.delenv("TIT_GATE_CLASSIFIER_DIR", raising=False)
+    monkeypatch.delenv("TIT_GATE_CLASSIFIER", raising=False)
+    gate_classifier.reset_cache()
+    root = _repo_root()
+
+    if not gate_classifier.armed_flag():
+        pytest.skip("no armed classifier committed, nothing to route")
+
+    state, detail = gate_classifier.health()
+    assert state == gate_classifier.OK, (
+        f"the committed classifier is {state}: {detail}. Every candidate is "
+        "failing open to the paid LLM gate.")
+
+    ledgers = sorted(
+        f for f in os.listdir(os.path.join(root, "data", "gate_labels"))
+        if f.startswith("labels-") and f.endswith(".jsonl"))
+    if not ledgers:
+        pytest.skip("no committed label ledger to route")
+    path = os.path.join(root, "data", "gate_labels", ledgers[-1])
+    with open(path, encoding="utf-8") as fh:
+        sample = fh.readlines()[-400:]
+
+    routed = {gate_classifier.RELEVANT: 0, gate_classifier.UNCERTAIN: 0,
+              gate_classifier.IRRELEVANT: 0}
+    for raw in sample:
+        try:
+            line = json.loads(raw)
+        except ValueError:
+            continue
+        routed[gate_classifier.route(line.get("headline") or "",
+                                     line.get("teaser") or "",
+                                     line.get("lang") or "")] += 1
+
+    confident = routed[gate_classifier.RELEVANT] + routed[gate_classifier.IRRELEVANT]
+    assert sum(routed.values()) >= 50, "too few real candidates to judge"
+    assert confident > 0, (
+        f"the committed classifier routed all {sum(routed.values())} of the "
+        "most recent real candidates to UNCERTAIN, so every one of them pays "
+        "the LLM gate. It loads and it decides nothing.")

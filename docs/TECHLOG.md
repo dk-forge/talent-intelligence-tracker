@@ -14,6 +14,103 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-09 - a 95.5% uncertain share that was not drift, not a broken load, and not fixable by moving the line
+
+**The alarm.** "Classifier gate drift: uncertain share 95%. Over the last 7
+days, 95.5% of routed candidates fell in the UNCERTAIN band and paid the LLM
+gate, past the 35% alarm line. That is vocabulary drift or a new language."
+
+**It was neither, and the alarm said which one it was without having checked.**
+
+**A broken load was ruled out by identity, not by inspection.** The obvious
+suspect is the artifact: a 95% uncertain share is far more consistent with a
+model that will not load than with drift, because drift moves a number and a
+broken load pins it. `data/gate_classifier/model.json.gz` is committed, is
+1,047,247 bytes, decodes, and its sha matches `status.json`. The proof that
+PRODUCTION loads it is stronger than that: replaying 2026-09-09's candidates
+through the committed artifact offline reproduces that day's ledger exactly,
+70 relevant and 131 irrelevant and 851 uncertain, the same three numbers. The
+classifier was routing perfectly and was still 81% uncertain that day.
+
+**Vocabulary drift was ruled out by counting.** Of 9,977 candidates in the
+window, 186 (1.9%) are in a language the roster has never held. The uncertain
+band is dominated by English (2,707 rows), the best-trained language in the
+corpus. And the number never fell: 2026-09-02 holds the first CLF_ line the
+ledger has ever carried, and the confident share has read between 3.6% and
+19.1% every day since. There is no earlier, healthier value for this to have
+drifted away from. It was born here.
+
+**The real answer is that the 35% line was a hypothesis nobody had measured.**
+`docs/PLAN-gate-to-five-dollars.md` says it plainly: "Expected effect if the
+confident bands cover ~80% of candidates (to be measured)". It has now been
+measured, against the committed weights and the live ledger:
+
+  * the drop band is capped by the 99.5% recall bar, not by anything else. At
+    t_lo = 1e-5 the replay keeps 99.66% of stored rows and drops 20.3% of
+    traffic; at 2.5e-5 it keeps 99.47% and has already failed the bar. Reaching
+    a 35% uncertain share needs t_lo near 0.03, which throws away 3.1% of
+    stored rows.
+  * the skip band is capped by measured gate agreement. t_hi walks down from
+    0.995 and stops at 0.99 because at 0.985 the band's agreement with the LLM
+    gate falls under 95%. It claims about 9% of traffic.
+
+So roughly 20% + 9% is the ceiling with these weights at this bar, against the
+65% the alarm line assumes. **The line stays at 35.0.** A guard that is telling
+the truth about a real gap is not answered by moving it, and the gap is in the
+WEIGHTS.
+
+**One thing that looked like the bug was checked and is not worth fixing.**
+`choose_thresholds` sets `t_lo = min(all held-out stored scores) * 0.8`, an
+unbounded-sensitivity statistic that enforces 100% holdout recall while the
+ship bar is 99.5%. The current artifact's t_lo really is pinned near zero,
+4.37e-08, by a single stored row. Replacing the min with an explicit leakage
+budget was measured on the real holdout before being written: at a 0.5% budget,
+which is the entire bar, it buys 4 percentage points of drop coverage and
+**$0.022 per 7 days**. It trades recall for cents. Not done, and recorded here
+so the next session does not rediscover it as an idea.
+
+**What was actually broken, and it is not what the alarm was about.**
+`gate_classifier.load()` returned early on the `OSError` from `getmtime` when
+the artifact file was absent, BEFORE the cache write and BEFORE the stderr
+line. So the single likeliest failure of all, a checkout with no
+`model.json.gz`, was the one failure that degraded in complete silence: no log
+line, no health row, no test, every candidate paying the gate forever, and the
+module docstring promising that "every degraded load also says WHY, once, on
+stderr". Verified by running it. That is the fail-expensive default, armed and
+waiting, and the alarm above could not have told anyone it had fired.
+
+**The fix is the discriminator that was missing.** `gate_classifier.health()`
+returns four states and they are not interchangeable: OK, OFF (a human chose
+the LLM gate), UNARMED (the pre-classifier world, legitimate, costs what it
+used to) and **BROKEN** (the committed flag claims armed and no model loads).
+Fail-open routing is unchanged and stays: a classifier failure may cost money
+and must never become a silent drop. `ops_status.py [0b]` prints the state and
+exits 2 on BROKEN, and prints the replay's confident coverage beside it so the
+next session reads the ceiling instead of re-deriving it over a day. The drift
+mail no longer asserts a cause; it reports `health()` and lists the three
+candidates in the order that costs the least time.
+
+**Guarded by mutation, both ways.**
+`test_a_missing_artifact_is_never_silent` fails on the pre-fix early return
+(proved: reverted it, "assert 'failing open' in ''").
+`test_an_armed_flag_that_cannot_load_is_BROKEN` fails if BROKEN ever collapses
+into UNARMED. `test_the_committed_classifier_is_not_silently_all_uncertain`
+routes the last 400 lines of the shipped ledger through the SHIPPED artifact
+and fails if the committed flag claims armed and the weights will not load or
+decide nothing (proved twice: model removed, and model truncated). Every other
+test in that file builds a synthetic model, so all of them passed on a checkout
+whose real artifact was gone.
+
+**The money, from the repo's own price snapshot.** A gate call is 504 in / 2
+out on google/gemini-2.5-flash-lite = **$0.00005120**. Over the 7-day window:
+9,283 of 9,977 candidates paid the gate, **$0.475**, about **$2.04/month**. The
+classifier saved $0.036 in that week. So the whole gate is ~$2/month and the
+alarm is pointing at roughly $1.30/month of theoretical headroom that the
+recall bar does not allow us to take. Nothing in this session changed the bill;
+what changed is that a broken load can now be seen, and it would have cost
+$0.15/month more while looking exactly like this.
+
+
 ## 2026-09-06 - the promise with no keeper between sessions, and 39 "possible takeovers" that were all the same employer
 
 **The brief.** Are the sources all working, and is it running as optimised as
