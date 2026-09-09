@@ -358,6 +358,29 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Rules that are not negotiable
 
+### Standing merge authority (granted 2026-09-09)
+
+Merge and deploy without asking. The owner does not want to be a queue.
+
+**Arming, spending and adjudication remain his**, at any price:
+- arming a dormant source or flipping a feature flag
+- any paid model call outside an approved measurement budget
+- adjudicating a data question: whether two rows are one event, closing a
+  data-integrity incident, moving a production model
+
+**What this changed.** On 2026-09-09 three pull requests here sat green and
+waiting because this file granted no merge authority while the two sibling
+repos did: #119 (a quiet job board is not a broken scraper), #120 (a
+gate-classifier with no loadable model is BROKEN, not a shrug) and #122 (the
+Denmark CVR collector). All three were correct, tested, mutation-proven and
+idle, and each cost a round trip that taught nobody anything.
+
+**Merging is not a lower bar.** Everything else still holds: never merge red,
+never merge what you cannot establish is correct, never widen a threshold to
+make a check pass, and prove a guard by mutation before trusting it. Standing
+authority removes the wait, not the standard.
+
+
 - **No source URL, no record.** Enforced in `validate.py`, tested.
 - **The model never invents a number.** Any figure in a summary must appear
   verbatim in `raw_text` or the whole record is discarded, not repaired.
