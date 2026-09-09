@@ -212,9 +212,9 @@
   ],
   "red_marks": {
     "ticket:20260906T165201Z-backfill-gdelt-2026": "2026-09-09T19:55:28Z",
-    "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-08T22:01:42Z",
-    "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-08T22:01:42Z",
-    "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-08T22:01:42Z"
+    "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-09T22:11:58Z",
+    "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-09T22:11:58Z",
+    "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-09T22:11:58Z"
   },
   "tickets": [
     {
