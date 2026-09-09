@@ -1,0 +1,1747 @@
+{
+ "_provenance": {
+  "assembled": "2026-09-09",
+  "honest_status": "ASSEMBLED, NOT CAPTURED. No response body from http://distribution.virk.dk/cvr-permanent/virksomhed/_search has ever been seen by this repository: that endpoint answers 401 and the credentials Erhvervsstyrelsen issues are not held here. This file proves the parser, the guards and the scrubbing. It does NOT prove that Denmark's live data looks like this, and no number in it is a measurement of anything.",
+  "what_is_verified": "Every FIELD NAME and every nesting level below was read out of the production mapping at http://distribution.virk.dk/cvr-permanent/_mapping on 2026-09-09, which is PUBLIC and needs no credential. The envelope (hits.hits[]._source.Vrvirksomhed, _index cvr-v-20220630, _type _doc) and the shape of one real deltagerRelation - including an organisation whose period differs from its medlemsData period - follow a real captured CVR document published by a third party and independently corroborated by four open-source clients of this same endpoint.",
+  "what_is_invented": "The people, the dates and the employee figures. Names are ordinary Danish names and belong to nobody in particular; the company names and CVR numbers of the first four are real and public, chosen so the modulus-11 check is exercised on genuine numbers. 30000005 and 30000013 are synthetic but valid; 99999999 is deliberately invalid. The band code vocabulary is second-hand (two independent open-source clients), NOT read from a response.",
+  "personal_data": "Every participant keeps beliggenhedsadresse, postadresse, enhedsNummer, forretningsnoegle and adresseHemmelig exactly as CVR publishes them, because the point of the personal-data tests is that none of it reaches a stored row.",
+  "test_today": "2026-09-09 with a 14-day window, so 2026-08-26..2026-09-09.",
+  "the_seven": "24256790 both directions in one company plus a legal person on the board and an auditor; 22756214 an unknown FUNKTION value that must be declined and counted; 61126228 a beneficial-owners organ and an event outside the window; 10403782 below the band floor; 30000005 reklamebeskyttet; 30000013 organisation period and membership period disagreeing; 99999999 a CVR number that fails modulus-11."
+ },
+ "search": {
+  "took": 41,
+  "timed_out": false,
+  "_scroll_id": "DnF1ZXJ5VGhlbkZldGNoBQAAAAAA",
+  "hits": {
+   "total": 7,
+   "max_score": null,
+   "hits": [
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000002425",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 24256790,
+       "enhedsNummer": 4000242567,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": false,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "NOVO NORDISK A/S",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": null,
+         "antalAarsvaerk": null,
+         "intervalKodeAntalAnsatte": "ANTAL_1000_999999",
+         "intervalKodeAntalAarsvaerk": "ANTAL_1000_999999",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "Bagsværd",
+         "kommune": {
+          "kommuneNavn": "Bagsværd"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668624,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Mette Kirstine Bruun",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "DIREKTION",
+                 "vaerdi_keyword": "DIREKTION",
+                 "periode": {
+                  "gyldigFra": "2026-09-01",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "deltager": {
+          "enhedsNummer": 4000668625,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Anders Holm Sørensen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Bestyrelse",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Bestyrelse",
+               "vaerdi_keyword": "Bestyrelse",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "BESTYRELSESMEDLEM",
+                 "vaerdi_keyword": "BESTYRELSESMEDLEM",
+                 "periode": {
+                  "gyldigFra": "2018-03-20",
+                  "gyldigTil": "2026-08-31"
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "deltager": {
+          "enhedsNummer": 4000000099,
+          "enhedstype": "VIRKSOMHED",
+          "forretningsnoegle": "31078012",
+          "navne": [
+           {
+            "navn": "NOVO HOLDINGS A/S",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": []
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Bestyrelse",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Bestyrelse",
+               "vaerdi_keyword": "Bestyrelse",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "BESTYRELSESMEDLEM",
+                 "vaerdi_keyword": "BESTYRELSESMEDLEM",
+                 "periode": {
+                  "gyldigFra": "2026-09-02",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "deltager": {
+          "enhedsNummer": 4000668626,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Revisor Jens Andersen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "REVISION",
+           "organisationsNavn": [
+            {
+             "navn": "Revision",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Revision",
+               "vaerdi_keyword": "Revision",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "REVISION",
+                 "vaerdi_keyword": "REVISION",
+                 "periode": {
+                  "gyldigFra": "2026-09-03",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000002275",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 22756214,
+       "enhedsNummer": 4000227562,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": false,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "A.P. MØLLER - MÆRSK A/S",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": 740,
+         "antalAarsvaerk": 740,
+         "intervalKodeAntalAnsatte": "ANTAL_500_999",
+         "intervalKodeAntalAarsvaerk": "ANTAL_500_999",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "København",
+         "kommune": {
+          "kommuneNavn": "København"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668630,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Karen Toft Nielsen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "VICEDIREKTØR",
+                 "vaerdi_keyword": "VICEDIREKTØR",
+                 "periode": {
+                  "gyldigFra": "2026-09-04",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "deltager": {
+          "enhedsNummer": 4000668631,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Ole Bech Lauridsen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Bestyrelse",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Bestyrelse",
+               "vaerdi_keyword": "Bestyrelse",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "Formand",
+                 "vaerdi_keyword": "Formand",
+                 "periode": {
+                  "gyldigFra": "2026-09-05",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000006112",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 61126228,
+       "enhedsNummer": 4000611262,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": false,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "DANSKE BANK A/S",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": 310,
+         "antalAarsvaerk": 310,
+         "intervalKodeAntalAnsatte": "ANTAL_200_499",
+         "intervalKodeAntalAarsvaerk": "ANTAL_200_499",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "København",
+         "kommune": {
+          "kommuneNavn": "København"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668640,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Signe Dahl Poulsen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "REGISTER",
+           "organisationsNavn": [
+            {
+             "navn": "Reelle ejere",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Reelle ejere",
+               "vaerdi_keyword": "Reelle ejere",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "LEGALT EJERSKAB",
+                 "vaerdi_keyword": "LEGALT EJERSKAB",
+                 "periode": {
+                  "gyldigFra": "2026-09-01",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "deltager": {
+          "enhedsNummer": 4000668641,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Henrik Vestergaard Mikkelsen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "ADM. DIR.",
+                 "vaerdi_keyword": "ADM. DIR.",
+                 "periode": {
+                  "gyldigFra": "2021-05-01",
+                  "gyldigTil": "2026-01-04"
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000001040",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 10403782,
+       "enhedsNummer": 4000104037,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": false,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "LILLE MASKINFABRIK ApS",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": 31,
+         "antalAarsvaerk": 31,
+         "intervalKodeAntalAnsatte": "ANTAL_20_49",
+         "intervalKodeAntalAarsvaerk": "ANTAL_20_49",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "Herning",
+         "kommune": {
+          "kommuneNavn": "Herning"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668650,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Jonas Riis Kristensen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "DIREKTØR",
+                 "vaerdi_keyword": "DIREKTØR",
+                 "periode": {
+                  "gyldigFra": "2026-09-02",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000003000",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 30000005,
+       "enhedsNummer": 4000300000,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": true,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "BESKYTTET INDUSTRI A/S",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": 1200,
+         "antalAarsvaerk": 1200,
+         "intervalKodeAntalAnsatte": "ANTAL_1000_999999",
+         "intervalKodeAntalAarsvaerk": "ANTAL_1000_999999",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "Aarhus",
+         "kommune": {
+          "kommuneNavn": "Aarhus"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668660,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": true,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Pernille Storm Jakobsen",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "DIREKTION",
+                 "vaerdi_keyword": "DIREKTION",
+                 "periode": {
+                  "gyldigFra": "2026-09-03",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000003000",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 30000013,
+       "enhedsNummer": 4000300000,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": false,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "TVEDELT LEDELSE A/S",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": 205,
+         "antalAarsvaerk": 205,
+         "intervalKodeAntalAnsatte": "ANTAL_200_499",
+         "intervalKodeAntalAarsvaerk": "ANTAL_200_499",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "Odense",
+         "kommune": {
+          "kommuneNavn": "Odense"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668670,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Lars Emil Bjerre",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2014-10-03",
+              "gyldigTil": "2026-01-15"
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2014-10-03",
+                "gyldigTil": "2026-01-15"
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "DIREKTION",
+                 "vaerdi_keyword": "DIREKTION",
+                 "periode": {
+                  "gyldigFra": "2026-09-06",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "_index": "cvr-v-20220630",
+     "_type": "_doc",
+     "_id": "4000009999",
+     "_score": null,
+     "_source": {
+      "Vrvirksomhed": {
+       "cvrNummer": 99999999,
+       "enhedsNummer": 4000999999,
+       "enhedstype": "VIRKSOMHED",
+       "reklamebeskyttet": false,
+       "sidstIndlaest": "2026-09-02T04:12:11.000+02:00",
+       "sidstOpdateret": "2026-09-02T04:12:11.000+02:00",
+       "virksomhedMetadata": {
+        "nyesteNavn": {
+         "navn": "UMULIGT NUMMER A/S",
+         "periode": {
+          "gyldigFra": "2000-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        },
+        "nyesteAarsbeskaeftigelse": {
+         "aar": 2025,
+         "antalAnsatte": 600,
+         "antalAarsvaerk": 600,
+         "intervalKodeAntalAnsatte": "ANTAL_500_999",
+         "intervalKodeAntalAarsvaerk": "ANTAL_500_999",
+         "sidstOpdateret": "2026-03-01T00:00:00.000+01:00"
+        },
+        "nyesteBeliggenhedsadresse": {
+         "vejnavn": "Havnegade",
+         "husnummerFra": 1,
+         "postnummer": 1058,
+         "postdistrikt": "Aalborg",
+         "kommune": {
+          "kommuneNavn": "Aalborg"
+         },
+         "landekode": "DK",
+         "periode": {
+          "gyldigFra": "2005-01-01",
+          "gyldigTil": null
+         }
+        },
+        "nyesteVirksomhedsform": {
+         "virksomhedsformkode": 60,
+         "kortBeskrivelse": "A/S"
+        },
+        "sammensatStatus": "NORMAL"
+       },
+       "livsforloeb": [
+        {
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         },
+         "sidstOpdateret": null
+        }
+       ],
+       "virksomhedsstatus": [
+        {
+         "status": "NORMAL",
+         "periode": {
+          "gyldigFra": "1989-01-01",
+          "gyldigTil": null
+         }
+        }
+       ],
+       "deltagerRelation": [
+        {
+         "deltager": {
+          "enhedsNummer": 4000668680,
+          "enhedstype": "PERSON",
+          "forretningsnoegle": null,
+          "fortroligBeriget": false,
+          "adresseHemmelig": false,
+          "adresseHemmeligUndtagelse": false,
+          "adresseOpdateringOphoert": false,
+          "sidstIndlaest": "2026-09-01T09:10:50.968+02:00",
+          "sidstOpdateret": "2026-09-01T09:10:50.968+02:00",
+          "navne": [
+           {
+            "navn": "Ukendt Person",
+            "periode": {
+             "gyldigFra": null,
+             "gyldigTil": null
+            },
+            "sidstOpdateret": null
+           }
+          ],
+          "beliggenhedsadresse": [
+           {
+            "vejnavn": "Skovvej",
+            "husnummerFra": 14,
+            "etage": "3",
+            "postnummer": 2800,
+            "postdistrikt": "Kgs. Lyngby",
+            "kommune": {
+             "kommuneNavn": "Lyngby-Taarbæk"
+            },
+            "landekode": "DK",
+            "periode": {
+             "gyldigFra": "2019-04-01",
+             "gyldigTil": null
+            },
+            "sidstOpdateret": "2019-04-01T00:00:00.000+02:00"
+           }
+          ],
+          "postadresse": {
+           "fritekst": "Skovvej 14, 3., 2800 Kgs. Lyngby"
+          }
+         },
+         "kontorsteder": [],
+         "organisationer": [
+          {
+           "enhedsNummerOrganisation": 4005641669,
+           "hovedtype": "LEDELSESORGAN",
+           "organisationsNavn": [
+            {
+             "navn": "Direktion",
+             "periode": {
+              "gyldigFra": "2010-01-01",
+              "gyldigTil": null
+             },
+             "sidstOpdateret": "2010-01-01T00:00:00.000+01:00"
+            }
+           ],
+           "attributter": [
+            {
+             "sekvensnr": 0,
+             "type": "FUNKTION",
+             "vaerditype": "string",
+             "vaerdier": [
+              {
+               "vaerdi": "Direktion",
+               "vaerdi_keyword": "Direktion",
+               "periode": {
+                "gyldigFra": "2010-01-01",
+                "gyldigTil": null
+               },
+               "sidstOpdateret": null
+              }
+             ]
+            }
+           ],
+           "medlemsData": [
+            {
+             "attributter": [
+              {
+               "sekvensnr": 0,
+               "type": "FUNKTION",
+               "vaerditype": "string",
+               "vaerdier": [
+                {
+                 "vaerdi": "DIREKTION",
+                 "vaerdi_keyword": "DIREKTION",
+                 "periode": {
+                  "gyldigFra": "2026-09-02",
+                  "gyldigTil": null
+                 },
+                 "sidstOpdateret": "2026-09-02T10:39:03.000+02:00"
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ },
+ "scroll_empty": {
+  "took": 3,
+  "timed_out": false,
+  "_scroll_id": "DnF1ZXJ5VGhlbkZldGNoBQAAAAAA",
+  "hits": {
+   "total": 7,
+   "max_score": null,
+   "hits": []
+  }
+ },
+ "canary_found": {
+  "took": 2,
+  "timed_out": false,
+  "hits": {
+   "total": 1,
+   "max_score": null,
+   "hits": []
+  }
+ },
+ "canary_missing": {
+  "took": 2,
+  "timed_out": false,
+  "hits": {
+   "total": 0,
+   "max_score": null,
+   "hits": []
+  }
+ }
+}

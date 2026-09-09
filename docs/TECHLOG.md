@@ -14,6 +14,72 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-09 - Denmark's CVR, built blind against a public mapping, shipped dormant
+
+**What.** `collectors/denmark_cvr.py` (+ `denmark_cvr_probe.py`,
+`tests/test_denmark_cvr.py`, two fixtures). The one national register found that
+states BOTH a start date and an end date per participant AND publishes an
+employee band. Registered in `run_collect`, dispatchable by hand, and scheduled
+by nothing.
+
+**Two locks, and it must keep both until the owner acts.** No cron anywhere, and
+`TIT_DK_CVR` defaults off so a run makes no request and sends no credential. It
+is NOT a live source on the sources page (`_DORMANT_COLLECTORS`), because it has
+never stored a row and has never even authenticated.
+
+**The blocker is two secrets that already exist elsewhere.**
+`DENMARK_DATA_USER` and `DENMARK_DATA_PASSWORD` are secrets on the sibling
+repository `dk-forge/ai-layoff-tracker` and need copying here. Nothing in this
+checkout can read their values.
+
+**The finding that made a blind build possible.**
+`GET http://distribution.virk.dk/cvr-permanent/_mapping` is PUBLIC. `_search`
+answers 401, but the mapping does not, so every field path this collector reads
+was read out of production rather than guessed, that response is committed
+verbatim as a fixture, and `mapping_check()` re-reads it on every run. Without
+it a renamed field would answer HTTP 200 with no hits, which is a silent zero.
+
+**Three silent zeros were designed against, not one.** A renamed field (the
+mapping check). A renamed band code (the query would return nothing). And the
+mapping type in the path: the mapping says `_doc` while every client and guide
+uses `/virksomhed/`, and under Elasticsearch 6.8 a search against a missing type
+answers 200 with zero hits. So `resolve_search_url()` asks for one known-live
+CVR number first and refuses if no path can find it. A scan whose clean zero has
+never caught one known instance is worth nothing.
+
+**The credential travels in cleartext and that is the service's shape, not a
+choice.** Port 80 only, measured on all three ELB addresses on 2026-09-09; 443
+times out on every one. Stated in the docstring, the workflow and the probe
+output rather than buried. Redirects are refused and every request asserts its
+own hostname, both proved by mutation.
+
+**No emptiness floor, deliberately.** `czechia_ares` and
+`estonia_ariregister` both refuse a suspiciously empty run against a floor
+derived from a measurement; this collector has no measurement, so
+`MEASURED_YIELD` is `None`, `emptiness_floor()` returns 0, and a test fails if
+somebody replaces it with a guess. The first armed run produces the number; the
+probe's step 5 counts per band and touches no person.
+
+**The materiality floor's lower edge is 200, not 250.** Denmark publishes no
+250 boundary. `ANTAL_200_499` is the nearest band and a row says the band, never
+a headcount.
+
+**Proved by mutation, thirteen times**, each mutant killed by its own targeted
+test: the arming lock, redirect following, the hostname assertion, the canary,
+membership-versus-organisation dates, legal persons as participants, the
+advertising-protection refusal, a participant address on a row, the band floor,
+an unknown function accepted as a near-miss, the mapping check, an invented
+emptiness floor, and the modulus-11 check.
+
+**What remains unverified**, stated rather than dressed up: no `_search`
+response body has ever been seen here, so the search fixture is ASSEMBLED and
+says so in its own provenance; the band-code vocabulary is second-hand from two
+independent open-source clients; and there is no published rate limit, so the
+pacing is set from caution rather than from a documented ceiling.
+
+---
+
+
 ## 2026-09-09 - a 95.5% uncertain share that was not drift, not a broken load, and not fixable by moving the line
 
 **The alarm.** "Classifier gate drift: uncertain share 95%. Over the last 7

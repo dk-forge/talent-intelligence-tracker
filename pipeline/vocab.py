@@ -105,6 +105,15 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # purpose: the registrar's public lookup at ica.justice.gov.il is a search
     # FORM with no per-company permalink, so there is no stabler page to cite.
     "data.gov.il",
+    # datacvr.virk.dk is Erhvervsstyrelsen's own publication of CVR, the
+    # register a Danish company is entered in, so it is the same class of host
+    # as sec.gov: the register itself rather than a report of it. Without this
+    # line collectors/denmark_cvr.py caps at 'reported' and a statutory
+    # participant record reads as a news story. The collector never FETCHES
+    # this host - it reads distribution.virk.dk - which is why that host's
+    # 403 to automated clients is a fact about link checking rather than a
+    # reason to cite something else.
+    "datacvr.virk.dk",
     # data.gov.sg is the Singapore government's own portal and the corporate
     # entities register on it is published BY the Accounting and Corporate
     # Regulatory Authority, the body companies incorporate with. Same class

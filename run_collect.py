@@ -19,7 +19,8 @@ from datetime import date
 import run_deadline
 import source_registry as registry
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
-                        czechia_ares, edinet_japan, estonia_ariregister, gdelt,
+                        czechia_ares, denmark_cvr, edinet_japan,
+                        estonia_ariregister, gdelt,
                         google_news, http_retry, irs_form_990,
                         israel_registrar, national_press,
                         opendart_korea, primary_chase, sec_edgar,
@@ -111,6 +112,15 @@ SOURCES = {
     # spends nothing. Filtered to employers reporting 50 full-time equivalents
     # or more, the Commission's own small-enterprise boundary.
     "estonia_ariregister": estonia_ariregister,
+    # Denmark's leadership spine, and the ONLY register in the tracker that
+    # states both a start and an end date per participant AND publishes an
+    # employee band to draw a materiality line with. SHIPS DORMANT behind two
+    # locks: no workflow schedules it, and TIT_DK_CVR defaults off, so a run
+    # makes no request and sends no credential until the owner arms it. It also
+    # needs DENMARK_DATA_USER / DENMARK_DATA_PASSWORD, which exist today only
+    # on the sibling repository and must be copied here. Keyed, derived, spends
+    # nothing: no model is called on any path.
+    "denmark_cvr": denmark_cvr,
     # Israel's FUNDING spine, and the only registry here that is not a
     # leadership one. The registrar's daily changes file is an event stream,
     # not a company list: 558,617 rows across 96 act types, and four of those

@@ -143,6 +143,16 @@ MAX_AGE_HOURS = {
     # company incorporated and struck off between two readings is never in any
     # file, and no window reaches it.
     "singapore_acra": 2400,     # ~100 days: DORMANT, no cron, no health row
+    # denmark_cvr ships DORMANT behind two locks and has no cron anywhere, so
+    # it files no health row and this leash does not tick yet. Entered now so
+    # that arming it is a schedule decision alone.
+    #
+    # TIGHTEN IT THE DAY A CRON IS CHOSEN. On a weekly slot it wants 180, the
+    # same as the six weekly structured collectors above: CVR's `sidstIndlaest`
+    # cursor only moves forward and the index keeps full history, so a missed
+    # week is recovered simply by widening TIT_DK_DAYS and nothing is lost
+    # permanently.
+    "denmark_cvr": 2400,        # ~100 days: DORMANT, no cron, no health row
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice

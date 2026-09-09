@@ -115,8 +115,15 @@ def test_live_sources_are_only_the_ones_with_collectors():
 # discovery is built, tested and has an arm-first dry-run probe, but nothing
 # schedules it and TIT_US_EXEC_WIRE defaults off, so the page must not claim it
 # as live coverage until a run has actually stored from it.
+# denmark_cvr is the same: built, tested against a recorded fixture, and shipped
+# behind two locks (no cron, and TIT_DK_CVR defaults off). It has ALSO never
+# authenticated - the credentials Erhvervsstyrelsen issues are not in this
+# repository yet - so it has never seen a live response, let alone stored a row.
+# Claiming Denmark on the sources page before that would be the exact failure
+# this file exists to prevent, in the direction that flatters us. Move it out of
+# this set in the same change that schedules it.
 _DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase", "irs_form_990",
-                       "us_exec_wire"}
+                       "us_exec_wire", "denmark_cvr"}
 
 
 def _registered_collector_keys():

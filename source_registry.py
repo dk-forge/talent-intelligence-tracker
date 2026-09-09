@@ -1910,12 +1910,19 @@ def sources_manifest() -> list[dict]:
 #         companyForms, companySituations, registeredEntries, addresses,
 #         tradeRegisterStatus, status, registrationDate, lastModified. PRH
 #         sells company representatives as a separate product. Closed.
-#     DK  CVR. The distribution service (`distribution.virk.dk/cvr-permanent`)
-#         is the one registry found that states BOTH a start and an end date per
-#         participant AND publishes employee bands, which would make it the
-#         best source on this whole list. It answers **HTTP 401** — access is
-#         free but needs credentials the Erhvervsstyrelsen issues on request.
-#         NEEDS-OWNER, and it is the single highest-value ask on this page.
+#     DK  CVR. BUILT 2026-09-09, SHIPPED DORMANT — collectors/denmark_cvr.py.
+#         The one registry found that states BOTH a start and an end date per
+#         participant AND publishes employee bands, which is why it was the
+#         highest-value ask on this page. It still answers **HTTP 401**: access
+#         is free but needs credentials Erhvervsstyrelsen issues on request,
+#         and `DENMARK_DATA_USER` / `DENMARK_DATA_PASSWORD` exist today only as
+#         secrets on the SIBLING repository. So the collector is written,
+#         tested and rehearsable and has never authenticated. Two locks hold it
+#         (no cron, `TIT_DK_CVR` off) and it is deliberately NOT a live source
+#         on the sources page until a run has stored from it. What made it
+#         buildable blind: `/cvr-permanent/_mapping` is PUBLIC, so every field
+#         path is verified against production rather than guessed. Still
+#         NEEDS-OWNER, and the ask is now narrow: copy two secrets.
 #     CH  Zefix (`zefix.admin.ch/ZefixPublicREST`) and the Swiss Official
 #         Gazette API (`shab.ch/api/v1/publications`) both answer **401**.
 #         NEEDS-OWNER.
