@@ -1,0 +1,416 @@
+{
+ "ran_at": "2026-09-10T13:25:14+00:00",
+ "ran_on": "2026-09-10",
+ "plan": {
+  "cycle": 506,
+  "planned_on": "2026-09-10",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-09-07 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "IS",
+    "name": "Iceland",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "IT",
+    "name": "Italy",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "KZ",
+    "name": "Kazakhstan",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "US",
+    "name": "United States",
+    "tier": "weak",
+    "measured": {
+     "total": 34,
+     "held": 16,
+     "held_pct": 47.1
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "IS",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "IT",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "KZ",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "US",
+   "tier": "weak",
+   "measured": {
+    "total": 34,
+    "held": 16,
+    "held_pct": 47.1
+   }
+  }
+ ],
+ "counts": {
+  "leads": 11,
+  "held": 4,
+  "missing": 7,
+  "unusable": 0,
+  "usable": 11
+ },
+ "by_country": {
+  "US": {
+   "leads": 5,
+   "held": 2,
+   "missing": 3,
+   "unusable": 0
+  },
+  "IT": {
+   "leads": 2,
+   "held": 0,
+   "missing": 2,
+   "unusable": 0
+  },
+  "KZ": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  },
+  "SE": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "IS": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0222,
+  "queries": 4,
+  "usd_per_query": 0.0055,
+  "usd_per_lead": 0.002,
+  "usd_per_candidate_miss": 0.0032,
+  "lifetime_usd": 0.2951,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:IS",
+   "leads": 2,
+   "usd": 0.00551,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 177,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:IT",
+   "leads": 2,
+   "usd": 0.00546,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 126,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:KZ",
+   "leads": 2,
+   "usd": 0.00549,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 157,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:US",
+   "leads": 5,
+   "usd": 0.0057,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 365,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "IS",
+   "dimension_tier": "zero",
+   "claimed_company": "First Water",
+   "claimed_country": "IS",
+   "claimed_city": "\u00deorl\u00e1ksh\u00f6fn",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-05",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Arctic Today",
+   "claimed_url": "https://www.arctictoday.com/%F0%9F%87%AE%F0%9F%87%B8-einar-orn-olafsson-appointed-new-ceo-of-first-water/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "4895dbf5bf7739c707b91934e063710f",
+    "company": "First Water",
+    "pillar": "leadership_change",
+    "country": null,
+    "published_date": "2026-08-10",
+    "source_url": "https://www.seafoodsource.com/news/first-water-names-new-ceo-saic-announces-15-person-advisory-committee-to-focus-on-research-and-development"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "IS",
+   "dimension_tier": "zero",
+   "claimed_company": "Enzymatica",
+   "claimed_country": "SE",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-27",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "MarketScreener",
+   "claimed_url": "https://www.marketscreener.com/news/enzymatica-expands-group-management-with-two-executives-ce7858dedd80ff2d",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "IT",
+   "dimension_tier": "zero",
+   "claimed_company": "Natuzzi S.p.A.",
+   "claimed_country": "IT",
+   "claimed_city": "Santeramo in Colle",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-20",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Business Wire",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "IT",
+   "dimension_tier": "zero",
+   "claimed_company": "CDP Venture Capital SGR",
+   "claimed_country": "IT",
+   "claimed_city": "Rome",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-08",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "CDP Venture Capital SGR",
+   "claimed_url": "https://www.cdpventurecapital.it/en/newsroom.page?category=news",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KZ",
+   "dimension_tier": "zero",
+   "claimed_company": "Teniz Capital Investment Banking JSC",
+   "claimed_country": "KZ",
+   "claimed_city": "Almaty",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-02",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Yahoo Finance",
+   "claimed_url": "https://finance.yahoo.com/markets/stocks/articles/teniz-capital-names-salikhov-management-100000489.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KZ",
+   "dimension_tier": "zero",
+   "claimed_company": "Air Astana JSC",
+   "claimed_country": "KZ",
+   "claimed_city": "Almaty",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-02-04",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "KASE",
+   "claimed_url": "https://kase.kz/files/emitters/AIRA/aira_relizs_040226_eng.pdf",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "8ebd0d0f555bd872abc1365f5354e40f",
+    "company": "Air Astana",
+    "pillar": "leadership_change",
+    "country": "TR",
+    "published_date": "2026-04-02",
+    "source_url": "https://haber.aero/aero-gundem/air-astanada-ceo-koltugu-ibrahim-canliele-emanet/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Hadrian",
+   "claimed_country": "US",
+   "claimed_city": "Los Angeles",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-07",
+   "claimed_amount": "$1.37B",
+   "claimed_stage": "series_d",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://www.fundz.net/blog/us-startup-funding-rounds-august-1-7-2026",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a885f5ea3816e0e0692caaac1aadf713",
+    "company": "Hadrian",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-06",
+    "source_url": "https://ventureburn.com/hadrian-raises-1-37-billion-us-defense-production/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Antora Energy",
+   "claimed_country": "US",
+   "claimed_city": "San Jose",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-04",
+   "claimed_amount": "$550M",
+   "claimed_stage": "series_c",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-08-10",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "2493dbafbe6964540212c4d4621570e5",
+    "company": "Antora",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-07-30",
+    "source_url": "https://www.businesswire.com/news/home/20260730278399/en/Antora-Closes-%24550-Million-in-Series-C-Funding-to-Meet-Surging-Energy-Demand-and-Reindustrialize-America"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Skild AI",
+   "claimed_country": "US",
+   "claimed_city": "Pittsburgh",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-10",
+   "claimed_amount": "$1.40B",
+   "claimed_stage": "series_c",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-08-10",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Altruist",
+   "claimed_country": "US",
+   "claimed_city": "Los Angeles",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-28",
+   "claimed_amount": "$4B",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-08-24",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "trutility",
+   "claimed_country": "US",
+   "claimed_city": "Washington",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-18",
+   "claimed_amount": "$1B",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-08-17",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
