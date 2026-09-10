@@ -211,77 +211,12 @@
     }
   ],
   "red_marks": {
-    "ticket:20260906T165201Z-backfill-gdelt-2026": "2026-09-09T19:55:28Z",
+    "ticket:20260906T165201Z-backfill-gdelt-2026": "2026-09-10T20:10:53Z",
     "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-09T22:11:58Z",
     "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-09T22:11:58Z",
     "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-09T22:11:58Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-10T19:44:31Z",
-      "history": [
-        {
-          "at": "2026-09-10T19:08:51Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-10T19:44:31Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260910T190851Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-10T19:08:51Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-02T16:20:44Z",
-      "history": [
-        {
-          "at": "2026-09-02T16:20:41Z",
-          "detail": "live money.coverage.unjudged is nonzero",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-02T16:20:44Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-02T16:27:59Z",
-          "detail": "run 33654337905",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-02T16:27:59Z",
-          "detail": "run 33654337905",
-          "event": "landed"
-        }
-      ],
-      "id": "20260902T162041Z-correct-money-basis",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-02T16:27:59Z",
-      "priority": 0,
-      "reason": "live money.coverage.unjudged is nonzero",
-      "requested_at": "2026-09-02T16:20:41Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33654337905",
-      "state": "landed",
-      "workflow": "correct-money-basis.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-02T16:30:53Z",
@@ -2563,6 +2498,44 @@
       "run_id": "34485399566",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-10T19:44:31Z",
+      "history": [
+        {
+          "at": "2026-09-10T19:08:51Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-10T19:44:31Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-10T20:10:53Z",
+          "detail": "run 34522194803",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-10T20:10:53Z",
+          "detail": "run 34522194803",
+          "event": "landed"
+        }
+      ],
+      "id": "20260910T190851Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-10T20:10:53Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-10T19:08:51Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34522194803",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
