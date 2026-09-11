@@ -14,6 +14,82 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-12 - Haiku 4.5 and Gemini flash-lite measured against the DeepSeek extraction call; no swap taken
+
+**What.** The one A/B `docs/PLAN-gate-to-five-dollars.md` step 0 has been
+blocked on since July, run for $0.50: `ab_models.py` in the three modes its
+docstring requires for a swap (`--gate-gold`, `--extraction`,
+`--readthrough`), two candidates against `deepseek/deepseek-chat`. Full
+tables, the hand read of every disagreement and the projection are in
+`docs/MEASURE-readthrough-off-deepseek-2026-09-12.md`. Nothing in
+production moved. No collector ran, the allowance was not touched.
+
+**Why now.** Two rulings. DeepSeek is out on EU grounds and this tracker
+still runs it as `classify.MODEL`, the call `ops_status [2a]` labels
+"read-through". And `[2a]` projects $10.10/30d against $8.00 with the
+"spend is at the allowance" alarm open; `cost_projection.py [4]` says
+$11.79/month, $7.70 of it that one call.
+
+**Gate accuracy against the 75 hand labels.**
+
+```
+model                                  acc    95% interval  recall    prec     $/item
+google/gemini-2.5-flash-lite        89.3%  80.3%-94.5%   94.6%  91.4%   0.000022
+deepseek/deepseek-chat              64.0%  52.7%-73.9%   53.6%  96.8%   0.000060
+anthropic/claude-haiku-4.5          89.3%  80.3%-94.5%   92.9%  92.9%   0.000261
+```
+
+**Extraction, production prompt, 40 fixture headlines, field by field.**
+
+```
+model                             is_talent    company     pillar    country  signal_di  funding_a    $/item
+deepseek/deepseek-chat                 100%       100%       100%       100%       100%       100%  0.000938
+google/gemini-2.5-flash-lite            97%        87%        87%        72%        95%        97%  0.000388
+anthropic/claude-haiku-4.5              92%        90%        87%        75%        87%        97%  0.004351
+```
+
+Hand read of all 16 flash-lite disagreements: flash-lite right 9, incumbent
+right 6, unclear 1. The 72% on `country` is the incumbent leaving the field
+EMPTY in seven rows where the challenger filled it correctly, plus "Latvian"
+for "Latvia". Haiku: right 9, incumbent 2, split 3, unclear 1.
+
+**The verdict, and why it is not a swap.** Haiku fails on cost, 4.6x the
+incumbent per item. flash-lite clears the gate gold set (equal to the live
+gate, and DeepSeek's own 64.0% interval does not touch it), clears cost
+(0.41x measured, 0.175x with the cached prefix the tool models), and on raw
+agreement misses 90% on three deciding fields that the hand read turns into
+92.5 to 97.5%. Two things hold it. The fixture is HEADLINES and production
+extraction reads article bodies, which this repo does not persist, so the
+body task is unmeasured and the gold set's own last KNOWN_LIMIT says not to
+use it for this. And moving a production model is the owner's call under
+the standing authority, at any price. So the pull request carries the
+measurement and the exact three-line change, and DeepSeek stays until he
+takes it.
+
+**Projected bill if he does.** Re-pricing the extraction line only (the
+tool's calibration factor is fitted on a DeepSeek-charged ledger, so
+running it with `TIT_MODEL` overridden inflates the gate and read lines and
+must not be quoted): **$5.44 to $7.28/month** at today's read caps against
+$11.79 today, the spread being whether flash-lite's implicit prefix cache
+serves in production. `ab_models.py --cache-check google/gemini-2.5-flash-lite`
+is the probe to run first.
+
+**Harness.** `ab_models.py` gained `--models` (narrow a mode's candidate
+list; the incumbent is kept first whether or not it is named, because every
+table is a comparison against it), `--limit` (score a sample and say so) and
+`--dump` (write the extraction answers so a disagreement is read, not
+re-bought). `tests/test_ab_models_flags.py` pins that the incumbent cannot be
+dropped and that each mode narrows only its own list.
+
+**Spend accounting, stated because the pot cannot see it.** `budget.py`
+gave a discretionary per-run ceiling of $0.0444; three of the four runs
+exceeded it on the caller's explicit $2.00 authorisation. The harness files
+no priced health row (`tests/test_budget_allocator.py` names the gap), so
+the $0.50 is its own usage arithmetic and the key's monthly total is the
+authority.
+
+---
+
 ## 2026-09-09 - Denmark's CVR, built blind against a public mapping, shipped dormant
 
 **What.** `collectors/denmark_cvr.py` (+ `denmark_cvr_probe.py`,
