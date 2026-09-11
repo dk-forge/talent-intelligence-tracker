@@ -114,35 +114,36 @@ MAX_AGE_HOURS = {
     # appointment made and ended between two runs vanishes from the source
     # entirely and no window can reach it. Cadence plus slack, not a month.
     "estonia_ariregister": 180,  # ~7.5 days: weekly cron plus room to notice
-    # collect-structured.yml, weekly on SUNDAYS — the last day of the week that
+    # collect-structured.yml, weekly on SUNDAYS, the last day of the week that
     # no other database writer holds, which is why Spain is the seventh and
-    # last weekly structured slot this schedule has room for. Cadence plus
-    # slack, the same shape as the five above. BORME's archive is permanent and
+    # last weekly structured slot this schedule has room for. Armed 2026-09-12
+    # after a human read a real dry run. Cadence plus slack, the same shape as
+    # the five above. BORME's archive is permanent and
     # the summary API answers any past date, so a missed week is recovered by
     # widening TIT_BORME_DAYS up to MAX_DAYS and nothing is lost permanently.
     "spain_borme": 180,      # ~7.5 days: weekly cron plus room to notice
-    # Israel and Singapore both ship DORMANT: neither has a cron anywhere, so
-    # neither files a health row and neither of these leashes ticks yet. They
-    # are entered now rather than later so that arming one is a schedule
-    # decision alone and nobody has to remember a second file.
+    # israel_registrar ships DORMANT: no cron anywhere, so it files no health
+    # row and this leash does not tick yet. It is entered now rather than later
+    # so that arming it is a schedule decision alone and nobody has to remember
+    # a second file.
     #
-    # TIGHTEN BOTH THE DAY A CRON IS CHOSEN, and note they want different
-    # numbers, because the two sources are not the same shape.
-    #
-    # israel_registrar reads a rolling ONE-YEAR changes file, so a missed run
-    # is recoverable for a year simply by widening TIT_IL_DAYS, and nothing is
-    # ever lost permanently. That is the most forgiving source in the tracker.
-    # On a weekly slot it wants 180, the same as the six above.
+    # TIGHTEN IT THE DAY A CRON IS CHOSEN. It reads a rolling ONE-YEAR changes
+    # file, so a missed run is recoverable for a year simply by widening
+    # TIT_IL_DAYS, and nothing is ever lost permanently. That is the most
+    # forgiving source in the tracker. On a weekly slot it wants 180, the same
+    # as the seven above.
     "israel_registrar": 2400,   # ~100 days: DORMANT, no cron, no health row
-    # singapore_acra reads a MONTHLY snapshot, so its natural cadence is
-    # monthly and a weekly leash would be permanent noise: the file simply does
-    # not change between most runs. On a monthly slot it wants roughly 840
-    # (~35 days, one refresh plus room to notice). It is also the one source
-    # here whose gap cannot be closed by widening a window, because an
-    # incorporation date is stated on the snapshot rather than accumulated: a
-    # company incorporated and struck off between two readings is never in any
-    # file, and no window reaches it.
-    "singapore_acra": 2400,     # ~100 days: DORMANT, no cron, no health row
+    # collect-structured.yml, MONTHLY on the 7th, armed 2026-09-12 after a
+    # human read a real dry run. singapore_acra reads a MONTHLY snapshot, so
+    # its natural cadence is monthly and a weekly leash would be permanent
+    # noise: the file simply does not change between most runs. One refresh
+    # plus room to notice, the same shape as sec_execcomp and uk_paygap above
+    # rather than the weekly seven. It is also the one source here whose gap
+    # cannot be closed by widening a window, because an incorporation date is
+    # stated on the snapshot rather than accumulated: a company incorporated
+    # and struck off between two readings is never in any file, and no window
+    # reaches it.
+    "singapore_acra": 840,      # ~35 days: monthly cron plus room to notice
     # denmark_cvr ships DORMANT behind two locks and has no cron anywhere, so
     # it files no health row and this leash does not tick yet. Entered now so
     # that arming it is a schedule decision alone.

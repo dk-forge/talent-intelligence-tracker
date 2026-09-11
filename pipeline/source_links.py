@@ -58,6 +58,14 @@ from datetime import datetime, timedelta, timezone
 #   walled       401/403/405/429. A bot wall, not a dead document: a human with
 #                a browser still reaches it. Counting these as rot would report
 #                every paywalled publisher as broken.
+#   moved        an ATS board URL (job-boards.greenhouse.io/<slug> and its
+#                kind) that the vendor now redirects, with a 200, to the
+#                employer's OWN careers domain, and the slug is spelled in
+#                that domain. Same board, same employer: the evidence moved
+#                onto the employer's site rather than out of their hands.
+#                Reported like `walled`, never as rot. 39 of 98 Greenhouse
+#                citations read as "possible takeover" for a week under
+#                `drifted` before this state existed (TECHLOG 2026-09-12).
 #   unreachable  the request never completed (DNS, TLS, timeout). Could be the
 #                publisher, could be the runner's network, so it is reported
 #                and retried, never called rot on one observation.
@@ -65,7 +73,7 @@ from datetime import datetime, timedelta, timezone
 #   robots       the publisher's robots.txt disallows this path. We do not
 #                fetch it, and we do not get to call it broken either.
 ROT_STATES = frozenset({"dead", "drifted"})
-REACHABLE_STATES = frozenset({"live", "walled"})
+REACHABLE_STATES = frozenset({"live", "walled", "moved"})
 ALL_STATES = ROT_STATES | REACHABLE_STATES | {"unreachable", "error", "robots"}
 
 ARCHIVE_STATES = frozenset({"archived", "pending", "unavailable"})
