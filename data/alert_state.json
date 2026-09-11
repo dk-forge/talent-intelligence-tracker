@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "deploy-plugin:main:809bc2c03f975863": {
-      "first": 1789168356,
-      "last": 1789168356,
-      "subject": "CI RED: deploy-plugin: No wp-config.php at /. The target is not inside a WordPress install. Refusing."
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -31,6 +26,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-11T23:12:37+00:00",
+  "updated_at": "2026-09-11T23:32:35+00:00",
   "version": 1
 }
