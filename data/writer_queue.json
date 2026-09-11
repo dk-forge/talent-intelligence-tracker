@@ -219,72 +219,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-11T11:48:47Z",
-      "history": [
-        {
-          "at": "2026-09-11T09:52:31Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-11T11:48:47Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260911T095231Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-11T09:52:31Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-02T16:32:08Z",
-      "history": [
-        {
-          "at": "2026-09-02T16:32:04Z",
-          "detail": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-02T16:32:08Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-02T16:32:49Z",
-          "detail": "run 33655516261",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-02T16:32:49Z",
-          "detail": "run 33655516261",
-          "event": "landed"
-        }
-      ],
-      "id": "20260902T163204Z-retract",
-      "inputs": {
-        "reason": "Re-issue of the 2026-08-02 retraction, which no longer holds on the live site: a fund close, not a company round. Blackstone Life Sciences VI raised USD 6.3bn from limited partners to invest in the sector, not to build its own workforce.",
-        "signal_id": "4f07f453a527f15979bbc2759ed280c7"
-      },
-      "landed_at": "2026-09-02T16:32:49Z",
-      "priority": 0,
-      "reason": "row retracted in the committed DB on 2026-08-02 is still current on the live site (money-basis check names it)",
-      "requested_at": "2026-09-02T16:32:04Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33655516261",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-02T16:35:03Z",
       "history": [
         {
@@ -2562,6 +2496,44 @@
       "run_id": "34570286565",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-11T11:48:47Z",
+      "history": [
+        {
+          "at": "2026-09-11T09:52:31Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-11T11:48:47Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-11T11:54:17Z",
+          "detail": "run 34595832656",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-11T11:54:17Z",
+          "detail": "run 34595832656",
+          "event": "landed"
+        }
+      ],
+      "id": "20260911T095231Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-11T11:54:17Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-09-11T09:52:31Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34595832656",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
