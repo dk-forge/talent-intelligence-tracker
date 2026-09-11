@@ -219,72 +219,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-11T06:31:22Z",
-      "history": [
-        {
-          "at": "2026-09-11T04:49:38Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-11T06:31:22Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260911T044938Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-11T04:49:38Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-02T16:30:53Z",
-      "history": [
-        {
-          "at": "2026-09-02T16:30:49Z",
-          "detail": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-02T16:30:53Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-02T16:31:36Z",
-          "detail": "run 33655387141",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-02T16:31:36Z",
-          "detail": "run 33655387141",
-          "event": "landed"
-        }
-      ],
-      "id": "20260902T163049Z-retract",
-      "inputs": {
-        "reason": "Re-issue of the 2026-07-30 retraction, which no longer holds on the live site: the USD 4bn is the VALUATION, not the raise. The amount raised is not disclosed anywhere in the story, so there is no funding figure to publish.",
-        "signal_id": "5c5fb5dfa36a79ccad3f37886805207e"
-      },
-      "landed_at": "2026-09-02T16:31:36Z",
-      "priority": 0,
-      "reason": "row retracted in the committed DB on 2026-07-30 is still current on the live site (money-basis check names it)",
-      "requested_at": "2026-09-02T16:30:49Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33655387141",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-02T16:32:08Z",
       "history": [
         {
@@ -2561,6 +2495,44 @@
       "requested_at": "2026-09-10T19:08:51Z",
       "requested_by": "dakotta-labs",
       "run_id": "34522194803",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-11T06:31:22Z",
+      "history": [
+        {
+          "at": "2026-09-11T04:49:38Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-11T06:31:22Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-11T06:57:55Z",
+          "detail": "run 34570286565",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-11T06:57:55Z",
+          "detail": "run 34570286565",
+          "event": "landed"
+        }
+      ],
+      "id": "20260911T044938Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-11T06:57:55Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-11T04:49:38Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34570286565",
       "state": "landed",
       "workflow": "archive-sources.yml"
     }
