@@ -1512,6 +1512,21 @@ def _report_link_rot(conn) -> list[str]:
             f"printing the sentence. Repair the ledger, then: "
             f"python3 archive_sources.py --check-promise")
 
+    # MOVED is printed on its own line and raises nothing: an ATS board that
+    # now answers from the employer's own domain is the citation getting
+    # closer to its subject, not further from it. It is kept out of the
+    # `drifted` count above so that count means "somebody else is serving
+    # this" again, which is the one shape that needs a human this week.
+    moved = summary["states"].get("moved", 0)
+    if moved:
+        rows = conn.execute(
+            "SELECT source_url, final_domain FROM source_links"
+            " WHERE state = 'moved' ORDER BY checked_at DESC LIMIT 3").fetchall()
+        print(f"    moved     {moved} ATS board URL(s) now answer from the "
+              f"employer's own domain. Not rot, not a takeover.")
+        for row in rows:
+            print(f"              {row['source_url'][:60]} -> {row['final_domain']}")
+
     drifted = summary["states"].get("drifted", 0)
     if drifted:
         rows = conn.execute(

@@ -60,15 +60,12 @@
 # request with the batches it has rather than an error, so the collector
 # refuses one instead of reporting a quiet month.
 #
-# spain_borme is the seventh weekly structured slot and it ships DORMANT: its
-# SUNDAY cron below is commented out, and Sunday is the last day of the week no
-# other database writer holds. It needs no key. Arming it is uncommenting one
-# line, and the gate is the standing one — a human reads a REAL dry run first:
-#
-#     gh workflow run drain-writers.yml \
-#       -f enqueue=collect-structured.yml \
-#       -f inputs_json='{"source":"spain_borme","dry_run":"true"}' \
-#       -f reason='first real BORME run'
+# spain_borme is the seventh weekly structured slot, on SUNDAY, the last day
+# of the week no other database writer holds. It needs no key. It shipped
+# DORMANT behind the standing gate, a human reading a REAL dry run, and that
+# run was read on 2026-09-12: found=33, would store=33, 0 rejected, every row
+# a consejero delegado act off the official bulletin with a boe.es citation
+# (TECHLOG 2026-09-12). Disarm by commenting its cron line out again.
 #
 # It is cheap in requests and slow in wall clock: a 7-day window is 7 summary
 # calls plus about 210 province documents, and www.boe.es answers each in one to
@@ -149,29 +146,30 @@ on:
     # expanding to about 1.5GB that is streamed rather than held. Three HTTP
     # requests in total and roughly two minutes of parsing.
     - cron: '0 4 * * 6'      # Saturdays: Estonian business register appointments
-    # SUNDAY, the last day of the week no other database writer holds. COMMENTED
-    # OUT ON PURPOSE: spain_borme ships dormant until a human has read a real
-    # dry run, which is the standing pattern in this repo and the same gate the
-    # tripwire sits behind. Arming it is uncommenting the next line and nothing
-    # else — the `Pick the source` case below already maps this expression.
-    # - cron: '0 4 * * 0'      # Sundays: BORME Spain consejero delegado acts
+    # SUNDAY, the last day of the week no other database writer holds. Armed
+    # 2026-09-12 after a human read a real dry run (see the header). Disarm by
+    # commenting this one line out; the `Pick the source` case stays mapped.
+    - cron: '0 4 * * 0'      # Sundays: BORME Spain consejero delegado acts
+    # 7TH OF THE MONTH, beside the two other monthly slots (sec_execcomp on the
+    # 5th, uk_paygap on the 6th) and on none of their days. singapore_acra
+    # reads a MONTHLY snapshot, so a weekly slot would re-read an unchanged
+    # file three times out of four; the 45-day default window overlaps two
+    # refreshes so a late refresh is not a missed month. Armed 2026-09-12 after
+    # a human read a real dry run (TECHLOG 2026-09-12); the staleness leash
+    # tightened from a dormant 100 days to ~35 in the same change.
+    - cron: '30 10 7 * *'    # 7th of the month: ACRA Singapore incorporations
     #
-    # israel_registrar and singapore_acra have NO cron line at all, and that is
-    # not the same omission as the commented-out Sunday above. Both ship
-    # dormant pending a human reading a real dry run, exactly as spain_borme
-    # does, but there is also nowhere to put them: this schedule runs one
-    # structured collector a day and all seven days are already spoken for, so
-    # arming either is a slot decision rather than an uncommenting. They are
+    # israel_registrar has NO cron line at all. It ships dormant pending a
+    # human reading a real dry run, exactly as spain_borme and singapore_acra
+    # did, and there is also nowhere weekly to put it: this schedule runs one
+    # structured collector a day and all seven days are now spoken for, so
+    # arming it is a slot decision rather than an uncommenting. It is
     # dispatchable below in the meantime, which is how the dry run gets read.
-    #
-    # When that decision is made the two want different cadences. Israel reads
-    # a rolling one-year changes file, so it fits any weekly slot and a missed
-    # run stays recoverable for a year by widening TIT_IL_DAYS. Singapore reads
-    # a MONTHLY snapshot, so a weekly slot would re-read an unchanged file
-    # three times out of four; it belongs on a monthly cron beside sec_execcomp
-    # and uk_paygap rather than in the daily rotation. Tighten the matching
-    # leash in staleness.py in the SAME change, or a dormant 100-day entry
-    # keeps a newly armed collector looking healthy for three months.
+    # It reads a rolling one-year changes file, so it fits any weekly slot and
+    # a missed run stays recoverable for a year by widening TIT_IL_DAYS.
+    # Tighten its leash in staleness.py in the SAME change, or a dormant
+    # 100-day entry keeps a newly armed collector looking healthy for three
+    # months.
   workflow_dispatch:
     inputs:
       source:
@@ -188,7 +186,7 @@ on:
         required: false
         default: '5000'
       days:
-        description: 'BSE India, EDINET Japan, DART Korea, Companies House, ARES Czechia, Ariregister Estonia and BORME Spain. How many days back to read. Blank = each collector default (7; 42 for Companies House, derived from its rotation; 14 for Czechia; 21 for Estonia; 7 for Spain). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30 — it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, ARES 28 (all its notification feed holds, and it answers a wider request with the batches it has rather than an error), Companies House, Estonia and Spain none — Spain is capped at spain_borme.MAX_DAYS (60) only to keep one run inside the writer lock. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
+        description: 'BSE India, EDINET Japan, DART Korea, Companies House, ARES Czechia, Ariregister Estonia, BORME Spain and ACRA Singapore. How many days back to read. Blank = each collector default (7; 42 for Companies House, derived from its rotation; 14 for Czechia; 21 for Estonia; 7 for Spain; 45 for Singapore, sized to a monthly snapshot). CEILINGS, and they are not the same: BSE 32 (undocumented, measured 2026-07-30: it refuses wider inside an HTTP 200), DART 90 (three-month API limit), EDINET 366, ARES 28 (all its notification feed holds, and it answers a wider request with the batches it has rather than an error), Companies House, Estonia and Spain none; Spain is capped at spain_borme.MAX_DAYS (60) only to keep one run inside the writer lock. A gap SHORTER than the ceiling is closed by widening this; anything longer is backfill-structured-2026.yml.'
         required: false
         default: ''
       ch_slice:
@@ -247,6 +245,7 @@ jobs:
             '0 4 * * 5')   scheduled=czechia_ares ;;
             '0 4 * * 6')   scheduled=estonia_ariregister ;;
             '0 4 * * 0')   scheduled=spain_borme ;;
+            '30 10 7 * *') scheduled=singapore_acra ;;
             *)             scheduled=ats_boards ;;
           esac
           if [ -z "${{ inputs.source }}" ]; then

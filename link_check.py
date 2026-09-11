@@ -111,6 +111,40 @@ DEAD_CODES = frozenset({404, 410})
 # flaky host in the catalogue to refine a state that is not rot either way.
 RETRY_PAUSE = 3.0
 
+# The hosts an applicant-tracking system serves an employer's board from. A
+# citation stored against one of these names the EMPLOYER in the path (the
+# board slug: job-boards.greenhouse.io/toast), and the vendor is free to answer
+# that URL with a redirect to the employer's own careers domain, which
+# Greenhouse started doing for 39 of the 98 boards cited here in 2026-09. That
+# is the same board on the employer's site, the opposite of losing provenance,
+# and `drifted` was built for a newspaper turning into a casino. Workday has no
+# shared host: every tenant is a subdomain of myworkdayjobs.com, so the slug
+# is the first host label and the registrable domain is the test.
+ATS_BOARD_HOSTS = frozenset({
+    "job-boards.greenhouse.io", "boards.greenhouse.io",
+    "jobs.lever.co", "jobs.ashbyhq.com", "apply.workable.com",
+    "jobs.smartrecruiters.com", "careers.smartrecruiters.com",
+})
+ATS_TENANT_DOMAINS = frozenset({"myworkdayjobs.com"})
+
+
+def board_slug(source_url: str) -> str:
+    """The employer's identifier on an ATS board URL, or "" if the URL is not
+    one. Pure. Never used to build a request."""
+    parts = urlparse(source_url)
+    host = (parts.hostname or "").lower()
+    if host in ATS_BOARD_HOSTS:
+        segments = [s for s in parts.path.split("/") if s]
+        # Greenhouse's embed shape names the board in the query instead.
+        if segments and segments[0] == "embed":
+            from urllib.parse import parse_qs
+            return (parse_qs(parts.query).get("for") or [""])[0].lower()
+        return segments[0].lower() if segments else ""
+    if registrable_domain(host) in ATS_TENANT_DOMAINS:
+        labels = host.split(".")
+        return labels[0] if len(labels) > 2 else ""
+    return ""
+
 
 def classify(status: int, final_url: str, source_url: str) -> tuple[str, str]:
     """(state, detail) for one observation. Pure: tested without a network.
@@ -121,6 +155,20 @@ def classify(status: int, final_url: str, source_url: str) -> tuple[str, str]:
     expected = registrable_domain(source_url)
     landed = registrable_domain(final_url or source_url)
     if status and expected and landed and landed != expected:
+        # An ATS board that lands on the employer's own domain has MOVED, not
+        # drifted. The simplest honest test is the one a reader would apply:
+        # the board slug names the employer, so it should be spelled inside
+        # the domain the board now lives on (toast -> toasttab.com, five9 ->
+        # five9.com). A slug the landed domain does not carry stays `drifted`
+        # for a human to read: sixteen of the 39 Greenhouse redirects were of
+        # that kind (oculartherapeutix -> ocutx.com), and a rebrand and a
+        # takeover look identical from here.
+        slug = board_slug(source_url)
+        if status == 200 and slug and slug in landed.replace("-", ""):
+            return "moved", (
+                f"HTTP {status}: the {expected} board for {slug!r} now lives "
+                f"on the employer's own domain, {landed}. Same board, same "
+                f"employer, not a takeover.")
         # A cross-domain CONSENT GATE is not a takeover, and European
         # publishers are full of them: hln.be bounces to
         # myprivacy.dpgmedia.be/consent?...callbackUrl=https%3A%2F%2Fwww.hln.be%2F...
@@ -244,6 +292,8 @@ def run(conn, *, limit: int, collector: str | None, dry_run: bool,
             elif state == "dead":
                 dead.append((url, status))
                 print(f"  DEAD    {status}  {url}")
+            elif state == "moved":
+                print(f"  MOVED   {status}  {url}\n            -> {final}")
             elif state not in ("live", "walled"):
                 print(f"  {state.upper():<11} {status}  {url}")
 
