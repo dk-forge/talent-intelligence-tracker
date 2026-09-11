@@ -1,0 +1,61 @@
+{
+ "key": "amount/ae7abae259fdd59f7d128f2196a06d83",
+ "label": "ByteDance $29,600,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 29600000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source clearly states: 'ByteDance has secured a $29.6 billion loan from nearly 30 banks' and 'The facility has an initial term of three years.' This is explicitly a syndicated bank loan facility, not venture capital or venture debt. Per the rules: 'project_finance: a loan or bank facility advanced against an asset or a project (a syndicated bank loan is here, a venture lender is not).' The correct basis is project_finance, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 29600000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states 'ByteDance secured a $29.6 billion loan from nearly thirty banks.' This indicates a loan, which falls under 'project_finance' as per the rules, not 'company_raise'. The amount is correctly stated, but the basis needs correction."
+  }
+ },
+ "row": {
+  "company": "ByteDance",
+  "headline": "ByteDance secures $29.6 billion loan in AI push, sources say",
+  "summary": "ByteDance secured a $29.6 billion loan from nearly thirty banks, with Chinese banks providing over sixty percent of the loan facility. The funds will support ByteDance's overseas artificial intelligence expansion plans.",
+  "funding_amount": "$29.6 billion",
+  "funding_amount_usd": 29600000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://economictimes.indiatimes.com/tech/technology/bytedance-secures-29-6-billion-loan-in-ai-push-sources-say/articleshow/133761619.cms",
+  "source_name": "The Economic Times",
+  "published_date": "2026-09-04",
+  "collector": "national_press",
+  "country": "CN",
+  "published_at": null
+ },
+ "cost_usd": 0.028898,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.017465999999999995,
+  "openai/gpt-4o": 0.011432499999999998
+ },
+ "evidence_url": "https://web.archive.org/web/20260906063316/https://economictimes.indiatimes.com/tech/technology/bytedance-secures-29-6-billion-loan-in-ai-push-sources-say/articleshow/133761619.cms",
+ "evidence_chars": 12000,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 29600000000,
+  "corrected_basis": "project_finance"
+ },
+ "note": "two-model adjudication of amount/ae7abae259fdd59f7d128f2196a06d83, both referees say edit. corrected_amount=29600000000 corrected_basis=project_finance. anthropic/claude-sonnet-4.5: The source clearly states: 'ByteDance has secured a $29.6 billion loan from nearly 30 banks' and 'The facility has an initial term of three years.' This is explicitly a syndicated bank loan facility, not venture capital ; openai/gpt-4o: The source states 'ByteDance secured a $29.6 billion loan from nearly thirty banks.' This indicates a loan, which falls under 'project_finance' as per the rules, not 'company_raise'. The amount is correctly stated, but t",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-09-11T22:42:48+00:00"
+}

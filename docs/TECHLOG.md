@@ -14,6 +14,66 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-12 - Two independent referees answer the guardrail queue; four funding rows adjudicated
+
+**What.** `adjudicate_guardrail.py` (+ `tests/test_adjudicate_guardrail.py`,
+22 offline tests). The owner's standing rule of 2026-09-11: a data decision that
+used to wait for him is made by two AI referees from different vendors through
+the repo's own machinery, applied only when both agree, and he hears only about
+disagreements. Mirrors the layoff tracker's `railway/adjudicate_row.py`.
+
+**How it applies.** Accept and reject call `guardrails.review()`, the function
+`guardrails.py --accept/--reject` already calls, with `--who "two-model
+adjudication (<A> + <B>)"` and a note quoting each referee's deciding sentence
+(unique per finding, so the shared-note guard holds). An agreed `edit` is the
+path `correct_funding_amount.py` uses: `corrected_signal()` asserts the hash is
+unmoved, `store.revise()` appends the revision with the corrected amount and
+basis (and `deal_type` when the basis is an excluding kind, as
+`validate.build_signal` does), `/enrich` is pushed FIRST only when the row is
+already live, and the finding is then accepted so the corrected row is what
+publishes. Nothing writes the database by hand.
+
+**Metering.** No `spend.metered_call` exists in this repo; the one door to
+OpenRouter is `classify._call`, which is used unchanged. The gate (the month's
+`TIT_PAID_READS` switch, then a $0.10 run ceiling read from
+`classify.STATS["usd"]`) is read immediately before EVERY attempt and the cost
+is read immediately after; the retry is the outer `ATTEMPTS=2` loop and never
+inside the callable. A test parses the module's own AST to hold that shape.
+
+**The four rows, $153.6bn held for 3 to 5 days** (spend $0.1097 across two
+runs, on the sibling tracker's key: this checkout has no key of its own, and
+the linked Railway project is the layoff tracker's, so that $0.11 is NOT in
+this repo's spend ledger).
+
+| row | referee A | referee B | outcome |
+|---|---|---|---|
+| Crusoe $30.0bn | edit, $3.0bn company_raise | edit, $3.0bn company_raise | **applied**: "Crusoe has raised over $3 billion in a funding round that values it at roughly $30 billion" |
+| ByteDance $29.6bn | edit, basis project_finance | edit, basis project_finance | **applied**: "secured a $29.6 billion loan from nearly 30 banks"; figure kept, out of the sum |
+| Mistral $24.0bn | edit, $3.5bn company_raise | edit, $3.5bn company_raise | **applied**: "Mistral raised 3 billion euros ($3.5 billion) ... post-money valuation of more than 21 billion euros" |
+| DeepSeek $70.0bn | edit, basis pledge | reject | **DISAGREE, owner's**: both read a valuation target for a round still in talks; they differ on keeping the row as a pledge or withholding it |
+
+**Two defects the first pass caught in itself, both fixed before anything was
+applied.** (1) The Mistral row first read 185 characters, a Wayback
+interstitial, and two referees "agreed" to reject a figure neither had seen,
+one at confidence 0. A read under `EVIDENCE_MIN_CHARS = 800` now tries the
+next copy and is UNKNOWN when none clears it, and a verdict under
+`CONFIDENCE_FLOOR = 50` is a report of blindness, not a verdict; two of them
+are not an agreement. (2) The raw page was cut at 600k characters BEFORE
+stripping; CNBC carries ~600k of CSS before the body, so the evidence ended at
+"Skip Navigation" with an unclosed tag. The cap is now applied after
+stripping. Both are pinned by tests.
+
+**What is NOT automated.** invezz.com answers 403 to anything that is not a
+browser session and archive.org answers 429 freely from a residential IP, so a
+key can come back UNKNOWN on evidence alone; that exits 3 with the spec
+written and spends nothing. There is deliberately no workflow: the ledger and
+the revisions live in the committed database, and the write is a local one
+like every `guardrails.py --accept` before it.
+
+
+---
+
+
 ## 2026-09-09 - Denmark's CVR, built blind against a public mapping, shipped dormant
 
 **What.** `collectors/denmark_cvr.py` (+ `denmark_cvr_probe.py`,
