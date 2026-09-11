@@ -2478,6 +2478,22 @@ python3 retract.py <signal_id> 'why'            # rejecting records the judgemen
 **Do not accept anything to clear the queue.** An accepted finding never blocks
 again.
 
+**Since 2026-09-12 the queue is answered by two referees, and the owner is
+consulted only on a disagreement.** `adjudicate_guardrail.py --key <key>
+--apply` reads the row and its cited source (archived copy first, then the
+live page, then Wayback; a read under 800 characters is a bot wall or an
+interstitial and counts as no read), asks `anthropic/claude-sonnet-4.5` and
+`openai/gpt-4o` the same question with the money rules quoted, and applies the
+verdict ONLY when both return the same one: accept and reject go through
+`guardrails.review()` exactly as the CLI does, and an agreed `edit` appends a
+revision through `store.revise()` with the corrected amount or basis and then
+accepts the finding. A disagreement, an unreadable source, a non-JSON answer
+or a verdict under confidence 50 is UNKNOWN: the spec file in
+`analysis/adjudications/` holds both verdicts and nothing is applied. Every
+run writes that file with the spend. $0.10 per run, metered from OpenRouter's
+own cost figure before every request. The owner reads the disagreements, not
+the queue.
+
 ### Three traps that will bite you today
 
 1. **`deploy-plugin.yml` defaults to `dry_run=true`.** A plain dispatch is a

@@ -1,0 +1,61 @@
+{
+ "key": "amount/d59f08304e231e3e183c992c09f130c2",
+ "label": "Mistral $24,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 3500000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'Mistral raised 3 billion euros ($3.5 billion) in fresh funding led by memory chip giant Samsung.' The $24 billion figure is explicitly identified as a VALUATION, not the raise amount: 'Mistral said the funding gives it a post-money valuation of more than 21 billion euros.' The actual raise is $3.5 billion USD. The stored amount confuses valuation with the funding raised."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 3500000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states 'Mistral raised 3 billion euros ($3.5 billion) in funding at a 21 billion euro valuation.' This indicates the actual amount raised is $3.5 billion, not $24 billion, and the basis is correctly identified as company_raise."
+  }
+ },
+ "row": {
+  "company": "Mistral",
+  "headline": "Mistral bags $24 billion valuation as Samsung leads funding for Europe's AI champion",
+  "summary": "Mistral has achieved a $24 billion valuation with Samsung leading its funding round, positioning it as Europe's AI champion.",
+  "funding_amount": "$24 billion",
+  "funding_amount_usd": 24000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.cnbc.com/2026/09/08/mistral-ai-funding-valuation-samsung.html",
+  "source_name": "CNBC",
+  "published_date": "2026-09-08",
+  "collector": "google_news",
+  "country": null,
+  "published_at": null
+ },
+ "cost_usd": 0.015964,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.009714,
+  "openai/gpt-4o": 0.006249999999999999
+ },
+ "evidence_url": "https://web.archive.org/web/20260909032948/https://www.cnbc.com/2026/09/08/mistral-ai-funding-valuation-samsung.html",
+ "evidence_chars": 4439,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 3500000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/d59f08304e231e3e183c992c09f130c2, both referees say edit. corrected_amount=3500000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: 'Mistral raised 3 billion euros ($3.5 billion) in fresh funding led by memory chip giant Samsung.' The $24 billion figure is explicitly identified as a VALUATION, not the raise amount: 'Mistral; openai/gpt-4o: The source states 'Mistral raised 3 billion euros ($3.5 billion) in funding at a 21 billion euro valuation.' This indicates the actual amount raised is $3.5 billion, not $24 billion, and the basis is correctly identified",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-09-11T22:45:43+00:00"
+}
