@@ -1,0 +1,27 @@
+{
+ "key": "landmark/2025q4-reflection-ai-2b",
+ "landmark": {
+  "id": "2025q4-reflection-ai-2b",
+  "quarter": "2025Q4",
+  "company": "Reflection AI",
+  "event_date": "2025-10-09",
+  "amount_usd": 2000000000,
+  "amount_text": "$2 billion Series B",
+  "currency": "USD",
+  "valuation_usd": 8000000000,
+  "country": "US",
+  "source_url": "https://reflection.ai/blog/reflection-ai-raises-2b"
+ },
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": null,
+ "why": "the collector dry run produced no row for this document",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:10:41+00:00"
+}

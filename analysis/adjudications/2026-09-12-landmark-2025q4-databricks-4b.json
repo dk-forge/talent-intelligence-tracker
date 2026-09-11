@@ -1,0 +1,75 @@
+{
+ "key": "landmark/2025q4-databricks-4b",
+ "landmark": {
+  "id": "2025q4-databricks-4b",
+  "quarter": "2025Q4",
+  "company": "Databricks",
+  "event_date": "2025-12-16",
+  "amount_usd": 4000000000,
+  "amount_text": "more than $4 billion, Series L",
+  "currency": "USD",
+  "valuation_usd": 134000000000,
+  "country": "US",
+  "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year"
+ },
+ "status": "queued",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document explicitly states: 'Databricks, the Data and AI company, today announced it is raising a >$4 billion Series L investment, valuing the company at $134 billion.' This is a clear company_raise (new capital arriving from investors). The amount ($4B+), date (December 16, 2025), valuation ($134B), and series (L) all match the landmark exactly. The document lists multiple investors participating in the round, confirming this is new capital raised by the company."
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states 'Databricks announced it is raising a >$4 billion Series L investment, valuing the company at $134 billion.' This confirms the amount and basis as company_raise, matching the landmark entry."
+  }
+ },
+ "row": {
+  "company": "Databricks",
+  "headline": "Databricks Grows >55% YoY, Surpasses $4.8B Revenue Run-Rate, and is Raising >$4B Series L at $134B Valuation",
+  "summary": "Databricks announced raising a >$4 billion Series L investment, valuing the company at $134 billion, and reported surpassing a $4.8 billion revenue run-rate, growing >55% year over year.",
+  "pillar": "company_development",
+  "funding_amount": ">$4 billion",
+  "funding_amount_usd": 4000000000,
+  "funding_stage": "series_d_plus",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year",
+  "source_name": "databricks.com",
+  "published_date": "2025-12-16",
+  "collector": "primary_chase",
+  "city": "San Francisco",
+  "country": "US",
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.017862,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010902000000000002,
+  "openai/gpt-4o": 0.006960000000000001
+ },
+ "evidence_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year",
+ "evidence_chars": 5554,
+ "check_verdict": "HELD",
+ "check_detail": "",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:10:36+00:00",
+ "ticket": {
+  "id": "20260911T231105Z-collect",
+  "workflow": "collect.yml",
+  "inputs": {
+   "source": "primary_chase"
+  }
+ }
+}

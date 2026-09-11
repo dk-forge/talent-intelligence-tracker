@@ -1,0 +1,75 @@
+{
+ "key": "landmark/2025q1-isomorphic-labs-600m",
+ "landmark": {
+  "id": "2025q1-isomorphic-labs-600m",
+  "quarter": "2025Q1",
+  "company": "Isomorphic Labs",
+  "event_date": "2025-03-31",
+  "amount_usd": 600000000,
+  "amount_text": "$600 million",
+  "currency": "USD",
+  "country": "GB",
+  "source_url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round",
+  "note": "Here to stop the set being four American frontier labs. It is also the smallest entry, which is the point: a guard that only watches the top four watches four employers."
+ },
+ "status": "queued",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document explicitly states: 'Isomorphic Labs announces it has raised $600 Million in its first external funding round. The financing round is led by Thrive Capital, with participation from GV, and follow-on capital from existing investor, Alphabet.' This is clearly new capital arriving at the company from investors ($600M), the amount matches the landmark exactly, the date (March 31, 2025) matches the landmark event_date, and the money_basis is correctly classified as company_raise."
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states: 'Isomorphic Labs announces it has raised $600 Million in its first external funding round.' This confirms the amount and basis as company_raise, matching the landmark entry."
+  }
+ },
+ "row": {
+  "company": "Isomorphic Labs",
+  "headline": "Isomorphic Labs announces $600m external investment round",
+  "summary": "Isomorphic Labs has raised $600 million in its first external funding round, led by Thrive Capital with participation from GV and follow-on capital from Alphabet.",
+  "pillar": "company_development",
+  "funding_amount": "$600 Million",
+  "funding_amount_usd": 600000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round",
+  "source_name": "isomorphiclabs.com",
+  "published_date": "2025-03-31",
+  "collector": "primary_chase",
+  "city": null,
+  "country": null,
+  "hq_city": "London",
+  "hq_country": "GB",
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.012285,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007739999999999997,
+  "openai/gpt-4o": 0.0045449999999999935
+ },
+ "evidence_url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round",
+ "evidence_chars": 1532,
+ "check_verdict": "HELD",
+ "check_detail": "",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:11:05+00:00",
+ "ticket": {
+  "id": "20260911T231105Z-collect",
+  "workflow": "collect.yml",
+  "inputs": {
+   "source": "primary_chase"
+  }
+ }
+}

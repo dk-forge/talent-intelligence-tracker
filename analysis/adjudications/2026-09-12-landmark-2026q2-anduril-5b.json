@@ -1,0 +1,47 @@
+{
+ "key": "landmark/2026q2-anduril-5b",
+ "landmark": {
+  "id": "2026q2-anduril-5b",
+  "quarter": "2026Q2",
+  "company": "Anduril",
+  "event_date": "2026-05-13",
+  "amount_usd": 5000000000,
+  "amount_text": "$5 billion Series H",
+  "currency": "USD",
+  "valuation_usd": 61000000000,
+  "country": "US",
+  "source_url": "https://www.anduril.com/news/anduril-announces-usd5b-series-h-raise"
+ },
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": {
+  "company": "Anduril",
+  "headline": "Anduril Announces $5B Series H Raise",
+  "summary": "Anduril Industries has raised $5B in Series H funding to continue developing advanced autonomous systems and defense technology.",
+  "pillar": "company_development",
+  "funding_amount": "$5B",
+  "funding_amount_usd": 5000000000,
+  "funding_stage": "series_d_plus",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.anduril.com/news/anduril-announces-usd5b-series-h-raise",
+  "source_name": "anduril.com",
+  "published_date": "2026-05-13",
+  "collector": "primary_chase",
+  "city": null,
+  "country": "US",
+  "hq_city": null,
+  "hq_country": "US",
+  "confidence": "reported",
+  "notes": null
+ },
+ "why": "no readable copy of the primary document",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:14:28+00:00"
+}

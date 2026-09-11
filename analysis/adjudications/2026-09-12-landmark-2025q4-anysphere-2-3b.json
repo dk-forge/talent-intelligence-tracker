@@ -1,0 +1,27 @@
+{
+ "key": "landmark/2025q4-anysphere-2-3b",
+ "landmark": {
+  "id": "2025q4-anysphere-2-3b",
+  "quarter": "2025Q4",
+  "company": "Anysphere",
+  "event_date": "2025-11-13",
+  "amount_usd": 2300000000,
+  "amount_text": "$2.3 billion Series D",
+  "currency": "USD",
+  "valuation_usd": 29300000000,
+  "country": "US",
+  "source_url": "https://cursor.com/blog/series-d"
+ },
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": null,
+ "why": "the collector dry run produced no row for this document",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:10:41+00:00"
+}

@@ -4,33 +4,45 @@
     "out of the document the URL serves; nothing in this file reaches the",
     "database, including the notes. See collectors/primary_chase.py.",
     "",
-    "Assembled 2026-08-04 from the recall investigation into the three",
-    "largest private AI rounds of 2026, each of which was discovered by the",
-    "news collectors and then lost downstream. The primary document was",
-    "never read by anything.",
+    "Rewritten 2026-09-12 by fill_landmarks.py: the primary documents of the",
+    "standing landmark gaps whose extracted rows BOTH referees accepted.",
+    "The spec files are analysis/adjudications/<date>-landmark-*.json.",
     "",
-    "'archive_fallback': the publisher's host refuses automated requests",
+    "'archive_fallback': the publisher's host may refuse automated requests",
     "(openai.com answers 403 to every non-interactive client). The archived",
     "copy of the SAME url is read instead; the cited source_url is still the",
     "publisher's own permalink, because that is the document."
   ],
   "leads": [
     {
-      "url": "https://www.anthropic.com/news/series-h",
-      "note": "Anthropic Series H, announced May 2026. Absent from the database entirely."
-    },
-    {
-      "url": "https://openai.com/index/accelerating-the-next-phase-ai/",
+      "url": "https://openai.com/index/march-funding-updates/",
       "archive_fallback": true,
-      "note": "OpenAI's March 2026 close. Absent from the database entirely; every copy we ever saw was a rewrite, and the yahoo copies were host-blocked."
+      "note": "landmark 2025q1-openai-40b"
     },
     {
-      "url": "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation",
-      "note": "Anthropic Series G, February 2026. Held in the database from a secondary outlet; the primary is here to corroborate the figure."
+      "url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year",
+      "archive_fallback": true,
+      "note": "landmark 2025q4-databricks-4b"
     },
     {
-      "url": "https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation",
-      "note": "Anthropic Series F, November 2025. Held in the database from a secondary outlet; the primary is here to corroborate the figure."
+      "url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation",
+      "archive_fallback": true,
+      "note": "landmark 2025q1-anthropic-3-5b"
+    },
+    {
+      "url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/",
+      "archive_fallback": true,
+      "note": "landmark 2025q3-mistral-1-7b-eur"
+    },
+    {
+      "url": "https://www.figure.ai/news/series-c",
+      "archive_fallback": true,
+      "note": "landmark 2025q3-figure-1b"
+    },
+    {
+      "url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round",
+      "archive_fallback": true,
+      "note": "landmark 2025q1-isomorphic-labs-600m"
     }
   ]
 }
