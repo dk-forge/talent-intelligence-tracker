@@ -89,6 +89,29 @@ the $0.50 is its own usage arithmetic and the key's monthly total is the
 authority.
 
 ---
+## 2026-09-12 - The plugin deploy was still logging in to the host the site left
+
+**What.** `deploy-plugin.yml` reads `CHEMICLOUD_USERNAME` and
+`CHEMICLOUD_PASSWORD_FTP` (the secrets the sibling repo has read since
+2026-09-09) and takes the plugin path from the repo variable
+`WP_PLUGIN_REMOTE_DIR`. Plugin 1.88.3, so the first deploy after the move is
+visible on the live page as a version change.
+
+**Why.** The hosting moved on 2026-09-08 and the ChemiCloud credentials were
+added to this repo the next day, and nothing here read them. The workflow is
+dispatch-only, so no run exercised the old pair until 2026-09-11 23:11 UTC,
+when the first live dispatch after the move failed in the WordPress guard
+with "530 Login authentication failed" and "Expecting wp-config.php in /".
+The second line is the other half: the July `WP_PLUGIN_REMOTE_DIR` secret
+was a path inside the OLD account's chroot, three directories deep, so the
+guard would have looked for wp-config.php at the FTP root even with a
+working login. On the new host the docroot is under `addondomains/`, which
+is what the variable now says.
+
+**Guard.** The WordPress guard already refuses to upload when the listing
+does not show wp-config.php, which is what caught this. A credential nobody
+reads cannot be tested from the repo; the sibling's lesson stands: a secret
+added to a repo is not a secret in use until a workflow names it.
 
 ## 2026-09-12 - Two independent referees answer the guardrail queue; four funding rows adjudicated
 
