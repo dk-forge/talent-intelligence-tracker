@@ -5684,6 +5684,7 @@ function tit_collector_label($key) {
         // read. Both of these name the registry rather than the collector.
         'israel_registrar' => 'the Israeli Registrar of Companies',
         'singapore_acra'   => 'the ACRA register of Singapore companies',
+        'spain_borme'      => 'the BORME bulletin of Spanish register acts',
     );
     return $map[$key] ?? str_replace('_', ' ', (string) $key);
 }

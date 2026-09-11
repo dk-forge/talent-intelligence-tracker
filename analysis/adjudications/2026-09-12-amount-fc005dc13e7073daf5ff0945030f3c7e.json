@@ -1,0 +1,61 @@
+{
+ "key": "amount/fc005dc13e7073daf5ff0945030f3c7e",
+ "label": "Crusoe $30,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 3000000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source clearly states: \"Crusoe has raised over $3 billion in a funding round that values it at roughly $30 billion.\" The $30 billion is explicitly the valuation (\"values it at\"), not the raise amount. The actual raise is \"over $3 billion.\" Per rule 3, a valuation is NOT a raise. The stored amount confuses valuation with the funding raised. The correct amount is $3 billion USD."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 3000000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states 'AI data center startup Crusoe has raised over $3 billion in a funding round that values it at roughly $30 billion.' This indicates the actual raise was over $3 billion, not $30 billion, which is the valuation."
+  }
+ },
+ "row": {
+  "company": "Crusoe",
+  "headline": "AI startup Crusoe valued at $30 billion after new funding",
+  "summary": "Crusoe, an AI startup, has been valued at $30 billion following new funding and has signed a five-year cloud contract with Jane Street Group valued at around $13 billion.",
+  "funding_amount": "$30 billion",
+  "funding_amount_usd": 30000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://economictimes.indiatimes.com/tech/artificial-intelligence/ai-startup-crusoe-valued-at-30-billion-after-new-funding/articleshow/133751506.cms",
+  "source_name": "The Economic Times",
+  "published_date": "2026-09-04",
+  "collector": "national_press",
+  "country": null,
+  "published_at": null
+ },
+ "cost_usd": 0.029542,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.017909999999999995,
+  "openai/gpt-4o": 0.011632500000000004
+ },
+ "evidence_url": "https://web.archive.org/web/20260905143639/https://economictimes.indiatimes.com/tech/artificial-intelligence/ai-startup-crusoe-valued-at-30-billion-after-new-funding/articleshow/133751506.cms",
+ "evidence_chars": 12000,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 3000000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/fc005dc13e7073daf5ff0945030f3c7e, both referees say edit. corrected_amount=3000000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: \"Crusoe has raised over $3 billion in a funding round that values it at roughly $30 billion.\" The $30 billion is explicitly the valuation (\"values it at\"), not the raise amount. The actual rais; openai/gpt-4o: The source states 'AI data center startup Crusoe has raised over $3 billion in a funding round that values it at roughly $30 billion.' This indicates the actual raise was over $3 billion, not $30 billion, which is the va",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-09-11T22:42:40+00:00"
+}

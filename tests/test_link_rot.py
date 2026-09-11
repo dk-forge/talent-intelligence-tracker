@@ -595,3 +595,87 @@ def test_coverage_is_measured_over_the_scope_the_schedule_can_reach(stocked):
 def test_a_collector_outside_the_scope_is_not_counted_against_it(stocked):
     """Widening the scope is an edit to the workflow, never an accident here."""
     assert source_links.archive_coverage(stocked, ["sec_edgar"])["in_scope"] == 0
+
+
+# --- an ATS board that moved onto the employer's own domain -----------------
+
+@pytest.mark.parametrize("slug,final", [
+    ("five9", "https://www.five9.com/about/careers/jobs"),
+    ("toast", "https://careers.toasttab.com/homepage"),
+    ("sweetgreen", "https://careers.sweetgreen.com/"),
+])
+def test_a_greenhouse_board_landing_on_the_employers_domain_has_moved(slug, final):
+    """Measured 2026-09-06 and again 2026-09-12: Greenhouse answers 39 of the
+    98 board URLs cited here with a redirect to the employer's own careers
+    site. The board slug names the employer, so the employer's domain carrying
+    that slug is the same board on the employer's site, not somebody else
+    serving it. `drifted` was built for a newspaper becoming a casino, and a
+    39.3% rot rate made of this one shape buried the signal it exists for."""
+    state, detail = link_check.classify(
+        200, final, f"https://job-boards.greenhouse.io/{slug}")
+    assert state == "moved"
+    assert link_check.registrable_domain(final) in detail
+    assert slug in detail
+
+
+def test_a_board_redirect_the_slug_does_not_explain_stays_drifted():
+    """The honest test is the slug in the landed domain, and when it fails the
+    verdict is the old one: a rebrand and a takeover look identical from here,
+    so a human reads it rather than a heuristic waving it through."""
+    state, _ = link_check.classify(
+        200, "https://www.ocutx.com/careers/open-positions/",
+        "https://job-boards.greenhouse.io/oculartherapeutix")
+    assert state == "drifted"
+
+
+def test_moved_needs_a_200_and_an_ats_host():
+    # A non-200 at the employer's domain keeps the standing verdict: drift is
+    # judged before the status code, and only a 200 proves the board is
+    # being served there.
+    assert link_check.classify(
+        404, "https://www.five9.com/gone",
+        "https://job-boards.greenhouse.io/five9")[0] == "drifted"
+    # A publisher is not a board, however well its name matches.
+    assert link_check.classify(
+        200, "https://www.hln.be/",
+        "https://www.hln-news.example/five9/")[0] == "drifted"
+
+
+def test_a_workday_tenant_is_named_by_its_first_host_label():
+    assert link_check.board_slug(
+        "https://acme.wd5.myworkdayjobs.com/en-US/External") == "acme"
+    assert link_check.classify(
+        200, "https://careers.acme.com/jobs",
+        "https://acme.wd5.myworkdayjobs.com/en-US/External")[0] == "moved"
+
+
+def test_a_consent_gate_is_still_walled_beside_moved():
+    """The gate check and the board check are answering different questions
+    and neither may shadow the other."""
+    state, detail = link_check.classify(
+        200,
+        "https://myprivacy.dpgmedia.be/consent?siteKey=U&callbackUrl="
+        "https%3A%2F%2Fwww.hln.be%2Fautobedrijven%2Ftesla~a1217115%2F",
+        "https://www.hln.be/autobedrijven/tesla~a1217115/")
+    assert state == "walled"
+    assert "consent" in detail
+
+
+def test_moved_is_reachable_and_never_rot():
+    assert "moved" in source_links.REACHABLE_STATES
+    assert "moved" not in source_links.ROT_STATES
+    assert "moved" in source_links.ALL_STATES
+
+
+def test_moved_is_recorded_and_summarised_apart_from_drift(stocked):
+    """The ledger takes the state, and the summary keeps it out of the rot
+    count and out of the `drifted` figure ops_status escalates on."""
+    source_links.record_check(
+        stocked, "https://www.irishtimes.com/business/one/", state="moved",
+        http_status=200, final_url="https://careers.irishtimes.example/",
+        final_domain="irishtimes.example", detail="moved")
+    stocked.commit()
+    summary = source_links.rot_summary(stocked)
+    assert summary["states"].get("moved") == 1
+    assert summary["rot"] == 0
+    assert summary["states"].get("drifted", 0) == 0

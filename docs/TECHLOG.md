@@ -90,6 +90,127 @@ authority.
 
 ---
 
+## 2026-09-12 - Two independent referees answer the guardrail queue; four funding rows adjudicated
+
+**What.** `adjudicate_guardrail.py` (+ `tests/test_adjudicate_guardrail.py`,
+22 offline tests). The owner's standing rule of 2026-09-11: a data decision that
+used to wait for him is made by two AI referees from different vendors through
+the repo's own machinery, applied only when both agree, and he hears only about
+disagreements. Mirrors the layoff tracker's `railway/adjudicate_row.py`.
+
+**How it applies.** Accept and reject call `guardrails.review()`, the function
+`guardrails.py --accept/--reject` already calls, with `--who "two-model
+adjudication (<A> + <B>)"` and a note quoting each referee's deciding sentence
+(unique per finding, so the shared-note guard holds). An agreed `edit` is the
+path `correct_funding_amount.py` uses: `corrected_signal()` asserts the hash is
+unmoved, `store.revise()` appends the revision with the corrected amount and
+basis (and `deal_type` when the basis is an excluding kind, as
+`validate.build_signal` does), `/enrich` is pushed FIRST only when the row is
+already live, and the finding is then accepted so the corrected row is what
+publishes. Nothing writes the database by hand.
+
+**Metering.** No `spend.metered_call` exists in this repo; the one door to
+OpenRouter is `classify._call`, which is used unchanged. The gate (the month's
+`TIT_PAID_READS` switch, then a $0.10 run ceiling read from
+`classify.STATS["usd"]`) is read immediately before EVERY attempt and the cost
+is read immediately after; the retry is the outer `ATTEMPTS=2` loop and never
+inside the callable. A test parses the module's own AST to hold that shape.
+
+**The four rows, $153.6bn held for 3 to 5 days** (spend $0.1097 across two
+runs, on the sibling tracker's key: this checkout has no key of its own, and
+the linked Railway project is the layoff tracker's, so that $0.11 is NOT in
+this repo's spend ledger).
+
+| row | referee A | referee B | outcome |
+|---|---|---|---|
+| Crusoe $30.0bn | edit, $3.0bn company_raise | edit, $3.0bn company_raise | **applied**: "Crusoe has raised over $3 billion in a funding round that values it at roughly $30 billion" |
+| ByteDance $29.6bn | edit, basis project_finance | edit, basis project_finance | **applied**: "secured a $29.6 billion loan from nearly 30 banks"; figure kept, out of the sum |
+| Mistral $24.0bn | edit, $3.5bn company_raise | edit, $3.5bn company_raise | **applied**: "Mistral raised 3 billion euros ($3.5 billion) ... post-money valuation of more than 21 billion euros" |
+| DeepSeek $70.0bn | edit, basis pledge | reject | **DISAGREE, owner's**: both read a valuation target for a round still in talks; they differ on keeping the row as a pledge or withholding it |
+
+**Two defects the first pass caught in itself, both fixed before anything was
+applied.** (1) The Mistral row first read 185 characters, a Wayback
+interstitial, and two referees "agreed" to reject a figure neither had seen,
+one at confidence 0. A read under `EVIDENCE_MIN_CHARS = 800` now tries the
+next copy and is UNKNOWN when none clears it, and a verdict under
+`CONFIDENCE_FLOOR = 50` is a report of blindness, not a verdict; two of them
+are not an agreement. (2) The raw page was cut at 600k characters BEFORE
+stripping; CNBC carries ~600k of CSS before the body, so the evidence ended at
+"Skip Navigation" with an unclosed tag. The cap is now applied after
+stripping. Both are pinned by tests.
+
+**What is NOT automated.** invezz.com answers 403 to anything that is not a
+browser session and archive.org answers 429 freely from a residential IP, so a
+key can come back UNKNOWN on evidence alone; that exits 3 with the spec
+written and spends nothing. There is deliberately no workflow: the ledger and
+the revisions live in the committed database, and the write is a local one
+like every `guardrails.py --accept` before it.
+
+## 2026-09-12 - Spain BORME and Singapore ACRA scheduled after read dry runs; an ATS board on the employer's domain is moved, not drifted
+
+**The brief.** `docs/SCOPE-role-change-registries.md` ranked "schedule the two
+registries already built" third and said both were dormant pending a human
+reading a real dry run. The owner delegated the reading.
+
+**Spain BORME, dry run read 2026-09-12.** `run_collect.py --source spain_borme
+--dry-run`: found=33, would store=33, 0 rejected. Every row a consejero
+delegado act off the official bulletin with a www.boe.es citation, inscription
+dates 2026-08-28 to 2026-08-31. That is the clean run the workflow header asked
+for. Armed: the Sunday cron line in `collect-structured.yml` is uncommented,
+the `Pick the source` case was already mapped, the leash in `staleness.py` was
+already 180 hours for a weekly slot and its comment now says it is armed. The
+sources page already carried BORME as live with `collector: spain_borme`, so
+the page and the health join were in place; `tit_collector_label()` gains a
+reader-facing name so a caveat never prints "spain borme". No cadence is typed
+anywhere a reader sees.
+
+**Singapore ACRA.** `run_collect.py --source singapore_acra --dry-run`, read
+2026-09-12: found=109, would store=109, duplicate=0, rejected=0, deferred=0,
+gate-errored=0. Every row a dated incorporation off the ACRA register with a
+data.gov.sg citation, SSIC-filtered to software and IT, the newest dated
+2026-07-31 (the snapshot is monthly, so a fresh company is up to a month old
+before it appears, exactly as the source note says). Clean. Armed on a MONTHLY
+cron, `30 10 7 * *`, beside sec_execcomp (5th) and uk_paygap (6th) and on
+none of the seven weekly days: the workflow header said a weekly slot would
+re-read an unchanged file three times out of four, and the 45-day default
+window overlaps two refreshes so a late refresh is not a missed month. The
+`Pick the source` case maps the new expression and the `staleness.py` leash
+tightened from the dormant 2,400 hours to 840 (~35 days, one refresh plus room
+to notice) in the same change, as the comment demanded. The sources page and
+`tit_collector_label()` already carried it. `israel_registrar` stays dormant
+and its comments now say it is the only one left.
+
+**39 of 98 Greenhouse citations were "drifted" and none of them had drifted.**
+TECHLOG 2026-09-06 measured it and left the judge alone, because a healer may
+fix a collector and never a judge; the owner's ruling is what this change is.
+`link_check.classify()` answers "is somebody else serving this now" with "did
+the registrable domain change", which is right for a newspaper and wrong for an
+ATS board: the vendor now answers `job-boards.greenhouse.io/toast` with a 200
+redirect to `careers.toasttab.com`, which is the same board on the employer's
+own site. That is the evidence moving TOWARDS its subject.
+
+New state `moved`, and the honest test is the narrow one: the source host is a
+known ATS board host (`ATS_BOARD_HOSTS`, plus `myworkdayjobs.com` tenants where
+the slug is the first host label), the response is 200, AND the board slug is
+spelled inside the landed registrable domain (`five9` in `five9.com`, `toast`
+in `toasttab.com`, `sweetgreen` in `sweetgreen.com`). A slug the landed domain
+does not carry stays `drifted` for a human: `oculartherapeutix` landing on
+`ocutx.com` is a rebrand to me and a takeover to the classifier, and from here
+they are indistinguishable. `moved` joins `REACHABLE_STATES` beside `walled`,
+never `ROT_STATES`; `ops_status [2c]` prints it on its own line and raises no
+problem for it, so the `drifted` count means "somebody else is serving this"
+again. The consent-gate rule is untouched and tested beside the new one.
+Stored URLs are NOT rewritten in this change; the 43 rows re-classify on their
+next scheduled check.
+
+**Proved.** Six pure `classify()` tests cover the three Greenhouse
+examples, a non-matching redirect staying `drifted`, a non-200 staying
+`drifted`, a Workday tenant, the consent gate staying `walled`, and the ledger
+keeping `moved` out of the rot count.
+
+---
+
+
 ## 2026-09-09 - Denmark's CVR, built blind against a public mapping, shipped dormant
 
 **What.** `collectors/denmark_cvr.py` (+ `denmark_cvr_probe.py`,

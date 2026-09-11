@@ -1,0 +1,55 @@
+{
+ "key": "amount/ae8f9f415960cc768665378a99e59233",
+ "label": "DeepSeek $70,000,000,000",
+ "status": "disagree",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "pledge",
+   "recommended": "edit",
+   "corrected_amount": 70000000000,
+   "corrected_basis": "pledge",
+   "confidence": 95,
+   "reasoning": "The source states \"DeepSeek hat Gespräche mit Investoren über eine neue Finanzierungsrunde begonnen\" (DeepSeek has begun talks with investors about a new funding round) and \"die Gespräche über die jüngste Kapitalrunde noch in einem vorläufigen Stadium seien\" (talks about the latest capital round are still in a preliminary stage). The $70B is a valuation target (\"auf rund $70 billion bewerten könnte\"), not capital raised. This is being sought/discussed, not received, making it a pledge, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "pledge",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states 'DeepSeek strebt frische Mittel bei einer Bewertung von rund $70 billion an.' This indicates a valuation, not a confirmed raise. The phrase 'Gespräche über die jüngste Kapitalrunde noch in einem vorläufigen Stadium' suggests discussions are preliminary, classifying it as a pledge, not a completed raise."
+  }
+ },
+ "row": {
+  "company": "DeepSeek",
+  "headline": "DeepSeek peilt neue Finanzierungsrunde bei rund $70B Bewertung an",
+  "summary": "DeepSeek is aiming for a new funding round at a valuation of around $70B.",
+  "funding_amount": "$70B",
+  "funding_amount_usd": 70000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://invezz.com/de/news/2026/07/15/deepseek-peilt-neue-finanzierungsrunde-bei-rund-dollar70b-bewertung-an/",
+  "source_name": "Invezz",
+  "published_date": "2026-07-15",
+  "collector": "google_news",
+  "country": null,
+  "published_at": null
+ },
+ "cost_usd": 0.024506,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.015816,
+  "openai/gpt-4o": 0.00869
+ },
+ "evidence_url": "https://invezz.com/de/news/2026/07/15/deepseek-peilt-neue-finanzierungsrunde-bei-rund-dollar70b-bewertung-an/",
+ "evidence_chars": 6976,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-11T22:42:31+00:00"
+}
