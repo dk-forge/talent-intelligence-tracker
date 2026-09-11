@@ -76,6 +76,12 @@ function tit_recall_families() {
         'us' => array(
             'label'  => 'United States',
             'anchor' => 'united-states',
+            'scope'  => 'for one country. Its cells are hiring markets rather than countries.',
+        ),
+        'eu' => array(
+            'label'  => 'Europe',
+            'anchor' => 'europe',
+            'scope'  => 'for one continent: the EU, the United Kingdom, Switzerland and Norway. Its cells are countries.',
         ),
     );
 }
@@ -788,7 +794,7 @@ function tit_recall_family_section($family, $data = null) {
     ?>
     <p class="tit-note">
       A separate reference set, assembled the same way and measured the same
-      way, for one country. Its cells are hiring markets rather than countries.
+      way, <?php echo esc_html($meta['scope'] ?? 'for one population.'); ?>
       We held
       <strong><?php echo (int) $overall['held']; ?> of
         <?php echo (int) $overall['total']; ?></strong>
@@ -841,6 +847,8 @@ function tit_recall_family_section($family, $data = null) {
     <?php
     tit_recall_interval_table('By hiring market', $summary['by_metro'] ?? array(),
         'Each market carries between eight and sixteen events, so treat these as indications and not as rates. This table is a work list.');
+    tit_recall_interval_table('By country', $summary['by_country'] ?? array(),
+        'Most countries carry only a few events, so treat a single country cell as an indication and not as a rate. This table is a work list.');
     tit_recall_interval_table('By what kind of document announced it',
         $summary['by_source_type'] ?? array());
     tit_recall_interval_table('By size of the employer',
@@ -1061,6 +1069,7 @@ function tit_recall_render($data) {
           'Most countries carry only a handful of events, so treat a single country cell as an indication and not a rate. Under each score is why it is what it is: the sources we read there, the publishers we probed and could not wire, and the queue.');
       tit_recall_market_table();
       tit_recall_family_section('us');
+      tit_recall_family_section('eu');
       ?>
 
       <?php if (count($points) > 1) : ?>

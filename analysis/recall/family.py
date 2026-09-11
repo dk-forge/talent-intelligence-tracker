@@ -109,7 +109,24 @@ US = Family(
         "forbidden from consulting this tracker or its database."),
 )
 
-ALL = (WORLD, US)
+EU = Family(
+    id="eu",
+    label="Europe",
+    subdir="eu",
+    shape=goldset.EU_REQUIRED_SHAPE,
+    spread_key="country",
+    spread_label="countries",
+    breakdowns=(),
+    health_source="recall_eu",
+    plugin_file="recall-eu.json",
+    page_anchor="europe",
+    sampling_note=(
+        "Independent research passes, one per group of countries across the "
+        "EU27, the United Kingdom, Switzerland and Norway, each forbidden from "
+        "consulting this tracker or its database."),
+)
+
+ALL = (WORLD, US, EU)
 BY_ID = {family.id: family for family in ALL}
 DEFAULT = WORLD
 

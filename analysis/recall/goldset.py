@@ -227,6 +227,74 @@ US_REQUIRED_SHAPE = {
     "declared_signal_types": True,
 }
 
+# The same anti-flattery job, for a reference set that is Europe on purpose.
+#
+# Europe is the owner's second stated market ("top three in the US, top three
+# in Europe, top ten worldwide") and until 2026-09-12 it had never had its own
+# reference set: the worldwide set's European cell was 37 events spread over
+# twenty-odd countries, assembled to be global, which is an impression of the
+# continent rather than a measurement of it.
+#
+# The population is the EU27 plus the United Kingdom, Switzerland and Norway.
+# Written as an explicit list and enforced against every item, because "Europe"
+# is not a fact a validator can look up: Turkey, Ukraine, Serbia and Georgia are
+# European by some readings and not by others, and a set that quietly grew a
+# Tel Aviv row or an Istanbul row would be measuring a different population
+# under a European heading. The list is the definition.
+#
+# The spread dimension is the country, as worldwide, and the failure this shape
+# refuses is the obvious one: a European set that is really the United Kingdom.
+# English-language startup press is the easiest thing to enumerate on the
+# continent, so `max_country_share` is tighter here than the worldwide 45%, and
+# six countries must carry three or more events so that most of the breadth is
+# cells with more than a token in them. The region bar is off rather than
+# reinterpreted: the project's own vocabulary places all thirty countries in one
+# region, so there is nothing for it to measure.
+EU_COUNTRIES = frozenset((
+    # EU27
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+    "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+    "SI", "ES", "SE",
+    # plus the three the owner's market definition names
+    "GB", "CH", "NO",
+))
+
+EU_REQUIRED_SHAPE = {
+    # The same anchor as the US set: about 28 points of worst-case interval,
+    # which is 45 events. See US_REQUIRED_SHAPE for where that number comes
+    # from.
+    "min_items": 45,
+    "max_interval_width": 0.28,
+
+    "min_countries": 10,
+    "min_share": {
+        ("signal_type", "funding"): 0.25,
+        ("signal_type", "leadership"): 0.20,
+        ("size_band", "small"): 0.30,
+    },
+    "min_source_types": 3,
+    "min_per_source_type": 4,
+    "max_source_type_share": 0.50,
+
+    "min_countries_with_repeats": 6,
+    "repeat_country_events": 3,
+    "max_country_share": 0.30,
+
+    "min_regions": 0,
+    "min_per_region": 0,
+
+    "max_undisclosed_amount_share": 0.15,
+
+    "spread_key": "country",
+    "spread_label": "countries",
+    "spread_singular": "country",
+    "regional": False,
+    "single_country": None,
+    # Every item must be one of these. The list IS the population.
+    "allowed_countries": EU_COUNTRIES,
+    "declared_signal_types": False,
+}
+
 # How much narrower than the widest set already on disk a new one may be.
 # Not 1.0: a fresh window genuinely yields a different number of reachable
 # events, and a bar that demanded a strict improvement every month would be met
@@ -349,6 +417,12 @@ def validate(data: dict, peers: list | None = None, shape: dict | None = None) -
             problems.append(
                 f"{label}: country is {country!r} in a set declared as {only} only, "
                 f"so it is measuring a different population under this heading")
+        allowed = shape.get("allowed_countries")
+        if allowed and country not in allowed:
+            problems.append(
+                f"{label}: country is {country!r}, which is outside the population "
+                f"this family declares, so it is measuring a different population "
+                f"under this heading")
         if shape.get("spread_key") == "metro" and not item.get("metro"):
             problems.append(
                 f"{label}: missing metro, which is this set's whole cell structure")
@@ -675,4 +749,5 @@ def counts(data: dict) -> dict:
 # by the family it names. Anything unrecognised falls back to the worldwide
 # bars, which are the stricter ones: an unknown family must not be a way to be
 # judged by nothing.
-SHAPES = {"world": REQUIRED_SHAPE, "us": US_REQUIRED_SHAPE}
+SHAPES = {"world": REQUIRED_SHAPE, "us": US_REQUIRED_SHAPE,
+          "eu": EU_REQUIRED_SHAPE}

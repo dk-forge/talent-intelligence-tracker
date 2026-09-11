@@ -76,7 +76,7 @@ try:
     from analysis.recall import family as _recall_families
     MEASUREMENT_ONLY |= {f.health_source for f in _recall_families.ALL}
 except Exception:                              # pragma: no cover - import guard
-    MEASUREMENT_ONLY |= {"recall", "recall_us"}
+    MEASUREMENT_ONLY |= {"recall", "recall_us", "recall_eu"}
 
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.

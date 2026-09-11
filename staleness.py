@@ -228,6 +228,7 @@ MAX_AGE_HOURS = {
     # noticing — which is the whole argument for that test.
     "recall": 192,             # 8 days: weekly, plus a day of slack
     "recall_us": 192,
+    "recall_eu": 192,
     # Link rot and archiving, both scheduled since 2026-07-30 — but by
     # schedule-link-hygiene.yml writing a TICKET rather than by a cron in their
     # own workflows, because both are database writers and a cron in a
