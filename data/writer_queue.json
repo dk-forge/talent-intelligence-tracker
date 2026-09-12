@@ -219,71 +219,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-12T03:21:28Z",
-      "history": [
-        {
-          "at": "2026-09-11T23:11:05Z",
-          "detail": "landmarks: 5 standing gap(s) accepted by two referees",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-12T03:21:28Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260911T231105Z-collect",
-      "inputs": {
-        "source": "primary_chase"
-      },
-      "priority": 0,
-      "reason": "landmarks: 5 standing gap(s) accepted by two referees",
-      "requested_at": "2026-09-11T23:11:05Z",
-      "requested_by": "claude(fill_landmarks)",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "collect.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-03T11:11:32Z",
-      "history": [
-        {
-          "at": "2026-09-03T09:58:52Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-03T11:11:32Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-03T11:19:56Z",
-          "detail": "run 33748339377",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-03T11:19:56Z",
-          "detail": "run 33748339377",
-          "event": "landed"
-        }
-      ],
-      "id": "20260903T095852Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-03T11:19:56Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-03T09:58:52Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33748339377",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-03T13:20:34Z",
       "history": [
         {
@@ -2561,6 +2496,44 @@
       "run_id": "34648957492",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-12T03:21:28Z",
+      "history": [
+        {
+          "at": "2026-09-11T23:11:05Z",
+          "detail": "landmarks: 5 standing gap(s) accepted by two referees",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-12T03:21:28Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-12T03:24:11Z",
+          "detail": "run 34670146977",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-12T03:24:11Z",
+          "detail": "run 34670146977",
+          "event": "landed"
+        }
+      ],
+      "id": "20260911T231105Z-collect",
+      "inputs": {
+        "source": "primary_chase"
+      },
+      "landed_at": "2026-09-12T03:24:11Z",
+      "priority": 0,
+      "reason": "landmarks: 5 standing gap(s) accepted by two referees",
+      "requested_at": "2026-09-11T23:11:05Z",
+      "requested_by": "claude(fill_landmarks)",
+      "run_id": "34670146977",
+      "state": "landed",
+      "workflow": "collect.yml"
     }
   ],
   "version": 1
