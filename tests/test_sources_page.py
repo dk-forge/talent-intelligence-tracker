@@ -35,6 +35,12 @@ _NOT_SOURCES = {
     # they are separate reference sets with separate floors, and a single row
     # would let one population's staleness hide behind the other's freshness.
     "recall_us": "measures what we miss in the United States",
+    # The third measured population (2026-09-12). Same reason, same shape: it
+    # grades what we hold against the European reference set and reads nothing
+    # new, and it gets its own row so Europe's staleness cannot hide behind the
+    # other two. The first measurement run after the set landed posted this
+    # health id and every PR went red here until it was named.
+    "recall_eu": "measures what we miss in Europe",
     "sec_form_d_bulk": "backfills SEC EDGAR Form D, which is listed",
     # It asks a model what we are missing and emits a WORK LIST. Every field it
     # returns is prefixed `claimed_` and dies there; a lead becomes a record
