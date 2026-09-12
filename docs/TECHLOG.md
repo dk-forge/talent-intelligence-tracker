@@ -14,6 +14,28 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-12 - The DeepSeek $70bn row is rejected on the owner's ruling; an owner ruling is now a spec status of its own
+
+**What.** `adjudicate_guardrail.apply_from_spec` accepts a third spec status,
+`owner-ruled`, beside the two agreement statuses. It requires `ruled_by`,
+`ruling` and `action`, and applies under "owner ruling (name) after referee
+disagreement", never under the two-model WHO. The DeepSeek spec
+(`amount/ae8f9f415960cc768665378a99e59233`) carries the ruling and was applied:
+the funding row is rejected in the guardrails ledger.
+
+**Why.** The referees disagreed: claude-sonnet-4.5 wanted the $70bn kept as a
+pledge, gpt-4o read the source as a valuation with no raise stated ("strebt
+frische Mittel bei einer Bewertung von rund $70 billion an") and said reject.
+The owner read both and ruled for reject, which is also what the protocol's
+own definition says (a valuation without a raise is out). The standing rule
+of 2026-09-11 sends only disagreements to the owner; this is the first, and
+the ledger had no honest way to record what happened next: the only
+applicable statuses said two models agreed, which they did not.
+
+**Guard.** `tests/test_adjudicate_guardrail.py`: an owner-ruled spec applies
+under the owner's name and never under the two-model WHO; one without a
+reason or a name is refused; a `disagree` spec still applies nothing.
+
 ## 2026-09-12 - The standing landmark gaps are filled from their primary documents, each row accepted by two referees
 
 **What.** `fill_landmarks.py` (+ `tests/test_fill_landmarks.py`, 26 offline
