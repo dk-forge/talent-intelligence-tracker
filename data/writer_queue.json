@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-12T06:06:54Z",
-  "last_tick": "2026-09-12T06:06:54Z",
+  "last_dispatch": "2026-09-12T10:43:26Z",
+  "last_tick": "2026-09-12T10:43:26Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -219,12 +219,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-12T10:43:26Z",
       "history": [
         {
           "at": "2026-09-12T09:28:41Z",
           "detail": "scheduled link hygiene (30 5 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-12T10:43:26Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260912T092841Z-link-check",
@@ -236,8 +241,31 @@
       "requested_at": "2026-09-12T09:28:41Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-12T10:43:21Z",
+          "detail": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260912T104321Z-collect-structured",
+      "inputs": {
+        "dry_run": "true",
+        "source": "denmark_cvr"
+      },
+      "priority": 0,
+      "reason": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
+      "requested_at": "2026-09-12T10:43:21Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-structured.yml"
     },
     {
       "attempts": 0,
