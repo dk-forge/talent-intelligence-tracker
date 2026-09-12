@@ -97,14 +97,21 @@ jobs:
       # Read only. Finds where WordPress actually lives, because an FTP account
       # is usually chrooted to its own home and an absolute-looking path from
       # the control panel is often not what the FTP session sees.
+      # 2026-09-12 -- the credentials are the CHEMICLOUD_* secrets, the same
+      # names the sibling repo reads. The hosting moved on 2026-09-08; this
+      # workflow kept reading the July FTP_USERNAME/FTP_PASSWORD pair (the old
+      # host's account) and the first live dispatch after the move answered
+      # "530 Login authentication failed". The sibling had the identical defect
+      # on 2026-09-09. WP_PLUGIN_REMOTE_DIR is a repo VARIABLE now, not the
+      # July secret: the old value was a path inside the old account's chroot,
+      # and on the new host the docroot sits under addondomains/.
       - name: Probe the FTP tree
         if: ${{ inputs.probe }}
         timeout-minutes: 5
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_USERNAME: ${{ secrets.CHEMICLOUD_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.CHEMICLOUD_PASSWORD_FTP }}
         run: |
           set -e
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
@@ -112,7 +119,7 @@ jobs:
             echo "===== $DIR ====="
             lftp -c "
               $LFTP_SETTINGS
-              open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
+              open -u '$FTP_USERNAME','$FTP_PASSWORD' '$FTP_HOST';
               cls -1 '$DIR';
             " 2>&1 | head -40 || echo "(not listable)"
           done
@@ -143,7 +150,7 @@ jobs:
       - name: Refuse to deploy anywhere but our own plugin directory
         if: ${{ !inputs.probe }}
         env:
-          REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+          REMOTE_DIR: ${{ vars.WP_PLUGIN_REMOTE_DIR }}
         run: |
           set -e
           if [ -z "$REMOTE_DIR" ]; then
@@ -184,10 +191,9 @@ jobs:
         timeout-minutes: 4
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
-          REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+          FTP_USERNAME: ${{ secrets.CHEMICLOUD_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.CHEMICLOUD_PASSWORD_FTP }}
+          REMOTE_DIR: ${{ vars.WP_PLUGIN_REMOTE_DIR }}
         run: |
           set -e
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
@@ -197,7 +203,7 @@ jobs:
           # second path to list, not as a shell redirect.
           LISTING=$(lftp -c "
             $LFTP_SETTINGS
-            open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
+            open -u '$FTP_USERNAME','$FTP_PASSWORD' '$FTP_HOST';
             cls -1 '$WP_ROOT';
           " 2>&1 || true)
           FOUND=$(printf '%s\n' "$LISTING" | grep -c 'wp-config\.php' || true)
@@ -241,16 +247,15 @@ jobs:
         timeout-minutes: 10
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
-          REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+          FTP_USERNAME: ${{ secrets.CHEMICLOUD_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.CHEMICLOUD_PASSWORD_FTP }}
+          REMOTE_DIR: ${{ vars.WP_PLUGIN_REMOTE_DIR }}
         run: |
           set -e
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
           lftp -c "
             $LFTP_SETTINGS
-            open -u '$FTP_USERNAME','$FTP_PASSWORD' -p '${FTP_PORT:-21}' '$FTP_HOST';
+            open -u '$FTP_USERNAME','$FTP_PASSWORD' '$FTP_HOST';
             mirror --reverse --delete --continue --verbose \
               wordpress-plugin/talent-intelligence-tracker '$REMOTE_DIR';
           "

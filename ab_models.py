@@ -292,7 +292,7 @@ DECIDING_FIELDS = ("is_talent_signal", "company", "pillar", "country",
                    "signal_direction", "funding_amount")
 
 
-def run_extraction(key: str, headlines: list[str]) -> int:
+def run_extraction(key: str, headlines: list[str], dump: str = "") -> int:
     """Field-by-field agreement on the PRODUCTION extraction prompt."""
     from pipeline import classify
 
@@ -319,6 +319,12 @@ def run_extraction(key: str, headlines: list[str]) -> int:
         spend[model] = cost
         print(f"  {sum(r is not None for r in rows)}/{len(rows)} parsed, "
               f"${cost:.5f} for the set")
+
+    if dump:
+        Path(dump).write_text(json.dumps(
+            {"headlines": headlines, "answers": answers, "spend_usd": spend},
+            indent=1, ensure_ascii=False))
+        print(f"  answers written to {dump}")
 
     print("\n" + "=" * 72)
     print("AGREEMENT WITH THE INCUMBENT, ON THE FIELDS THAT DECIDE A RECORD")
@@ -682,6 +688,28 @@ def run_cache_check(key: str, model: str) -> int:
     return code
 
 
+def _restrict_candidates(args) -> None:
+    """Narrow the chosen mode's candidate list to `--models`, incumbent first.
+
+    The lists are module globals the run_* functions read, so this rewrites
+    them in place. The incumbent is the first entry of the mode's DEFAULT list
+    and is kept whether or not it was named: every score in every mode is a
+    comparison against it, and a run that dropped it would print a table with
+    no baseline column.
+    """
+    wanted = [m.strip() for m in args.models.split(",") if m.strip()]
+    if args.gate_gold:
+        target = GATE_GOLD_MODELS
+    elif args.extraction:
+        target = EXTRACTION_MODELS
+    elif args.readthrough:
+        target = READTHROUGH_MODELS
+    else:
+        target = GATE_MODELS
+    incumbent = target[0]
+    target[:] = [incumbent] + [m for m in wanted if m != incumbent]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="A/B candidate models on real headlines.")
     parser.add_argument("--readthrough", action="store_true",
@@ -692,6 +720,20 @@ def main() -> int:
                         help="score gate models against the HAND LABELS "
                              "(analysis/models/goldset-gate-2026-08.json) "
                              "rather than against each other")
+    parser.add_argument("--models", default="",
+                        help="comma-separated candidate slugs for the chosen mode. "
+                             "The mode's incumbent (first entry of its default "
+                             "list) is always scored and always listed first, so "
+                             "a candidate is never compared against nothing")
+    parser.add_argument("--limit", type=int, default=0, metavar="N",
+                        help="score only the first N fixture headlines (spend "
+                             "cap for a session that cannot afford the whole set; "
+                             "say so when quoting the result)")
+    parser.add_argument("--dump", default="", metavar="PATH",
+                        help="--extraction only: write every model's parsed "
+                             "answer per headline to PATH as JSON, so each "
+                             "disagreement can be read by hand rather than "
+                             "re-bought")
     parser.add_argument("--cache-check", nargs="?", const="google/gemini-2.5-flash-lite",
                         default=None, metavar="MODEL",
                         help="send the production extraction prompt twice and report "
@@ -704,15 +746,21 @@ def main() -> int:
         print("OPENROUTER_API_KEY is not set", file=sys.stderr)
         return 1
 
+    if args.models:
+        _restrict_candidates(args)
+
     if args.cache_check:
         return run_cache_check(key, args.cache_check)
     if args.gate_gold:
         return run_gate_gold(key)
 
     headlines = load_headlines()
+    if args.limit > 0:
+        headlines = headlines[:args.limit]
+        print(f"--limit {args.limit}: a SAMPLE of the fixture, not the set")
     print(f"{len(headlines)} real headlines from live runs")
     if args.extraction:
-        return run_extraction(key, headlines)
+        return run_extraction(key, headlines, dump=args.dump)
     return run_readthrough(key, headlines) if args.readthrough else run_gate(key, headlines)
 
 
