@@ -24,8 +24,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:a150e75b2e28f3a1": {
+      "first": 1789195061,
+      "last": 1789195061,
+      "subject": "CI RED: tests: assert not {'recall_eu'}"
     }
   },
-  "updated_at": "2026-09-12T03:34:01+00:00",
+  "updated_at": "2026-09-12T06:37:43+00:00",
   "version": 1
 }
