@@ -547,7 +547,20 @@ def apply_from_spec(conn, path: Path, *, apply: bool, push=None) -> int:
     """Re-apply an agreed spec without calling a model. For a checkout that
     holds the spec but not the ledger write (a merge, a second machine)."""
     spec = json.loads(Path(path).read_text(encoding="utf-8"))
-    if spec.get("status") not in ("agree-dry-run", "applied"):
+    if spec.get("status") == "owner-ruled":
+        # The one path that is not two referees agreeing: the referees
+        # DISAGREED, the owner read both reasonings and ruled. The ruling is
+        # recorded in the spec by name, with its reason, and is applied under
+        # that name rather than under the two-model WHO, so the ledger never
+        # says two models agreed when they did not.
+        missing = [k for k in ("ruled_by", "ruling", "action") if not spec.get(k)]
+        if missing:
+            print(f"{path}: owner-ruled spec lacks {', '.join(missing)}; nothing to apply")
+            return 3
+        who = f"owner ruling ({spec['ruled_by']}) after referee disagreement"
+    elif spec.get("status") in ("agree-dry-run", "applied"):
+        who = spec.get("who", WHO)
+    else:
         print(f"{path}: status {spec.get('status')!r} is not an agreement; nothing to apply")
         return 3
     item = load_finding(conn, spec["key"])
@@ -557,8 +570,9 @@ def apply_from_spec(conn, path: Path, *, apply: bool, push=None) -> int:
     if item["finding"].get("state") != "open":
         print(f"{spec['key']}: already {item['finding'].get('state')}")
         return 0
+    note = spec.get("note") or spec.get("ruling") or ""
     changed = apply_decision(conn, item, spec["action"], spec.get("correction"),
-                             spec["note"], who=spec.get("who", WHO), apply=apply, push=push)
+                             note, who=who, apply=apply, push=push)
     print(f"{spec['key']}: {spec['action']} {'APPLIED' if apply else 'dry run'} "
           f"({changed} ledger row(s))")
     return 0

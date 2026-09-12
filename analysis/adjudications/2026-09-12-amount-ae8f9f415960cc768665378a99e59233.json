@@ -1,7 +1,7 @@
 {
  "key": "amount/ae8f9f415960cc768665378a99e59233",
  "label": "DeepSeek $70,000,000,000",
- "status": "disagree",
+ "status": "owner-ruled",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
@@ -49,7 +49,10 @@
  },
  "evidence_url": "https://invezz.com/de/news/2026/07/15/deepseek-peilt-neue-finanzierungsrunde-bei-rund-dollar70b-bewertung-an/",
  "evidence_chars": 6976,
- "action": "keep",
+ "action": "reject",
  "correction": null,
- "written_at": "2026-09-11T22:42:31+00:00"
+ "written_at": "2026-09-11T22:42:31+00:00",
+ "ruled_by": "owner, 2026-09-12",
+ "ruling": "The source says DeepSeek is seeking funds at a valuation of around $70 billion. That is a valuation, not an amount raised, and the round was in talks, so no funding amount was stated for this event. gpt-4o read it that way (reject); claude-sonnet-4.5 wanted to keep $70bn as a pledge. The owner ruled for reject.",
+ "note": "owner ruling after referee disagreement: valuation without a stated raise, row rejected"
 }
