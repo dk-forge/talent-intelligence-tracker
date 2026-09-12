@@ -1,0 +1,76 @@
+{
+ "key": "landmark/2025q1-openai-40b",
+ "landmark": {
+  "id": "2025q1-openai-40b",
+  "quarter": "2025Q1",
+  "company": "OpenAI",
+  "event_date": "2025-03-31",
+  "amount_usd": 40000000000,
+  "amount_text": "$40 billion",
+  "currency": "USD",
+  "valuation_usd": 300000000000,
+  "country": "US",
+  "source_url": "https://openai.com/index/march-funding-updates/",
+  "note": "The largest venture round ever recorded until this company beat it in March 2026. openai.com answers 403 to automated clients; the URL is still the document."
+ },
+ "status": "queued",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document explicitly states: 'Today we're announcing new funding-$40B at a $300B post-money valuation' and '$40 billion at a $300 billion post-money valuation'. This is clearly new capital raised by OpenAI ($40B) at the stated date (2025-03-31). The amount matches the landmark exactly ($40B = $40,000,000,000 USD), the date matches (2025-03-31), and this is unambiguously a company_raise (new funding from investors, specifically mentioning SoftBank Group as a partner). The $300B is the post-money valuation, not the raise amount."
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states: 'Today we’re announcing new funding-$40B at a $300B post-money valuation,' which confirms the $40 billion funding amount and matches the landmark entry. The money_basis is correctly identified as 'company_raise' since it refers to new capital arriving at the company from investors."
+  }
+ },
+ "row": {
+  "company": "OpenAI",
+  "headline": "New funding to build towards AGI",
+  "summary": "OpenAI announces $40B in new funding at a $300B post-money valuation to advance AI research and scale compute infrastructure.",
+  "pillar": "company_development",
+  "funding_amount": "$40B",
+  "funding_amount_usd": 40000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://openai.com/index/march-funding-updates/",
+  "source_name": "openai.com",
+  "published_date": "2025-03-31",
+  "collector": "primary_chase",
+  "city": null,
+  "country": "US",
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.013826,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008691,
+  "openai/gpt-4o": 0.005135000000000001
+ },
+ "evidence_url": "https://openai.com/index/march-funding-updates/",
+ "evidence_chars": 2131,
+ "check_verdict": "HELD",
+ "check_detail": "",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:15:19+00:00",
+ "ticket": {
+  "id": "20260911T231105Z-collect",
+  "workflow": "collect.yml",
+  "inputs": {
+   "source": "primary_chase"
+  }
+ }
+}

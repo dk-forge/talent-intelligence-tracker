@@ -1,0 +1,76 @@
+{
+ "key": "landmark/2025q3-figure-1b",
+ "landmark": {
+  "id": "2025q3-figure-1b",
+  "quarter": "2025Q3",
+  "company": "Figure",
+  "event_date": "2025-09-16",
+  "amount_usd": 1000000000,
+  "amount_text": "more than $1 billion, Series C",
+  "currency": "USD",
+  "valuation_usd": 39000000000,
+  "country": "US",
+  "source_url": "https://www.figure.ai/news/series-c",
+  "note": "The document says 'more than $1 billion in committed capital', so a stored figure above $1bn is right and not a mismatch."
+ },
+ "status": "queued",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document explicitly states: 'we have exceeded more than $1 billion in committed capital through our Series C financing round, at a post-money valuation of $39 billion.' This is new capital raised from investors (Parkway Venture Capital led, with participation from Brookfield, NVIDIA, etc.). The amount exceeds $1B as stated, matches the landmark's 'more than $1 billion' threshold, the date (2025-09-16) matches exactly, and this is clearly a company_raise (Series C equity round)."
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states 'we have exceeded more than $1 billion in committed capital through our Series C financing round,' which confirms the amount and basis as company_raise, matching the landmark."
+  }
+ },
+ "row": {
+  "company": "Figure",
+  "headline": "Figure Exceeds $1B in Series C Funding at $39B Post-Money Valuation",
+  "summary": "Figure has secured over $1 billion in Series C funding at a $39 billion post-money valuation to accelerate the development and deployment of general-purpose humanoid robots.",
+  "pillar": "company_development",
+  "funding_amount": "$1B",
+  "funding_amount_usd": 1000000000,
+  "funding_stage": "series_c",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.figure.ai/news/series-c",
+  "source_name": "figure.ai",
+  "published_date": "2025-09-16",
+  "collector": "primary_chase",
+  "city": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.013041,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008229,
+  "openai/gpt-4o": 0.004812499999999997
+ },
+ "evidence_url": "https://www.figure.ai/news/series-c",
+ "evidence_chars": 2209,
+ "check_verdict": "HELD",
+ "check_detail": "",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:10:54+00:00",
+ "ticket": {
+  "id": "20260911T231105Z-collect",
+  "workflow": "collect.yml",
+  "inputs": {
+   "source": "primary_chase"
+  }
+ }
+}

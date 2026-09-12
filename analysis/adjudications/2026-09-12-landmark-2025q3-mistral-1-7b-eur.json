@@ -1,0 +1,75 @@
+{
+ "key": "landmark/2025q3-mistral-1-7b-eur",
+ "landmark": {
+  "id": "2025q3-mistral-1-7b-eur",
+  "quarter": "2025Q3",
+  "company": "Mistral AI",
+  "event_date": "2025-09-09",
+  "amount_usd": 1990000000,
+  "amount_text": "1.7 billion euros, Series C",
+  "currency": "EUR",
+  "country": "FR",
+  "source_url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/",
+  "note": "Announced in euros at an 11.7bn euro post-money. Amount check skipped, as for Helsing."
+ },
+ "status": "queued",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 95,
+   "reasoning": "The document clearly states 'We are announcing a Series C funding round of 1.7B€ at a 11.7B€ post-money valuation.' This is explicitly a company raise (Series C funding round) for Mistral AI. The amount 1.7B€ matches the landmark's 1.7 billion euros, the date September 9, 2025 matches the landmark event_date, and the source URL is identical. The 11.7B€ is the post-money valuation, not the raise amount. The row correctly identifies this as company_raise and states the amount as 1.7B€."
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states: 'We are announcing a Series C funding round of 1.7B€ at a 11.7B€ post-money valuation.' This confirms the funding amount and basis as 'company_raise', matching the landmark entry."
+  }
+ },
+ "row": {
+  "company": "Mistral AI",
+  "headline": "Mistral AI raises 1.7B€ to accelerate technological progress with AI",
+  "summary": "Mistral AI has raised 1.7B€ to advance its AI technology platform for enterprises.",
+  "pillar": "company_development",
+  "funding_amount": "1.7B€",
+  "funding_amount_usd": null,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/",
+  "source_name": "mistral.ai",
+  "published_date": "2025-09-09",
+  "collector": "primary_chase",
+  "city": null,
+  "country": null,
+  "hq_city": "Paris",
+  "hq_country": "FR",
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.013418,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008496000000000004,
+  "openai/gpt-4o": 0.004922499999999996
+ },
+ "evidence_url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/",
+ "evidence_chars": 1992,
+ "check_verdict": "HELD",
+ "check_detail": "amount not checked: the document states this round in EUR, so the USD figure here is a conversion",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:10:49+00:00",
+ "ticket": {
+  "id": "20260911T231105Z-collect",
+  "workflow": "collect.yml",
+  "inputs": {
+   "source": "primary_chase"
+  }
+ }
+}

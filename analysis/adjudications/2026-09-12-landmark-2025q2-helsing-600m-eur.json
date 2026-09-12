@@ -1,0 +1,71 @@
+{
+ "key": "landmark/2025q2-helsing-600m-eur",
+ "landmark": {
+  "id": "2025q2-helsing-600m-eur",
+  "quarter": "2025Q2",
+  "company": "Helsing",
+  "event_date": "2025-06-17",
+  "amount_usd": 694000000,
+  "amount_text": "600 million euros, Series D",
+  "currency": "EUR",
+  "country": "DE",
+  "source_url": "https://helsing.ai/newsroom/helsing-raises-eur600m-to-invest-in-european-technological-sovereignty",
+  "note": "Announced in euros. The USD figure is a conversion, so the amount check is SKIPPED for this entry rather than run against a number the publisher never wrote."
+ },
+ "status": "disagree",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "reject",
+   "confidence": 95,
+   "reasoning": "The document states 'Helsing, the leading European defence technology company, today announced its €600 million Series D funding round.' This is €600m in new capital from investors (Prima Materia, Lightspeed Ventures, Accel, etc.), which is a company_raise, not fund_raise. The row incorrectly classifies this as 'fund_raise' when it should be 'company_raise'. Amount matches landmark (€600m), date matches (2025-06-17).",
+   "corrected_basis": "company_raise",
+   "corrected_amount": 694000000,
+   "recommended_raw": "edit"
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states: 'Helsing, the leading European defence technology company, today announced its €600 million Series D funding round.' This confirms the amount and basis as company_raise, matching the landmark entry."
+  }
+ },
+ "row": {
+  "company": "Helsing",
+  "headline": "Helsing raises €600m to invest in European technological sovereignty",
+  "summary": "Helsing has raised €600m in Series D funding.",
+  "pillar": "company_development",
+  "funding_amount": "€600m",
+  "funding_amount_usd": null,
+  "funding_stage": "series_d_plus",
+  "deal_type": "fund_raise",
+  "money_basis": "fund_raise",
+  "source_url": "https://helsing.ai/newsroom/helsing-raises-eur600m-to-invest-in-european-technological-sovereignty",
+  "source_name": "helsing.ai",
+  "published_date": "2025-06-17",
+  "collector": "primary_chase",
+  "city": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "confidence": "reported",
+  "notes": "deterministic extraction: every field appears verbatim in the headline/teaser; no model read this item (pipeline/cheap_extract.py)"
+ },
+ "cost_usd": 0.01155,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008562,
+  "openai/gpt-4o": 0.0029875000000000006
+ },
+ "evidence_url": "https://helsing.ai/newsroom/helsing-raises-eur600m-to-invest-in-european-technological-sovereignty",
+ "evidence_chars": 1860,
+ "check_verdict": "HELD",
+ "check_detail": "amount not checked: the document states this round in EUR, so the USD figure here is a conversion",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:14:35+00:00"
+}

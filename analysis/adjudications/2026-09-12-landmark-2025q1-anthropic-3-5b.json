@@ -1,0 +1,75 @@
+{
+ "key": "landmark/2025q1-anthropic-3-5b",
+ "landmark": {
+  "id": "2025q1-anthropic-3-5b",
+  "quarter": "2025Q1",
+  "company": "Anthropic",
+  "event_date": "2025-03-03",
+  "amount_usd": 3500000000,
+  "amount_text": "$3.5 billion Series E",
+  "currency": "USD",
+  "valuation_usd": 61500000000,
+  "country": "US",
+  "source_url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation"
+ },
+ "status": "queued",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document explicitly states: 'Anthropic has raised $3.5 billion at a $61.5 billion post-money valuation.' This is a clear equity raise (Series E) with new capital arriving at the company from investors listed (Lightspeed Venture Partners leading, with participation from multiple VCs). The amount ($3.5B), date (Mar 3, 2025), and valuation ($61.5B post-money) all match the landmark exactly. The money_basis is correctly classified as company_raise."
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states: 'Anthropic has raised $3.5 billion at a $61.5 billion post-money valuation.' This matches the landmark entry's amount and date, confirming the money_basis as company_raise."
+  }
+ },
+ "row": {
+  "company": "Anthropic",
+  "headline": "Anthropic raises Series E at $61.5B post-money valuation",
+  "summary": "Anthropic has raised $3.5 billion at a $61.5 billion post-money valuation, with plans to advance its development of next-generation AI systems and expand its compute capacity.",
+  "pillar": "company_development",
+  "funding_amount": "$3.5 billion",
+  "funding_amount_usd": 3500000000,
+  "funding_stage": "series_d_plus",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation",
+  "source_name": "anthropic.com",
+  "published_date": "2025-03-03",
+  "collector": "primary_chase",
+  "city": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.013782,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.00861,
+  "openai/gpt-4o": 0.0051724999999999965
+ },
+ "evidence_url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation",
+ "evidence_chars": 2772,
+ "check_verdict": "HELD",
+ "check_detail": "",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:10:41+00:00",
+ "ticket": {
+  "id": "20260911T231105Z-collect",
+  "workflow": "collect.yml",
+  "inputs": {
+   "source": "primary_chase"
+  }
+ }
+}

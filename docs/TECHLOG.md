@@ -14,6 +14,89 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-12 - The standing landmark gaps are filled from their primary documents, each row accepted by two referees
+
+**What.** `fill_landmarks.py` (+ `tests/test_fill_landmarks.py`, 26 offline
+tests). `check_landmarks.py` read **8 of 20 held, 12 standing gaps** at the
+start of the session, the largest OpenAI $40bn (2025Q1), Databricks $10bn
+(2025Q1) and Anduril $5bn (2026Q2), every one with the employer's own
+announcement recorded in `data/landmarks.json` and none of them ever read by
+anything in the pipeline. This is the situation `collectors/primary_chase.py`
+was written for on 2026-08-04, and it is used as-is.
+
+**How, and what it never does.** The script lists the gaps with the weekly
+check's own `verdict()` (one definition of "gap"), puts their URLs on a
+temporary primary_chase work list and runs `run_collect.run(dry_run=True,
+source="primary_chase")`: the identical `precheck -> cheap_extract -> classify
+-> validate -> dedupe` path, with the rows it WOULD store captured off
+`_print_signal`, the hook the dry run already calls. Nothing builds a row by
+hand and nothing here writes one. Each captured row is matched back to its
+landmark with `check.candidates`, and the row, the document text (browser UA,
+15 s, stripped, 12,000 chars, `adjudicate_guardrail.fetch_evidence`) and the
+written money rules (`adjudicate_guardrail.RULES`) go to the same two referees
+as the guardrail adjudicator, through `classify._call`, with the gate read
+before every attempt and the retry outside the callable. Both verdicts are
+written verbatim to `analysis/adjudications/2026-09-12-landmark-<id>.json`,
+one file per landmark including the UNKNOWNs. Only a landmark BOTH referees
+accept AND say matches (and that the check itself would call HELD on that
+row) is queued: its URL goes on `data/primary_chase_worklist.json` and ONE
+`collect.yml` ticket with `source=primary_chase` is enqueued through
+`writer_queue.enqueue`, exactly the ticket `gh workflow run drain-writers.yml
+-f enqueue=collect.yml` writes. The runner re-reads each document and stores
+what the document states; the work list carries URLs and nothing else, so an
+acceptance cannot reach the database either.
+
+**Outcome: 6 queued, 6 left with their spec files.**
+
+| landmark | collector row | referee A | referee B | outcome |
+|---|---|---|---|---|
+| OpenAI $40bn 2025Q1 | $40B company_raise, 2025-03-31 | accept | accept | **queued** |
+| Databricks $10bn 2025Q1 | headline reads the $15B total, amount None, deal_type project_finance | edit (read as reject) | accept | DISAGREE: the extractor cannot separate the $10B Series J from the $15B headline; the landmark note predicted this |
+| Anduril $5bn 2026Q2 | $5B company_raise, 2026-05-13 | not asked | not asked | UNKNOWN: anduril.com renders in the browser; 46 characters to a page reader, 250 to the collector's own reader, under the 800 floor |
+| Databricks $4bn 2025Q4 | >$4B Series L, 2025-12-16 | accept | accept | **queued** |
+| Anthropic $3.5bn 2025Q1 | $3.5B Series E, 2025-03-03 | accept | accept | **queued** |
+| Anysphere $2.3bn 2025Q4 | $2.3B, company "Cursor", published_date None | not asked | not asked | UNKNOWN: cursor.com states no single dateline, so the row has no date and the check's window cannot place it |
+| Reflection AI $2bn 2025Q4 | amount None ("Raises 2b" has no currency), no date | not asked | not asked | UNKNOWN: no row the check could match |
+| Mistral EUR1.7bn 2025Q3 | 1.7B EUR Series C, 2025-09-09 | accept | accept | **queued** |
+| Figure $1bn 2025Q3 | "more than $1 billion" Series C, 2025-09-16 | accept | accept | **queued** |
+| Anysphere $900m 2025Q2 | $900M, company "Cursor", no date | not asked | not asked | UNKNOWN: as the Series D |
+| Helsing EUR600m 2025Q2 | EUR600m, basis fund_raise, no USD | edit (read as reject) | accept | DISAGREE: `money_raised._FUND_PURPOSE` reads "raises EUR600m to invest in European technological sovereignty" as a fund close; a rule with a measured design, not widened here |
+| Isomorphic Labs $600m 2025Q1 | $600M, 2025-03-31 | accept | accept | **queued** |
+
+**Spend $0.161 measured** (dry-run extraction $0.0141 for the twelve leads plus
+$0.0044 across two narrowed re-runs; referees $0.1425 for 10 pairs across the three
+runs), plus one three-lead extraction probe whose figure was not captured and
+is under $0.005. On the sibling tracker's key through `railway run`, as the
+guardrail adjudicator was: this checkout has no key, so none of it is in this
+repo's ledger. Well under the $0.50 ceiling the script reads before every
+referee request.
+
+**Three things the first pass got wrong in itself, fixed before the queue was
+touched.** (1) A referee answering `edit`, which the prompt does not offer,
+was parsed as no verdict and the landmark went UNKNOWN; it is now read as the
+reject the prompt says it is, with `recommended_raw` kept on the verdict.
+(2) openai.com serves 769 characters of shell to a page-stripper and the whole
+announcement to the collector's own reader; when every stripped copy is under
+the floor the collector's read of the same URL is the evidence, since that is
+the text the row came out of. (3) A spec quoting a document verbatim carried
+the document's em dash; every string written to a spec goes through
+`plain_dashes()`, tested.
+
+**Held-after is not yet measurable from this branch.** The ticket
+(`20260911T231105Z-collect`) is dispatched by `drain-writers.yml` from main,
+so the six rows land after the merge, and `check_landmarks.py --live` is the
+reading to take then; the target is 14 of 20 held. Two caveats to expect:
+OpenAI's $40bn is above the publish guardrail's amount ceiling and will sit
+`held_not_live` until `adjudicate_guardrail.py` answers it, and openai.com's
+edge answers 403 intermittently, so if that lead is skipped as unreachable on
+the runner the ticket is re-queued, not the row typed. The six that did not
+queue are three extractor limits (a total that hides its equity component, an
+undated newsroom, a currency-less headline), one basis rule, and one page that
+exists only in a browser. None of them is closed by a hand-written row.
+
+
+---
+
 ## 2026-09-12 - Haiku 4.5 and Gemini flash-lite measured against the DeepSeek extraction call; no swap taken
 
 **What.** The one A/B `docs/PLAN-gate-to-five-dollars.md` step 0 has been

@@ -1,0 +1,72 @@
+{
+ "key": "landmark/2025q1-databricks-10b",
+ "landmark": {
+  "id": "2025q1-databricks-10b",
+  "quarter": "2025Q1",
+  "company": "Databricks",
+  "event_date": "2025-01-22",
+  "amount_usd": 10000000000,
+  "amount_text": "$10 billion Series J",
+  "currency": "USD",
+  "valuation_usd": 62000000000,
+  "country": "US",
+  "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-announces-15B-financing-ai-talent-global-expansion",
+  "note": "The same release announces a separate $5.25bn credit facility. The landmark is the EQUITY round; a stored row reading $15bn is reading the debt in as well."
+ },
+ "status": "disagree",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "reject",
+   "confidence": 95,
+   "reasoning": "The document clearly states two separate transactions: '$10B Series J' equity funding and '$5.25B credit facility' debt financing. The row incorrectly classifies this as 'project_finance' with null amounts. The landmark correctly identifies the $10B Series J as the equity raise (company_raise). The document states: 'completes $10B Series J and closes additional $5.25B debt financing' and 'raising the $10 billion equity financing'. Corrected: amount=$10,000,000,000 USD, basis=company_raise.",
+   "corrected_amount": 10000000000,
+   "corrected_basis": "company_raise",
+   "recommended_raw": "edit"
+  },
+  "openai/gpt-4o": {
+   "matches_landmark": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "confidence": 100,
+   "reasoning": "The document states 'Databricks has completed a $10B Series J funding round,' which matches the landmark's amount and basis of 'company_raise' for this event."
+  }
+ },
+ "row": {
+  "company": "Databricks",
+  "headline": "Databricks Announces $15B in Financing to Attract Top AI Talent and Accelerate Global Expansion",
+  "summary": "Databricks has completed a $10B Series J funding round and secured an additional $5.25B in debt financing, totaling $15B, to invest in new AI products, acquisitions, and global expansion.",
+  "pillar": "company_development",
+  "funding_amount": null,
+  "funding_amount_usd": null,
+  "funding_stage": null,
+  "deal_type": "project_finance",
+  "money_basis": null,
+  "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-announces-15B-financing-ai-talent-global-expansion",
+  "source_name": "databricks.com",
+  "published_date": "2025-01-22",
+  "collector": "primary_chase",
+  "city": "San Francisco",
+  "country": "US",
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "confidence": "reported",
+  "notes": null
+ },
+ "cost_usd": 0.01637,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.01029,
+  "openai/gpt-4o": 0.006080000000000002
+ },
+ "evidence_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-announces-15B-financing-ai-talent-global-expansion",
+ "evidence_chars": 4178,
+ "check_verdict": "WRONG_AMOUNT",
+ "check_detail": "the row is here but no USD amount was parsed from it",
+ "who": "two-model landmark adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "written_at": "2026-09-11T23:14:26+00:00"
+}
