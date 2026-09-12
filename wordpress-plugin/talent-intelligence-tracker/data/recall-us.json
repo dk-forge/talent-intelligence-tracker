@@ -1,6 +1,6 @@
 {
- "measured_at": "2026-08-12T06:49:43Z",
- "measured_on": "2026-08-11",
+ "measured_at": "2026-09-12T03:31:57Z",
+ "measured_on": "2026-09-12",
  "api_base": "https://asktherecruiter.com/blog/wp-json/talent/v1",
  "goldset": {
   "version": "2026-06-us-v1",
@@ -11,6 +11,10 @@
   },
   "assembled_on": "2026-08-12",
   "url": "https://github.com/dk-forge/talent-intelligence-tracker/blob/main/analysis/recall/us/goldset-us-2026-06.json",
+  "signal_types": [
+   "funding"
+  ],
+  "held_out": "Sampled independently of our own coverage. No pass saw our database, our stored rows or our collector list. Crucially, no pass was allowed to enumerate from SEC EDGAR full-text search: that is the index our sec_edgar collector itself walks, so a set built from it would score the tracker against its own feed. Three leadership passes did reach for it, and all three were discarded rather than used.",
   "caveats": [
    "This set covers FUNDING ONLY. Leadership changes, pay actions and ways-of-working signals are not tested here and their US coverage is unmeasured. That is a real gap and not a rounding of scope: US leadership events at privately held employers could not be enumerated from original sources at all. Open web search returns executive-moves databases, which may never be cited; the only free chronological index that remains is SEC EDGAR, which is our own feed. Every leadership pass attempted came back either over 90% exchange-listed filings or empty.",
    "Discovery ran through public web search, so the set is biased toward employers whose round was written up in English by an indexed publisher. A round announced only on a company blog with no pickup is under-represented, and so is any round covered exclusively by a deal database.",
@@ -52,36 +56,36 @@
  "summary": {
   "overall": {
    "total": 51,
-   "found": 4,
-   "found_partial": 17,
-   "missed": 30,
-   "held": 21,
-   "held_pct": 41.2,
-   "clean_pct": 7.8,
+   "found": 5,
+   "found_partial": 18,
+   "missed": 28,
+   "held": 23,
+   "held_pct": 45.1,
+   "clean_pct": 9.8,
    "held_interval": {
-    "pct": 41.2,
-    "low_pct": 28.8,
-    "high_pct": 54.8,
-    "width_pct": 26.1,
-    "successes": 21,
+    "pct": 45.1,
+    "low_pct": 32.3,
+    "high_pct": 58.6,
+    "width_pct": 26.3,
+    "successes": 23,
     "total": 51
    }
   },
   "by_signal_type": {
    "funding": {
     "total": 51,
-    "found": 4,
-    "found_partial": 17,
-    "missed": 30,
-    "held": 21,
-    "held_pct": 41.2,
-    "clean_pct": 7.8,
+    "found": 5,
+    "found_partial": 18,
+    "missed": 28,
+    "held": 23,
+    "held_pct": 45.1,
+    "clean_pct": 9.8,
     "held_interval": {
-     "pct": 41.2,
-     "low_pct": 28.8,
-     "high_pct": 54.8,
-     "width_pct": 26.1,
-     "successes": 21,
+     "pct": 45.1,
+     "low_pct": 32.3,
+     "high_pct": 58.6,
+     "width_pct": 26.3,
+     "successes": 23,
      "total": 51
     }
    }
@@ -89,18 +93,18 @@
   "by_geography": {
    "US": {
     "total": 51,
-    "found": 4,
-    "found_partial": 17,
-    "missed": 30,
-    "held": 21,
-    "held_pct": 41.2,
-    "clean_pct": 7.8,
+    "found": 5,
+    "found_partial": 18,
+    "missed": 28,
+    "held": 23,
+    "held_pct": 45.1,
+    "clean_pct": 9.8,
     "held_interval": {
-     "pct": 41.2,
-     "low_pct": 28.8,
-     "high_pct": 54.8,
-     "width_pct": 26.1,
-     "successes": 21,
+     "pct": 45.1,
+     "low_pct": 32.3,
+     "high_pct": 58.6,
+     "width_pct": 26.3,
+     "successes": 23,
      "total": 51
     }
    }
@@ -108,18 +112,18 @@
   "by_country": {
    "US": {
     "total": 51,
-    "found": 4,
-    "found_partial": 17,
-    "missed": 30,
-    "held": 21,
-    "held_pct": 41.2,
-    "clean_pct": 7.8,
+    "found": 5,
+    "found_partial": 18,
+    "missed": 28,
+    "held": 23,
+    "held_pct": 45.1,
+    "clean_pct": 9.8,
     "held_interval": {
-     "pct": 41.2,
-     "low_pct": 28.8,
-     "high_pct": 54.8,
-     "width_pct": 26.1,
-     "successes": 21,
+     "pct": 45.1,
+     "low_pct": 32.3,
+     "high_pct": 58.6,
+     "width_pct": 26.3,
+     "successes": 23,
      "total": 51
     }
    }
@@ -144,12 +148,12 @@
    },
    "press_release": {
     "total": 25,
-    "found": 2,
-    "found_partial": 10,
+    "found": 3,
+    "found_partial": 9,
     "missed": 13,
     "held": 12,
     "held_pct": 48.0,
-    "clean_pct": 8.0,
+    "clean_pct": 12.0,
     "held_interval": {
      "pct": 48.0,
      "low_pct": 30.0,
@@ -162,17 +166,17 @@
    "trade_press": {
     "total": 24,
     "found": 2,
-    "found_partial": 7,
-    "missed": 15,
-    "held": 9,
-    "held_pct": 37.5,
+    "found_partial": 9,
+    "missed": 13,
+    "held": 11,
+    "held_pct": 45.8,
     "clean_pct": 8.3,
     "held_interval": {
-     "pct": 37.5,
-     "low_pct": 21.2,
-     "high_pct": 57.3,
-     "width_pct": 36.1,
-     "successes": 9,
+     "pct": 45.8,
+     "low_pct": 27.9,
+     "high_pct": 64.9,
+     "width_pct": 37.0,
+     "successes": 11,
      "total": 24
     }
    }
@@ -180,18 +184,18 @@
   "by_size_band": {
    "large": {
     "total": 33,
-    "found": 3,
-    "found_partial": 12,
-    "missed": 18,
-    "held": 15,
-    "held_pct": 45.5,
-    "clean_pct": 9.1,
+    "found": 4,
+    "found_partial": 13,
+    "missed": 16,
+    "held": 17,
+    "held_pct": 51.5,
+    "clean_pct": 12.1,
     "held_interval": {
-     "pct": 45.5,
-     "low_pct": 29.8,
-     "high_pct": 62.0,
-     "width_pct": 32.2,
-     "successes": 15,
+     "pct": 51.5,
+     "low_pct": 35.2,
+     "high_pct": 67.5,
+     "width_pct": 32.3,
+     "successes": 17,
      "total": 33
     }
    },
@@ -216,24 +220,24 @@
   "by_segment": {
    "US funding": {
     "total": 51,
-    "found": 4,
-    "found_partial": 17,
-    "missed": 30,
-    "held": 21,
-    "held_pct": 41.2,
-    "clean_pct": 7.8,
+    "found": 5,
+    "found_partial": 18,
+    "missed": 28,
+    "held": 23,
+    "held_pct": 45.1,
+    "clean_pct": 9.8,
     "held_interval": {
-     "pct": 41.2,
-     "low_pct": 28.8,
-     "high_pct": 54.8,
-     "width_pct": 26.1,
-     "successes": 21,
+     "pct": 45.1,
+     "low_pct": 32.3,
+     "high_pct": 58.6,
+     "width_pct": 26.3,
+     "successes": 23,
      "total": 51
     }
    }
   },
   "defects": {
-   "country_missing": 13,
+   "country_missing": 14,
    "country_wrong": 3,
    "amount_mismatch": 1
   },
@@ -257,12 +261,12 @@
    },
    "New York": {
     "total": 16,
-    "found": 1,
-    "found_partial": 7,
+    "found": 2,
+    "found_partial": 6,
     "missed": 8,
     "held": 8,
     "held_pct": 50.0,
-    "clean_pct": 6.2,
+    "clean_pct": 12.5,
     "held_interval": {
      "pct": 50.0,
      "low_pct": 28.0,
@@ -275,17 +279,17 @@
    "Rest of US": {
     "total": 14,
     "found": 3,
-    "found_partial": 2,
-    "missed": 9,
-    "held": 5,
-    "held_pct": 35.7,
+    "found_partial": 4,
+    "missed": 7,
+    "held": 7,
+    "held_pct": 50.0,
     "clean_pct": 21.4,
     "held_interval": {
-     "pct": 35.7,
-     "low_pct": 16.3,
-     "high_pct": 61.2,
-     "width_pct": 44.9,
-     "successes": 5,
+     "pct": 50.0,
+     "low_pct": 26.8,
+     "high_pct": 73.2,
+     "width_pct": 46.4,
+     "successes": 7,
      "total": 14
     }
    },
@@ -327,12 +331,12 @@
    },
    "New York funding": {
     "total": 16,
-    "found": 1,
-    "found_partial": 7,
+    "found": 2,
+    "found_partial": 6,
     "missed": 8,
     "held": 8,
     "held_pct": 50.0,
-    "clean_pct": 6.2,
+    "clean_pct": 12.5,
     "held_interval": {
      "pct": 50.0,
      "low_pct": 28.0,
@@ -345,17 +349,17 @@
    "Rest of US funding": {
     "total": 14,
     "found": 3,
-    "found_partial": 2,
-    "missed": 9,
-    "held": 5,
-    "held_pct": 35.7,
+    "found_partial": 4,
+    "missed": 7,
+    "held": 7,
+    "held_pct": 50.0,
     "clean_pct": 21.4,
     "held_interval": {
-     "pct": 35.7,
-     "low_pct": 16.3,
-     "high_pct": 61.2,
-     "width_pct": 44.9,
-     "successes": 5,
+     "pct": 50.0,
+     "low_pct": 26.8,
+     "high_pct": 73.2,
+     "width_pct": 46.4,
+     "successes": 7,
      "total": 14
     }
    },
@@ -378,7 +382,7 @@
    }
   }
  },
- "candidates_seen_total": 189,
+ "candidates_seen_total": 85,
  "items": [
   {
    "id": "sf_funding-01-bland",
@@ -619,16 +623,14 @@
    "source_url": "https://www.alpha-sense.com/press/alphasense-raises-350m-at-7-5b-valuation-and-surpasses-600m-in-annual-recurring-revenue/",
    "event_date": "2026-06-03",
    "detail": "$350M round at a $7.5B valuation led by Vitruvian Partners, Accenture Ventures and J.P. Morgan Asset Management, with D. E. Shaw Ventures, Pinegrove Opportunity Partners, CapitalG, Goldman Sachs Alternatives and Viking Global Investors",
-   "verdict": "FOUND_PARTIAL",
-   "defects": [
-    "country_missing"
-   ],
+   "verdict": "FOUND",
+   "defects": [],
    "matched": {
     "signal_id": "031753d42e364e380377214557c1da8c",
     "company": "AlphaSense",
     "headline": "AlphaSense Raises $350 Million At $7.5 Billion Valuation While Surpassing $600 Million In Annual Recurring Revenue - Pulse 2.0",
     "country": null,
-    "hq_country": null,
+    "hq_country": "US",
     "funding_amount_usd": "350000000",
     "published_date": "2026-06-07",
     "source_url": "https://pulse2.com/alphasense-raises-350-million-at-7-5-billion-valuation-while-surpassing-600-million-in-annual-recurring-revenue/"
@@ -1221,9 +1223,20 @@
    "source_url": "https://www.geekwire.com/2026/motorola-leads-125m-round-for-brinc-fueling-911-drone-expansion-amid-u-s-import-crackdown/",
    "event_date": "2026-07-14",
    "detail": "Growth round led by Motorola Solutions; 911-response drone maker used by more than 900 public safety agencies",
-   "verdict": "MISSED",
-   "defects": [],
-   "matched": null
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "2706a058e5d4ad866793b61ca45b16b2",
+    "company": "BRINC",
+    "headline": "BRINC Raises $125M to Put a 911 Response Drone on Every Police and Fire Station Roof - PR Newswire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "125000000",
+    "published_date": "2026-07-14",
+    "source_url": "https://www.prnewswire.com/news-releases/brinc-raises-125m-to-put-a-911-response-drone-on-every-police-and-fire-station-roof-302824451.html"
+   }
   },
   {
    "id": "rest_funding-08-rapidpulse",
@@ -1323,9 +1336,20 @@
    "source_url": "https://dot.la/hadrian-valar-ai-infrastructure-funding-2677671747.html",
    "event_date": "2026-07-24",
    "detail": "Equity investment led by Andreessen Horowitz; Travis Kalanick's industrial AI company for producing, storing and transporting physical goods",
-   "verdict": "MISSED",
-   "defects": [],
-   "matched": null
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "2eaefa1753bebee5ae3ed5cb90202f83",
+    "company": "Atoms",
+    "headline": "Atoms Raises $1.7 Billion in Funding - finsmes.com",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "1700000000",
+    "published_date": "2026-07-23",
+    "source_url": "https://www.finsmes.com/2026/07/atoms-raises-1-7-billion-in-funding.html"
+   }
   },
   {
    "id": "rest_funding-13-tybr-health",
@@ -1597,6 +1621,926 @@
    },
    "defects": {
     "country_missing": 13,
+    "country_wrong": 3,
+    "amount_mismatch": 1
+   }
+  },
+  {
+   "measured_on": "2026-08-17",
+   "goldset_version": "2026-06-us-v1",
+   "goldset_digest": "87aa6b62e0a542ef",
+   "window": {
+    "start": "2026-06-01",
+    "end": "2026-07-31"
+   },
+   "overall": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 17,
+    "missed": 29,
+    "held": 22,
+    "held_pct": 43.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 43.1,
+     "low_pct": 30.5,
+     "high_pct": 56.7,
+     "width_pct": 26.2,
+     "successes": 22,
+     "total": 51
+    }
+   },
+   "by_segment": {
+    "US funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_signal_type": {
+    "funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_geography": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_source_type": {
+    "national_news": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 0.0,
+      "low_pct": 0.0,
+      "high_pct": 65.8,
+      "width_pct": 65.8,
+      "successes": 0,
+      "total": 2
+     }
+    },
+    "press_release": {
+     "total": 25,
+     "found": 3,
+     "found_partial": 9,
+     "missed": 13,
+     "held": 12,
+     "held_pct": 48.0,
+     "clean_pct": 12.0,
+     "held_interval": {
+      "pct": 48.0,
+      "low_pct": 30.0,
+      "high_pct": 66.5,
+      "width_pct": 36.5,
+      "successes": 12,
+      "total": 25
+     }
+    },
+    "trade_press": {
+     "total": 24,
+     "found": 2,
+     "found_partial": 8,
+     "missed": 14,
+     "held": 10,
+     "held_pct": 41.7,
+     "clean_pct": 8.3,
+     "held_interval": {
+      "pct": 41.7,
+      "low_pct": 24.5,
+      "high_pct": 61.2,
+      "width_pct": 36.7,
+      "successes": 10,
+      "total": 24
+     }
+    }
+   },
+   "by_country": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_metro": {
+    "Austin": {
+     "total": 8,
+     "found": 0,
+     "found_partial": 5,
+     "missed": 3,
+     "held": 5,
+     "held_pct": 62.5,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 62.5,
+      "low_pct": 30.6,
+      "high_pct": 86.3,
+      "width_pct": 55.7,
+      "successes": 5,
+      "total": 8
+     }
+    },
+    "New York": {
+     "total": 16,
+     "found": 2,
+     "found_partial": 6,
+     "missed": 8,
+     "held": 8,
+     "held_pct": 50.0,
+     "clean_pct": 12.5,
+     "held_interval": {
+      "pct": 50.0,
+      "low_pct": 28.0,
+      "high_pct": 72.0,
+      "width_pct": 44.0,
+      "successes": 8,
+      "total": 16
+     }
+    },
+    "Rest of US": {
+     "total": 14,
+     "found": 3,
+     "found_partial": 3,
+     "missed": 8,
+     "held": 6,
+     "held_pct": 42.9,
+     "clean_pct": 21.4,
+     "held_interval": {
+      "pct": 42.9,
+      "low_pct": 21.4,
+      "high_pct": 67.4,
+      "width_pct": 46.0,
+      "successes": 6,
+      "total": 14
+     }
+    },
+    "San Francisco": {
+     "total": 13,
+     "found": 0,
+     "found_partial": 3,
+     "missed": 10,
+     "held": 3,
+     "held_pct": 23.1,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 23.1,
+      "low_pct": 8.2,
+      "high_pct": 50.3,
+      "width_pct": 42.1,
+      "successes": 3,
+      "total": 13
+     }
+    }
+   },
+   "defects": {
+    "country_missing": 13,
+    "country_wrong": 3,
+    "amount_mismatch": 1
+   }
+  },
+  {
+   "measured_on": "2026-08-31",
+   "goldset_version": "2026-06-us-v1",
+   "goldset_digest": "87aa6b62e0a542ef",
+   "window": {
+    "start": "2026-06-01",
+    "end": "2026-07-31"
+   },
+   "overall": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 17,
+    "missed": 29,
+    "held": 22,
+    "held_pct": 43.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 43.1,
+     "low_pct": 30.5,
+     "high_pct": 56.7,
+     "width_pct": 26.2,
+     "successes": 22,
+     "total": 51
+    }
+   },
+   "by_segment": {
+    "US funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_signal_type": {
+    "funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_geography": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_source_type": {
+    "national_news": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 0.0,
+      "low_pct": 0.0,
+      "high_pct": 65.8,
+      "width_pct": 65.8,
+      "successes": 0,
+      "total": 2
+     }
+    },
+    "press_release": {
+     "total": 25,
+     "found": 3,
+     "found_partial": 9,
+     "missed": 13,
+     "held": 12,
+     "held_pct": 48.0,
+     "clean_pct": 12.0,
+     "held_interval": {
+      "pct": 48.0,
+      "low_pct": 30.0,
+      "high_pct": 66.5,
+      "width_pct": 36.5,
+      "successes": 12,
+      "total": 25
+     }
+    },
+    "trade_press": {
+     "total": 24,
+     "found": 2,
+     "found_partial": 8,
+     "missed": 14,
+     "held": 10,
+     "held_pct": 41.7,
+     "clean_pct": 8.3,
+     "held_interval": {
+      "pct": 41.7,
+      "low_pct": 24.5,
+      "high_pct": 61.2,
+      "width_pct": 36.7,
+      "successes": 10,
+      "total": 24
+     }
+    }
+   },
+   "by_country": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 17,
+     "missed": 29,
+     "held": 22,
+     "held_pct": 43.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 43.1,
+      "low_pct": 30.5,
+      "high_pct": 56.7,
+      "width_pct": 26.2,
+      "successes": 22,
+      "total": 51
+     }
+    }
+   },
+   "by_metro": {
+    "Austin": {
+     "total": 8,
+     "found": 0,
+     "found_partial": 5,
+     "missed": 3,
+     "held": 5,
+     "held_pct": 62.5,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 62.5,
+      "low_pct": 30.6,
+      "high_pct": 86.3,
+      "width_pct": 55.7,
+      "successes": 5,
+      "total": 8
+     }
+    },
+    "New York": {
+     "total": 16,
+     "found": 2,
+     "found_partial": 6,
+     "missed": 8,
+     "held": 8,
+     "held_pct": 50.0,
+     "clean_pct": 12.5,
+     "held_interval": {
+      "pct": 50.0,
+      "low_pct": 28.0,
+      "high_pct": 72.0,
+      "width_pct": 44.0,
+      "successes": 8,
+      "total": 16
+     }
+    },
+    "Rest of US": {
+     "total": 14,
+     "found": 3,
+     "found_partial": 3,
+     "missed": 8,
+     "held": 6,
+     "held_pct": 42.9,
+     "clean_pct": 21.4,
+     "held_interval": {
+      "pct": 42.9,
+      "low_pct": 21.4,
+      "high_pct": 67.4,
+      "width_pct": 46.0,
+      "successes": 6,
+      "total": 14
+     }
+    },
+    "San Francisco": {
+     "total": 13,
+     "found": 0,
+     "found_partial": 3,
+     "missed": 10,
+     "held": 3,
+     "held_pct": 23.1,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 23.1,
+      "low_pct": 8.2,
+      "high_pct": 50.3,
+      "width_pct": 42.1,
+      "successes": 3,
+      "total": 13
+     }
+    }
+   },
+   "defects": {
+    "country_missing": 13,
+    "country_wrong": 3,
+    "amount_mismatch": 1
+   }
+  },
+  {
+   "measured_on": "2026-09-07",
+   "goldset_version": "2026-06-us-v1",
+   "goldset_digest": "87aa6b62e0a542ef",
+   "window": {
+    "start": "2026-06-01",
+    "end": "2026-07-31"
+   },
+   "overall": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 18,
+    "missed": 28,
+    "held": 23,
+    "held_pct": 45.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 45.1,
+     "low_pct": 32.3,
+     "high_pct": 58.6,
+     "width_pct": 26.3,
+     "successes": 23,
+     "total": 51
+    }
+   },
+   "by_segment": {
+    "US funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_signal_type": {
+    "funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_geography": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_source_type": {
+    "national_news": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 0.0,
+      "low_pct": 0.0,
+      "high_pct": 65.8,
+      "width_pct": 65.8,
+      "successes": 0,
+      "total": 2
+     }
+    },
+    "press_release": {
+     "total": 25,
+     "found": 3,
+     "found_partial": 9,
+     "missed": 13,
+     "held": 12,
+     "held_pct": 48.0,
+     "clean_pct": 12.0,
+     "held_interval": {
+      "pct": 48.0,
+      "low_pct": 30.0,
+      "high_pct": 66.5,
+      "width_pct": 36.5,
+      "successes": 12,
+      "total": 25
+     }
+    },
+    "trade_press": {
+     "total": 24,
+     "found": 2,
+     "found_partial": 9,
+     "missed": 13,
+     "held": 11,
+     "held_pct": 45.8,
+     "clean_pct": 8.3,
+     "held_interval": {
+      "pct": 45.8,
+      "low_pct": 27.9,
+      "high_pct": 64.9,
+      "width_pct": 37.0,
+      "successes": 11,
+      "total": 24
+     }
+    }
+   },
+   "by_country": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_metro": {
+    "Austin": {
+     "total": 8,
+     "found": 0,
+     "found_partial": 5,
+     "missed": 3,
+     "held": 5,
+     "held_pct": 62.5,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 62.5,
+      "low_pct": 30.6,
+      "high_pct": 86.3,
+      "width_pct": 55.7,
+      "successes": 5,
+      "total": 8
+     }
+    },
+    "New York": {
+     "total": 16,
+     "found": 2,
+     "found_partial": 6,
+     "missed": 8,
+     "held": 8,
+     "held_pct": 50.0,
+     "clean_pct": 12.5,
+     "held_interval": {
+      "pct": 50.0,
+      "low_pct": 28.0,
+      "high_pct": 72.0,
+      "width_pct": 44.0,
+      "successes": 8,
+      "total": 16
+     }
+    },
+    "Rest of US": {
+     "total": 14,
+     "found": 3,
+     "found_partial": 4,
+     "missed": 7,
+     "held": 7,
+     "held_pct": 50.0,
+     "clean_pct": 21.4,
+     "held_interval": {
+      "pct": 50.0,
+      "low_pct": 26.8,
+      "high_pct": 73.2,
+      "width_pct": 46.4,
+      "successes": 7,
+      "total": 14
+     }
+    },
+    "San Francisco": {
+     "total": 13,
+     "found": 0,
+     "found_partial": 3,
+     "missed": 10,
+     "held": 3,
+     "held_pct": 23.1,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 23.1,
+      "low_pct": 8.2,
+      "high_pct": 50.3,
+      "width_pct": 42.1,
+      "successes": 3,
+      "total": 13
+     }
+    }
+   },
+   "defects": {
+    "country_missing": 14,
+    "country_wrong": 3,
+    "amount_mismatch": 1
+   }
+  },
+  {
+   "measured_on": "2026-09-12",
+   "goldset_version": "2026-06-us-v1",
+   "goldset_digest": "87aa6b62e0a542ef",
+   "window": {
+    "start": "2026-06-01",
+    "end": "2026-07-31"
+   },
+   "overall": {
+    "total": 51,
+    "found": 5,
+    "found_partial": 18,
+    "missed": 28,
+    "held": 23,
+    "held_pct": 45.1,
+    "clean_pct": 9.8,
+    "held_interval": {
+     "pct": 45.1,
+     "low_pct": 32.3,
+     "high_pct": 58.6,
+     "width_pct": 26.3,
+     "successes": 23,
+     "total": 51
+    }
+   },
+   "by_segment": {
+    "US funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_signal_type": {
+    "funding": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_geography": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_source_type": {
+    "national_news": {
+     "total": 2,
+     "found": 0,
+     "found_partial": 0,
+     "missed": 2,
+     "held": 0,
+     "held_pct": 0.0,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 0.0,
+      "low_pct": 0.0,
+      "high_pct": 65.8,
+      "width_pct": 65.8,
+      "successes": 0,
+      "total": 2
+     }
+    },
+    "press_release": {
+     "total": 25,
+     "found": 3,
+     "found_partial": 9,
+     "missed": 13,
+     "held": 12,
+     "held_pct": 48.0,
+     "clean_pct": 12.0,
+     "held_interval": {
+      "pct": 48.0,
+      "low_pct": 30.0,
+      "high_pct": 66.5,
+      "width_pct": 36.5,
+      "successes": 12,
+      "total": 25
+     }
+    },
+    "trade_press": {
+     "total": 24,
+     "found": 2,
+     "found_partial": 9,
+     "missed": 13,
+     "held": 11,
+     "held_pct": 45.8,
+     "clean_pct": 8.3,
+     "held_interval": {
+      "pct": 45.8,
+      "low_pct": 27.9,
+      "high_pct": 64.9,
+      "width_pct": 37.0,
+      "successes": 11,
+      "total": 24
+     }
+    }
+   },
+   "by_country": {
+    "US": {
+     "total": 51,
+     "found": 5,
+     "found_partial": 18,
+     "missed": 28,
+     "held": 23,
+     "held_pct": 45.1,
+     "clean_pct": 9.8,
+     "held_interval": {
+      "pct": 45.1,
+      "low_pct": 32.3,
+      "high_pct": 58.6,
+      "width_pct": 26.3,
+      "successes": 23,
+      "total": 51
+     }
+    }
+   },
+   "by_metro": {
+    "Austin": {
+     "total": 8,
+     "found": 0,
+     "found_partial": 5,
+     "missed": 3,
+     "held": 5,
+     "held_pct": 62.5,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 62.5,
+      "low_pct": 30.6,
+      "high_pct": 86.3,
+      "width_pct": 55.7,
+      "successes": 5,
+      "total": 8
+     }
+    },
+    "New York": {
+     "total": 16,
+     "found": 2,
+     "found_partial": 6,
+     "missed": 8,
+     "held": 8,
+     "held_pct": 50.0,
+     "clean_pct": 12.5,
+     "held_interval": {
+      "pct": 50.0,
+      "low_pct": 28.0,
+      "high_pct": 72.0,
+      "width_pct": 44.0,
+      "successes": 8,
+      "total": 16
+     }
+    },
+    "Rest of US": {
+     "total": 14,
+     "found": 3,
+     "found_partial": 4,
+     "missed": 7,
+     "held": 7,
+     "held_pct": 50.0,
+     "clean_pct": 21.4,
+     "held_interval": {
+      "pct": 50.0,
+      "low_pct": 26.8,
+      "high_pct": 73.2,
+      "width_pct": 46.4,
+      "successes": 7,
+      "total": 14
+     }
+    },
+    "San Francisco": {
+     "total": 13,
+     "found": 0,
+     "found_partial": 3,
+     "missed": 10,
+     "held": 3,
+     "held_pct": 23.1,
+     "clean_pct": 0.0,
+     "held_interval": {
+      "pct": 23.1,
+      "low_pct": 8.2,
+      "high_pct": 50.3,
+      "width_pct": 42.1,
+      "successes": 3,
+      "total": 13
+     }
+    }
+   },
+   "defects": {
+    "country_missing": 14,
     "country_wrong": 3,
     "amount_mismatch": 1
    }
