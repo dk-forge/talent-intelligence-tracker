@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-11T21:21:16Z",
-  "last_tick": "2026-09-11T21:21:16Z",
+  "last_dispatch": "2026-09-12T03:21:28Z",
+  "last_tick": "2026-09-12T03:21:28Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -219,12 +219,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-12T03:21:28Z",
       "history": [
         {
           "at": "2026-09-11T23:11:05Z",
           "detail": "landmarks: 5 standing gap(s) accepted by two referees",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-12T03:21:28Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260911T231105Z-collect",
@@ -236,7 +241,7 @@
       "requested_at": "2026-09-11T23:11:05Z",
       "requested_by": "claude(fill_landmarks)",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "collect.yml"
     },
     {
