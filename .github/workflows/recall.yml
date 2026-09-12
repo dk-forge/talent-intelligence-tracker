@@ -61,6 +61,7 @@ jobs:
         run: |
           python measure_recall.py --family world --check
           python measure_recall.py --family us --check
+          python measure_recall.py --family eu --check
 
       # --push is what makes this visible. The committed file is only the seed
       # the plugin ships with, and the plugin deploy is deliberately NOT armed
@@ -99,6 +100,18 @@ jobs:
           python measure_recall.py --family us --quiet --push \
             ${{ inputs.publish == false && ' ' || '--publish' }}
 
+      # Europe, the owner's second stated market, measured against its own
+      # reference set since 2026-09-12. Same reasoning as the US step: a third
+      # step, not a third workflow, and allowed to fail the job.
+      - name: Measure Europe
+        if: ${{ !cancelled() }}
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python measure_recall.py --family eu --quiet --push \
+            ${{ inputs.publish == false && ' ' || '--publish' }}
+
       # WHY the misses are misses, beside the measurement that counts them.
       #
       # A recall figure says how much we hold. It cannot say whether the gap is
@@ -123,6 +136,7 @@ jobs:
         run: |
           python -m analysis.recall.rejection_audit --family world --write
           python -m analysis.recall.rejection_audit --family us --write
+          python -m analysis.recall.rejection_audit --family eu --write
 
       # Push the run into the site's health ledger so the health page shows the
       # measurement's own state. Never fatal: a stale health timestamp is a much
@@ -168,7 +182,7 @@ jobs:
           cache=data/talent_intel_cache.db
           # Snapshot files, copied back whole. The database is handled separately
           # below because it is the one thing here that merges.
-          paths="analysis/recall/results analysis/recall/us/results data/recall_worklist.json data/recall_us_worklist.json data/recall_rejection_audit.json data/recall_us_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json wordpress-plugin/talent-intelligence-tracker/data/recall-us.json"
+          paths="analysis/recall/results analysis/recall/us/results analysis/recall/eu/results data/recall_worklist.json data/recall_us_worklist.json data/recall_eu_worklist.json data/recall_rejection_audit.json data/recall_us_rejection_audit.json data/recall_eu_rejection_audit.json wordpress-plugin/talent-intelligence-tracker/data/recall.json wordpress-plugin/talent-intelligence-tracker/data/recall-us.json wordpress-plugin/talent-intelligence-tracker/data/recall-eu.json"
           git add $paths $db $cache 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change to commit."
@@ -223,7 +237,8 @@ jobs:
           python - <<'PY'
           import json, os
           for label, path in (("worldwide", "data/recall_worklist.json"),
-                              ("United States", "data/recall_us_worklist.json")):
+                              ("United States", "data/recall_us_worklist.json"),
+                              ("Europe", "data/recall_eu_worklist.json")):
               if not os.path.exists(path):
                   print(f"::warning::no {label} work list: nothing measured that "
                         f"population this run, which is UNKNOWN and not a pass")

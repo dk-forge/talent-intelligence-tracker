@@ -58,12 +58,23 @@ def test_goldset_has_a_deliberate_spread(gold):
     assert len(shape["country"]) >= 8
 
 
-def test_the_four_known_misses_are_seeded(gold):
-    """These four were known before the gold set existed. If a later edit drops
-    them, the gold set has been tuned to flatter the result."""
-    names = {item["company"].lower() for item in gold["items"]}
-    for seed in ("glow", "plantopia", "harmony", "enigma"):
-        assert any(seed in name for name in names), f"seed {seed} is missing"
+def test_the_four_known_misses_are_seeded():
+    """These four were known before the first gold set existed. If a later edit
+    drops them from the sets that carried them, a gold set has been tuned to
+    flatter the result.
+
+    Pinned to the July 2026 sets by window rather than to "the newest set":
+    a fresh set for a later window cannot carry a July event, and a test that
+    demanded it would either fail every new set or teach somebody to smuggle
+    an out-of-window row in to satisfy it."""
+    july = [goldset.load(path) for path in goldset.all_paths()
+            if goldset.load(path)["window"]["start"].startswith("2026-07")]
+    assert july, "the July 2026 sets must stay on disk: their figures are published"
+    for data in july:
+        names = {item["company"].lower() for item in data["items"]}
+        for seed in ("glow", "plantopia", "harmony", "enigma"):
+            assert any(seed in name for name in names), (
+                f"seed {seed} is missing from {data['version']}")
 
 
 # --- name matching ---------------------------------------------------------

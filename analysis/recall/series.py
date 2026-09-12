@@ -206,12 +206,27 @@ def build_worklist(result: dict, series: list, goldset: dict,
             # needs to be reconstructed from memory is a step that gets skipped,
             # and a skipped step here means the number quietly stops meaning
             # anything while continuing to be published.
-            "instruction": (US_INSTRUCTION if spread_group == "by_metro" else
-                WORLD_INSTRUCTION).format(
+            "instruction": _instruction_for(goldset, spread_group).format(
                     start=window["start"], end=window["end"],
                     month=window["start"][:7]),
         },
     }
+
+
+def _instruction_for(goldset: dict, spread_group: str) -> str:
+    """Which recipe the work list hands out.
+
+    Chosen by the FILE's declared family first, because the European set is
+    spread over countries exactly as the worldwide one is, so the group alone
+    cannot tell them apart; the metro group is kept as the fallback that every
+    result before families existed relied on.
+    """
+    family = str(goldset.get("family") or "")
+    if family == "eu":
+        return EU_INSTRUCTION
+    if family == "us" or spread_group == "by_metro":
+        return US_INSTRUCTION
+    return WORLD_INSTRUCTION
 
 
 # The paste-ready instruction, one per family. Separated from the code that
@@ -262,4 +277,30 @@ US_INSTRUCTION = (
     "used; analysis/recall/goldset.py US_REQUIRED_SHAPE is the guard that "
     "stops the set being quietly rebuilt out of large SEC filers, which is the "
     "one part of the US this tracker already reads well."
+)
+
+EU_INSTRUCTION = (
+    "Build a new EUROPE recall gold set for "
+    "{start} to {end} and seal it. The population is the EU27 plus the United "
+    "Kingdom, Switzerland and Norway, and nothing else. Run several "
+    "INDEPENDENT research passes, one per group of countries (the north and "
+    "the British Isles, the centre and the south, central and eastern Europe "
+    "and the Baltics), each for funding and for leadership, every pass "
+    "forbidden from consulting asktherecruiter.com, this repository, our "
+    "database or our source registry: a set drawn from the feeds we already "
+    "watch measures memory rather than reach. Enumerate candidates "
+    "CHRONOLOGICALLY within the window and take them in that order rather "
+    "than picking the interesting ones; search in the local language as well "
+    "as English. Every item cites the original publisher, which is the "
+    "company's own announcement, the filing or exchange notice, or a named "
+    "outlet's own article; no aggregator, database or other tracker may be "
+    "named anywhere in the repository. Fetch every source URL and confirm the "
+    "company, the date, the country and the amount on the page itself before "
+    "writing the row down; drop what will not verify and record why. Write it "
+    "to analysis/recall/eu/goldset-eu-{month}.json with sealed=true, "
+    "family=\"eu\" and an assembled_on date. `python3 measure_recall.py "
+    "--family eu --check` must pass before it is used; "
+    "analysis/recall/goldset.py EU_REQUIRED_SHAPE is the guard that stops a "
+    "European set being quietly rebuilt out of the London press, which is the "
+    "one part of Europe that is easy to enumerate in English."
 )

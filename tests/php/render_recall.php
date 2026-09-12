@@ -406,6 +406,56 @@ check(strpos($empty, 'No united states measurement has been published') !== fals
 check(strpos($empty, '%') === false,
       'and it invents no encouraging percentage while it waits');
 
+// --- a third measured population: Europe ---------------------------------
+//
+// Same rules as the United States block: its own anchored heading, its own
+// interval, never the worldwide tables. Its cells are countries, so the
+// country table must render and the metro table must not.
+$eu = array(
+    'measured_on' => '2026-09-12',
+    'family' => 'eu',
+    'goldset' => array(
+        'digest' => 'eudigest1', 'version' => '2026-08-eu-v1',
+        'window' => array('start' => '2026-08-01', 'end' => '2026-08-31'),
+        'assembled_on' => '2026-09-12',
+        'caveats' => array('The EU set covers thirty countries and no more.'),
+    ),
+    'summary' => array(
+        'overall' => array('total' => 50, 'held' => 20, 'missed' => 30,
+                           'found' => 15, 'found_partial' => 5,
+                           'held_pct' => 40.0, 'clean_pct' => 30.0,
+                           'held_interval' => array('total' => 50, 'low_pct' => 27.6,
+                                                    'high_pct' => 53.8, 'pct' => 40.0)),
+        'by_country' => array(
+            'GB' => array('total' => 12, 'held' => 6, 'missed' => 6, 'found' => 5,
+                          'found_partial' => 1, 'held_pct' => 50.0, 'clean_pct' => 41.7,
+                          'held_interval' => array('total' => 12, 'low_pct' => 25.4,
+                                                   'high_pct' => 74.6, 'pct' => 50.0)),
+        ),
+        'by_source_type' => array(), 'by_size_band' => array(),
+    ),
+    'items' => array(),
+);
+$GLOBALS['tit_options']['tit_recall_eu'] = $eu;
+ob_start();
+tit_recall_family_section('eu');
+$block_eu = ob_get_clean();
+$flat_eu = preg_replace('/\s+/', ' ',
+    html_entity_decode(strip_tags($block_eu), ENT_QUOTES, 'UTF-8'));
+check(strpos($block_eu, 'id="europe"') !== false,
+      'the European population gets its own anchored heading');
+check(strpos($flat_eu, '20 of 50') !== false && strpos($flat_eu, '27.6% to 53.8%') !== false,
+      'the European headline carries its counts and its interval');
+check(strpos($flat_eu, 'Its cells are countries') !== false,
+      'the European note says what its cells are, rather than repeating the US copy');
+check(strpos($flat_eu, 'By country') !== false && strpos($flat_eu, 'By hiring market') === false,
+      'a population spread over countries renders the country table and not the metro one');
+check(strpos($block_eu, 'Recall by category') === false,
+      'the third population must not reuse the worldwide tables');
+check(strpos($flat_eu, 'thirty countries') !== false,
+      'the European set\'s own caveats reach the page');
+unset($GLOBALS['tit_options']['tit_recall_eu']);
+
 // The keyed endpoint routes by the family named in the BODY, and refuses one
 // the page cannot render: a result stored under a name nothing reads is a
 // result nobody will ever see.

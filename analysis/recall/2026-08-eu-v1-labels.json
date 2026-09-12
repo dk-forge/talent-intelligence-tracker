@@ -1,0 +1,1426 @@
+{
+ "set": "2026-08-eu-v1",
+ "labelled_on": "2026-09-12",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "rule": "An item enters the set only when BOTH referees, reading the row and an excerpt this machine fetched from the row's own source URL, answer in_scope, date_in_window, country_ok and amount_or_role_ok all true at confidence 50 or more. A disagreement excludes the item and it is listed below. Neither referee saw the other's answer.",
+ "definition_given_to_referees": "DEFINITION (apply literally). An EVENT is one of:\n1. funding: a privately held employer announcing it has RAISED new capital (seed, Series A/B/C, growth, venture debt or a debt facility). NOT an investor's own fund close, an acquisition price, an IPO, a grant, a pledge or a round still in talks, or a valuation with no raise stated.\n2. leadership: an employer announcing the appointment, promotion, resignation or departure of a CEO, president, managing director, CFO, COO, CTO, chief people officer, board chair, or a country head / general manager of a subsidiary. Lesser board seats, government and NGO posts do not count.\nThe event date is the ANNOUNCEMENT date, inside 2026-08-01..2026-08-31. Country = where the employer is headquartered. size_band large = round of USD 50M+, or a leadership change at an employer with 500+ staff or a listing; else small.\n\nAnswer JSON with exactly: {\"in_scope\": bool, \"date_in_window\": bool, \"country_ok\": bool, \"amount_or_role_ok\": bool, \"size_band_ok\": bool|null, \"confidence\": 0-100, \"why\": \"<= 12 words\"}\nin_scope: the excerpt describes this kind of event for this employer. date_in_window: the excerpt, or the row's date if the excerpt states none and does not contradict it, is inside August 2026. country_ok: nothing in the excerpt contradicts the row's country. amount_or_role_ok: funding: the excerpt states the row's amount (rounding and currency conversion allowed) or the row says amount_disclosed=false and the excerpt states no figure; leadership: the excerpt states the role change the row describes. size_band_ok: null if you cannot tell. If the excerpt is too thin to judge, answer confidence 0.",
+ "counts": {
+  "kept": 46,
+  "not_kept": 4,
+  "spend_usd": 0.3339
+ },
+ "items": {
+  "europe_north:chemometec-a-s:2026-08-01": {
+   "company": "ChemoMetec A/S",
+   "source_url": "https://www.globenewswire.com/news-release/2026/08/01/3337124/0/da/Udn%C3%A6vnelse-af-ny-CFO.html",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO appointment announced August 1, 2026, Nasdaq-listed company confirms large"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO appointment at listed company, date matches"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00664
+  },
+  "europe_north:jbs-n-v:2026-08-10": {
+   "company": "JBS N.V.",
+   "source_url": "https://www.globenewswire.com/news-release/2026/08/10/3342160/0/en/tomazoni-to-become-jbs-vice-chairman.html",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CEO appointment announced August 10 2026, JBS N.V. Netherlands domiciled"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Leadership change at large, Dutch-listed company."
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00652
+  },
+  "europe_north:flairmakers:2026-08-12": {
+   "company": "FlairMakers",
+   "source_url": "https://www.uktech.news/recruitment/flairmakers-raises-500k-to-build-platform-for-hospitality-portfolio-careers-20260812",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "£500k pre-seed funding announced 12 Aug 2026, matches row exactly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount and date in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00617
+  },
+  "europe_north:lovable:2026-08-12": {
+   "company": "Lovable",
+   "source_url": "https://tech.eu/2026/08/12/lovables-valuation-doubles-to-13bn-as-raises-400m/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Series C funding of $400M announced Au [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount and date in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00636
+  },
+  "europe_north:metal-morph:2026-08-13": {
+   "company": "Metal Morph",
+   "source_url": "https://www.uktech.news/climate-tech/metal-morph-raises-pre-seed-round-to-turn-wastewater-into-supply-chains-20260813",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Pre-seed £700k raised on 13 Aug 2026, matches row exactly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, UK"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00605
+  },
+  "europe_north:bit-bio:2026-08-15": {
+   "company": "bit.bio",
+   "source_url": "https://businesscloud.co.uk/news/growing-cambridge-medtech-appoints-first-cto/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CTO appointment at bit.bio confirmed, date matches, UK company"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CTO appointment matches row details"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00603
+  },
+  "europe_north:coop-logistik-ab-coop-sverige-ab:2026-08-17": {
+   "company": "Coop Logistik AB (Coop Sverige AB)",
+   "source_url": "https://pressrum.coop.se/klas-pettersson-utsedd-till-ny-vd-for-coop-logistik-ab/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "CEO appointment at subsidiary confirmed, date matches, Sweden headquarters implied"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "CEO appointment at large employer, date matches"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00668
+  },
+  "europe_north:smith-nephew-plc:2026-08-19": {
+   "company": "Smith & Nephew plc",
+   "source_url": "https://www.investegate.co.uk/announcement/rns/smith-nephew--sn./directorate-change/9728527",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO resignation announced 19 August [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO resignation at large, listed company"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00616
+  },
+  "europe_north:velatir:2026-08-20": {
+   "company": "Velatir",
+   "source_url": "https://tech.eu/2026/08/20/velatir-secures-eur5m-seed-funding-to-expand-its-ai-infrastructure-across-europe/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "€5M seed round announced 20 August 2026, matches all details"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event matches all criteria."
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.0063
+  },
+  "europe_north:breetec:2026-08-20": {
+   "company": "Breetec",
+   "source_url": "https://www.made-in.be/limburg/steven-maes-stapt-in-als-ceo-bij-breetec/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "External CEO appointment confirmed, 90 employees, started August 3 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CEO appointment, date matches, country matches, size confirmed"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00642
+  },
+  "europe_north:ig-design-group-plc:2026-08-20": {
+   "company": "IG Design Group plc",
+   "source_url": "https://www.investegate.co.uk/announcement/rns/ig-design-group--igr/appointment-of-chief-financial-officer/9730782",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO departure and appointment announced 20 August 2026, AIM listed"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO change at large, UK-listed company in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00633
+  },
+  "europe_north:entity:2026-08-24": {
+   "company": "Entity",
+   "source_url": "https://www.irishtimes.com/business/2026/08/24/irish-gaming-start-up-entity-raises-5m-in-seed-funding/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Seed funding €5M raised, date [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount and date match"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00614
+  },
+  "europe_north:skinbiotherapeutics-plc:2026-08-24": {
+   "company": "SkinBioTherapeutics plc",
+   "source_url": "https://businesscloud.co.uk/live-blog/new-cfo-at-crisis-firm-skinbiotherapeutics/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "AIM-listed firm appoints interim CFO, confirms date and departure context."
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 90.0,
+     "why": "Interim CFO role at AIM listed firm"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00625
+  },
+  "europe_north:neno:2026-08-25": {
+   "company": "Neno",
+   "source_url": "https://tech.eu/2026/08/25/dutch-ai-native-financial-services-startup-neno-secures-eur66m-for-european-expansion/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Seed funding €6.6M announced [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, NL"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00622
+  },
+  "europe_north:volve:2026-08-25": {
+   "company": "Volve",
+   "source_url": "https://tech.eu/2026/08/25/volve-lands-3m-to-expand-construction-tendering-ai-across-europe/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Seed funding announcement matches amount, date, investors, and country perfectly."
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, Norway"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00614
+  },
+  "europe_north:ecomid:2026-08-25": {
+   "company": "eComID",
+   "source_url": "https://www.ecomid.com/blog/seed-round/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Seed round $17M announced August 25 2026 Stockholm Sweden"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount and date in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00612
+  },
+  "europe_north:blastr-green-steel-as:2026-08-26": {
+   "company": "Blastr Green Steel AS",
+   "source_url": "https://blastr.no/news/leadership-update-from-the-board-of-blastr",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CEO Mark Bula departure announced Augus [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CEO departure confirmed; date matches row"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00617
+  },
+  "europe_north:orkla-food-ingredients-orkla-asa:2026-08-27": {
+   "company": "Orkla Food Ingredients (Orkla ASA)",
+   "source_url": "https://www.orkla.com/media/press-releases/2026/johan-clarin-to-step-down-as-ceo-of-orkla-food-ingredients/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CEO stepping down at listed company, announced 27 August 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CEO change at listed company, date matches"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00622
+  },
+  "europe_north:embridge-group-formerly-m-tech:2026-08-27": {
+   "company": "Embridge Group (formerly M-Tech)",
+   "source_url": "https://made-in.be/limburg/nieuwe-ceo-voor-embridge-m-tech/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CEO appointment confirmed, date matches [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "CEO appointment confirmed; size unclear"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00639
+  },
+  "europe_north:s-transistors:2026-08-31": {
+   "company": "S-Transistors",
+   "source_url": "https://www.vttresearch.com/en/news-and-ideas/s-transistors-raises-eu26-million-pre-seed-round-introduce-unique-superconducting",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Pre-seed funding round of EUR 2.6M matches row details exactly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Funding event with amount matches row details."
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.0061
+  },
+  "europe_central_south:moss:2026-08-05": {
+   "company": "Moss",
+   "source_url": "https://www.getmoss.com/magazine/moss-series-c",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Series C €35M raised, announced August 5 2026, Berlin-based company"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, Germany"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00661
+  },
+  "europe_central_south:fuvex:2026-08-05": {
+   "company": "FuVeX",
+   "source_url": "https://capital.es/empresas/fuvex-capta-3-millones-para-inspeccionar-el-70-de-la-red-electrica-espanola-en-2027/204873/",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Spanish company raised 3M EUR on August 5 2026 matching row"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "Funding event with stated amount in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00673
+  },
+  "europe_central_south:neuraspace:2026-08-05": {
+   "company": "Neuraspace",
+   "source_url": "https://eco.sapo.pt/2026/08/05/neuraspace-levanta-156-milhoes-de-euros-para-reforcar-vigilancia-espacial-europeia/",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Portuguese company raised EUR 15.6M on August 5 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Funding event with amount matches row"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00681
+  },
+  "europe_central_south:wienerberger-ag:2026-08-10": {
+   "company": "wienerberger AG",
+   "source_url": "https://www.ots.at/presseaussendung/EQS_20260810_EQS0003/eqs-news-heimo-scheuch-tritt-aus-gesundheitlichen-gruenden-als-ceo-von-wienerberger-zurueck-gerhard-hanke-zum-interimistischen-ceo-ernannt",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CEO resignation and interim CEO appointment confirmed, August 10 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "CEO resignation and appointment confirmed"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00688
+  },
+  "europe_central_south:zerolook-navifare-ag:2026-08-12": {
+   "company": "Zerolook (Navifare AG)",
+   "source_url": "https://startupticker.ch/en/news/travel-tech-start-up-zerolook-closes-usd-1-9-million-pre-seed-financing-round",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Pre-seed funding of USD 1.9M announced August 12, 2026 matches"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, Switzerland"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00667
+  },
+  "europe_central_south:aisot-technologies-ag:2026-08-13": {
+   "company": "Aisot Technologies AG",
+   "source_url": "https://startupticker.ch/en/news/fintech-aisot-technologies-sichert-sich-weitere-zwei-millionen-franken",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Seed extension round CHF 2M confirmed, date and country match"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event, amount matches, date in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00677
+  },
+  "europe_central_south:mobotix-ag:2026-08-18": {
+   "company": "MOBOTIX AG",
+   "source_url": "https://www.onvista.de/news/2026/08-18-eqs-news-veraenderung-im-vorstand-cfo-coo-klaus-kiener-scheidet-einvernehmlich-zum-30-september-2026-aus-die-bisherige-leiterin-finanzen-madeleine-kraus-uebernimmt-das-cfo-ressort-zum-1-oktober-2026-0-37-26544185",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CFO/COO departure and CFO appointment confirmed, announcement date matches"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "Leadership change announced; date matches; country not contradicted"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00724
+  },
+  "europe_central_south:heidelberger-druckmaschinen-ag:2026-08-18": {
+   "company": "Heidelberger Druckmaschinen AG",
+   "source_url": "https://www.onvista.de/news/2026/08-18-eqs-news-christoph-burkhard-wird-zum-1-oktober-2026-neuer-finanzvorstand-der-heidelberger-druckmaschinen-ag-0-37-26544007",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CFO appointment at listed German company announced August 18 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "Leadership change confirmed; date matches row."
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00868
+  },
+  "europe_central_south:oceanloop:2026-08-18": {
+   "company": "Oceanloop",
+   "source_url": "https://www.hatch.blue/news/oceanloop-secures-up-to-eu38-5-million-to-scale-its-land-based-aquaculture-technology-and-europes-first-farmed-giant-grouper",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "German aquaculture company raised €38.5M announced August 18 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "Funding event with stated amount in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.0068
+  },
+  "europe_central_south:flip:2026-08-19": {
+   "company": "Flip",
+   "source_url": "https://www.getflip.com/newsroom/press-releases/flip-raises-25-million-to-bring-ai-to-deskless-workers/",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Press release confirms $25M raise, matches amount and details"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "Funding event with amount matches row details"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00788
+  },
+  "europe_central_south:upgrid-ag:2026-08-20": {
+   "company": "UpGrid AG",
+   "source_url": "https://startupticker.ch/en/news/frisches-geld-und-starkes-wachstum-fuer-upgrid",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Seed round ~1M EUR announced 20.08.2026, matches all details"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with stated amount in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00666
+  },
+  "europe_central_south:bitvault-sa:2026-08-21": {
+   "company": "BitVault SA",
+   "source_url": "https://www.startupticker.ch/en/news/bitvault-launches-bitcoin-self-custody-app-worldwide-backed-by-chf-500-000-in-funding",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "CHF 500k funding from family office and angel matches row"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Funding event with amount in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00652
+  },
+  "europe_cee:estel-technologies:2026-08-04": {
+   "company": "Estel Technologies",
+   "source_url": "https://www.therecursive.com/bulgarian-startup-estel-technologies-raises-a-pre-seed-to-modernize-tech-staffing-sales-with-ai/",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Pre-seed funding €270K announced August 4 2026 matches perfectly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event matches all criteria and details."
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00655
+  },
+  "europe_cee:pko-bank-hipoteczny-s-a:2026-08-06": {
+   "company": "PKO Bank Hipoteczny S.A.",
+   "source_url": "https://www.stockwatch.pl/komunikaty-spolek/pko-bank-hipoteczny-spolka-akcyjna,powolanie-prezesa-zarzadu-pko-banku-hipoteczn-2026-08-06,espi,20260806_172945_0000355795",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "President of Management Board appointment announced 2026-08-06, listed subsidiary"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Leadership change at large employer, date matches"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00734
+  },
+  "europe_cee:funventure:2026-08-07": {
+   "company": "Funventure",
+   "source_url": "https://mamstartup.pl/krakowskie-studio-od-miners-settlement-przekonalo-do-siebie-inwestorow/",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Polish mobile game studio raised 1M USD bridge round August 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, Poland"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00698
+  },
+  "europe_cee:discretestack:2026-08-17": {
+   "company": "DiscreteStack",
+   "source_url": "https://www.therecursive.com/bulgarian-discretestack-secures-seed-funding-for-european-ai-infrastructure/",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Seed funding €800K announced August 17 2026 matches perfectly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "All criteria match the event definition."
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00649
+  },
+  "europe_cee:guideless:2026-08-20": {
+   "company": "Guideless",
+   "source_url": "https://tech.eu/2026/08/20/lithuanian-ai-startup-guideless-raises-eur1m-to-streamline-software-training/",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Pre-seed €1M funding announced August 20 2026, matches perfectly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, Lithuania"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00661
+  },
+  "europe_cee:bookr:2026-08-24": {
+   "company": "BOOKR",
+   "source_url": "https://www.therecursive.com/hungarian-edtech-bookr-raises-eur6-1m-series-a-to-expand-global-reach/",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Series A funding of €6.1M announced August 24, 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Funding event matches row details and date"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00666
+  },
+  "europe_cee:friendly-fire:2026-08-26": {
+   "company": "Friendly Fire",
+   "source_url": "https://www.therecursive.com/croatian-friendly-fire-raises-eur4m-to-franchise-its-gaming-cafe-network-across-europe/",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Series A €4M raise announced August 26 2026 matches perfectly"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount and date in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.0064
+  },
+  "europe_cee:mcr-s-a:2026-08-26": {
+   "company": "mcr S.A.",
+   "source_url": "https://www.bankier.pl/wiadomosc/mcr-S-A-Powolanie-czlonkow-Zarzadu-mcr-S-A-na-nowa-wspolna-kadencje-9187624.html",
+   "pass": "europe_cee",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "NewConnect-listed company appointed President and First Vice President roles"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 90.0,
+     "why": "Leadership change at listed company; date matches row"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00877
+  },
+  "europe_fr_it:enav-s-p-a:2026-08-03": {
+   "company": "ENAV S.p.A.",
+   "source_url": "https://www.teleborsa.it/News/2026/08/03/enav-al-ceo-de-biasio-attribuita-anche-la-carica-di-direttore-generale-157.html",
+   "pass": "europe_fr_it",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "CEO De Biasio given new general manager role, August 3 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "CEO appointed as general manager, large company"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00667
+  },
+  "europe_fr_it:pagopa-s-p-a:2026-08-05": {
+   "company": "PagoPa S.p.A.",
+   "source_url": "https://www.milanofinanza.it/news/pagopa-pantaleoni-amministratore-delegato-e-pimpinella-presidente-202608051241362451",
+   "pass": "europe_fr_it",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 85.0,
+     "why": "CEO and president appointments confirmed, date matches, Italy headquarters implied."
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "Leadership change with roles stated, date matches"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00707
+  },
+  "europe_fr_it:e-novia-s-p-a:2026-08-07": {
+   "company": "e-Novia S.p.A.",
+   "source_url": "https://www.teleborsa.it/News/2026/08/07/e-novia-alessio-torelli-nominato-amministratore-delegato-229.html",
+   "pass": "europe_fr_it",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Listed company appointed Torelli as CEO on August 7 2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Leadership change at listed company in August 2026"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00683
+  },
+  "europe_fr_it:defined-ai:2026-08-07": {
+   "company": "Defined.ai",
+   "source_url": "https://eco.sapo.pt/2026/08/07/defined-ai-mexe-na-lideranca-executiva-com-duas-saidas/",
+   "pass": "europe_fr_it",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CFO and COO departures confirmed, date matches, Portugal headquarters implied"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "CFO and COO departures confirmed, date matches row"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.0068
+  },
+  "europe_fr_it:galgosheets:2026-08-10": {
+   "company": "GalgoSheets",
+   "source_url": "https://eco.sapo.pt/2026/08/10/galgosheets-levanta-150-mil-euros-para-combater-ineficiencia-no-tvde/",
+   "pass": "europe_fr_it",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "GalgoSheets raised 150k euros on August 10 2026 in Portugal"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "Funding event with amount in August 2026, Portugal"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00693
+  },
+  "europe_fr_it:arcspace:2026-08-26": {
+   "company": "ARCSPACE",
+   "source_url": "https://www.frenchweb.fr/arcspace-leve-plus-de-2-millions-deuros-pour-faire-passer-les-satellites-du-jetable-au-reparable/463048",
+   "pass": "europe_fr_it",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "French startup ARCSPACE raised over 2M EUR on 26/08/2026"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Funding event, amount matches, date matches"
+    }
+   },
+   "accepted_by_both": true,
+   "cost_usd": 0.00669
+  }
+ },
+ "not_kept": [
+  {
+   "company": "Luotea Plc",
+   "source_url": "https://www.globenewswire.com/news-release/2026/08/05/3339157/0/en/changes-in-luotea-plc-s-group-management-team-rikard-nyhr%c3%a9n-has-been-appointed-as-the-new-ceo-of-luotea-sweden.html",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": false,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": false,
+     "size_band_ok": true,
+     "confidence": 95.0,
+     "why": "Subsidiary CEO appointment not parent [answer was cut off; salvaged field by field]",
+     "salvaged": true
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 100.0,
+     "why": "CEO change at listed company, date matches"
+    }
+   },
+   "accepted_by_both": false,
+   "cost_usd": 0.0066
+  },
+  {
+   "company": "Samhallsbyggnadsbolaget i Norden AB (SBB)",
+   "source_url": "https://www.sbbnorden.se/sv/andreas-morfiadakis-utsedd-till-vd-for-sbb/",
+   "pass": "europe_north",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": false,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": false,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Page excerpt contains only navigation menu, no CEO appointment details"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 90.0,
+     "why": "CEO appointment at listed company, date matches."
+    }
+   },
+   "accepted_by_both": false,
+   "cost_usd": 0.00662
+  },
+  {
+   "company": "Omilia",
+   "source_url": "https://omilia.com/resources/news/omilia-secures-67-million-in-series-b-funding-to-accelerate-global-expansion-of-its-agentic-cx-platform-for-large-enterprises/",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": false,
+     "date_in_window": false,
+     "country_ok": true,
+     "amount_or_role_ok": false,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Page excerpt contains no funding announcement or financial details"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": true,
+     "confidence": 90.0,
+     "why": "Funding event with amount, date, and country match"
+    }
+   },
+   "accepted_by_both": false,
+   "cost_usd": 0.00725
+  },
+  {
+   "company": "SMG Swiss Marketplace Group Holding AG",
+   "source_url": "https://swissmarketplace.group/media-release/ceo-succession-and-board-leadership-transition/",
+   "pass": "europe_central_south",
+   "http_status": 200,
+   "verdicts": {
+    "anthropic/claude-sonnet-4.5": {
+     "in_scope": false,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": false,
+     "size_band_ok": null,
+     "confidence": 95.0,
+     "why": "Page excerpt contains only navigation menu, no event details"
+    },
+    "openai/gpt-4o": {
+     "in_scope": true,
+     "date_in_window": true,
+     "country_ok": true,
+     "amount_or_role_ok": true,
+     "size_band_ok": null,
+     "confidence": 90.0,
+     "why": "CEO change announced, date matches row"
+    }
+   },
+   "accepted_by_both": false,
+   "cost_usd": 0.00697
+  }
+ ]
+}
