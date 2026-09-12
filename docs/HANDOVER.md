@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-09-12: sustained host outages could never reach the third-run alarm (branch `codex/host-watch-sustained-outage-20260912`)
+
+The shared ChemiCloud WordPress origin began returning HTTP 504 on every
+cache-busted `/blog` request. The first scheduled `host-watch` run correctly
+stored `consecutive_failures: 1`, but the next run did not commit failure 2.
+`needs_commit()` persisted a state transition, the third-run announcement and a
+six-hour heartbeat, but not the intermediate count. Because every Actions run
+starts from the committed ledger, every later run reloaded 1, incremented it to
+2 in memory, then discarded it. The advertised three-consecutive-run outage
+issue and alert were therefore unreachable.
+
+The fix makes every pre-threshold DOWN count durable for the WordPress host and
+both sandbox origins. It still produces at most three outage-state commits:
+first failure/state transition, second failure/counter, and third
+failure/announcement. Healthy probes and already-announced outages keep the
+existing quiet/heartbeat behavior. The new test was run red first against the
+old code, then the full host-watch suite passed (57 tests).
+
+This repairs detection and escalation; it does not repair ChemiCloud. Do not
+merge unrelated tracker changes while the WordPress origin is returning 504,
+and do not treat the cached public page as proof that uncached API, confirmation
+or unsubscribe routes are healthy.
+
+---
+
 ## 2026-09-09: Denmark's CVR is built and dormant, and it has never authenticated (branch `feat/denmark-cvr-collector`)
 
 `collectors/denmark_cvr.py`, `denmark_cvr_probe.py`,
