@@ -1,7 +1,7 @@
 {
-  "_committed_at": "2026-09-12T09:23:49+00:00",
+  "_committed_at": "2026-09-12T13:02:13+00:00",
   "announced": false,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "history": [
     {
       "at": "2026-07-31T01:31:33+00:00",
@@ -22,11 +22,16 @@
       "at": "2026-09-12T09:23:49+00:00",
       "detail": "HTTP 504 from /wp-json/talent/v1/source-health",
       "state": "down"
+    },
+    {
+      "at": "2026-09-12T13:02:13+00:00",
+      "detail": "HTTP 200 in 1207ms",
+      "state": "up"
     }
   ],
-  "last_detail": "HTTP 504 from /wp-json/talent/v1/source-health",
-  "last_ok_at": "2026-09-12T00:41:08+00:00",
-  "last_probe_at": "2026-09-12T09:23:49+00:00",
+  "last_detail": "HTTP 200 in 1207ms",
+  "last_ok_at": "2026-09-12T13:02:13+00:00",
+  "last_probe_at": "2026-09-12T13:02:13+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -38,9 +43,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1036 in 363ms",
-      "last_ok_at": "2026-09-12T09:23:49+00:00",
-      "last_probe_at": "2026-09-12T09:23:49+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1037 in 188ms",
+      "last_ok_at": "2026-09-12T13:02:13+00:00",
+      "last_probe_at": "2026-09-12T13:02:13+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     },
@@ -54,14 +59,14 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1036 in 306ms",
-      "last_ok_at": "2026-09-12T09:23:49+00:00",
-      "last_probe_at": "2026-09-12T09:23:49+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1037 in 170ms",
+      "last_ok_at": "2026-09-12T13:02:13+00:00",
+      "last_probe_at": "2026-09-12T13:02:13+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     }
   },
-  "since": "2026-09-12T09:23:49+00:00",
-  "state": "down",
+  "since": "2026-09-12T13:02:13+00:00",
+  "state": "up",
   "version": 1
 }
