@@ -14,6 +14,464 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-12 - The DeepSeek $70bn row is rejected on the owner's ruling; an owner ruling is now a spec status of its own
+
+**What.** `adjudicate_guardrail.apply_from_spec` accepts a third spec status,
+`owner-ruled`, beside the two agreement statuses. It requires `ruled_by`,
+`ruling` and `action`, and applies under "owner ruling (name) after referee
+disagreement", never under the two-model WHO. The DeepSeek spec
+(`amount/ae8f9f415960cc768665378a99e59233`) carries the ruling and was applied:
+the funding row is rejected in the guardrails ledger.
+
+**Why.** The referees disagreed: claude-sonnet-4.5 wanted the $70bn kept as a
+pledge, gpt-4o read the source as a valuation with no raise stated ("strebt
+frische Mittel bei einer Bewertung von rund $70 billion an") and said reject.
+The owner read both and ruled for reject, which is also what the protocol's
+own definition says (a valuation without a raise is out). The standing rule
+of 2026-09-11 sends only disagreements to the owner; this is the first, and
+the ledger had no honest way to record what happened next: the only
+applicable statuses said two models agreed, which they did not.
+
+**Guard.** `tests/test_adjudicate_guardrail.py`: an owner-ruled spec applies
+under the owner's name and never under the two-model WHO; one without a
+reason or a name is refused; a `disagree` spec still applies nothing.
+
+## 2026-09-12 - The standing landmark gaps are filled from their primary documents, each row accepted by two referees
+
+**What.** `fill_landmarks.py` (+ `tests/test_fill_landmarks.py`, 26 offline
+tests). `check_landmarks.py` read **8 of 20 held, 12 standing gaps** at the
+start of the session, the largest OpenAI $40bn (2025Q1), Databricks $10bn
+(2025Q1) and Anduril $5bn (2026Q2), every one with the employer's own
+announcement recorded in `data/landmarks.json` and none of them ever read by
+anything in the pipeline. This is the situation `collectors/primary_chase.py`
+was written for on 2026-08-04, and it is used as-is.
+
+**How, and what it never does.** The script lists the gaps with the weekly
+check's own `verdict()` (one definition of "gap"), puts their URLs on a
+temporary primary_chase work list and runs `run_collect.run(dry_run=True,
+source="primary_chase")`: the identical `precheck -> cheap_extract -> classify
+-> validate -> dedupe` path, with the rows it WOULD store captured off
+`_print_signal`, the hook the dry run already calls. Nothing builds a row by
+hand and nothing here writes one. Each captured row is matched back to its
+landmark with `check.candidates`, and the row, the document text (browser UA,
+15 s, stripped, 12,000 chars, `adjudicate_guardrail.fetch_evidence`) and the
+written money rules (`adjudicate_guardrail.RULES`) go to the same two referees
+as the guardrail adjudicator, through `classify._call`, with the gate read
+before every attempt and the retry outside the callable. Both verdicts are
+written verbatim to `analysis/adjudications/2026-09-12-landmark-<id>.json`,
+one file per landmark including the UNKNOWNs. Only a landmark BOTH referees
+accept AND say matches (and that the check itself would call HELD on that
+row) is queued: its URL goes on `data/primary_chase_worklist.json` and ONE
+`collect.yml` ticket with `source=primary_chase` is enqueued through
+`writer_queue.enqueue`, exactly the ticket `gh workflow run drain-writers.yml
+-f enqueue=collect.yml` writes. The runner re-reads each document and stores
+what the document states; the work list carries URLs and nothing else, so an
+acceptance cannot reach the database either.
+
+**Outcome: 6 queued, 6 left with their spec files.**
+
+| landmark | collector row | referee A | referee B | outcome |
+|---|---|---|---|---|
+| OpenAI $40bn 2025Q1 | $40B company_raise, 2025-03-31 | accept | accept | **queued** |
+| Databricks $10bn 2025Q1 | headline reads the $15B total, amount None, deal_type project_finance | edit (read as reject) | accept | DISAGREE: the extractor cannot separate the $10B Series J from the $15B headline; the landmark note predicted this |
+| Anduril $5bn 2026Q2 | $5B company_raise, 2026-05-13 | not asked | not asked | UNKNOWN: anduril.com renders in the browser; 46 characters to a page reader, 250 to the collector's own reader, under the 800 floor |
+| Databricks $4bn 2025Q4 | >$4B Series L, 2025-12-16 | accept | accept | **queued** |
+| Anthropic $3.5bn 2025Q1 | $3.5B Series E, 2025-03-03 | accept | accept | **queued** |
+| Anysphere $2.3bn 2025Q4 | $2.3B, company "Cursor", published_date None | not asked | not asked | UNKNOWN: cursor.com states no single dateline, so the row has no date and the check's window cannot place it |
+| Reflection AI $2bn 2025Q4 | amount None ("Raises 2b" has no currency), no date | not asked | not asked | UNKNOWN: no row the check could match |
+| Mistral EUR1.7bn 2025Q3 | 1.7B EUR Series C, 2025-09-09 | accept | accept | **queued** |
+| Figure $1bn 2025Q3 | "more than $1 billion" Series C, 2025-09-16 | accept | accept | **queued** |
+| Anysphere $900m 2025Q2 | $900M, company "Cursor", no date | not asked | not asked | UNKNOWN: as the Series D |
+| Helsing EUR600m 2025Q2 | EUR600m, basis fund_raise, no USD | edit (read as reject) | accept | DISAGREE: `money_raised._FUND_PURPOSE` reads "raises EUR600m to invest in European technological sovereignty" as a fund close; a rule with a measured design, not widened here |
+| Isomorphic Labs $600m 2025Q1 | $600M, 2025-03-31 | accept | accept | **queued** |
+
+**Spend $0.161 measured** (dry-run extraction $0.0141 for the twelve leads plus
+$0.0044 across two narrowed re-runs; referees $0.1425 for 10 pairs across the three
+runs), plus one three-lead extraction probe whose figure was not captured and
+is under $0.005. On the sibling tracker's key through `railway run`, as the
+guardrail adjudicator was: this checkout has no key, so none of it is in this
+repo's ledger. Well under the $0.50 ceiling the script reads before every
+referee request.
+
+**Three things the first pass got wrong in itself, fixed before the queue was
+touched.** (1) A referee answering `edit`, which the prompt does not offer,
+was parsed as no verdict and the landmark went UNKNOWN; it is now read as the
+reject the prompt says it is, with `recommended_raw` kept on the verdict.
+(2) openai.com serves 769 characters of shell to a page-stripper and the whole
+announcement to the collector's own reader; when every stripped copy is under
+the floor the collector's read of the same URL is the evidence, since that is
+the text the row came out of. (3) A spec quoting a document verbatim carried
+the document's em dash; every string written to a spec goes through
+`plain_dashes()`, tested.
+
+**Held-after is not yet measurable from this branch.** The ticket
+(`20260911T231105Z-collect`) is dispatched by `drain-writers.yml` from main,
+so the six rows land after the merge, and `check_landmarks.py --live` is the
+reading to take then; the target is 14 of 20 held. Two caveats to expect:
+OpenAI's $40bn is above the publish guardrail's amount ceiling and will sit
+`held_not_live` until `adjudicate_guardrail.py` answers it, and openai.com's
+edge answers 403 intermittently, so if that lead is skipped as unreachable on
+the runner the ticket is re-queued, not the row typed. The six that did not
+queue are three extractor limits (a total that hides its equity component, an
+undated newsroom, a currency-less headline), one basis rule, and one page that
+exists only in a browser. None of them is closed by a hand-written row.
+
+
+---
+
+## 2026-09-12 - Haiku 4.5 and Gemini flash-lite measured against the DeepSeek extraction call; no swap taken
+
+**What.** The one A/B `docs/PLAN-gate-to-five-dollars.md` step 0 has been
+blocked on since July, run for $0.50: `ab_models.py` in the three modes its
+docstring requires for a swap (`--gate-gold`, `--extraction`,
+`--readthrough`), two candidates against `deepseek/deepseek-chat`. Full
+tables, the hand read of every disagreement and the projection are in
+`docs/MEASURE-readthrough-off-deepseek-2026-09-12.md`. Nothing in
+production moved. No collector ran, the allowance was not touched.
+
+**Why now.** Two rulings. DeepSeek is out on EU grounds and this tracker
+still runs it as `classify.MODEL`, the call `ops_status [2a]` labels
+"read-through". And `[2a]` projects $10.10/30d against $8.00 with the
+"spend is at the allowance" alarm open; `cost_projection.py [4]` says
+$11.79/month, $7.70 of it that one call.
+
+**Gate accuracy against the 75 hand labels.**
+
+```
+model                                  acc    95% interval  recall    prec     $/item
+google/gemini-2.5-flash-lite        89.3%  80.3%-94.5%   94.6%  91.4%   0.000022
+deepseek/deepseek-chat              64.0%  52.7%-73.9%   53.6%  96.8%   0.000060
+anthropic/claude-haiku-4.5          89.3%  80.3%-94.5%   92.9%  92.9%   0.000261
+```
+
+**Extraction, production prompt, 40 fixture headlines, field by field.**
+
+```
+model                             is_talent    company     pillar    country  signal_di  funding_a    $/item
+deepseek/deepseek-chat                 100%       100%       100%       100%       100%       100%  0.000938
+google/gemini-2.5-flash-lite            97%        87%        87%        72%        95%        97%  0.000388
+anthropic/claude-haiku-4.5              92%        90%        87%        75%        87%        97%  0.004351
+```
+
+Hand read of all 16 flash-lite disagreements: flash-lite right 9, incumbent
+right 6, unclear 1. The 72% on `country` is the incumbent leaving the field
+EMPTY in seven rows where the challenger filled it correctly, plus "Latvian"
+for "Latvia". Haiku: right 9, incumbent 2, split 3, unclear 1.
+
+**The verdict, and why it is not a swap.** Haiku fails on cost, 4.6x the
+incumbent per item. flash-lite clears the gate gold set (equal to the live
+gate, and DeepSeek's own 64.0% interval does not touch it), clears cost
+(0.41x measured, 0.175x with the cached prefix the tool models), and on raw
+agreement misses 90% on three deciding fields that the hand read turns into
+92.5 to 97.5%. Two things hold it. The fixture is HEADLINES and production
+extraction reads article bodies, which this repo does not persist, so the
+body task is unmeasured and the gold set's own last KNOWN_LIMIT says not to
+use it for this. And moving a production model is the owner's call under
+the standing authority, at any price. So the pull request carries the
+measurement and the exact three-line change, and DeepSeek stays until he
+takes it.
+
+**Projected bill if he does.** Re-pricing the extraction line only (the
+tool's calibration factor is fitted on a DeepSeek-charged ledger, so
+running it with `TIT_MODEL` overridden inflates the gate and read lines and
+must not be quoted): **$5.44 to $7.28/month** at today's read caps against
+$11.79 today, the spread being whether flash-lite's implicit prefix cache
+serves in production. `ab_models.py --cache-check google/gemini-2.5-flash-lite`
+is the probe to run first.
+
+**Harness.** `ab_models.py` gained `--models` (narrow a mode's candidate
+list; the incumbent is kept first whether or not it is named, because every
+table is a comparison against it), `--limit` (score a sample and say so) and
+`--dump` (write the extraction answers so a disagreement is read, not
+re-bought). `tests/test_ab_models_flags.py` pins that the incumbent cannot be
+dropped and that each mode narrows only its own list.
+
+**Spend accounting, stated because the pot cannot see it.** `budget.py`
+gave a discretionary per-run ceiling of $0.0444; three of the four runs
+exceeded it on the caller's explicit $2.00 authorisation. The harness files
+no priced health row (`tests/test_budget_allocator.py` names the gap), so
+the $0.50 is its own usage arithmetic and the key's monthly total is the
+authority.
+
+---
+## 2026-09-12 - The first European recall reference set is sealed; the worldwide and US drafts for August were not
+
+**What.** `analysis/recall/eu/goldset-eu-2026-08.json` (2026-08-eu-v1, 46
+events, 20 countries, 26 funding / 20 leadership, sealed) with its labels file
+`analysis/recall/2026-08-eu-v1-labels.json`, the `eu` family in
+`analysis/recall/family.py`, `EU_REQUIRED_SHAPE` and the explicit thirty
+country population in `goldset.py`, a third measure step and results path in
+`recall.yml`, the Europe section on the recall page (plugin 1.88.4), staleness
+and health entries for `recall_eu`, and `tests/test_recall_eu.py` plus
+`tests/test_recall_sets_2026_08.py`.
+
+**How the rows were admitted.** Sixteen independent research passes (three
+for Europe: north and the British Isles, centre and south, central and eastern
+Europe, plus a France and Italy top up after the second pass found nothing
+there because its trade press returned 403), each forbidden from consulting
+this tracker, its database or its repository, enumerating chronologically
+inside 2026-08-01 to 2026-08-31 and fetching every page it cited. Every
+candidate URL was then fetched AGAIN from this machine (HTTP 200 and the
+employer's name on the page, or dropped as unreachable), and every row was put
+to two independent referees (anthropic/claude-sonnet-4.5 and openai/gpt-4o)
+with the protocol's own definition and an excerpt of the mechanically fetched
+page. Only rows both accepted entered the set; every verdict, kept or not, is
+in the labels file. 204 candidates across all passes, 178 accepted by both,
+$1.33 USD of referee spend on the sibling's key through `classify._call`.
+
+**Why the worldwide and US drafts were not sealed.** Both were assembled by
+the same machinery and both fail their own guards, which is the machinery
+working. The worldwide draft holds 146 accepted events in 51 countries; the
+July set reached 79 countries and `goldset.validate` refuses a new set below
+80% of the widest one (63). The US draft holds 50 funding events but the
+Austin cell has 6 and the shape needs four metros at 8 or more; Austin's
+outlets (the Statesman, KXAN, Business Wire, PR Newswire search) all answered
+403 to fetches and the session's web search allowance ran out before a third
+pass could try others. Neither number is answered by relaxing a floor. The
+passes, the fetch results and the labels are kept in the gitignored
+`scratchpad/recall-2026-08/` beside this checkout so a follow up session can
+add the missing countries and Austin rows without re paying for what is
+already labelled, then run `assemble.py` from there. Until then the worldwide
+and US pages keep measuring against the July and June sets.
+
+**Two defects found in the referee harness, both fixed before sealing.** The
+first run stored 33 of Sonnet's verdicts as "unparseable": it wraps its
+answer in a code fence and the 80 token cap cut the JSON off inside the
+trailing "why" string, so a verdict that said accept was recorded as a
+rejection. The parser now strips the fence and, when the object is cut off,
+reads the four acceptance fields and the confidence individually and marks
+the verdict salvaged; the 33 were re read from the stored raw answers at no
+cost. Second, the definition said "country = where the employer is
+headquartered" and Sonnet read a Canadian row's `CA` as California; the
+definition now says the code is ISO alpha-2 and names that case, and the one
+affected row was re asked. Both are the same lesson as the guardrail
+adjudicator's: a referee's "no" has to be read before it is counted.
+
+**Guard.** `tests/test_recall_sets_2026_08.py` fails if any item in the sealed
+set lacks two recorded accepting verdicts, if a rejected candidate is missing
+from `not_kept`, if a row cites an aggregator or a people data host, if any
+country is outside the declared population, or if a dash reaches the page
+copy. `EU_REQUIRED_SHAPE` caps any one country at 30% so the set cannot be
+rebuilt out of the London press.
+
+## 2026-09-12 - The standing landmark gaps are filled from their primary documents, each row accepted by two referees
+
+**What.** `fill_landmarks.py` (+ `tests/test_fill_landmarks.py`, 26 offline
+tests). `check_landmarks.py` read **8 of 20 held, 12 standing gaps** at the
+start of the session, the largest OpenAI $40bn (2025Q1), Databricks $10bn
+(2025Q1) and Anduril $5bn (2026Q2), every one with the employer's own
+announcement recorded in `data/landmarks.json` and none of them ever read by
+anything in the pipeline. This is the situation `collectors/primary_chase.py`
+was written for on 2026-08-04, and it is used as-is.
+
+**How, and what it never does.** The script lists the gaps with the weekly
+check's own `verdict()` (one definition of "gap"), puts their URLs on a
+temporary primary_chase work list and runs `run_collect.run(dry_run=True,
+source="primary_chase")`: the identical `precheck -> cheap_extract -> classify
+-> validate -> dedupe` path, with the rows it WOULD store captured off
+`_print_signal`, the hook the dry run already calls. Nothing builds a row by
+hand and nothing here writes one. Each captured row is matched back to its
+landmark with `check.candidates`, and the row, the document text (browser UA,
+15 s, stripped, 12,000 chars, `adjudicate_guardrail.fetch_evidence`) and the
+written money rules (`adjudicate_guardrail.RULES`) go to the same two referees
+as the guardrail adjudicator, through `classify._call`, with the gate read
+before every attempt and the retry outside the callable. Both verdicts are
+written verbatim to `analysis/adjudications/2026-09-12-landmark-<id>.json`,
+one file per landmark including the UNKNOWNs. Only a landmark BOTH referees
+accept AND say matches (and that the check itself would call HELD on that
+row) is queued: its URL goes on `data/primary_chase_worklist.json` and ONE
+`collect.yml` ticket with `source=primary_chase` is enqueued through
+`writer_queue.enqueue`, exactly the ticket `gh workflow run drain-writers.yml
+-f enqueue=collect.yml` writes. The runner re-reads each document and stores
+what the document states; the work list carries URLs and nothing else, so an
+acceptance cannot reach the database either.
+
+**Outcome: 6 queued, 6 left with their spec files.**
+
+| landmark | collector row | referee A | referee B | outcome |
+|---|---|---|---|---|
+| OpenAI $40bn 2025Q1 | $40B company_raise, 2025-03-31 | accept | accept | **queued** |
+| Databricks $10bn 2025Q1 | headline reads the $15B total, amount None, deal_type project_finance | edit (read as reject) | accept | DISAGREE: the extractor cannot separate the $10B Series J from the $15B headline; the landmark note predicted this |
+| Anduril $5bn 2026Q2 | $5B company_raise, 2026-05-13 | not asked | not asked | UNKNOWN: anduril.com renders in the browser; 46 characters to a page reader, 250 to the collector's own reader, under the 800 floor |
+| Databricks $4bn 2025Q4 | >$4B Series L, 2025-12-16 | accept | accept | **queued** |
+| Anthropic $3.5bn 2025Q1 | $3.5B Series E, 2025-03-03 | accept | accept | **queued** |
+| Anysphere $2.3bn 2025Q4 | $2.3B, company "Cursor", published_date None | not asked | not asked | UNKNOWN: cursor.com states no single dateline, so the row has no date and the check's window cannot place it |
+| Reflection AI $2bn 2025Q4 | amount None ("Raises 2b" has no currency), no date | not asked | not asked | UNKNOWN: no row the check could match |
+| Mistral EUR1.7bn 2025Q3 | 1.7B EUR Series C, 2025-09-09 | accept | accept | **queued** |
+| Figure $1bn 2025Q3 | "more than $1 billion" Series C, 2025-09-16 | accept | accept | **queued** |
+| Anysphere $900m 2025Q2 | $900M, company "Cursor", no date | not asked | not asked | UNKNOWN: as the Series D |
+| Helsing EUR600m 2025Q2 | EUR600m, basis fund_raise, no USD | edit (read as reject) | accept | DISAGREE: `money_raised._FUND_PURPOSE` reads "raises EUR600m to invest in European technological sovereignty" as a fund close; a rule with a measured design, not widened here |
+| Isomorphic Labs $600m 2025Q1 | $600M, 2025-03-31 | accept | accept | **queued** |
+
+**Spend $0.161 measured** (dry-run extraction $0.0141 for the twelve leads plus
+$0.0044 across two narrowed re-runs; referees $0.1425 for 10 pairs across the three
+runs), plus one three-lead extraction probe whose figure was not captured and
+is under $0.005. On the sibling tracker's key through `railway run`, as the
+guardrail adjudicator was: this checkout has no key, so none of it is in this
+repo's ledger. Well under the $0.50 ceiling the script reads before every
+referee request.
+
+**Three things the first pass got wrong in itself, fixed before the queue was
+touched.** (1) A referee answering `edit`, which the prompt does not offer,
+was parsed as no verdict and the landmark went UNKNOWN; it is now read as the
+reject the prompt says it is, with `recommended_raw` kept on the verdict.
+(2) openai.com serves 769 characters of shell to a page-stripper and the whole
+announcement to the collector's own reader; when every stripped copy is under
+the floor the collector's read of the same URL is the evidence, since that is
+the text the row came out of. (3) A spec quoting a document verbatim carried
+the document's em dash; every string written to a spec goes through
+`plain_dashes()`, tested.
+
+**Held-after is not yet measurable from this branch.** The ticket
+(`20260911T231105Z-collect`) is dispatched by `drain-writers.yml` from main,
+so the six rows land after the merge, and `check_landmarks.py --live` is the
+reading to take then; the target is 14 of 20 held. Two caveats to expect:
+OpenAI's $40bn is above the publish guardrail's amount ceiling and will sit
+`held_not_live` until `adjudicate_guardrail.py` answers it, and openai.com's
+edge answers 403 intermittently, so if that lead is skipped as unreachable on
+the runner the ticket is re-queued, not the row typed. The six that did not
+queue are three extractor limits (a total that hides its equity component, an
+undated newsroom, a currency-less headline), one basis rule, and one page that
+exists only in a browser. None of them is closed by a hand-written row.
+
+
+---
+
+## 2026-09-12 - Haiku 4.5 and Gemini flash-lite measured against the DeepSeek extraction call; no swap taken
+
+**What.** The one A/B `docs/PLAN-gate-to-five-dollars.md` step 0 has been
+blocked on since July, run for $0.50: `ab_models.py` in the three modes its
+docstring requires for a swap (`--gate-gold`, `--extraction`,
+`--readthrough`), two candidates against `deepseek/deepseek-chat`. Full
+tables, the hand read of every disagreement and the projection are in
+`docs/MEASURE-readthrough-off-deepseek-2026-09-12.md`. Nothing in
+production moved. No collector ran, the allowance was not touched.
+
+**Why now.** Two rulings. DeepSeek is out on EU grounds and this tracker
+still runs it as `classify.MODEL`, the call `ops_status [2a]` labels
+"read-through". And `[2a]` projects $10.10/30d against $8.00 with the
+"spend is at the allowance" alarm open; `cost_projection.py [4]` says
+$11.79/month, $7.70 of it that one call.
+
+**Gate accuracy against the 75 hand labels.**
+
+```
+model                                  acc    95% interval  recall    prec     $/item
+google/gemini-2.5-flash-lite        89.3%  80.3%-94.5%   94.6%  91.4%   0.000022
+deepseek/deepseek-chat              64.0%  52.7%-73.9%   53.6%  96.8%   0.000060
+anthropic/claude-haiku-4.5          89.3%  80.3%-94.5%   92.9%  92.9%   0.000261
+```
+
+**Extraction, production prompt, 40 fixture headlines, field by field.**
+
+```
+model                             is_talent    company     pillar    country  signal_di  funding_a    $/item
+deepseek/deepseek-chat                 100%       100%       100%       100%       100%       100%  0.000938
+google/gemini-2.5-flash-lite            97%        87%        87%        72%        95%        97%  0.000388
+anthropic/claude-haiku-4.5              92%        90%        87%        75%        87%        97%  0.004351
+```
+
+Hand read of all 16 flash-lite disagreements: flash-lite right 9, incumbent
+right 6, unclear 1. The 72% on `country` is the incumbent leaving the field
+EMPTY in seven rows where the challenger filled it correctly, plus "Latvian"
+for "Latvia". Haiku: right 9, incumbent 2, split 3, unclear 1.
+
+**The verdict, and why it is not a swap.** Haiku fails on cost, 4.6x the
+incumbent per item. flash-lite clears the gate gold set (equal to the live
+gate, and DeepSeek's own 64.0% interval does not touch it), clears cost
+(0.41x measured, 0.175x with the cached prefix the tool models), and on raw
+agreement misses 90% on three deciding fields that the hand read turns into
+92.5 to 97.5%. Two things hold it. The fixture is HEADLINES and production
+extraction reads article bodies, which this repo does not persist, so the
+body task is unmeasured and the gold set's own last KNOWN_LIMIT says not to
+use it for this. And moving a production model is the owner's call under
+the standing authority, at any price. So the pull request carries the
+measurement and the exact three-line change, and DeepSeek stays until he
+takes it.
+
+**Projected bill if he does.** Re-pricing the extraction line only (the
+tool's calibration factor is fitted on a DeepSeek-charged ledger, so
+running it with `TIT_MODEL` overridden inflates the gate and read lines and
+must not be quoted): **$5.44 to $7.28/month** at today's read caps against
+$11.79 today, the spread being whether flash-lite's implicit prefix cache
+serves in production. `ab_models.py --cache-check google/gemini-2.5-flash-lite`
+is the probe to run first.
+
+**Harness.** `ab_models.py` gained `--models` (narrow a mode's candidate
+list; the incumbent is kept first whether or not it is named, because every
+table is a comparison against it), `--limit` (score a sample and say so) and
+`--dump` (write the extraction answers so a disagreement is read, not
+re-bought). `tests/test_ab_models_flags.py` pins that the incumbent cannot be
+dropped and that each mode narrows only its own list.
+
+**Spend accounting, stated because the pot cannot see it.** `budget.py`
+gave a discretionary per-run ceiling of $0.0444; three of the four runs
+exceeded it on the caller's explicit $2.00 authorisation. The harness files
+no priced health row (`tests/test_budget_allocator.py` names the gap), so
+the $0.50 is its own usage arithmetic and the key's monthly total is the
+authority.
+
+---
+## 2026-09-12 - The first European recall reference set is sealed; the worldwide and US drafts for August were not
+
+**What.** `analysis/recall/eu/goldset-eu-2026-08.json` (2026-08-eu-v1, 46
+events, 20 countries, 26 funding / 20 leadership, sealed) with its labels file
+`analysis/recall/2026-08-eu-v1-labels.json`, the `eu` family in
+`analysis/recall/family.py`, `EU_REQUIRED_SHAPE` and the explicit thirty
+country population in `goldset.py`, a third measure step and results path in
+`recall.yml`, the Europe section on the recall page (plugin 1.88.4), staleness
+and health entries for `recall_eu`, and `tests/test_recall_eu.py` plus
+`tests/test_recall_sets_2026_08.py`.
+
+**How the rows were admitted.** Sixteen independent research passes (three
+for Europe: north and the British Isles, centre and south, central and eastern
+Europe, plus a France and Italy top up after the second pass found nothing
+there because its trade press returned 403), each forbidden from consulting
+this tracker, its database or its repository, enumerating chronologically
+inside 2026-08-01 to 2026-08-31 and fetching every page it cited. Every
+candidate URL was then fetched AGAIN from this machine (HTTP 200 and the
+employer's name on the page, or dropped as unreachable), and every row was put
+to two independent referees (anthropic/claude-sonnet-4.5 and openai/gpt-4o)
+with the protocol's own definition and an excerpt of the mechanically fetched
+page. Only rows both accepted entered the set; every verdict, kept or not, is
+in the labels file. 204 candidates across all passes, 178 accepted by both,
+$1.33 USD of referee spend on the sibling's key through `classify._call`.
+
+**Why the worldwide and US drafts were not sealed.** Both were assembled by
+the same machinery and both fail their own guards, which is the machinery
+working. The worldwide draft holds 146 accepted events in 51 countries; the
+July set reached 79 countries and `goldset.validate` refuses a new set below
+80% of the widest one (63). The US draft holds 50 funding events but the
+Austin cell has 6 and the shape needs four metros at 8 or more; Austin's
+outlets (the Statesman, KXAN, Business Wire, PR Newswire search) all answered
+403 to fetches and the session's web search allowance ran out before a third
+pass could try others. Neither number is answered by relaxing a floor. The
+passes, the fetch results and the labels are kept in the gitignored
+`scratchpad/recall-2026-08/` beside this checkout so a follow up session can
+add the missing countries and Austin rows without re paying for what is
+already labelled, then run `assemble.py` from there. Until then the worldwide
+and US pages keep measuring against the July and June sets.
+
+**Two defects found in the referee harness, both fixed before sealing.** The
+first run stored 33 of Sonnet's verdicts as "unparseable": it wraps its
+answer in a code fence and the 80 token cap cut the JSON off inside the
+trailing "why" string, so a verdict that said accept was recorded as a
+rejection. The parser now strips the fence and, when the object is cut off,
+reads the four acceptance fields and the confidence individually and marks
+the verdict salvaged; the 33 were re read from the stored raw answers at no
+cost. Second, the definition said "country = where the employer is
+headquartered" and Sonnet read a Canadian row's `CA` as California; the
+definition now says the code is ISO alpha-2 and names that case, and the one
+affected row was re asked. Both are the same lesson as the guardrail
+adjudicator's: a referee's "no" has to be read before it is counted.
+
+**Guard.** `tests/test_recall_sets_2026_08.py` fails if any item in the sealed
+set lacks two recorded accepting verdicts, if a rejected candidate is missing
+from `not_kept`, if a row cites an aggregator or a people data host, if any
+country is outside the declared population, or if a dash reaches the page
+copy. `EU_REQUIRED_SHAPE` caps any one country at 30% so the set cannot be
+rebuilt out of the London press.
+
 ## 2026-09-12 - Extraction moves off DeepSeek to gemini-2.5-flash-lite, one line and one env var from being undone
 
 **What.** `pipeline/classify.py` `MODEL` now defaults to

@@ -383,3 +383,46 @@ def test_the_cli_refuses_to_run_without_a_key(monkeypatch, capsys):
     monkeypatch.setattr(schema, "connect", lambda *a, **k: None)
     assert adj.main(["--key", KEY]) == 1
     assert "OPENROUTER_API_KEY" in capsys.readouterr().err
+
+
+# --- an owner ruling on a disagreement -------------------------------------
+# The referees disagreed on the DeepSeek $70bn row (2026-09-12): one read the
+# figure as a pledge, the other as a valuation with no raise stated. The owner
+# ruled. That ruling is applied under the owner's name, never as an agreement.
+
+def _owner_spec(tmp_path, **over):
+    import json
+    spec = {"key": "amount/abc", "label": "X", "status": "owner-ruled", "action": "reject",
+            "ruled_by": "owner, 2026-09-12", "ruling": "a valuation is not a raise"}
+    spec.update(over)
+    path = tmp_path / "spec.json"
+    path.write_text(json.dumps(spec), encoding="utf-8")
+    return path
+
+
+def test_an_owner_ruled_spec_applies_under_the_owner_name(tmp_path, monkeypatch):
+    import adjudicate_guardrail as ag
+    seen = {}
+    monkeypatch.setattr(ag, "load_finding", lambda conn, key: {"finding": {"state": "open"}, "key": key})
+    def fake_apply(conn, item, action, correction, note, who, apply, push=None):
+        seen.update(action=action, note=note, who=who, apply=apply)
+        return 1
+    monkeypatch.setattr(ag, "apply_decision", fake_apply)
+    assert ag.apply_from_spec(None, _owner_spec(tmp_path), apply=True) == 0
+    assert seen["action"] == "reject"
+    assert seen["who"].startswith("owner ruling (owner, 2026-09-12)")
+    assert seen["who"] != ag.WHO, "an owner ruling must never be recorded as two models agreeing"
+    assert "valuation" in seen["note"]
+
+
+def test_an_owner_ruled_spec_without_a_reason_is_refused(tmp_path, monkeypatch):
+    import adjudicate_guardrail as ag
+    monkeypatch.setattr(ag, "apply_decision", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not apply")))
+    assert ag.apply_from_spec(None, _owner_spec(tmp_path, ruling=""), apply=True) == 3
+    assert ag.apply_from_spec(None, _owner_spec(tmp_path, ruled_by=None), apply=True) == 3
+
+
+def test_a_disagree_spec_still_applies_nothing(tmp_path, monkeypatch):
+    import adjudicate_guardrail as ag
+    monkeypatch.setattr(ag, "apply_decision", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not apply")))
+    assert ag.apply_from_spec(None, _owner_spec(tmp_path, status="disagree"), apply=True) == 3
