@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-07T14:16:18+00:00",
+ "generated_at": "2026-09-12T03:20:58+00:00",
  "measured_on": "2026-09-07",
  "goldset_version": "2026-06-us-v1",
  "gold_events": 51,
@@ -24,6 +24,7 @@
   "press_archive": "2026-08-02",
   "primary_chase": "2026-08-04",
   "recall": "2026-07-29",
+  "recall_eu": "2026-09-12",
   "recall_us": "2026-08-17",
   "sec_edgar": "2026-07-27",
   "sec_execcomp": "2026-07-28",
@@ -128,7 +129,7 @@
    "domain": "fortune.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 84,
+   "urls_fetched_from_this_domain": 93,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -149,7 +150,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 104,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -210,7 +211,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 104,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -231,7 +232,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 104,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -252,7 +253,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 104,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -293,7 +294,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 104,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -313,7 +314,7 @@
    "domain": "pulse2.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 245,
+   "urls_fetched_from_this_domain": 274,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news"
@@ -332,7 +333,7 @@
    "domain": "fortune.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 84,
+   "urls_fetched_from_this_domain": 93,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -353,7 +354,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -373,7 +374,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -412,7 +413,7 @@
    "domain": "accessnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 0,
+   "urls_fetched_from_this_domain": 1,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news"
@@ -431,7 +432,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -451,7 +452,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -471,7 +472,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -511,7 +512,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -571,7 +572,7 @@
    "domain": "refreshmiami.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 31,
+   "urls_fetched_from_this_domain": 33,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -613,7 +614,7 @@
    "domain": "geekwire.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 34,
+   "urls_fetched_from_this_domain": 38,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -633,7 +634,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 148,
+   "urls_fetched_from_this_domain": 157,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -653,7 +654,7 @@
    "domain": "geekwire.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 34,
+   "urls_fetched_from_this_domain": 38,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",

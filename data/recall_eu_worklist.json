@@ -1,0 +1,284 @@
+{
+ "generated_at": "2026-09-12T03:20:54+00:00",
+ "measured_on": "2026-09-12",
+ "goldset_version": "2026-08-eu-v1",
+ "overall": {
+  "total": 46,
+  "found": 3,
+  "found_partial": 21,
+  "missed": 22,
+  "held": 24,
+  "held_pct": 52.2,
+  "clean_pct": 6.5,
+  "held_interval": {
+   "pct": 52.2,
+   "low_pct": 38.1,
+   "high_pct": 65.9,
+   "width_pct": 27.7,
+   "successes": 24,
+   "total": 46
+  }
+ },
+ "spread_group": "by_country",
+ "zero_countries": [
+  {
+   "key": "IT",
+   "total": 3,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "PL",
+   "total": 3,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "BE",
+   "total": 2,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "ES",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  }
+ ],
+ "weak_countries": [
+  {
+   "key": "DE",
+   "total": 5,
+   "held": 2,
+   "held_pct": 40.0
+  },
+  {
+   "key": "NO",
+   "total": 3,
+   "held": 1,
+   "held_pct": 33.3
+  },
+  {
+   "key": "PT",
+   "total": 3,
+   "held": 1,
+   "held_pct": 33.3
+  }
+ ],
+ "weak_source_types": [
+  {
+   "key": "filing",
+   "total": 8,
+   "held": 3,
+   "held_pct": 37.5
+  },
+  {
+   "key": "national_news",
+   "total": 8,
+   "held": 2,
+   "held_pct": 25.0
+  }
+ ],
+ "weak_segments": [
+  {
+   "key": "non-US leadership",
+   "total": 20,
+   "held": 6,
+   "held_pct": 30.0
+  }
+ ],
+ "field_defects": {
+  "amount_missing": 14,
+  "country_missing": 5,
+  "country_wrong": 4
+ },
+ "missed_examples": [
+  {
+   "company": "ChemoMetec A/S",
+   "country": "DK",
+   "signal_type": "leadership",
+   "source_name": "GlobeNewswire (ChemoMetec company announcement)",
+   "source_url": "https://www.globenewswire.com/news-release/2026/08/01/3337124/0/da/Udn%C3%A6vnelse-af-ny-CFO.html",
+   "event_date": "2026-08-01"
+  },
+  {
+   "company": "ENAV S.p.A.",
+   "country": "IT",
+   "signal_type": "leadership",
+   "source_name": "Teleborsa",
+   "source_url": "https://www.teleborsa.it/News/2026/08/03/enav-al-ceo-de-biasio-attribuita-anche-la-carica-di-direttore-generale-157.html",
+   "event_date": "2026-08-03"
+  },
+  {
+   "company": "FuVeX",
+   "country": "ES",
+   "signal_type": "funding",
+   "source_name": "Capital",
+   "source_url": "https://capital.es/empresas/fuvex-capta-3-millones-para-inspeccionar-el-70-de-la-red-electrica-espanola-en-2027/204873/",
+   "event_date": "2026-08-05"
+  },
+  {
+   "company": "PagoPa S.p.A.",
+   "country": "IT",
+   "signal_type": "leadership",
+   "source_name": "MilanoFinanza",
+   "source_url": "https://www.milanofinanza.it/news/pagopa-pantaleoni-amministratore-delegato-e-pimpinella-presidente-202608051241362451",
+   "event_date": "2026-08-05"
+  },
+  {
+   "company": "PKO Bank Hipoteczny S.A.",
+   "country": "PL",
+   "signal_type": "leadership",
+   "source_name": "ESPI current report via StockWatch.pl",
+   "source_url": "https://www.stockwatch.pl/komunikaty-spolek/pko-bank-hipoteczny-spolka-akcyjna,powolanie-prezesa-zarzadu-pko-banku-hipoteczn-2026-08-06,espi,20260806_172945_0000355795",
+   "event_date": "2026-08-06"
+  },
+  {
+   "company": "e-Novia S.p.A.",
+   "country": "IT",
+   "signal_type": "leadership",
+   "source_name": "Teleborsa",
+   "source_url": "https://www.teleborsa.it/News/2026/08/07/e-novia-alessio-torelli-nominato-amministratore-delegato-229.html",
+   "event_date": "2026-08-07"
+  },
+  {
+   "company": "Funventure",
+   "country": "PL",
+   "signal_type": "funding",
+   "source_name": "MamStartup",
+   "source_url": "https://mamstartup.pl/krakowskie-studio-od-miners-settlement-przekonalo-do-siebie-inwestorow/",
+   "event_date": "2026-08-07"
+  },
+  {
+   "company": "Defined.ai",
+   "country": "PT",
+   "signal_type": "leadership",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/08/07/defined-ai-mexe-na-lideranca-executiva-com-duas-saidas/",
+   "event_date": "2026-08-07"
+  },
+  {
+   "company": "GalgoSheets",
+   "country": "PT",
+   "signal_type": "funding",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/08/10/galgosheets-levanta-150-mil-euros-para-combater-ineficiencia-no-tvde/",
+   "event_date": "2026-08-10"
+  },
+  {
+   "company": "Metal Morph",
+   "country": "GB",
+   "signal_type": "funding",
+   "source_name": "UKTN",
+   "source_url": "https://www.uktech.news/climate-tech/metal-morph-raises-pre-seed-round-to-turn-wastewater-into-supply-chains-20260813",
+   "event_date": "2026-08-13"
+  },
+  {
+   "company": "bit.bio",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "BusinessCloud",
+   "source_url": "https://businesscloud.co.uk/news/growing-cambridge-medtech-appoints-first-cto/",
+   "event_date": "2026-08-15"
+  },
+  {
+   "company": "Heidelberger Druckmaschinen AG",
+   "country": "DE",
+   "signal_type": "leadership",
+   "source_name": "EQS-News via onvista",
+   "source_url": "https://www.onvista.de/news/2026/08-18-eqs-news-christoph-burkhard-wird-zum-1-oktober-2026-neuer-finanzvorstand-der-heidelberger-druckmaschinen-ag-0-37-26544007",
+   "event_date": "2026-08-18"
+  },
+  {
+   "company": "MOBOTIX AG",
+   "country": "DE",
+   "signal_type": "leadership",
+   "source_name": "EQS-News via onvista",
+   "source_url": "https://www.onvista.de/news/2026/08-18-eqs-news-veraenderung-im-vorstand-cfo-coo-klaus-kiener-scheidet-einvernehmlich-zum-30-september-2026-aus-die-bisherige-leiterin-finanzen-madeleine-kraus-uebernimmt-das-cfo-ressort-zum-1-oktober-2026-0-37-26544185",
+   "event_date": "2026-08-18"
+  },
+  {
+   "company": "Oceanloop",
+   "country": "DE",
+   "signal_type": "funding",
+   "source_name": "Hatch Blue",
+   "source_url": "https://www.hatch.blue/news/oceanloop-secures-up-to-eu38-5-million-to-scale-its-land-based-aquaculture-technology-and-europes-first-farmed-giant-grouper",
+   "event_date": "2026-08-18"
+  },
+  {
+   "company": "Breetec",
+   "country": "BE",
+   "signal_type": "leadership",
+   "source_name": "Made in (Limburg)",
+   "source_url": "https://www.made-in.be/limburg/steven-maes-stapt-in-als-ceo-bij-breetec/",
+   "event_date": "2026-08-20"
+  },
+  {
+   "company": "UpGrid AG",
+   "country": "CH",
+   "signal_type": "funding",
+   "source_name": "Startupticker.ch",
+   "source_url": "https://startupticker.ch/en/news/frisches-geld-und-starkes-wachstum-fuer-upgrid",
+   "event_date": "2026-08-20"
+  },
+  {
+   "company": "BitVault SA",
+   "country": "CH",
+   "signal_type": "funding",
+   "source_name": "Startupticker.ch",
+   "source_url": "https://www.startupticker.ch/en/news/bitvault-launches-bitcoin-self-custody-app-worldwide-backed-by-chf-500-000-in-funding",
+   "event_date": "2026-08-21"
+  },
+  {
+   "company": "SkinBioTherapeutics plc",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "BusinessCloud",
+   "source_url": "https://businesscloud.co.uk/live-blog/new-cfo-at-crisis-firm-skinbiotherapeutics/",
+   "event_date": "2026-08-24"
+  },
+  {
+   "company": "Volve",
+   "country": "NO",
+   "signal_type": "funding",
+   "source_name": "Tech.eu",
+   "source_url": "https://tech.eu/2026/08/25/volve-lands-3m-to-expand-construction-tendering-ai-across-europe/",
+   "event_date": "2026-08-25"
+  },
+  {
+   "company": "Blastr Green Steel AS",
+   "country": "NO",
+   "signal_type": "leadership",
+   "source_name": "Blastr Green Steel (company newsroom)",
+   "source_url": "https://blastr.no/news/leadership-update-from-the-board-of-blastr",
+   "event_date": "2026-08-26"
+  },
+  {
+   "company": "mcr S.A.",
+   "country": "PL",
+   "signal_type": "leadership",
+   "source_name": "Raport biezacy via Bankier.pl",
+   "source_url": "https://www.bankier.pl/wiadomosc/mcr-S-A-Powolanie-czlonkow-Zarzadu-mcr-S-A-na-nowa-wspolna-kadencje-9187624.html",
+   "event_date": "2026-08-26"
+  },
+  {
+   "company": "Embridge Group (formerly M-Tech)",
+   "country": "BE",
+   "signal_type": "leadership",
+   "source_name": "Made in (Limburg)",
+   "source_url": "https://made-in.be/limburg/nieuwe-ceo-voor-embridge-m-tech/",
+   "event_date": "2026-08-27"
+  }
+ ],
+ "missed_total": 22,
+ "next_goldset": {
+  "due": false,
+  "reason": "the current set is still current and still moving",
+  "suggested_window": {
+   "start": "2026-08-01",
+   "end": "2026-08-31"
+  },
+  "instruction": "Build a new EUROPE recall gold set for 2026-08-01 to 2026-08-31 and seal it. The population is the EU27 plus the United Kingdom, Switzerland and Norway, and nothing else. Run several INDEPENDENT research passes, one per group of countries (the north and the British Isles, the centre and the south, central and eastern Europe and the Baltics), each for funding and for leadership, every pass forbidden from consulting asktherecruiter.com, this repository, our database or our source registry: a set drawn from the feeds we already watch measures memory rather than reach. Enumerate candidates CHRONOLOGICALLY within the window and take them in that order rather than picking the interesting ones; search in the local language as well as English. Every item cites the original publisher, which is the company's own announcement, the filing or exchange notice, or a named outlet's own article; no aggregator, database or other tracker may be named anywhere in the repository. Fetch every source URL and confirm the company, the date, the country and the amount on the page itself before writing the row down; drop what will not verify and record why. Write it to analysis/recall/eu/goldset-eu-2026-08.json with sealed=true, family=\"eu\" and an assembled_on date. `python3 measure_recall.py --family eu --check` must pass before it is used; analysis/recall/goldset.py EU_REQUIRED_SHAPE is the guard that stops a European set being quietly rebuilt out of the London press, which is the one part of Europe that is easy to enumerate in English."
+ }
+}
