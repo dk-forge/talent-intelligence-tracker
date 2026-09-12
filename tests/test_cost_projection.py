@@ -58,9 +58,16 @@ def test_a_cached_prefix_costs_less_only_where_a_cache_read_is_priced():
 
 
 def test_a_slug_with_no_cache_read_price_saves_exactly_nothing():
-    """`deepseek/deepseek-chat` is the live example: not one of its endpoints
-    publishes an input_cache_read price, so the prefix caching saving is $0
-    however attractive the arithmetic would be if it did."""
+    """`deepseek/deepseek-chat` was the live example until 2026-09-12: not one
+    of its endpoints publishes an input_cache_read price, so the prefix caching
+    saving was $0 however attractive the arithmetic would be if it did.
+
+    The example retired with the model; the rule did not, and this is why the
+    rule is tested on a FIXTURE slug rather than on whatever is configured.
+    `google/gemini-2.5-flash-lite` does price a cache read, so the live
+    configuration no longer demonstrates the refusal, and a program that only
+    refuses when the live model happens to lack a cache is not refusing at
+    all."""
     plain = cp.call_cost(PRICES, "no-cache", 3100, 254)
     cached = cp.call_cost(PRICES, "no-cache", 3100, 254, cached_prefix=2754)
     assert cached == plain

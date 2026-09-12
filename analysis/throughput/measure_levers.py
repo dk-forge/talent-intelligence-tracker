@@ -59,9 +59,18 @@ TERMINAL = frozenset({"stored", "duplicate", "retracted", "gate_reject",
 
 # Unit prices, all quoted from cost_projection.py's [3], [4] and [5] tables.
 GATE_CALL = 0.000051        # $/call   google/gemini-2.5-flash-lite
-EXTRACT_CALL = 0.001059     # $/call   deepseek/deepseek-chat
+# Extraction moved to google/gemini-2.5-flash-lite on 2026-09-12 (owner's
+# adjudication, docs/MEASURE-readthrough-off-deepseek-2026-09-12.md). Same
+# arithmetic as GATE_CALL above and as the retired incumbent's 0.001059:
+# EXTRACT_IN 3,100 x $0.10/M + EXTRACT_OUT 254 x $0.40/M, uncached.
+EXTRACT_CALL = 0.000412     # $/call   google/gemini-2.5-flash-lite
 MARGINAL_READ = 0.00131     # $/read   cost_projection [5]
-EXTRACTION_MONTH = 14.82    # $/month  cost_projection [4], today's caps
+# STALE SINCE THE SWAP, AND LEFT RATHER THAN GUESSED. This is a cost_projection
+# [4] reading taken while extraction ran on the retired incumbent; the swap cuts
+# the extraction line and nothing here can recompute it without the ledger. Read
+# it out of `cost_projection.py` [4] again once the ledger holds priced
+# flash-lite runs, and do not scale it by hand.
+EXTRACTION_MONTH = 14.82    # $/month  cost_projection [4], pre-swap incumbent
 GATE_MONTH = 3.09           # $/month  cost_projection [4]
 DAYS_PER_MONTH = 30.4
 

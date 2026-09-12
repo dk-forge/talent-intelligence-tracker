@@ -1,9 +1,10 @@
 """One call did two jobs. These pin the seam between them.
 
-EXTRACTION lifts facts that are in the text and stays on
-`deepseek/deepseek-chat` with SCHEMA_HINT untouched. The READ-THROUGH is an
-interpretation that is NOT in the text, so it moved to its own model on its own
-small prompt. Three properties make that split safe rather than merely cheaper,
+EXTRACTION lifts facts that are in the text and keeps SCHEMA_HINT untouched;
+its model is whatever TIT_MODEL names (`google/gemini-2.5-flash-lite` since
+2026-09-12). The READ-THROUGH is an interpretation that is NOT in the text, so
+it moved to its own model on its own small prompt, and the extraction swap did
+not move it. Three properties make that split safe rather than merely cheaper,
 and each has a section below:
 
   the small prompt carries ONLY what judgement needs (and refuses the rest);
@@ -83,9 +84,13 @@ def reply(monkeypatch, content: str, seen: list | None = None):
 
 # --- the split ---------------------------------------------------------------
 
-def test_extraction_keeps_its_model_and_its_prompt():
-    """The half that works is not what changed."""
-    assert classify.MODEL == "deepseek/deepseek-chat"
+def test_extraction_keeps_its_prompt_and_stays_off_the_read_model():
+    """The half that works is not what changed. Extraction's MODEL moved on
+    2026-09-12 and its PROMPT did not, which is the seam this file guards: the
+    schema call and the judgement call are two models and two prompts, and
+    neither swap may quietly become the other."""
+    assert classify.MODEL == "google/gemini-2.5-flash-lite"
+    assert classify.MODEL != classify.READ_MODEL
     assert classify.GATE_MODEL == "google/gemini-2.5-flash-lite"
     assert "Return JSON with exactly these keys" in classify.SCHEMA_HINT
 

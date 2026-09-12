@@ -1,10 +1,17 @@
 """The extraction-preamble exit stays honest.
 
 30.6% of the unconditional full-coverage bill buys the same ~2,500-token
-extraction preamble on a slug (`deepseek/deepseek-chat`) where no endpoint
-prices a cache read — the ledger's last 27 priced runs bill cached_tokens = 0
-on every one. `cost_projection.py` prices the exit (extraction on a slug that
-does cache the prefix), and the exit rests on three claims these tests pin:
+extraction preamble. Until 2026-09-12 that preamble was sent to
+`deepseek/deepseek-chat`, where no endpoint prices a cache read at all: the
+ledger's last 27 priced runs on it bill cached_tokens = 0 on every one.
+`cost_projection.py` priced the exit, which was extraction on a slug that does
+cache the prefix, and on 2026-09-12 the owner TOOK that exit
+(`google/gemini-2.5-flash-lite`, every endpoint pricing a cache read at 0.1x).
+
+That makes these tests more load-bearing rather than less. The exit being
+taken is not the same as the cache firing: a published price is a price list
+and `cached_tokens` is a measurement, and the three claims below are what
+stand between the two.
 
 1. The prefix that would cache is EXPOSED and byte-stable, measured from the
    prompt that ships, not remembered in a comment.
@@ -13,6 +20,8 @@ does cache the prefix), and the exit rests on three claims these tests pin:
 3. The two-call verification (`ab_models.py --cache-check`) sends the
    PRODUCTION prompt shape, reads the BILLED cached tokens, and refuses to
    call an unverifiable run a pass: PASS / FAIL / UNKNOWN are three states.
+   That probe has still not been run against the live extraction model. Until
+   it has, the cached end of every projection is modelled and not measured.
 
 Nothing here reaches the network.
 """

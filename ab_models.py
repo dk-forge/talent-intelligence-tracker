@@ -33,9 +33,18 @@ at full worldwide coverage — the largest single line, larger than the frontier
 read-through. Two swaps would move it, and both are quality decisions nobody
 can take on arithmetic alone:
 
-    deepseek/deepseek-chat        $31.69/month   the incumbent
+    deepseek/deepseek-chat        $31.69/month   the incumbent at the time
     deepseek/deepseek-chat-v3.1   $20.52/month   its prefix cache reads at 0.5x
     google/gemini-2.5-flash-lite   $4.90/month   already trusted as our GATE
+
+THE SWAP WAS TAKEN ON 2026-09-12, and this mode is why it could be. The owner
+moved extraction to `google/gemini-2.5-flash-lite` on
+docs/MEASURE-readthrough-off-deepseek-2026-09-12.md: 89.3% against the gate
+gold set to the incumbent's 64.0% on intervals that do not overlap, and every
+extraction disagreement read by hand (9 to 6 for the challenger) rather than
+counted. The measured cost per item was 0.000388 against 0.000938, 0.41x.
+Element zero of EXTRACTION_MODELS follows `classify.MODEL`, so this mode now
+scores candidates against flash-lite and the retired incumbent is one of them.
 
 The gate comparison above cannot decide this. It asks a one-word question on a
 deliberately reduced prompt, and extraction is twenty structured fields off the
@@ -69,8 +78,8 @@ HEADLINES = Path(__file__).parent / "tests" / "fixtures" / "ab_headlines.txt"
 
 # The incumbent is listed first and is the baseline everything is scored against.
 GATE_MODELS = [
-    "deepseek/deepseek-chat",
     "google/gemini-2.5-flash-lite",
+    "deepseek/deepseek-chat",
     "openai/gpt-5-nano",
     "openai/gpt-oss-120b",
     "meta-llama/llama-3.3-70b-instruct",
@@ -199,7 +208,10 @@ def run_gate(key: str, headlines: list[str]) -> int:
 
     baseline = results[GATE_MODELS[0]]
     print("\n" + "=" * 74)
-    print("AGREEMENT WITH INCUMBENT (deepseek/deepseek-chat)")
+    # Derived, never typed: this label named deepseek for six weeks after the
+    # list stopped opening with it, and a mislabelled baseline is a measurement
+    # that reads as a different one.
+    print(f"AGREEMENT WITH INCUMBENT ({GATE_MODELS[0]})")
     print("=" * 74)
     print(f"{'model':<38} {'signal':>8} {'pillar':>8} {'errors':>7}")
     print("-" * 74)
@@ -278,9 +290,13 @@ def _prices() -> dict[str, tuple[float, float]]:
 # `pipeline.classify.MODEL` on `pipeline.classify.SCHEMA_HINT` — the production
 # prompt, byte for byte, because a reduced one measures a different model.
 EXTRACTION_MODELS = [
-    "deepseek/deepseek-chat",
-    "deepseek/deepseek-chat-v3.1",
+    # Element zero is the LIVE extraction model, pinned to `classify.MODEL` by
+    # tests/test_ab_models_flags.py. It moved here on 2026-09-12 with the swap.
     "google/gemini-2.5-flash-lite",
+    # The retired incumbent stays a candidate: TIT_MODEL=deepseek/deepseek-chat
+    # is the documented rollback, and a rollback nobody can score is a guess.
+    "deepseek/deepseek-chat",
+    "anthropic/claude-haiku-4.5",
     "google/gemini-2.5-flash",
     "openai/gpt-5-mini",
 ]
