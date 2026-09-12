@@ -14,6 +14,110 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-12 - Extraction moves off DeepSeek to gemini-2.5-flash-lite, one line and one env var from being undone
+
+**What.** `pipeline/classify.py` `MODEL` now defaults to
+`google/gemini-2.5-flash-lite` instead of `deepseek/deepseek-chat`. That is the
+whole swap: one default, on the same `os.environ.get("TIT_MODEL", ...)` that
+always selected it, and nothing else about how the model is chosen changed.
+`cost_projection.py` `MODELS["extract"]` follows the same env var and the same
+new default. Around it, the constants and tests that named the incumbent were
+UPDATED rather than deleted, because each was protecting something that
+outlived the model it was written against: the extraction model must stay
+reachable from the environment (`tests/test_cheap_extract.py`), extraction and
+the read-through must stay two models and two prompts
+(`tests/test_readthrough_split.py`), the provider block must stay pinned and
+documented-fields-only (`tests/test_provider_routing.py`), the cache exit must
+stay three-state (`tests/test_preamble_cache_exit.py`), a slug with no cache
+read price must still save exactly nothing (`tests/test_cost_projection.py`),
+and the run cost must still be reported per row with the model that was billed
+(`tests/test_run_cost.py`). `ab_models.py` opens its extraction list with the
+live model (pinned to `classify.MODEL` by the test that already existed) and
+keeps the retired incumbent as a candidate, and its agreement header is now
+DERIVED from the list instead of typed.
+
+**Why.** The owner's decision on 2026-09-12, on
+`docs/MEASURE-readthrough-off-deepseek-2026-09-12.md`, a $0.50 measurement pass
+whose own recommendation was "no swap in this pull request" precisely because
+taking it is the owner's call and not a session's. What it measured:
+flash-lite scores 89.3% against the 75-item gate gold set where the incumbent
+scores 64.0%, on 95% intervals (80.3 to 94.5 against 52.7 to 73.9) that do not
+touch. On the production extraction prompt every disagreement was read by hand
+rather than counted, and flash-lite was right in 9 of 16 against the
+incumbent's 6, most of the raw country gap being the incumbent leaving the
+field EMPTY where the challenger filled it correctly. Measured cost per item
+was 0.000388 against 0.000938, 0.41x, which is the first configuration to put
+the monthly bill under the $8.00 allowance. The second reason is older and
+standing: DeepSeek is ruled out on EU data-protection grounds, and this was
+the last production call still on it.
+
+The honest limits travel with the decision. The A/B read HEADLINES and the
+production call reads bodies, this repo does not persist `raw_text` so an
+extraction gold set cannot exist yet, and the gate gold set is English only.
+None of that was settled by this change and none of it is claimed to be.
+
+**Guard.** The provider order stopped being a no-op and became a live
+decision, so it is now pinned and tested. `PROVIDER_ORDER` is keyed by model
+AUTHOR; `deepseek` had three endpoints and not one of them priced a cache
+read, so the pin bought nothing and the comment said so. Read on 2026-09-12
+from OpenRouter's own endpoints API, `google/gemini-2.5-flash-lite` has five
+(`google-ai-studio` and its `/flex` and `/priority` tags, `google-vertex`,
+`google-vertex/eu`) and EVERY ONE prices a cache read at 0.1x. A prefix cache
+is per provider and 2,509 of extraction's ~3,100 input tokens are byte-stable,
+so unpinned the prefix scatters across five caches and warms none. The shipped
+order is `google-ai-studio` then `google-vertex`: the author's own endpoint
+first, the identical published price second, `allow_fallbacks` still true so a
+pinned provider's outage costs the cache and never the run. `/flex` is half
+price and deliberately NOT the default, because it is best-effort capacity and
+a stalled collect job is a day of signals nobody publishes; `/priority` is
+1.8x; `google-vertex/eu` is a data-residency decision and the owner's to take.
+All three are one `TIT_PROVIDER_ORDER` away. The gate is the same slug and so
+routes with extraction now, which is the point rather than a side effect.
+
+A second guard is about the number the swap will make wrong. `cost_projection`
+fits its calibration factor by dividing what the provider CHARGED by what the
+price list models, so pricing a new extraction model through a ledger the old
+one was billed for makes the factor absorb the model change and push it back
+into the gate and read lines. The measurement doc caught this by hand: read
+that way the same ledger reported gate $3.35 and read $3.80 where it really
+holds $1.92 and $2.17. `measured()` now also reads the `model` column and the
+program prints a CAUTION naming the models the runs were billed for whenever
+they do not include the configured one, so the gate and read lines read
+UNCALIBRATED instead of reading wrong. It clears itself once the ledger holds
+priced runs on the new model.
+
+**Rollback, one line or zero.** Set `TIT_MODEL=deepseek/deepseek-chat` in the
+environment to put the incumbent back with no deploy, or revert the one default
+in `pipeline/classify.py`. The incumbent's own provider order is kept in
+`PROVIDER_ORDER` for exactly that reason, and a test pins it: a rollback that
+silently loses its routing is not the configuration it claims to restore. Note
+the standing EU ruling still applies to that rollback, so it is an outage
+measure and not a resting state.
+
+**What to watch, for a week, in `ops_status.py [2a]`.** Three numbers, and a
+move in any of them is the swap's and not a coincidence.
+
+1. **The guardrail hold rate.** The extractor decides what a row IS, so a
+   cheaper extractor shows up first as rows the guardrails refuse or accept
+   differently, not as a bad sentence. A drop is the failure mode the hand
+   read was trying to see in advance on 40 headlines.
+2. **Cost per stored row.** $0.00285 on the incumbent. This is the number the
+   swap exists to move, and the measured 0.41x per item is a claim about
+   headlines, not about `FULL_READ_CHARS` of body.
+3. **The gate kept share, and reads bought against rows stored (48%).** This
+   is the number the swap must NOT move. The gate and extraction are now the
+   same slug, and a cheaper extractor that keeps fewer of what the gate passed
+   is capture lost, however good the bill looks.
+
+And one thing that is still unmeasured and should be bought first:
+`python3 ab_models.py --cache-check google/gemini-2.5-flash-lite` reads the
+BILLED `cached_tokens` and is the only thing that can turn the cached end of
+the projection ($5.44/month) from a price list into a measurement. Until it is
+run, the honest range is $5.44 to $7.28.
+
+
+---
+
 ## 2026-09-12 - The standing landmark gaps are filled from their primary documents, each row accepted by two referees
 
 **What.** `fill_landmarks.py` (+ `tests/test_fill_landmarks.py`, 26 offline

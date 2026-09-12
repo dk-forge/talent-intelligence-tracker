@@ -19,7 +19,19 @@ import requests
 from . import cheap_extract, gate_classifier, gate_ledger, prompts, validate, vocab
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")
+
+# EXTRACTION. Moved off `deepseek/deepseek-chat` on 2026-09-12 by the owner's
+# adjudication, on docs/MEASURE-readthrough-off-deepseek-2026-09-12.md: 89.3%
+# against the gate gold set to the incumbent's 64.0% (intervals that do not
+# touch), 9 to 6 in the challenger's favour on the hand read of every
+# extraction disagreement, and 0.41x the measured cost per item. The second
+# reason is standing and older: DeepSeek is ruled out on EU data-protection
+# grounds, and this was the last production call still on it.
+#
+# THE ROLLBACK IS ONE LINE OR ZERO. Set TIT_MODEL=deepseek/deepseek-chat in
+# the environment to put the incumbent back without a deploy, or revert this
+# default. Nothing else selects the extraction model.
+MODEL = os.environ.get("TIT_MODEL", "google/gemini-2.5-flash-lite")
 
 # Two-stage classification. The gate model answers ONE question (is this a
 # talent signal at a named employer?) in one word, at roughly 1/40th the cost
@@ -39,10 +51,13 @@ GATE_MODEL = os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")
 # Stage 3: the READ-THROUGH, on its own model and its own small prompt.
 #
 # MODEL still does extraction with SCHEMA_HINT untouched, because extraction is
-# pattern-matching and deepseek does it well at $0.00128 a call. Interpretation
-# is judgement, and the quality A/B this comment used to say had not been run
-# (ab_models.py --readthrough) has now been run: deepseek RESTATED the headline
-# where the Claude models produced a read-through a recruiter could act on.
+# pattern-matching and a cheap model does it well. Interpretation is judgement,
+# and the quality A/B this comment used to say had not been run
+# (ab_models.py --readthrough) has now been run twice: the retired incumbent
+# RESTATED the headline, and on 2026-09-12 flash-lite restated it too and once
+# named the PUBLISHER as the employer. The Claude models produced a
+# read-through a recruiter could act on. That is why this call is separate and
+# why the extraction swap does not touch it.
 #
 # The reason this is a SECOND CALL rather than a better model on the first one:
 # the fused prompt is ~3,100 input tokens and ~2,476 of them are SCHEMA_HINT,
@@ -74,24 +89,32 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # the fields are `order`, `allow_fallbacks`, `only`, `ignore`,
 # `require_parameters`, `sort`, `data_collection`, `max_price`).
 #
-# WHAT THIS IS WORTH TODAY: NOTHING, AND THE COMMENT SAYS SO. OpenRouter's own
-# endpoints API for `deepseek/deepseek-chat` (checked 2026-07-29) returns exactly
-# three endpoints — streamlake, deepinfra/fp4, novita/fp8 — and NOT ONE of them
-# publishes an `input_cache_read` price. There is no cache to hit on this slug,
-# so the -$2.84/month in TECHLOG 2026-07-30 is not available by pinning and is
-# not claimed here. What IS true: `deepseek/deepseek-chat-v3.1` has four
-# endpoints that do price cache reads, at ~0.5x and not the 0.1x DeepSeek's own
-# API charges, and DeepSeek's first-party endpoint serves neither slug through
-# OpenRouter right now. So the honest saving is a model switch away, at half the
-# advertised rate, and that is a decision about extraction quality rather than a
-# routing tweak.
+# WHAT THIS IS WORTH TODAY: REAL MONEY, FOR THE FIRST TIME. Until 2026-09-12
+# extraction ran on `deepseek/deepseek-chat`, whose three OpenRouter endpoints
+# (streamlake, deepinfra/fp4, novita/fp8, checked 2026-07-29) price no
+# `input_cache_read` at all, so this block bought nothing and said so. The
+# comment then said the ordering ships anyway because "the prefix stops
+# scattering the day a caching endpoint appears". That day is today. The
+# endpoints API for `google/gemini-2.5-flash-lite` (checked 2026-09-12) returns
+# five endpoints and EVERY ONE of them prices a cache read at 0.1x of its own
+# prompt rate:
 #
-# It ships anyway, because the ordering itself buys three things that cost
-# nothing: the prefix stops scattering the day a caching endpoint appears (the
-# order already prefers it), `cached_tokens` becomes interpretable instead of a
-# mixture, and extraction stops being a quantisation lottery — deepinfra serves
-# this model at fp4 and novita at fp8, and today which one reads a filing is
-# decided per request.
+#     google-ai-studio            $0.10/M in   $0.40/M out   cache read $0.01/M
+#     google-ai-studio/flex       $0.05/M in   $0.20/M out   cache read $0.005/M
+#     google-ai-studio/priority   $0.18/M in   $0.72/M out   cache read $0.018/M
+#     google-vertex               $0.10/M in   $0.40/M out   cache read $0.01/M
+#     google-vertex/eu            $0.10/M in   $0.40/M out   cache read $0.01/M
+#
+# A prefix cache is per provider, and 2,509 of extraction's ~3,100 input tokens
+# are the byte-stable MINI_SYSTEM + SCHEMA_HINT. Scattered across five
+# endpoints it warms on none of them; pinned, it can warm on one. Whether it
+# ACTUALLY warms is not claimed here and is not knowable from a price list:
+# `ab_models.py --cache-check google/gemini-2.5-flash-lite` reads the BILLED
+# `cached_tokens` and is the only thing that may settle it.
+#
+# The ordering also buys the two things it always bought: `cached_tokens`
+# becomes interpretable instead of a mixture of five endpoints, and extraction
+# stops being a per-request lottery between them.
 #
 # THE AVAILABILITY TRADEOFF, made explicitly: `allow_fallbacks` is TRUE and there
 # is no code path that sets it false. A pinned provider having an outage must
@@ -105,10 +128,29 @@ USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 # TIT_PROVIDER_ORDER overrides the list for the extraction author; set it to
 # "off" to send no `order` at all.
 PROVIDER_ORDER = {
-    # deepseek first: the model author's own endpoint is the only one that would
-    # bill a cache read at 0.1x. It is absent from the slug today, and an absent
-    # slug in `order` is skipped, so this line is a no-op that becomes a saving
-    # by itself if DeepSeek starts serving here again.
+    # google-ai-studio first: it is the model author's own endpoint, it is one
+    # of the two cheapest at the standard rate, and it is where an implicit
+    # prefix cache is most likely to be served. google-vertex second at the
+    # identical published price, so a bad afternoon on the first costs the
+    # cache and not the run.
+    #
+    # The two tagged variants are deliberately LEFT OUT rather than forgotten.
+    # `google-ai-studio/flex` is half the price and would be the obvious first
+    # choice on arithmetic alone, but flex is best-effort capacity: a collect
+    # job that stalls is a day of signals nobody publishes, and nothing here
+    # has measured its latency. `google-ai-studio/priority` is 1.8x for a
+    # guarantee extraction does not need. `google-vertex/eu` is a data
+    # residency decision and not a routing one; it is the owner's to take.
+    # Any of the three can be had for a run with TIT_PROVIDER_ORDER.
+    #
+    # Kept keyed by AUTHOR, so the gate (same slug) and extraction now route
+    # together. That is the point: they share the provider whose cache we want
+    # warm, and the read-through's anthropic/ call is untouched.
+    "google": ("google-ai-studio", "google-vertex"),
+
+    # The retired incumbent's order, kept because TIT_MODEL=deepseek/deepseek-chat
+    # is the documented one-line rollback and a rollback that silently loses its
+    # routing is not the same configuration it claims to restore.
     "deepseek": ("deepseek", "streamlake", "novita", "deepinfra"),
 }
 

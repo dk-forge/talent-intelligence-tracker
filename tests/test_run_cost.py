@@ -51,7 +51,7 @@ def latest(connection) -> sqlite3.Row:
 
 
 USAGE = {
-    "model": "deepseek/deepseek-chat",
+    "model": "google/gemini-2.5-flash-lite",
     "gate_model": "google/gemini-2.5-flash-lite",
     "prompt_tokens": 216_000,
     "cached_tokens": 131_000,
@@ -314,7 +314,7 @@ def test_ops_status_shows_the_cost_and_the_ratio(conn, capsys):
 
     assert "$0.0768" in out
     assert "60 reads -> 34 rows (56%)" in out
-    assert "deepseek/deepseek-chat read-through" in out
+    assert "google/gemini-2.5-flash-lite read-through" in out
     assert "per stored row" in out
     assert problems == []
 

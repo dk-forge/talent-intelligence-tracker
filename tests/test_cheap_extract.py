@@ -380,14 +380,22 @@ def test_run_collect_prechecks_before_the_model():
 def test_the_cost_knobs_are_env_configurable_with_the_agreed_defaults():
     """The three model/cap decisions, pinned where they were made. The gate
     default is the A/B winner; the read cap default is what $25 a month buys
-    (cost_projection.py section [5]); and the extraction model is deliberately
-    NOT switched - that change is gated behind its own A/B."""
+    (cost_projection.py section [5]); and the extraction model moved off
+    deepseek on 2026-09-12, on the owner's adjudication and the A/B that gated
+    it (docs/MEASURE-readthrough-off-deepseek-2026-09-12.md).
+
+    What this protects has not changed: each of the three is reachable from
+    the environment, so a bad model is one variable away from being undone
+    without a deploy, and none of them is hardcoded at a call site."""
     import pipeline.classify as classify_module
     src = inspect.getsource(classify_module)
     assert 'os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")' in src
     assert 'os.environ.get("TIT_READTHROUGH_CAP", "88")' in src
-    assert 'os.environ.get("TIT_MODEL", "deepseek/deepseek-chat")' in src, \
-        "the read-through model must stay on the incumbent until its own A/B runs"
+    assert 'os.environ.get("TIT_MODEL", "google/gemini-2.5-flash-lite")' in src, \
+        "the extraction model is the 2026-09-12 A/B winner, set from TIT_MODEL"
+    # The rollback the swap promised has to be REACHABLE, not just described.
+    assert 'MODEL = os.environ.get("TIT_MODEL"' in src, \
+        "TIT_MODEL is the one-line rollback to deepseek; nothing else selects it"
 
 
 def test_every_run_measures_reads_bought_vs_rows_stored():

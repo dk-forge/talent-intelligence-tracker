@@ -54,7 +54,7 @@ def capture(monkeypatch, content: str) -> dict:
         def json(self):
             return {"choices": [{"message": {"content": content},
                                  "finish_reason": "stop"}],
-                    "provider": "StreamLake",
+                    "provider": "Google AI Studio",
                     "usage": {"prompt_tokens": 3100, "completion_tokens": 400,
                               "prompt_tokens_details": {"cached_tokens": 2476},
                               "cost": 0.00128}}
@@ -78,7 +78,16 @@ def test_extraction_pins_the_provider_order(monkeypatch, stats):
     classify._call(classify.MODEL, classify.MINI_SYSTEM, "x", timeout=5)
 
     provider = sent["provider"]
-    assert provider["order"] == ["deepseek", "streamlake", "novita", "deepinfra"]
+    # google/gemini-2.5-flash-lite (extraction since 2026-09-12) is served by
+    # five OpenRouter endpoints: google-ai-studio, its /flex and /priority
+    # tags, google-vertex and google-vertex/eu. All five price a cache read at
+    # 0.1x, and a prefix cache is per provider, so leaving the choice to
+    # OpenRouter scatters 2,509 byte-stable tokens across five caches and warms
+    # none. The author's own endpoint leads; vertex follows at the identical
+    # published price so an outage costs the cache and not the run. The two
+    # cheap/fast tags are decisions with tradeoffs and are reachable through
+    # TIT_PROVIDER_ORDER, not shipped as a default.
+    assert provider["order"] == ["google-ai-studio", "google-vertex"]
     assert provider["allow_fallbacks"] is True
     # The reason the block existed before this change is still true.
     assert provider["require_parameters"] is True
@@ -127,19 +136,41 @@ def test_a_provider_slug_is_only_sent_to_the_author_that_has_one(monkeypatch, st
     assert "response_format" not in sent   # Anthropic endpoints 404 with it
 
 
-def test_the_gate_model_is_not_pinned_either():
-    assert classify.provider_order(classify.GATE_MODEL) == ()
-    assert classify.provider_order(classify.MODEL)[0] == "deepseek"
+def test_the_gate_now_routes_with_extraction_because_they_share_an_author():
+    """The order is keyed by model AUTHOR, and since 2026-09-12 the gate and
+    extraction are the same slug. So the gate is pinned too, deliberately:
+    both calls want the same endpoint's cache warm, and an unpinned gate would
+    be the thing scattering it."""
+    assert classify.provider_order(classify.GATE_MODEL) == \
+        classify.provider_order(classify.MODEL)
+    assert classify.provider_order(classify.MODEL)[0] == "google-ai-studio"
+
+
+def test_the_rollback_model_keeps_the_order_it_had():
+    """TIT_MODEL=deepseek/deepseek-chat is the documented one-line rollback. A
+    rollback that silently loses its provider routing is not the configuration
+    it claims to restore, so the retired incumbent's order stays in the map."""
+    assert classify.provider_order("deepseek/deepseek-chat") == \
+        ("deepseek", "streamlake", "novita", "deepinfra")
+
+
+def test_an_author_with_no_entry_is_sent_no_order_at_all():
+    """The map is a preference list, never a filter. An author nobody has
+    looked up endpoints for gets no `order`, rather than a guessed one."""
+    assert classify.provider_order("mistralai/mistral-large") == ()
+    assert classify.provider_order("") == ()
 
 
 # --- the escape hatch --------------------------------------------------------
 
 def test_the_order_can_be_overridden(monkeypatch, stats):
     sent = capture(monkeypatch, '{"is_talent_signal": false}')
-    monkeypatch.setenv("TIT_PROVIDER_ORDER", "novita, deepinfra")
+    monkeypatch.setenv("TIT_PROVIDER_ORDER", "google-ai-studio/flex, google-vertex")
     classify._call(classify.MODEL, classify.MINI_SYSTEM, "x", timeout=5)
 
-    assert sent["provider"]["order"] == ["novita", "deepinfra"]
+    # This is how the half-price flex endpoint is bought for a run without
+    # shipping its capacity risk as the default.
+    assert sent["provider"]["order"] == ["google-ai-studio/flex", "google-vertex"]
 
 
 def test_pinning_can_be_switched_off_in_one_line(monkeypatch, stats):
@@ -171,5 +202,5 @@ def test_the_run_records_which_endpoint_actually_served_it(monkeypatch, stats):
     capture(monkeypatch, '{"is_talent_signal": false}')
     classify._call(classify.MODEL, classify.MINI_SYSTEM, "x", timeout=5)
 
-    assert classify.STATS["providers"] == "StreamLake"
+    assert classify.STATS["providers"] == "Google AI Studio"
     assert classify.STATS["cached_tokens"] == 2476

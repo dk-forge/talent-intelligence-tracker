@@ -30,9 +30,14 @@ MODELLED   everything with a "would be" in it: a price list times a token
 WHAT IT DELIBERATELY WILL NOT DO
 --------------------------------
 It will not quote a saving for a lever that has not been measured. Prompt
-caching is the standing example: `deepseek/deepseek-chat` publishes no cache
-read price on any endpoint, so the saving is exactly $0 and is printed as $0
-however attractive the arithmetic would be if it did.
+caching was the standing example: `deepseek/deepseek-chat`, the extraction
+model until 2026-09-12, published no cache read price on any endpoint, so the
+saving was exactly $0 and was printed as $0 however attractive the arithmetic
+would be if it did. The rule outlives the example. `google/gemini-2.5-flash-lite`
+DOES price a cache read on every endpoint, so the arithmetic is no longer
+zero, but a price list is still not a measurement: whether the prefix is
+actually served from cache is `ab_models.py --cache-check`, which reads the
+billed `cached_tokens` and returns PASS / FAIL / UNKNOWN.
 """
 
 from __future__ import annotations
@@ -158,14 +163,16 @@ EXTRACT_PREFIX = 2509
 
 MODELS = {
     "gate": os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite"),
-    "extract": os.environ.get("TIT_MODEL", "deepseek/deepseek-chat"),
+    "extract": os.environ.get("TIT_MODEL", "google/gemini-2.5-flash-lite"),
     "read": os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5"),
 }
 
 # Candidate swaps priced beside the incumbent. Nothing here is switched on by
 # this program; it prices decisions, it does not take them.
 ALTERNATIVES = {
-    "extract": ["deepseek/deepseek-chat-v3.1", "google/gemini-2.5-flash-lite"],
+    # The retired incumbent stays priced beside the model that replaced it: a
+    # rollback whose bill nobody can read is a decision taken blind.
+    "extract": ["deepseek/deepseek-chat", "anthropic/claude-haiku-4.5"],
     "read": ["anthropic/claude-haiku-4.5", "anthropic/claude-sonnet-5:batch",
              "anthropic/claude-haiku-4.5:batch"],
 }
@@ -238,7 +245,8 @@ def measured(conn) -> dict:
     """What the model actually charged, out of the ledger."""
     rows = list(conn.execute(
         "SELECT collector, run_at, cost_usd, reads_bought, rows_from_reads, "
-        "       prompt_tokens, completion_tokens, cached_tokens, detail "
+        "       prompt_tokens, completion_tokens, cached_tokens, detail, "
+        "       model "
         "  FROM source_health "
         " WHERE cost_usd IS NOT NULL ORDER BY run_at DESC LIMIT 40"))
     if not rows:
@@ -261,6 +269,11 @@ def measured(conn) -> dict:
         "cached_tokens": sum(r[7] or 0 for r in rows),
         "newest": rows[0][1],
         "oldest": rows[-1][1],
+        # Which model was actually BILLED for these runs. The calibration
+        # factor below divides a charge by a price list, so the two have to be
+        # talking about the same model or the factor absorbs the difference
+        # between them and silently re-inflates every projection.
+        "models": {r[9] for r in rows if r[9]},
     }
 
 
@@ -504,6 +517,20 @@ def main() -> int:
     print(f"\n    calibration: the model says ${modelled:.4f} for the runs the "
           f"provider charged\n    ${m['cost']:.4f} for, so every projection "
           f"below is multiplied by {factor:.2f}.")
+    # The trap the 2026-09-12 measurement pass named before the swap: this
+    # factor is fitted on a ledger the PROVIDER charged, so pricing a different
+    # extraction model through it makes the factor absorb the price difference
+    # and pushes it back into the gate and read lines. It is not a small
+    # effect: priced that way, the same ledger reported gate $3.35 and read
+    # $3.80 where it really holds $1.92 and $2.17. So say it out loud until the
+    # ledger has caught up with the configuration.
+    billed = m.get("models") or set()
+    if billed and MODELS["extract"] not in billed:
+        print(f"    CAUTION: those runs were billed for "
+              f"{', '.join(sorted(billed))}, not {MODELS['extract']}. The "
+              f"factor is absorbing a model change, so read the EXTRACTION "
+              f"line alone and treat the gate and read lines as UNCALIBRATED "
+              f"until the ledger holds priced runs on the configured model.")
 
     # [4] ------------------------------------------------------------------
     print("\n[4] THE BILL, per month, at full cadence")
