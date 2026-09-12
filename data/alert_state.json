@@ -15,16 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-structured:main:7f557f742ab96f36": {
-      "first": 1789201096,
-      "last": 1789201096,
-      "subject": "CI RED: collect-structured: PUBLISH FAILED: gave up after retries: 504: <!DOCTYPE html>"
-    },
-    "collect-structured:main:b4a1b58d8b26c81b": {
-      "first": 1789210206,
-      "last": 1789210206,
-      "subject": "CI RED: collect-structured: [denmark_cvr] FETCH FAILED: the canary search at /cvr-permanent/virksomhed/_search answered 401. Either DENMARK_DATA_USER/DENMARK_DATA_PASSWORD are wron"
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -41,6 +31,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-12T11:16:06+00:00",
+  "updated_at": "2026-09-12T12:41:09+00:00",
   "version": 1
 }
