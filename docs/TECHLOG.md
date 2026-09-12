@@ -172,6 +172,66 @@ the $0.50 is its own usage arithmetic and the key's monthly total is the
 authority.
 
 ---
+## 2026-09-12 - The first European recall reference set is sealed; the worldwide and US drafts for August were not
+
+**What.** `analysis/recall/eu/goldset-eu-2026-08.json` (2026-08-eu-v1, 46
+events, 20 countries, 26 funding / 20 leadership, sealed) with its labels file
+`analysis/recall/2026-08-eu-v1-labels.json`, the `eu` family in
+`analysis/recall/family.py`, `EU_REQUIRED_SHAPE` and the explicit thirty
+country population in `goldset.py`, a third measure step and results path in
+`recall.yml`, the Europe section on the recall page (plugin 1.88.4), staleness
+and health entries for `recall_eu`, and `tests/test_recall_eu.py` plus
+`tests/test_recall_sets_2026_08.py`.
+
+**How the rows were admitted.** Sixteen independent research passes (three
+for Europe: north and the British Isles, centre and south, central and eastern
+Europe, plus a France and Italy top up after the second pass found nothing
+there because its trade press returned 403), each forbidden from consulting
+this tracker, its database or its repository, enumerating chronologically
+inside 2026-08-01 to 2026-08-31 and fetching every page it cited. Every
+candidate URL was then fetched AGAIN from this machine (HTTP 200 and the
+employer's name on the page, or dropped as unreachable), and every row was put
+to two independent referees (anthropic/claude-sonnet-4.5 and openai/gpt-4o)
+with the protocol's own definition and an excerpt of the mechanically fetched
+page. Only rows both accepted entered the set; every verdict, kept or not, is
+in the labels file. 204 candidates across all passes, 178 accepted by both,
+$1.33 USD of referee spend on the sibling's key through `classify._call`.
+
+**Why the worldwide and US drafts were not sealed.** Both were assembled by
+the same machinery and both fail their own guards, which is the machinery
+working. The worldwide draft holds 146 accepted events in 51 countries; the
+July set reached 79 countries and `goldset.validate` refuses a new set below
+80% of the widest one (63). The US draft holds 50 funding events but the
+Austin cell has 6 and the shape needs four metros at 8 or more; Austin's
+outlets (the Statesman, KXAN, Business Wire, PR Newswire search) all answered
+403 to fetches and the session's web search allowance ran out before a third
+pass could try others. Neither number is answered by relaxing a floor. The
+passes, the fetch results and the labels are kept in the gitignored
+`scratchpad/recall-2026-08/` beside this checkout so a follow up session can
+add the missing countries and Austin rows without re paying for what is
+already labelled, then run `assemble.py` from there. Until then the worldwide
+and US pages keep measuring against the July and June sets.
+
+**Two defects found in the referee harness, both fixed before sealing.** The
+first run stored 33 of Sonnet's verdicts as "unparseable": it wraps its
+answer in a code fence and the 80 token cap cut the JSON off inside the
+trailing "why" string, so a verdict that said accept was recorded as a
+rejection. The parser now strips the fence and, when the object is cut off,
+reads the four acceptance fields and the confidence individually and marks
+the verdict salvaged; the 33 were re read from the stored raw answers at no
+cost. Second, the definition said "country = where the employer is
+headquartered" and Sonnet read a Canadian row's `CA` as California; the
+definition now says the code is ISO alpha-2 and names that case, and the one
+affected row was re asked. Both are the same lesson as the guardrail
+adjudicator's: a referee's "no" has to be read before it is counted.
+
+**Guard.** `tests/test_recall_sets_2026_08.py` fails if any item in the sealed
+set lacks two recorded accepting verdicts, if a rejected candidate is missing
+from `not_kept`, if a row cites an aggregator or a people data host, if any
+country is outside the declared population, or if a dash reaches the page
+copy. `EU_REQUIRED_SHAPE` caps any one country at 30% so the set cannot be
+rebuilt out of the London press.
+
 ## 2026-09-12 - The plugin deploy was still logging in to the host the site left
 
 **What.** `deploy-plugin.yml` reads `CHEMICLOUD_USERNAME` and

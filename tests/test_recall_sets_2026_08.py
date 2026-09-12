@@ -1,7 +1,8 @@
-"""The August 2026 reference sets and the labels that admitted every row.
+"""The August 2026 reference set and the labels that admitted every row.
 
-Three sets landed on 2026-09-12, worldwide, United States and the first
-European one, and for the first time the per-item judgement ("is this event in
+The first European set landed on 2026-09-12 (the worldwide and United States
+drafts for the same window were assembled beside it and did NOT clear their
+own guards, so they were not sealed; TECHLOG 2026-09-12), and for the first time the per-item judgement ("is this event in
 scope, is the amount the one the page states") was made by two independent
 AI referees rather than by a person. That is only defensible if the judgement
 is recorded beside the set and can be re-read: so every item in each set must
@@ -25,8 +26,6 @@ from analysis.recall import family, goldset  # noqa: E402
 RECALL = os.path.join(ROOT, "analysis", "recall")
 
 SETS = {
-    "2026-08-v1": (os.path.join(RECALL, "goldset-2026-08.json"), family.WORLD),
-    "2026-08-us-v1": (os.path.join(RECALL, "us", "goldset-us-2026-08.json"), family.US),
     "2026-08-eu-v1": (os.path.join(RECALL, "eu", "goldset-eu-2026-08.json"), family.EU),
 }
 REFEREES = ("anthropic/claude-sonnet-4.5", "openai/gpt-4o")
