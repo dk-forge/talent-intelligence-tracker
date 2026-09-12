@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect:main:b849c1505dee6db3": {
+      "first": 1789257465,
+      "last": 1789257465,
+      "subject": "CI RED: collect: requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -31,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-12T12:41:09+00:00",
+  "updated_at": "2026-09-12T23:57:46+00:00",
   "version": 1
 }
