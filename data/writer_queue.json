@@ -214,75 +214,10 @@
     "ticket:20260906T165201Z-backfill-gdelt-2026": "2026-09-11T21:21:16Z",
     "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-12T00:14:35Z",
     "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-12T00:14:35Z",
-    "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-12T00:14:35Z"
+    "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-12T00:14:35Z",
+    "ticket:20260912T104321Z-collect-structured": "2026-09-12T10:50:09Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-12T10:48:55Z",
-      "history": [
-        {
-          "at": "2026-09-12T10:43:21Z",
-          "detail": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-12T10:48:55Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260912T104321Z-collect-structured",
-      "inputs": {
-        "dry_run": "true",
-        "source": "denmark_cvr"
-      },
-      "priority": 0,
-      "reason": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
-      "requested_at": "2026-09-12T10:43:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-03T13:51:00Z",
-      "history": [
-        {
-          "at": "2026-09-03T13:50:20Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-03T13:51:00Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-03T13:58:13Z",
-          "detail": "run 33763442774",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-03T13:58:13Z",
-          "detail": "run 33763442774",
-          "event": "landed"
-        }
-      ],
-      "id": "20260903T135020Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-03T13:58:13Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-03T13:50:20Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33763442774",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-03T21:15:01Z",
@@ -2562,6 +2497,44 @@
       "run_id": "34689196529",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-12T10:48:55Z",
+      "history": [
+        {
+          "at": "2026-09-12T10:43:21Z",
+          "detail": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-12T10:48:55Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-12T10:50:09Z",
+          "detail": "run 34689433274",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-12T10:50:09Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260912T104321Z-collect-structured",
+      "inputs": {
+        "dry_run": "true",
+        "source": "denmark_cvr"
+      },
+      "priority": 0,
+      "reason": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
+      "requested_at": "2026-09-12T10:43:21Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34689433274",
+      "state": "failed",
+      "workflow": "collect-structured.yml"
     }
   ],
   "version": 1
