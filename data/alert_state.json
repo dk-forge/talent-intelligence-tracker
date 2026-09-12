@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-structured:main:7f557f742ab96f36": {
+      "first": 1789201096,
+      "last": 1789201096,
+      "subject": "CI RED: collect-structured: PUBLISH FAILED: gave up after retries: 504: <!DOCTYPE html>"
+    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -31,6 +36,6 @@
       "subject": "CI RED: tests: assert not {'recall_eu'}"
     }
   },
-  "updated_at": "2026-09-12T06:37:43+00:00",
+  "updated_at": "2026-09-12T08:18:18+00:00",
   "version": 1
 }
