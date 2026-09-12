@@ -30,17 +30,17 @@
       "last": 1788716370,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "money-basis-check:main:9a448a684954b92c": {
+      "first": 1789211765,
+      "last": 1789211765,
+      "subject": "CI RED: money-basis check: UNKNOWN  site: could not be read (***/wp-json/talent/v1/aggregate: 504 Server Error: Gateway Timeout for url: ***/wp-json/talent/v1/aggregate). NOT a pas"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:main:a150e75b2e28f3a1": {
-      "first": 1789195061,
-      "last": 1789195061,
-      "subject": "CI RED: tests: assert not {'recall_eu'}"
     }
   },
-  "updated_at": "2026-09-12T10:50:07+00:00",
+  "updated_at": "2026-09-12T11:16:06+00:00",
   "version": 1
 }
