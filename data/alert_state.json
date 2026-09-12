@@ -20,12 +20,17 @@
       "last": 1788716370,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "recall:main:8338cae5e0ce50a4": {
+      "first": 1789183290,
+      "last": 1789183290,
+      "subject": "CI RED: recall: ! FORE Biotherapeutics: API error, HTTPError: HTTP Error 404: Not Found"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-11T23:32:35+00:00",
+  "updated_at": "2026-09-12T03:21:31+00:00",
   "version": 1
 }
