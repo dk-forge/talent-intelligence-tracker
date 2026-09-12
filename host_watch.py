@@ -356,10 +356,18 @@ def needs_commit(doc: dict, decision: dict, *, now: datetime,
     """Write the ledger only when it SAYS something new.
 
     A probe every 15 minutes that committed every time would be 96 commits a day
-    of one unchanged line. The heartbeat is what keeps 'quiet' from becoming
-    indistinguishable from 'stopped'.
+    of one unchanged line. A pre-threshold failure is not unchanged, though: the
+    next scheduled run starts from the committed ledger, so failures one and two
+    must be durable or the third-failure alarm can never arm. The heartbeat is
+    what keeps a genuinely quiet ledger from becoming indistinguishable from
+    'stopped'.
     """
     if decision["state_changed"] or decision["newly_sustained"] or outbox_changed:
+        return True
+    watched = [doc, *(doc.get("origins") or {}).values()]
+    if any(item.get("state") == "down"
+           and 0 < item.get("consecutive_failures", 0) < SUSTAINED_FAILURES
+           for item in watched):
         return True
     last = _parse(doc.get("_committed_at"))
     return last is None or now - last >= timedelta(hours=HEARTBEAT_HOURS)

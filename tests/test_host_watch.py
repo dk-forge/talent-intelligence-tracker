@@ -125,6 +125,22 @@ class TestTheLedgerDoesNotBecomeCommitNoise:
         d = host_watch.apply_probe(ledger, False, "HTTP 504", now=_at(0.25))
         assert host_watch.needs_commit(ledger, d, now=_at(0.25), outbox_changed=False)
 
+    def test_pre_threshold_failures_commit_so_the_next_run_can_count_them(self):
+        """Each scheduled run starts from the committed ledger. If failure two
+        is left only in runner memory, failure three reloads failure one and the
+        sustained-outage threshold can never be reached."""
+        ledger = host_watch.load_ledger("/nonexistent")
+        ledger["_committed_at"] = host_watch._iso(_at())
+        first = host_watch.apply_probe(ledger, False, "HTTP 504", now=_at(0.25))
+        assert host_watch.needs_commit(ledger, first, now=_at(0.25),
+                                       outbox_changed=False)
+        ledger["_committed_at"] = host_watch._iso(_at(0.25))
+        second = host_watch.apply_probe(ledger, False, "HTTP 504", now=_at(0.5))
+        assert ledger["consecutive_failures"] == host_watch.SUSTAINED_FAILURES - 1
+        assert host_watch.needs_commit(ledger, second, now=_at(0.5),
+                                       outbox_changed=False), \
+            "failure two must survive into the run that decides failure three"
+
 
 class TestHeldAlertsSurviveAndArrive:
     def _held(self, key="collect:main:abc"):
