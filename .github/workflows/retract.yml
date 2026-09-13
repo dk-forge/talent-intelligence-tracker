@@ -48,7 +48,7 @@ concurrency:
 
 jobs:
   retract:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # RE-DERIVED 2026-08-13 for lists. The 15 here was measured over runs that
     # withdrew a handful of rows (median 0.3 min, max 0.5 over 13 runs); a
     # 27-row list is a case nothing had timed, so the arithmetic, stated:

@@ -81,7 +81,7 @@ concurrency:
 
 jobs:
   correct:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # Twelve rows, one request each. The budget is for the shared host's retry
     # pauses, not for the work.
     timeout-minutes: 20
