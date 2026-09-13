@@ -50,12 +50,17 @@
       "last": 1789211765,
       "subject": "CI RED: money-basis check: UNKNOWN  site: could not be read (***/wp-json/talent/v1/aggregate: 504 Server Error: Gateway Timeout for url: ***/wp-json/talent/v1/aggregate). NOT a pas"
     },
+    "rendered-contrast-audit:main:d8ac800a48694277": {
+      "first": 1789318880,
+      "last": 1789318880,
+      "subject": "CI RED: Rendered contrast audit: RESULT: FAIL, 288 contrast violation(s), 0 overflow(s), 0 theme-control problem(s) are live for readers."
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-13T14:14:39+00:00",
+  "updated_at": "2026-09-13T17:01:21+00:00",
   "version": 1
 }
