@@ -850,6 +850,28 @@ python3 -m venv .venv
 .venv/bin/python run_collect.py --dry-run --offline  # whole pipeline, no spend
 ```
 
+**THE TEST SUITE IS OFFLINE AND MUST STAY OFFLINE. IT RUNS HOURLY.** `tests.yml`
+is on `cron: '43 * * * *'` for a reason that has not changed (bot commits pushed
+with GITHUB_TOKEN start no `push` workflow, so most of main was never tested and
+three commercial provider names reached public main that way) -- do NOT answer a
+load problem by weakening that cadence. Answer it by keeping the suite off the
+network. On 2026-09-13 it was not: three tests spawn `ops_status.py` as a
+SUBPROCESS to read one printed section, `main()` runs every section including
+`_report_published_figures()`, and that is five GETs against the live public
+dashboard. 15 requests to asktherecruiter.com per suite run, hourly, on the
+shared ChemiCloud account that had just timed out every PHP request twice in
+twelve hours under load. No test file named the host and no frame of the stack
+was a test frame, which is why it survived so long.
+
+`tests/conftest.py` now sets `TIT_LIVE_FIGURES=off` beside the identity lookup
+and the plugin preflight, and a child process inherits it. `published_figures.Ctx`
+refuses instead of fetching and every check reports UNKNOWN in those words,
+naming the switch, because a live check switched off silently is read as five
+figures verified. Default is ON: a session running `ops_status.py` is exactly the
+run that should read the site. `tests/test_offline_suite_is_offline.py` is the
+guard and it carries its own positive control, because an empty network log is a
+NOREAD and not a zero.
+
 **Dependencies are hash-pinned. Never `pip install` a name.**
 `requirements.txt` and `requirements-dev.txt` are the human-edited INPUTS:
 floors, for a resolver to read. `requirements.lock` and `requirements-dev.lock`
