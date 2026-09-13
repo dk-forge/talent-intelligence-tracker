@@ -55,7 +55,7 @@ concurrency:
 
 jobs:
   correct:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # 127 retractions are one request each and the republication goes in
     # batches of 25, so this is short. Generous anyway: a timeout mid-run is
     # the failure mode to avoid.
