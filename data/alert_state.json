@@ -25,6 +25,11 @@
       "last": 1789290030,
       "subject": "CI RED: collect-structured: requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
     },
+    "collect-structured:main:f36798478682e2de": {
+      "first": 1789307075,
+      "last": 1789307075,
+      "subject": "CI RED: collect-structured: BOARD FAILED  greenhouse:matx: HTTPError 404 Client Error: Not Found for url: https://boards-api.greenhouse.io/v1/boards/matx/jobs?pay_transparency=true"
+    },
     "collect:main:b849c1505dee6db3": {
       "first": 1789257465,
       "last": 1789257465,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-13T11:00:59+00:00",
+  "updated_at": "2026-09-13T13:44:36+00:00",
   "version": 1
 }
