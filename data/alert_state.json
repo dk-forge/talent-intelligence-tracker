@@ -40,6 +40,11 @@
       "last": 1788716370,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "enrich:main:fbb64a7bbc65fd0f": {
+      "first": 1789308761,
+      "last": 1789308761,
+      "subject": "CI RED: enrich: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 504: <!DOCTYPE html>"
+    },
     "money-basis-check:main:9a448a684954b92c": {
       "first": 1789211765,
       "last": 1789211765,
@@ -56,6 +61,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-13T13:46:42+00:00",
+  "updated_at": "2026-09-13T14:12:42+00:00",
   "version": 1
 }
