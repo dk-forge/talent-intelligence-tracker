@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-national-press:main:463bf2e88c1eef6e": {
+      "first": 1789261669,
+      "last": 1789261669,
+      "subject": "CI RED: collect national press: PUBLISH FAILED: gave up after retries: 504: <!DOCTYPE html>"
+    },
     "collect:main:b849c1505dee6db3": {
       "first": 1789257465,
       "last": 1789257465,
@@ -36,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-12T23:57:46+00:00",
+  "updated_at": "2026-09-13T01:07:50+00:00",
   "version": 1
 }
