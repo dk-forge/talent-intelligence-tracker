@@ -1,7 +1,7 @@
 {
-  "_committed_at": "2026-09-12T22:58:39+00:00",
-  "announced": false,
-  "consecutive_failures": 2,
+  "_committed_at": "2026-09-13T00:51:27+00:00",
+  "announced": true,
+  "consecutive_failures": 3,
   "history": [
     {
       "at": "2026-07-31T01:31:33+00:00",
@@ -46,7 +46,7 @@
   ],
   "last_detail": "HTTP 504 from /wp-json/talent/v1/source-health",
   "last_ok_at": "2026-09-12T18:37:33+00:00",
-  "last_probe_at": "2026-09-12T22:58:39+00:00",
+  "last_probe_at": "2026-09-13T00:51:27+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -58,9 +58,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1052 in 267ms",
-      "last_ok_at": "2026-09-12T22:58:39+00:00",
-      "last_probe_at": "2026-09-12T22:58:39+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1053 in 168ms",
+      "last_ok_at": "2026-09-13T00:51:27+00:00",
+      "last_probe_at": "2026-09-13T00:51:27+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     },
@@ -74,9 +74,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1052 in 253ms",
-      "last_ok_at": "2026-09-12T22:58:39+00:00",
-      "last_probe_at": "2026-09-12T22:58:39+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1053 in 154ms",
+      "last_ok_at": "2026-09-13T00:51:27+00:00",
+      "last_probe_at": "2026-09-13T00:51:27+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     }

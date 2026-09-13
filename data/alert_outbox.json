@@ -222,8 +222,21 @@
       "settled_at": "2026-08-19T13:10:40+00:00",
       "settled_because": "delivered late: not emailed: nothing was open for this scope",
       "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "host-unreachable:2026-09-12T22:27:41+00:00",
+      "kind": "alert",
+      "last_attempt_at": "2026-09-13T00:52:38+00:00",
+      "last_error": "raised while the host was unreachable, so it could not be sent",
+      "raised_at": "2026-09-13T00:52:38+00:00",
+      "run_url": "",
+      "scope": "host:asktherecruiter",
+      "settled_at": "2026-09-13T00:52:40+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-08-19T13:10:40+00:00",
+  "updated_at": "2026-09-13T00:52:40+00:00",
   "version": 1
 }
