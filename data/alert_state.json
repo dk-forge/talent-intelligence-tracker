@@ -50,17 +50,12 @@
       "last": 1789211765,
       "subject": "CI RED: money-basis check: UNKNOWN  site: could not be read (***/wp-json/talent/v1/aggregate: 504 Server Error: Gateway Timeout for url: ***/wp-json/talent/v1/aggregate). NOT a pas"
     },
-    "self-heal:main:546478a37ca6511e": {
-      "first": 1789307201,
-      "last": 1789307201,
-      "subject": "CI RED: Self-heal: Action failed with error: Claude execution failed: result is_error:true"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-13T14:12:42+00:00",
+  "updated_at": "2026-09-13T14:14:39+00:00",
   "version": 1
 }
