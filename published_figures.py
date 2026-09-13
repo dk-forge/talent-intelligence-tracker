@@ -54,6 +54,7 @@ growing a second opinion about what "failing" means.
 from __future__ import annotations
 
 import json
+import os
 import re
 import urllib.error
 import urllib.parse
@@ -227,6 +228,56 @@ def _fetch(url, timeout=30):
         return r.read()
 
 
+#: The switch that says whether THIS run is one that reads the live site.
+#:
+#: Added 2026-09-13, during a live outage. asktherecruiter.com and the sibling
+#: layoff tracker share one ChemiCloud account, and on 2026-09-12/13 every PHP
+#: request on that account timed out at 10s, twice in twelve hours. It was load,
+#: not a code fault, and a measurable part of that load was our own test suites
+#: using the production website as test data. This repository runs its WHOLE
+#: pytest suite hourly on a cron, plus on every push and every pull request, and
+#: three of its tests spawn `ops_status.py` as a subprocess to read one printed
+#: section. Each of those subprocesses ran `check_all()` against production,
+#: which is five HTTP reads: 15 requests to the live host per suite run, on a
+#: suite nobody thought was online at all. The stack had no test frame in it,
+#: which is why it went unnoticed for as long as it did.
+#:
+#: DEFAULT ON. A session running `ops_status.py` at the start of its day, and
+#: every workflow that reports these verdicts, is exactly the run that SHOULD
+#: read the live site; switching this off by default would quietly retire the
+#: check that caught a region tab badging 23,991 and returning 25,479. The
+#: offline test suite turns it off for itself in tests/conftest.py, beside the
+#: identity lookup and the plugin preflight, which are the same lesson.
+LIVE_READS_ENV = "TIT_LIVE_FIGURES"
+
+_OFF_WORDS = {"0", "off", "false", "no", "none", "disabled"}
+
+
+class LiveReadsOff(RuntimeError):
+    """Raised INSTEAD of reaching production when live reads are switched off.
+
+    It is an exception rather than a quiet skip on purpose. Every check here
+    already turns a fetch it could not complete into an UNKNOWN result that
+    names what was not checked, so raising lands in the state this project
+    insists on: PASS, FAIL and UNKNOWN are three things, and the absence of a
+    signal is never a pass. A quiet skip would have had to invent a fourth,
+    silent, state, and the silent state is the one that ends up being read as
+    green.
+    """
+
+
+def live_reads_enabled(env=None):
+    """Is this run allowed to read asktherecruiter.com?
+
+    Read from the environment at CALL time, never cached at import, because the
+    three tests that spawn `ops_status.py` set it in the parent process and the
+    child inherits it. A value latched at import would be latched in the wrong
+    process.
+    """
+    env = os.environ if env is None else env
+    return str(env.get(LIVE_READS_ENV, "on")).strip().lower() not in _OFF_WORDS
+
+
 class Ctx:
     def __init__(self, fetch=None, timeout=30, cachebust=None):
         import uuid
@@ -235,7 +286,29 @@ class Ctx:
         self.timeout = timeout
         self.cachebust = cachebust or uuid.uuid4().hex[:12]
 
+    def consults_production(self):
+        """THE LIVE SITE IS READ ONLY WHEN THE RUN IS ACTUALLY READING IT.
+
+        A ctx built on an injected fetch is a test or a replay: the bytes it
+        will be handed did not come from production and there is no reason for
+        anything to ask production about them. A ctx built on the default fetch
+        in a run whose live reads are switched off is an offline run, and an
+        offline run has nothing to say about a live number. Both answer False
+        here, and False is reported as UNKNOWN, which clears nothing.
+
+        Mirrors `Ctx.disclosed()` in the sibling layoff tracker (PR #335, same
+        week, same outage) rather than inventing a second opinion about the same
+        question.
+        """
+        if self._fetch is not _fetch:
+            return False
+        return live_reads_enabled()
+
     def fetch(self, url, timeout=None):
+        if self._fetch is _fetch and not live_reads_enabled():
+            raise LiveReadsOff(
+                "live reads are OFF (%s), so %s was NOT requested"
+                % (LIVE_READS_ENV, url.split("?")[0]))
         if url not in self._cache:
             self._cache[url] = self._fetch(url, timeout or self.timeout)
         return self._cache[url]
@@ -259,6 +332,13 @@ def _get_html(ctx, url):
 
 
 def _why(e):
+    if isinstance(e, LiveReadsOff):
+        # Said in these words because this is the sentence a reader of a green
+        # run has to be unable to mistake for a pass.
+        return (f"LIVE READS ARE OFF ({LIVE_READS_ENV}), so the live site was "
+                f"NOT consulted and this figure was NOT checked. UNKNOWN, and "
+                f"UNKNOWN is not a pass. Re-run with {LIVE_READS_ENV}=on to "
+                f"check it")
     if isinstance(e, urllib.error.HTTPError):
         if e.code == 503:
             return "site is in its deploy maintenance window (HTTP 503)"
