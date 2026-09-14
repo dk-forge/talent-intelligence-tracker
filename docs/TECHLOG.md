@@ -28,6 +28,13 @@ REST namespace. Never write one repo's state into the other's docs.
 **Why.** The 2026-09-11 rule sends a data decision to two vendors and never to a hand edit, but the adjudicator could only be pointed at a finding a check had raised; the five rows the owner named had none. The place question needed its own rules: the money rules have nothing to say about a city, and the gazetteer that filed Construmin under US cannot see the source.
 
 **Guard.** `tests/test_adjudicate_rows.py` (16 offline tests): a session finding resolves no other finding; a `place` finding never holds a row back; two agreeing edits correct the site first and revise second; different countries disagree; a non-ISO country is not a verdict; a rejected live money row is flagged for retraction; the ceiling argument stops the second referee; a CLI dry run leaves the ledger as it found it; the health row carries the spend; the workflow holds the lock, is unscheduled, defaults to dry run and reds on a disagreement. Three defects found by those tests before anything ran: defaults bound at definition time in `main()`, `apply_place` and `reissue`, and `usage_snapshot()` returning None for a paid run that never touched the gate counters.
+## 2026-09-14 - The recall page renders the newer of two copies, not the pushed one outright (1.88.5, pushed, not deployed)
+
+**What.** `includes/recall.php`: `tit_recall_data()` reads the option and the shipped file and returns `tit_recall_newer()`, the one with the later `measured_on`; equal dates keep the option. `tests/php/render_recall.php` proves an older option loses to the file, a newer push wins, and the six edges.
+
+**Why.** The option won outright, which was correct for exactly as long as every push landed. The host 504'd on 2026-09-12/13, the measurement was committed but never pushed, and the page rendered 21.9% from an earlier set beside a shipped file that said 26.6%. A page about honesty was the stalest thing in the system.
+
+**Guard.** The harness's earlier check "the page must prefer the pushed measurement over the file it shipped with" was the rule that failed; it is replaced by the two directions, and the family seeds in the harness carry a far-future date so they beat the shipped family files.
 
 ## 2026-09-14 - Seven workflows mailed the owner's inbox because they never passed OPS_MAIL_TO
 

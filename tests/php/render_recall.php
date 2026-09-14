@@ -147,9 +147,44 @@ $ok = tit_api_recall(new WP_REST_Request($measurement));
 check(!($ok instanceof WP_Error), 'a well formed measurement should be accepted');
 check(isset($ok['stored']) && $ok['stored'] === true, 'and should report that it stored');
 
+// THE NEWER MEASUREMENT RENDERS, WHICHEVER COPY HOLDS IT. The shipped file is
+// the real data/recall.json, so its date is read rather than typed: this
+// pushed measurement (2026-08-03) is OLDER than anything the plugin has
+// shipped since, and must lose to the file. On 2026-09-12/13 a failed push
+// left an older option in front of a newer shipped file for two days.
+$shipped_file = json_decode(file_get_contents(TIT_PATH . 'data/recall.json'), true);
+check(is_array($shipped_file) && strcmp($shipped_file['measured_on'], '2026-08-03') > 0,
+      'the harness assumes the shipped file is newer than 2026-08-03');
 $stored = tit_recall_data();
-check(($stored['measured_on'] ?? '') === '2026-08-03',
-      'the page must prefer the pushed measurement over the file it shipped with');
+check(($stored['measured_on'] ?? '') === $shipped_file['measured_on'],
+      'an option older than the shipped file must lose to the file: a failed push '
+      . 'must not leave a stale figure in front of a newer committed one');
+
+// And a pushed measurement newer than the file wins, which is the whole reason
+// the route exists: the deploy is not armed, the push is what keeps it fresh.
+$newer = $measurement;
+$newer['measured_on'] = '2099-01-01';
+$ok = tit_api_recall(new WP_REST_Request($newer));
+check(!($ok instanceof WP_Error), 'the newer measurement should be accepted');
+check((tit_recall_data()['measured_on'] ?? '') === '2099-01-01',
+      'the page must prefer a pushed measurement newer than the file it shipped with');
+$GLOBALS['tit_options']['tit_recall'] = $measurement;   // back to the 08-03 copy for the checks below
+
+// The chooser itself, both directions and the edges.
+check(tit_recall_newer(array('measured_on' => '2026-08-17', 'summary' => 1),
+                       array('measured_on' => '2026-09-12', 'summary' => 1))['measured_on'] === '2026-09-12',
+      'newer shipped copy wins');
+check(tit_recall_newer(array('measured_on' => '2026-09-14', 'summary' => 1),
+                       array('measured_on' => '2026-09-12', 'summary' => 1))['measured_on'] === '2026-09-14',
+      'newer pushed copy wins');
+check(tit_recall_newer(array('measured_on' => '2026-09-12', 'summary' => 1, 'src' => 'option'),
+                       array('measured_on' => '2026-09-12', 'summary' => 1, 'src' => 'file'))['src'] === 'option',
+      'equal dates keep the pushed copy');
+check(tit_recall_newer(array(), array('measured_on' => '2026-09-12', 'summary' => 1))['measured_on'] === '2026-09-12',
+      'no option: the file');
+check(tit_recall_newer(array('measured_on' => '2026-09-12', 'summary' => 1), array())['measured_on'] === '2026-09-12',
+      'no file: the option');
+check(tit_recall_newer(array(), array()) === array(), 'neither: nothing, never an invented figure');
 
 // A figure with no events behind it is the one thing this route must refuse.
 $typed = $measurement;
@@ -326,7 +361,7 @@ check(strpos($mkt, 'Event captured</th>') === false,
 // cannot quietly drop a population that has never been measured.
 
 $us = array(
-    'measured_on' => '2026-08-11',
+    'measured_on' => '2099-01-01',   // far future: a seeded option must beat the family file the plugin ships (newer wins)
     'family' => 'us',
     'goldset' => array(
         'digest' => 'usdigest1', 'version' => '2026-06-us-v1',
@@ -412,7 +447,7 @@ check(strpos($empty, '%') === false,
 // interval, never the worldwide tables. Its cells are countries, so the
 // country table must render and the metro table must not.
 $eu = array(
-    'measured_on' => '2026-09-12',
+    'measured_on' => '2099-01-01',   // far future: a seeded option must beat the family file the plugin ships (newer wins)
     'family' => 'eu',
     'goldset' => array(
         'digest' => 'eudigest1', 'version' => '2026-08-eu-v1',

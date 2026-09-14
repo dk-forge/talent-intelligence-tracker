@@ -32,29 +32,56 @@ function tit_recall_url() {
 }
 
 /**
- * The measurement this page renders.
+ * The measurement this page renders: THE NEWER of the two copies it can see.
  *
- * Two sources, option first. The file that ships with the plugin is the seed,
- * so a fresh install has something true to show; the option is how a scheduled
- * measurement updates the page WITHOUT a deploy.
+ * Two sources. The file that ships with the plugin is the seed, so a fresh
+ * install has something true to show; the option is how a scheduled
+ * measurement updates the page WITHOUT a deploy. The measurement runs weekly
+ * and commits its result, but the plugin deploy is deliberately not armed on
+ * push, so a file-only page would go on showing the shipping-day figure while
+ * the repository quietly accumulated newer ones.
  *
- * That distinction is the difference between automated and nearly automated.
- * The measurement runs weekly and commits its result, but the plugin deploy is
- * deliberately not armed on push, so a file-only page would have gone on
- * showing the shipping-day figure forever while the repository quietly
- * accumulated newer ones. The number on a page about honesty being the stalest
- * thing in the system is not a joke anybody needs.
+ * WHY NEWER-WINS AND NOT OPTION-FIRST. Until 1.88.5 the option won outright,
+ * and that was right for exactly as long as every push landed. On 2026-09-12
+ * and 2026-09-13 the host answered 504 to every request; recall.yml measured
+ * 26.6% and committed it, the POST to this route never arrived, and the page
+ * went on rendering the option it already held, 21.9% from an earlier set,
+ * under a plugin whose own shipped file said 26.6%. A page about honesty was
+ * the stalest thing in the system, with the right number sitting beside it.
+ * So the two copies are compared on `measured_on` and the newer one renders:
+ * a pushed measurement still beats an old shipped file, and a shipped file
+ * now also beats an option a failed push left behind. Equal dates are one
+ * measurement pushed and shipped; the option is kept, as before.
  */
 function tit_recall_data($family = 'world') {
     $option = ($family === 'world') ? 'tit_recall' : 'tit_recall_' . $family;
     $stored = get_option($option);
-    if (is_array($stored) && !empty($stored['summary'])) return $stored;
+    if (!is_array($stored) || empty($stored['summary'])) $stored = array();
 
     $file = TIT_PATH . 'data/' . (($family === 'world') ? 'recall.json'
                                                        : 'recall-' . $family . '.json');
-    if (!is_readable($file)) return array();
-    $data = json_decode(file_get_contents($file), true);
-    return is_array($data) ? $data : array();
+    $shipped = array();
+    if (is_readable($file)) {
+        $data = json_decode(file_get_contents($file), true);
+        if (is_array($data) && !empty($data['summary'])) $shipped = $data;
+    }
+    return tit_recall_newer($stored, $shipped);
+}
+
+/**
+ * Of a pushed measurement and a shipped one, the one measured later.
+ *
+ * Pure, so the harness can prove both directions. `measured_on` is an ISO
+ * date, so a string comparison is a date comparison; a copy with no date is
+ * treated as older than any dated one, and two undated copies keep the
+ * pushed one.
+ */
+function tit_recall_newer($stored, $shipped) {
+    if (!$stored) return $shipped ? $shipped : array();
+    if (!$shipped) return $stored;
+    $a = (string) ($stored['measured_on'] ?? '');
+    $b = (string) ($shipped['measured_on'] ?? '');
+    return (strcmp($b, $a) > 0) ? $shipped : $stored;
 }
 
 /**
