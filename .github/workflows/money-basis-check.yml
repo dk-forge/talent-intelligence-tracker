@@ -95,7 +95,7 @@ jobs:
           echo "::error::raise summed at a valuation, project cost, purchase price"
           echo "::error::or revenue figure; exit 3 is a check that could not be"
           echo "::error::performed. A figure contradiction goes to the referees:"
-          echo "::error::the step prints its adjudicate-rows.yml ticket."
+          echo "::error::the step prints the adjudicate-rows ticket to queue."
           echo "::error::"
           echo "::error::The correction is a DATABASE WRITE and is queued, never"
           echo "::error::dispatched -- an uncoordinated entry into talent-collect"
