@@ -359,6 +359,63 @@
         "source_links": 9363
       },
       "verdict": "PASS"
+    },
+    {
+      "blob": "4de61885cd72a55035052a5f68e3d528aeb11166",
+      "bytes": 68546560,
+      "checked_at": "2026-09-14T16:15:50Z",
+      "checks": [
+        {
+          "check": "integrity",
+          "detail": "PRAGMA integrity_check: ok",
+          "status": "PASS"
+        },
+        {
+          "check": "core_tables",
+          "detail": "6 core table(s) present and populated",
+          "status": "PASS"
+        },
+        {
+          "check": "no_shrink",
+          "detail": "no table is smaller than it was on 2026-09-07T15:41:40Z",
+          "status": "PASS"
+        },
+        {
+          "check": "republishable",
+          "detail": "all 41 republished column(s) present",
+          "status": "PASS"
+        },
+        {
+          "check": "push_size",
+          "detail": "65.4 MiB of GitHub's 100 MiB per-file push limit, about 105 day(s) of headroom at 335 KB/day",
+          "status": "PASS"
+        }
+      ],
+      "commit": "dddb1f358795ec196036ead90b060c8a817901d5",
+      "files": {
+        "data/talent_intel.db": {
+          "blob": "4de61885cd72a55035052a5f68e3d528aeb11166",
+          "bytes": 68546560,
+          "integrity": "ok"
+        },
+        "data/talent_intel_cache.db": {
+          "blob": "29625a5846e32dede0cede28c8e4adc21c46484d",
+          "bytes": 30797824,
+          "integrity": "ok"
+        }
+      },
+      "integrity": "ok",
+      "largest_file": "data/talent_intel.db",
+      "tables": {
+        "employer_identity": 6263,
+        "funding_corroborations": 0,
+        "publish_guardrails": 52,
+        "seen_urls": 78459,
+        "signals": 37654,
+        "source_health": 625,
+        "source_links": 10572
+      },
+      "verdict": "PASS"
     }
   ],
   "version": 1
