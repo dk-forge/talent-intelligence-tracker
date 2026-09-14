@@ -301,7 +301,7 @@ def push_place(row: dict, fixed: dict, *, session=None) -> dict:
     return result
 
 
-def reissue(conn, row: dict, fixed: dict, *, push=push_place) -> dict:
+def reissue(conn, row: dict, fixed: dict, *, push=push_place, note: str = NOTE) -> dict:
     """Correct the site, then append the revision. In that order, on purpose.
 
     A row is a target while its LIVE revision carries the wrong country, so the
@@ -314,7 +314,7 @@ def reissue(conn, row: dict, fixed: dict, *, push=push_place) -> dict:
     if row["published_at"]:
         result = push(row, fixed)
 
-    store.revise(conn, row["signal_id"], corrected_signal(row, fixed), NOTE)
+    store.revise(conn, row["signal_id"], corrected_signal(row, fixed), note)
 
     # The site's live row now holds this revision's geography, so the revision
     # is published. Left NULL it would be offered to publish() every run, come

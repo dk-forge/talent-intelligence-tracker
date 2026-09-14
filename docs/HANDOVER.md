@@ -69,6 +69,62 @@ audit working: a published total is wrong today.
 3. **The two stale rows are also in PR #142's ticket.** Whichever lands first
    is right; the second confirms it (a referee `edit` to the basis the pass
    already wrote is a no-op revision, and the ledger says both looked).
+## 2026-09-14: five live rows put to the two referees; the run is QUEUED, not run (branch `fix/adjudicate-live-rows`)
+
+The owner named five live rows whose money basis or location contradict
+their source. Per the 2026-09-11 rule none of them is corrected by hand:
+`adjudicate_guardrail.py` gained `--row <hash>` (money) and
+`--place-row <hash>` (location), which open `amount/<hash>` or `place/<hash>`
+in the guardrails ledger through `guardrails.record(..., checks=())` and then
+run the unchanged two-referee flow. A `place` finding is not a ROW_CHECK, so it
+never holds a row back and never goes overdue; an agreed place edit goes
+through `correct_city_country.reissue` (site first, then a revision). A
+disagreement writes its spec and applies nothing.
+
+**This checkout has no OPENROUTER_API_KEY, and the sibling's key charges the
+sibling's pot, so nothing was asked here.** The run goes through the writer
+queue: `.github/workflows/adjudicate-rows.yml` (talent-collect lock,
+`TIT_RUN_KIND: discretionary`, files a priced `adjudicate_rows` health row,
+commits the specs with the database, and goes RED ONCE on exit 3 so the owner
+hears about a disagreement and nothing else). The ticket
+`20260914T200025Z-adjudicate-rows` is in `data/writer_queue.json` with
+`dry_run=false` and `ceiling=0.50`; `drain-writers.yml` dispatches it into an
+empty lock group after this branch merges. **Price before:** measured
+2026-09-12 at $0.016 to $0.030 per row for the pair, so five rows is $0.08 to
+$0.15, under the $0.50 run ceiling and far under the owner's one-time $10.
+**Record after:** the health row and each spec's `cost_usd`; write the sum here.
+
+The five, with the question each referee pair is asked:
+
+| row (content_hash) | what the site shows | the question |
+|---|---|---|
+| `87bb9cda…` Construmin | city San Juan, country US | the outlet is Clarin and the story is the Vicuna copper project; is this San Juan, Argentina? (`place/`) |
+| `bf62d6d6…` PepsiCo | $59M `company_raise` | a $59M logistics-centre investment by PepsiCo in Callao: outbound, not a raise? |
+| `23344cfe…` Elite Metal / Cedar Park | live page `outbound_investment`, $40M | the committed row already carries `outbound_investment`; the live row does too (read 2026-09-14). Listed because the brief named it; the referees confirm or edit the amount |
+| `b1435535…` TikTok | $980M `company_raise` | an investment certificate for TikTok's own HCM City project: outbound, not a raise? |
+| `cdb69e97…` Ayar Labs | $650M `company_raise` | "raises 2026 funding to US$650 million": the source's own summary says an additional US$150 million; is $650M cumulative? |
+
+### For the owner (read the specs under `analysis/adjudications/2026-09-*` after the run lands)
+
+1. **Any row whose spec reads `disagree` or `unknown`.** Nothing was applied
+   for it. Rule as on 2026-09-12: add `status: owner-ruled`, `ruled_by`,
+   `ruling`, `action` to the spec and apply it with
+   `adjudicate_guardrail.py --from-spec <file> --apply` through the queue.
+2. **A rejected LIVE money row stays published.** A reject withholds a row
+   that has not been sent; these five are all on the site, so a `reject`
+   spec carries `live_row_needs_retraction: true` and the figure stays until
+   `retract.py` takes it down. That is a retraction decision, not a session's.
+3. **The gazetteer files every "San Juan" under US** (`vocab._CITY_ALIASES`,
+   line 569). If the referees move Construmin to AR the row is right and the
+   table is still wrong for the next Argentine San Juan, and right for the next
+   Puerto Rican one (which should be PR, not US, either way). A city name that
+   exists in two countries is a vocabulary decision: drop it from the table
+   (an unreadable city is left alone) or key it on the country the source
+   states. Not changed here.
+4. **The Cedar Park row was already correct in both corpora when read.** If
+   the owner saw it under "raised" on the live page, that was before
+   `enrich.yml` carried the basis over, or a cached render; the live `/query`
+   read `outbound_investment` on 2026-09-14.
 
 ---
 

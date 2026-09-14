@@ -31,6 +31,20 @@ USAGE
     ... --apply                                            # apply on agreement
     .venv/bin/python adjudicate_guardrail.py --from-spec analysis/adjudications/<file>.json --apply
                                                            # re-apply an agreed spec, no model
+    ... --row <content_hash> --reason 'why'                # a live row no check caught (money)
+    ... --place-row <content_hash> --reason 'why'          # a live row whose location looks wrong
+
+A ROW NO CHECK CAUGHT is put to the same two referees. `--row` and
+`--place-row` open a finding in the guardrails ledger first (`amount/<hash>`
+or `place/<hash>`, detail "raised by a session: <reason>"), through
+`guardrails.record` with an empty check list so no other open finding is
+resolved by the write, and then adjudicate it exactly as a check-raised one.
+Nothing is ever changed without two agreeing verdicts. A `place` finding is
+inert for publishing (it is not a ROW_CHECK, so it never holds a row back and
+never goes overdue); its only consequence is the correction the referees
+agree on, applied through `correct_city_country.reissue`, the door the
+gazetteer correction already uses. In a dry run the findings opened by the run
+are removed again at the end, so a dry run leaves the ledger as it found it.
 
 Every run writes analysis/adjudications/<date>-<check>-<subject>.json with
 both verdicts verbatim, the spend, and the outcome.
@@ -58,8 +72,9 @@ if str(REPO) not in sys.path:
 import requests  # noqa: E402
 
 import archive_sources  # noqa: E402
+import correct_city_country  # noqa: E402
 import correct_funding_amount  # noqa: E402
-from pipeline import classify, guardrails, money_raised, schema, store  # noqa: E402
+from pipeline import classify, guardrails, money_raised, schema, store, validate, vocab  # noqa: E402
 
 REFEREES = (
     os.environ.get("ADJ_REFEREE_A", "anthropic/claude-sonnet-4.5"),
@@ -92,6 +107,16 @@ SPEC_DIR = REPO / "analysis" / "adjudications"
 ACTIONS = ("accept", "reject", "edit")
 BASIS_VOCAB = (money_raised.COMPANY_RAISE,) + tuple(sorted(money_raised.EXCLUDING_DEAL_TYPES))
 WHO = f"two-model adjudication ({REFEREES[0]} + {REFEREES[1]})"
+
+#: The second question the referees can be asked: where the row is. Not one of
+#: guardrails.CHECKS, on purpose: a `place` finding must never hold a row back
+#: or go overdue, because nothing automated raises one.
+PLACE = "place"
+#: The detail prefix on a finding a session opened by hand, so `--withheld`
+#: and the digest can tell it from one a check raised.
+SESSION_LABEL = "raised by a session"
+#: The name the spend row is filed under in source_health. Discretionary.
+HEALTH_NAME = "adjudicate_rows"
 
 
 class BudgetStop(RuntimeError):
@@ -159,6 +184,57 @@ Answer with ONE JSON object and nothing else:
   "reasoning": "at most 600 characters, quoting the sentence in the source that decides it"}}
 """
 
+PLACE_RULES = """The tracker's written location rules, which you must apply literally:
+1. `city` and `country` on a row are WHERE THE ROLES OR THE ACTIVITY IN THE
+   STORY ARE LOCATED, as the cited source states it. Not where the outlet is
+   published, not the reporter's dateline, and not the employer's headquarters
+   unless the story places the activity there.
+2. `country` is an ISO 3166-1 alpha-2 code (US, AR, GB, VN ...). Puerto Rico
+   is PR, not US. Hong Kong is HK. A city that exists in several countries
+   (San Juan, Cordoba, Cambridge, London) takes the country the SOURCE places
+   it in; a same-named city in another country is wrong, however well known.
+3. `city` is the city named by the source for the activity, spelled as the
+   source spells it in Latin script, or null when the source names a country
+   or a province but no city.
+4. A source that states no location for this employer's activity leaves the
+   row's location unverifiable: answer "reject". Do not infer a location from
+   the employer's name or from the outlet.
+5. "recommended" means: accept = the stored city and country are what the
+   source states; edit = the source places the activity somewhere else (give
+   corrected_city and corrected_country, repeating the stored value for the
+   one that does not change); reject = the source states no usable location
+   for this row.
+"""
+
+PLACE_PROMPT = """You are one of two independent referees adjudicating WHERE a public
+talent-market tracker has filed one record. The other referee is a model from a
+different vendor; you will not see its answer. Be strict and literal. Decide
+only from the row and the source text below. If the source text is empty,
+unrelated, or does not mention this employer, say so and answer "reject" with
+confidence 0.
+
+{rules}
+
+THE FINDING:
+{finding}
+
+THE STORED ROW:
+{row}
+
+THE CITED SOURCE (text only, may be truncated):
+<<<
+{evidence}
+>>>
+
+Answer with ONE JSON object and nothing else:
+{{"location_stated": true|false,
+  "recommended": "accept"|"reject"|"edit",
+  "corrected_city": "<city>"|null,
+  "corrected_country": "<ISO 3166-1 alpha-2>"|null,
+  "confidence": 0-100,
+  "reasoning": "at most 600 characters, quoting the sentence in the source that decides it"}}
+"""
+
 
 # --------------------------------------------------------------------------
 # The finding, its row, and its evidence
@@ -199,13 +275,61 @@ def load_finding(conn, key: str) -> dict | None:
 def row_view(row: dict | None) -> dict:
     keep = ("company", "headline", "summary", "funding_amount", "funding_amount_usd",
             "funding_stage", "deal_type", "money_basis", "source_url", "source_name",
-            "published_date", "collector", "country", "published_at")
+            "published_date", "collector", "city", "region", "state", "country",
+            "hq_city", "hq_country", "published_at")
     return {k: row.get(k) for k in keep} if row else {}
 
 
 def finding_view(finding: dict) -> dict:
     return {k: finding.get(k) for k in ("check_name", "label", "detail", "value",
                                         "first_seen", "seen")}
+
+
+def open_session_finding(conn, check: str, content_hash: str, reason: str) -> dict:
+    """Open `<check>/<content_hash>` for a live row no automated check caught.
+
+    Through `guardrails.record` with an EMPTY check list, so the write can
+    resolve nothing else: `record()` marks every open finding of each listed
+    check that did not fire this pass as resolved, and a session raising one
+    row must not close the amount queue behind it. Returns {"key", "opened",
+    "state"}; an existing finding is left in whatever state it is in.
+    """
+    if check not in (guardrails.AMOUNT, PLACE):
+        raise ValueError(f"a session may raise {guardrails.AMOUNT!r} or {PLACE!r}, not {check!r}")
+    key = f"{check}/{content_hash}"
+    row = conn.execute(
+        "SELECT company, funding_amount_usd, city, country FROM signals "
+        " WHERE content_hash = ? AND is_current = 1", (content_hash,)).fetchone()
+    if row is None:
+        raise ValueError(f"{key}: no current row carries this content_hash")
+    existing = conn.execute(
+        "SELECT state FROM publish_guardrails WHERE check_name = ? AND subject = ?",
+        (check, content_hash)).fetchone()
+    if existing is not None:
+        return {"key": key, "opened": False, "state": existing["state"]}
+    if check == guardrails.AMOUNT:
+        label = f"{row['company']} ${int(row['funding_amount_usd'] or 0):,}"
+        value = float(row["funding_amount_usd"] or 0) or None
+    else:
+        label = f"{row['company']} filed under {row['city'] or '?'}, {row['country'] or '?'}"
+        value = None
+    finding = guardrails.Finding(check, content_hash, label,
+                                 f"{SESSION_LABEL}: {reason}", value)
+    guardrails.record(conn, [finding], checks=())
+    return {"key": key, "opened": True, "state": "open"}
+
+
+def drop_session_finding(conn, key: str) -> int:
+    """Remove a finding THIS RUN opened and did not decide (a dry run's
+    cleanup). Refuses anything a person or a check wrote: only an open finding
+    whose detail carries SESSION_LABEL, and only under a key the caller opened."""
+    check, _, subject = key.partition("/")
+    cur = conn.execute(
+        "DELETE FROM publish_guardrails WHERE check_name = ? AND subject = ? "
+        "  AND state = 'open' AND detail LIKE ?",
+        (check, subject, f"{SESSION_LABEL}: %"))
+    conn.commit()
+    return cur.rowcount
 
 
 def strip_html(raw: str) -> str:
@@ -276,13 +400,14 @@ def _spent_so_far(start_usd: float) -> float:
     return float(classify.STATS.get("usd", 0.0)) - start_usd
 
 
-def _gate(start_usd: float) -> None:
+def _gate(start_usd: float, ceiling: float | None = None) -> None:
     """Read before EVERY paid request: the month's switch, then this run's ceiling."""
     if not classify.paid_reads_enabled():
         raise BudgetStop("TIT_PAID_READS is off: the month's allowance is spent")
+    limit = RUN_CEILING_USD if ceiling is None else float(ceiling)
     spent = _spent_so_far(start_usd)
-    if spent >= RUN_CEILING_USD:
-        raise BudgetStop(f"run ceiling ${RUN_CEILING_USD:.2f} reached (${spent:.4f} spent)")
+    if spent >= limit:
+        raise BudgetStop(f"run ceiling ${limit:.2f} reached (${spent:.4f} spent)")
 
 
 def parse_verdict(content: str) -> dict | None:
@@ -319,8 +444,43 @@ def parse_verdict(content: str) -> dict | None:
     return parsed
 
 
+_ISO2 = re.compile(r"^[A-Z]{2}$")
+
+
+def parse_place_verdict(content: str) -> dict | None:
+    """A place verdict, or None. Same floor as parse_verdict: a low-confidence
+    answer is a report of blindness, not a verdict. The country is upper-cased
+    and must be two letters; anything else is dropped to null so a free-text
+    country can never be written to a row."""
+    try:
+        parsed = json.loads(content)
+    except (TypeError, ValueError):
+        match = re.search(r"\{.*\}", content or "", re.S)
+        if not match:
+            return None
+        try:
+            parsed = json.loads(match.group(0))
+        except ValueError:
+            return None
+    if not isinstance(parsed, dict) or parsed.get("recommended") not in ACTIONS:
+        return None
+    try:
+        confidence = float(parsed.get("confidence") or 0)
+    except (TypeError, ValueError):
+        confidence = 0.0
+    if confidence < CONFIDENCE_FLOOR:
+        return None
+    country = parsed.get("corrected_country")
+    country = country.strip().upper() if isinstance(country, str) else None
+    parsed["corrected_country"] = country if country and _ISO2.match(country) else None
+    city = parsed.get("corrected_city")
+    parsed["corrected_city"] = city.strip() if isinstance(city, str) and city.strip() else None
+    return parsed
+
+
 def ask_referee(model: str, prompt: str, *, start_usd: float,
-                call=None, attempts: int = ATTEMPTS) -> tuple[dict | None, float]:
+                call=None, attempts: int = ATTEMPTS, parse=parse_verdict,
+                ceiling: float | None = None) -> tuple[dict | None, float]:
     """One verdict from one model: (verdict or None, this referee's cost).
 
     `call` performs exactly ONE request (classify._call, the repo's one door to
@@ -333,7 +493,7 @@ def ask_referee(model: str, prompt: str, *, start_usd: float,
     content = None
     last_error: Exception | None = None
     for _attempt in range(attempts):
-        _gate(start_usd)
+        _gate(start_usd, ceiling)
         try:
             content = call(model, classify.MINI_SYSTEM, prompt,
                            timeout=CALL_TIMEOUT, max_tokens=MAX_TOKENS, json_mode=True)
@@ -345,7 +505,7 @@ def ask_referee(model: str, prompt: str, *, start_usd: float,
     if content is None:
         print(f"  {model}: no answer ({type(last_error).__name__ if last_error else 'empty'})")
         return None, cost
-    verdict = parse_verdict(content)
+    verdict = parse(content)
     if verdict is None:
         print(f"  {model}: answer is not a usable verdict (not the JSON asked for, "
               f"or confidence below {CONFIDENCE_FLOOR}): {content[:200]!r}")
@@ -380,6 +540,31 @@ def decide(verdicts: dict[str, dict | None]) -> tuple[str, str, dict | None]:
     return "agree", "edit", {"corrected_amount": amount, "corrected_basis": basis}
 
 
+def decide_place(verdicts: dict[str, dict | None]) -> tuple[str, str, dict | None]:
+    """The agreement rule for a place finding. An `edit` agrees only when both
+    referees name the same country and the same city (case-insensitive)."""
+    answered = {m: v for m, v in verdicts.items() if v}
+    if len(answered) < 2:
+        return "unknown", "keep", None
+    actions = {v["recommended"] for v in answered.values()}
+    if len(actions) != 1:
+        return "disagree", "keep", None
+    action = actions.pop()
+    if action != "edit":
+        return "agree", action, None
+    fixes = {((v.get("corrected_city") or "").casefold(), v.get("corrected_country"))
+             for v in answered.values()}
+    if len(fixes) != 1:
+        return "disagree", "keep", None
+    city_key, country = fixes.pop()
+    if not country:
+        return "disagree", "keep", None
+    # Spelled the way the first referee spelled it; the two agree on the key.
+    city = next((v.get("corrected_city") for v in answered.values()
+                 if (v.get("corrected_city") or "").casefold() == city_key), None)
+    return "agree", "edit", {"corrected_city": city or None, "corrected_country": country}
+
+
 def deciding_note(key: str, action: str, verdicts: dict, correction: dict | None) -> str:
     """The ledger note: the verdict and each referee's deciding sentence.
 
@@ -389,7 +574,10 @@ def deciding_note(key: str, action: str, verdicts: dict, correction: dict | None
     quotes = "; ".join(f"{m}: {(v.get('reasoning') or '')[:220]}"
                        for m, v in verdicts.items() if v)
     fix = ""
-    if correction:
+    if correction and "corrected_country" in correction:
+        fix = (f" corrected_city={correction.get('corrected_city')} "
+               f"corrected_country={correction.get('corrected_country')}.")
+    elif correction:
         fix = (f" corrected_amount={correction.get('corrected_amount')} "
                f"corrected_basis={correction.get('corrected_basis')}.")
     return f"two-model adjudication of {key}, both referees say {action}.{fix} {quotes}"
@@ -448,6 +636,64 @@ def apply_decision(conn, item: dict, action: str, correction: dict | None,
     return guardrails.review(conn, key, state, note, who)
 
 
+def place_fix(row: dict, correction: dict) -> dict:
+    """The geography fields an agreed place edit moves, mirroring what
+    validate.build_signal would write for that city and country: the region
+    from the country, the state facet only inside the US, hq untouched.
+
+    The gazetteer is NOT consulted for the country: it is what filed the row
+    wrongly in the first place (it holds one country per city name), and two
+    referees reading the source outrank a table that cannot see the source.
+    Where it disagrees the caller prints it, because that is a vocabulary
+    decision for a person."""
+    country = correction["corrected_country"]
+    city = correction.get("corrected_city")
+    fixed: dict = {}
+    if country != row.get("country"):
+        fixed["country"] = country
+    if (city or None) != (row.get("city") or None):
+        fixed["city"] = city
+    region = validate._region_for_country(country)
+    if region and region != row.get("region"):
+        fixed["region"] = region
+    state = vocab.state_for_city(city) if (country == "US" and city) else None
+    if state != row.get("state"):
+        fixed["state"] = state
+    return fixed
+
+
+def apply_place(conn, item: dict, action: str, correction: dict | None,
+                note: str, *, who: str = WHO, apply: bool = False, push=None) -> int:
+    """Apply one agreed place verdict. accept and reject close the finding
+    through guardrails.review; edit goes through correct_city_country.reissue
+    (the site first, then a revision) and then accepts the finding."""
+    key = item["key"]
+    if not apply:
+        print(f"  dry run: would {action} {key}")
+        return 0
+    if action == "edit":
+        row = item.get("row")
+        if not row:
+            raise RuntimeError(f"{key}: no current row to revise")
+        fixed = place_fix(row, correction or {})
+        if fixed:
+            hit = vocab.normalize_city(fixed.get("city", row.get("city")) or "")
+            if hit and hit[2] != (correction or {}).get("corrected_country"):
+                print(f"  NOTE: the city gazetteer files {hit[0]!r} under {hit[2]!r}; "
+                      f"the referees place this row in {correction['corrected_country']!r}. "
+                      f"The row is corrected from the source; the table is a "
+                      f"vocabulary decision for a person.")
+            # Looked up at call time, never bound as a default, so a caller
+            # that replaces the site door is honoured.
+            correct_city_country.reissue(
+                conn, row, fixed, push=push or correct_city_country.push_place,
+                note=f"location adjudicated by {who}: {note[:400]}")
+        state = "accepted"
+    else:
+        state = "accepted" if action == "accept" else "rejected"
+    return guardrails.review(conn, key, state, note, who)
+
+
 # --------------------------------------------------------------------------
 # The spec file: both verdicts, the spend, the outcome
 # --------------------------------------------------------------------------
@@ -483,12 +729,16 @@ def write_spec(item: dict, status: str, verdicts: dict, extra: dict,
 
 def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
                call=None, fetch=fetch_page, wayback=wayback_copy,
-               spec_dir: Path = SPEC_DIR, push=None) -> int:
+               spec_dir: Path = SPEC_DIR, push=None, ceiling: float | None = None) -> int:
     """Returns 0 on agreement (applied or dry), 3 on UNKNOWN or disagreement, 1 on a hard failure."""
     item = load_finding(conn, key)
     if item is None:
         print(f"{key}: no such finding. Keys look like amount/<content_hash>.")
         return 1
+    is_place = key.startswith(PLACE + "/")
+    template, rules, parse, judge, act = (
+        (PLACE_PROMPT, PLACE_RULES, parse_place_verdict, decide_place, apply_place)
+        if is_place else (PROMPT, RULES, parse_verdict, decide, apply_decision))
     finding = item["finding"]
     print(f"\n{key}  [{finding.get('state')}]  {finding.get('label')}")
     if finding.get("state") != "open":
@@ -509,25 +759,33 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
         return 3
     print(f"  evidence: {len(evidence)} characters from {used[:90]}")
 
-    prompt = PROMPT.format(rules=RULES,
-                           finding=json.dumps(finding_view(finding), indent=1, ensure_ascii=False),
-                           row=json.dumps(row_view(item["row"]), indent=1, ensure_ascii=False),
-                           evidence=evidence)
+    prompt = template.format(rules=rules,
+                             finding=json.dumps(finding_view(finding), indent=1, ensure_ascii=False),
+                             row=json.dumps(row_view(item["row"]), indent=1, ensure_ascii=False),
+                             evidence=evidence)
     verdicts: dict[str, dict | None] = {}
     costs: dict[str, float] = {}
     for model in REFEREES:
         try:
-            verdicts[model], costs[model] = ask_referee(model, prompt, start_usd=start_usd, call=call)
+            verdicts[model], costs[model] = ask_referee(
+                model, prompt, start_usd=start_usd, call=call, parse=parse, ceiling=ceiling)
         except BudgetStop as exc:
             print(f"  {model}: budget stop ({exc}); UNDECIDED")
             verdicts[model], costs[model] = None, 0.0
         v = verdicts[model]
         print(f"  {model}: " + (json.dumps(v, ensure_ascii=False) if v else "no usable verdict"))
 
-    status, action, correction = decide(verdicts)
+    status, action, correction = judge(verdicts)
     cost = round(sum(costs.values()), 6)
     extra = {"cost_usd": cost, "cost_by_referee": costs, "evidence_url": used,
              "evidence_chars": len(evidence), "action": action, "correction": correction}
+    if action == "reject" and item["row"].get("published_at") and not is_place:
+        # A rejection withholds a row that has not been sent. This one HAS: the
+        # figure stays on the site until a person retracts it, and the spec
+        # says so rather than letting "rejected" read as "gone".
+        extra["live_row_needs_retraction"] = True
+        print("  NOTE: this row is LIVE. Rejecting it withholds nothing; the figure "
+              "stays published until retract.py takes it down. Listed for the owner.")
     if status != "agree":
         path = write_spec(item, status, verdicts, extra, spec_dir)
         print(f"  {status.upper()}: the referees did not agree. Nothing applied. "
@@ -535,7 +793,7 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
         return 3
 
     note = deciding_note(key, action, verdicts, correction)
-    changed = apply_decision(conn, item, action, correction, note, apply=apply, push=push)
+    changed = act(conn, item, action, correction, note, apply=apply, push=push)
     outcome = "applied" if apply and changed else "agree-dry-run"
     path = write_spec(item, outcome, verdicts, {**extra, "note": note, "who": WHO,
                                                 "ledger_rows_changed": changed}, spec_dir)
@@ -571,8 +829,9 @@ def apply_from_spec(conn, path: Path, *, apply: bool, push=None) -> int:
         print(f"{spec['key']}: already {item['finding'].get('state')}")
         return 0
     note = spec.get("note") or spec.get("ruling") or ""
-    changed = apply_decision(conn, item, spec["action"], spec.get("correction"),
-                             note, who=who, apply=apply, push=push)
+    act = apply_place if spec["key"].startswith(PLACE + "/") else apply_decision
+    changed = act(conn, item, spec["action"], spec.get("correction"),
+                  note, who=who, apply=apply, push=push)
     print(f"{spec['key']}: {spec['action']} {'APPLIED' if apply else 'dry run'} "
           f"({changed} ledger row(s))")
     return 0
@@ -587,27 +846,80 @@ def main(argv=None) -> int:
                     help="apply an already-agreed spec file, calling no model")
     ap.add_argument("--apply", action="store_true",
                     help="write on agreement (otherwise a dry run)")
+    ap.add_argument("--row", action="append", default=[], metavar="CONTENT_HASH",
+                    help="a live row no check caught: open amount/<hash> and adjudicate its figure")
+    ap.add_argument("--place-row", action="append", default=[], metavar="CONTENT_HASH",
+                    help="a live row whose location looks wrong: open place/<hash> and adjudicate it")
+    ap.add_argument("--reason", default="",
+                    help="why the session raised it (required with --row or --place-row)")
+    ap.add_argument("--ceiling", type=float, default=None,
+                    help=f"this run's spend ceiling in USD (default {RUN_CEILING_USD:.2f})")
+    ap.add_argument("--health", action="store_true",
+                    help="file the run's spend as a priced source_health row (the committed cost ledger)")
     args = ap.parse_args(argv)
-    if not args.key and not args.from_spec:
-        ap.error("give at least one --key or --from-spec")
+    if not (args.key or args.from_spec or args.row or args.place_row):
+        ap.error("give at least one --key, --row, --place-row or --from-spec")
+    if (args.row or args.place_row) and not args.reason.strip():
+        ap.error("--row and --place-row need --reason: the ledger records why a session raised it")
 
     conn = schema.connect()
     worst = 0
     for path in args.from_spec:
         worst = max(worst, apply_from_spec(conn, Path(path), apply=args.apply))
-    if not args.key:
+
+    keys = list(args.key)
+    opened: list[str] = []
+    for check, hashes in ((guardrails.AMOUNT, args.row), (PLACE, args.place_row)):
+        for content_hash in hashes:
+            try:
+                state = open_session_finding(conn, check, content_hash, args.reason.strip())
+            except ValueError as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+            print(f"{state['key']}: {'opened' if state['opened'] else 'already ' + state['state']}")
+            if state["opened"]:
+                opened.append(state["key"])
+            keys.append(state["key"])
+    if not keys:
         return worst
 
     if not (os.environ.get("OPENROUTER_API_KEY") or "").strip():
         print("OPENROUTER_API_KEY is not set; a referee cannot be asked", file=sys.stderr)
+        for key in opened:
+            drop_session_finding(conn, key)
         return 1
     start_usd = float(classify.STATS.get("usd", 0.0))
-    for key in args.key:
-        rc = adjudicate(conn, key, apply=args.apply, start_usd=start_usd)
-        worst = max(worst, rc)
-    spent = _spent_so_far(start_usd)
-    print(f"\nrun spend ${spent:.4f} of a ${RUN_CEILING_USD:.2f} ceiling; "
-          f"{len(args.key)} key(s); exit {worst}")
+    try:
+        for key in keys:
+            # Module state read at call time, so a test (or a caller) that
+            # replaces the reader or the spec directory is honoured.
+            rc = adjudicate(conn, key, apply=args.apply, start_usd=start_usd,
+                            fetch=fetch_page, wayback=wayback_copy, spec_dir=SPEC_DIR,
+                            ceiling=args.ceiling)
+            worst = max(worst, rc)
+    finally:
+        if not args.apply:
+            # A dry run leaves the ledger as it found it: only the findings THIS
+            # run opened, and only while still open (an applied one is not).
+            for key in opened:
+                if drop_session_finding(conn, key):
+                    print(f"{key}: dry run, session finding removed again")
+        spent = _spent_so_far(start_usd)
+        if args.health:
+            # The run's OWN delta of the provider's cost figure, not
+            # classify.usage_snapshot(): that returns None unless the gate or
+            # read counters moved, and this path meters through _call without
+            # touching them, so it would file a free run for a paid one.
+            store.report_health(conn, HEALTH_NAME, status="ok", items_found=len(keys),
+                                items_stored=len(keys),
+                                detail=f"two-referee adjudication of {len(keys)} key(s), exit {worst}",
+                                usage={"model": " + ".join(REFEREES),
+                                       "cost_usd": round(float(spent), 6),
+                                       "reads_bought": 2 * len(keys)})
+            conn.commit()
+    limit = RUN_CEILING_USD if args.ceiling is None else args.ceiling
+    print(f"\nrun spend ${spent:.4f} of a ${limit:.2f} ceiling; "
+          f"{len(keys)} key(s); exit {worst}")
     return worst
 
 
