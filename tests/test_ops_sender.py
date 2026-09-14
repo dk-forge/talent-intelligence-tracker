@@ -459,3 +459,43 @@ class EveryJobThatMailsCarriesTheKeyThatLetsItMail(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestEveryOperationalWorkflowNamesItsRecipient:
+    """A workflow that can send operational mail must also say where.
+
+    `opsmail` reads `OPS_MAIL_TO` and falls back to `DEFAULT_TO`, the owner's
+    personal inbox. The repository variable was moved to the error-tracking
+    mailbox on 2026-09-09, but a workflow that carries `RESEND_API_KEY`
+    without `OPS_MAIL_TO` never sees the variable and mails the fallback. On
+    2026-09-13/14 seven workflows did exactly that, so the owner received
+    the collect and enrich 504 alarms in his inbox while the layoff tracker's
+    identical alarms went to the mailbox that is swept. A wrong recipient
+    produces no error anywhere, which is why this is a test and not a note.
+    """
+
+    def test_a_workflow_with_the_relay_key_also_passes_the_recipient(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text(encoding="utf-8")
+            if "secrets.RESEND_API_KEY" not in text:
+                continue
+            if "OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}" not in text:
+                offenders.append(path.name)
+        assert offenders == [], (
+            "these workflows can send operational mail but never pass "
+            "OPS_MAIL_TO, so they mail opsmail.DEFAULT_TO (the owner's "
+            f"inbox) instead of the error mailbox: {offenders}"
+        )
+
+    def test_the_guard_catches_a_key_without_a_recipient(self, tmp_path):
+        # A scan is worthless until it has caught one known instance.
+        wf = tmp_path / "x.yml"
+        wf.write_text(
+            "jobs:\n  a:\n    steps:\n      - run: python3 ci_alert.py\n"
+            "        env:\n          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}\n",
+            encoding="utf-8",
+        )
+        text = wf.read_text(encoding="utf-8")
+        assert "secrets.RESEND_API_KEY" in text
+        assert "OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}" not in text

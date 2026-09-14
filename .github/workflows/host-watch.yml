@@ -100,6 +100,7 @@ jobs:
           # is green and its mail is silent, which is why
           # tests/test_ops_sender.py fails when a mailing job lacks it.
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}
           # Travels WITH the key, always. It is unset today, so opsmail's
           # default applies everywhere; the day it is set, a job that does not
           # carry it keeps the old From and the owner has two identities to
@@ -141,6 +142,7 @@ jobs:
           # is green and its mail is silent, which is why
           # tests/test_ops_sender.py fails when a mailing job lacks it.
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}
           # Travels WITH the key, always. It is unset today, so opsmail's
           # default applies everywhere; the day it is set, a job that does not
           # carry it keeps the old From and the owner has two identities to

@@ -14,6 +14,14 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-14 - Seven workflows mailed the owner's inbox because they never passed OPS_MAIL_TO
+
+**What.** `benchmark-diff`, `ci-alert`, `ci-noise-report`, `gate-classifier`, `health-digest`, `host-watch` and `tripwire` now pass `OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}` beside `RESEND_API_KEY`. No Python changed.
+
+**Why.** `opsmail.recipient()` reads `OPS_MAIL_TO` and falls back to `DEFAULT_TO`, the owner's personal inbox. The repository variable has pointed at the error-tracking mailbox since 2026-09-09, but a workflow that never exports the variable never sees it, and a wrong recipient raises nothing. The owner received the `collect` and `enrich` 504 alarms and the RECOVERED notice for `collect national press` in his inbox on 2026-09-13/14 and asked why. The sibling layoff tracker had converted every caller on 2026-08-19; here twelve workflows had the line and seven did not.
+
+**Guard.** `tests/test_ops_sender.py::TestEveryOperationalWorkflowNamesItsRecipient`: every workflow that carries `secrets.RESEND_API_KEY` must also carry `OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}`, and the scan is proven against a planted offender.
+
 ## 2026-09-12 - The DeepSeek $70bn row is rejected on the owner's ruling; an owner ruling is now a spec status of its own
 
 **What.** `adjudicate_guardrail.apply_from_spec` accepts a third spec status,
