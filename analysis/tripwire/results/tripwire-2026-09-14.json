@@ -1,0 +1,467 @@
+{
+ "ran_at": "2026-09-14T15:07:11+00:00",
+ "ran_on": "2026-09-14",
+ "plan": {
+  "cycle": 514,
+  "planned_on": "2026-09-14",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-09-14 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "GH",
+    "name": "Ghana",
+    "tier": "zero",
+    "measured": {
+     "total": 3,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "JM",
+    "name": "Jamaica",
+    "tier": "zero",
+    "measured": {
+     "total": 3,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "VN",
+    "name": "Vietnam",
+    "tier": "zero",
+    "measured": {
+     "total": 3,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "EG",
+    "name": "Egypt",
+    "tier": "covered",
+    "measured": {
+     "total": 4,
+     "held": 3,
+     "held_pct": 75.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "GH",
+   "tier": "zero",
+   "measured": {
+    "total": 3,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "JM",
+   "tier": "zero",
+   "measured": {
+    "total": 3,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "VN",
+   "tier": "zero",
+   "measured": {
+    "total": 3,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "EG",
+   "tier": "covered",
+   "measured": {
+    "total": 4,
+    "held": 3,
+    "held_pct": 75.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 13,
+  "held": 7,
+  "missing": 6,
+  "unusable": 0,
+  "usable": 13
+ },
+ "by_country": {
+  "GH": {
+   "leads": 5,
+   "held": 3,
+   "missing": 2,
+   "unusable": 0
+  },
+  "JM": {
+   "leads": 3,
+   "held": 1,
+   "missing": 2,
+   "unusable": 0
+  },
+  "EG": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  },
+  "VN": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0225,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0017,
+  "usd_per_candidate_miss": 0.0037,
+  "lifetime_usd": 0.3176,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:GH",
+   "leads": 5,
+   "usd": 0.00575,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 420,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:JM",
+   "leads": 4,
+   "usd": 0.00566,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 325,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:VN",
+   "leads": 3,
+   "usd": 0.00558,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 246,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:EG",
+   "leads": 2,
+   "usd": 0.0055,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 164,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Terra Industries",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-26",
+   "claimed_amount": "US$52 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "African Pilot",
+   "claimed_url": "https://africanpilot.africa/terra-industries-52m-seed-ghana-drone-factory/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "236f51c77cf521ccbc55ad534d5530de",
+    "company": "Terra Industries",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-17",
+    "source_url": "https://techcrunch.com/2026/08/17/terra-industries-closes-52m-seed-round-to-build-defense-infrastructure-for-the-global-south/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Seevcash",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-03",
+   "claimed_amount": "$333k",
+   "claimed_stage": "",
+   "claimed_outlet": "Disrupt Africa",
+   "claimed_url": "https://disruptafrica.com/2026/09/03/ghanaian-fintech-startup-seevcash-raises-333k-from-stellar-community-fund/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3cad80050773ba4d7c30154c226463e0",
+    "company": "Seevcash",
+    "pillar": "company_development",
+    "country": "GH",
+    "published_date": "2026-09-03",
+    "source_url": "https://thecondia.com/seevcash-raise-funding/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "GRIDCo",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-05-08",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "MyJoyOnline",
+   "claimed_url": "https://www.myjoyonline.com/gridco-appoints-frank-asirifi-otchere-as-chief-executive-confirms-two-deputy-executives/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Ghana International Bank",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-06-15",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Financial Afrik",
+   "claimed_url": "https://www.financialafrik.com/en/2026/06/15/ghana-international-bank-appoints-ian-greenstreet-as-its-ceo/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Genser Energy",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-17",
+   "claimed_amount": "EUR 456M",
+   "claimed_stage": "",
+   "claimed_outlet": "National Law Review",
+   "claimed_url": "https://natlawreview.com/press-releases/genser-energy-secures-eur-456m-financing-accelerate-next-phase-growth-across",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d3cf9c70519599270dc744f611198a19",
+    "company": "Genser Energy",
+    "pillar": "company_development",
+    "country": "GH",
+    "published_date": "2026-08-17",
+    "source_url": "https://norvanreports.com/genser-energy-secures-e456-million-financing-to-accelerate-west-african-expansion/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JM",
+   "dimension_tier": "zero",
+   "claimed_company": "NCB Financial Group Limited",
+   "claimed_country": "JM",
+   "claimed_city": "Kingston",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-31",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Marketscreener",
+   "claimed_url": "https://in.marketscreener.com/news/ncb-financial-announces-leadership-developments-ce7858dddb8bf225",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JM",
+   "dimension_tier": "zero",
+   "claimed_company": "Berger Paints Jamaica Limited",
+   "claimed_country": "JM",
+   "claimed_city": "Kingston",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "NCB Capital Markets",
+   "claimed_url": "https://www.ncbcapitalmarkets.com/research/latestnews/8441-jse-round-up-dividends-delayed-results-and-corporate-changes",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3b19ef351091887c3772fae6fb0717e0",
+    "company": "Berger Paints Jamaica Limited",
+    "pillar": "leadership_change",
+    "country": "JM",
+    "published_date": "2026-07-29",
+    "source_url": "https://www.jamaicaobserver.com/2026/07/28/berger-gm-dwaine-williams-resigns/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JM",
+   "dimension_tier": "zero",
+   "claimed_company": "Guardian Holdings Limited",
+   "claimed_country": "JM",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-09",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Jamaica Observer",
+   "claimed_url": "https://www.jamaicaobserver.com/2026/09/09/corporate-movements/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "VN",
+   "dimension_tier": "zero",
+   "claimed_company": "VinFast",
+   "claimed_country": "VN",
+   "claimed_city": "Hanoi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-12",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Bloomberg",
+   "claimed_url": "https://www.bloomberg.com/news/articles/2026-09-12/vinfast-s-founder-hands-ceo-role-to-son-amid-expansion-push",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "28c69ed1e693799ad7a2adbb909ce885",
+    "company": "Vinfast",
+    "pillar": "how_we_work",
+    "country": "VN",
+    "published_date": "2026-07-30",
+    "source_url": "https://hatinh.gov.vn/vi/bai-viet/nha-may-o-to-vinfast-ha-tinh-tuyen-dung-1000-cong-nhan"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "VN",
+   "dimension_tier": "zero",
+   "claimed_company": "Vingroup",
+   "claimed_country": "VN",
+   "claimed_city": "Hanoi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-07-13",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "MarketScreener",
+   "claimed_url": "https://www.marketscreener.com/news/vingroup-joint-stock-company-appoints-nguyen-viet-quang-as-chief-executive-officer-effective-july-1-ce7f5edcdc8bf127",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3d74b28150be74302eaaa789532e7761",
+    "company": "Vingroup",
+    "pillar": "leadership_change",
+    "country": "VN",
+    "published_date": "2026-07-28",
+    "source_url": "https://vnexpress.net/gan-400-hoc-vien-khoa-ai-dau-tien-cua-vingroup-duoc-tuyen-dung-5102464.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "VN",
+   "dimension_tier": "zero",
+   "claimed_company": "M Village",
+   "claimed_country": "VN",
+   "claimed_city": "Ho Chi Minh City",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-26",
+   "claimed_amount": "$26 million",
+   "claimed_stage": "",
+   "claimed_outlet": "VnExpress International",
+   "claimed_url": "https://vir.com.vn/m-village-founder-raises-26-million-159404.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EG",
+   "dimension_tier": "covered",
+   "claimed_company": "Valu",
+   "claimed_country": "EG",
+   "claimed_city": "Cairo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-03",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "EnterpriseAM Egypt",
+   "claimed_url": "https://enterpriseam.com/egypt/2026/09/03/valu-renews-walid-hassounas-ceo-role-for-three-years/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c8dd26facf776f01f22b19142cb6f935",
+    "company": "Valu",
+    "pillar": "leadership_change",
+    "country": "EG",
+    "published_date": "2026-09-03",
+    "source_url": "https://enterpriseam.com/egypt/2026/09/03/valu-renews-walid-hassounas-ceo-role-for-three-years/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EG",
+   "dimension_tier": "covered",
+   "claimed_company": "Raya Information Technology",
+   "claimed_country": "EG",
+   "claimed_city": "Cairo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-07-05",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "EnterpriseAM Egypt",
+   "claimed_url": "https://enterpriseam.com/egypt/2026/07/05/marwa-abbas-tapped-as-ceo-of-raya-it/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
