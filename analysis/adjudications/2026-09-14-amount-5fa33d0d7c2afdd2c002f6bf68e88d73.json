@@ -1,0 +1,44 @@
+{
+ "key": "amount/5fa33d0d7c2afdd2c002f6bf68e88d73",
+ "label": "Rillet $1,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Rillet",
+  "headline": "Exclusive: Accounting AI startup Rillet reaches unicorn status with $1 billion valuation. Its founder says he wants to give CFOs back their weekends",
+  "summary": "Rillet, an accounting AI startup, has achieved a $1 billion valuation. CEO Nicolas Kopp emphasizes the company's goal is not to eliminate jobs but to improve work-life balance for CFOs.",
+  "funding_amount": "$1 billion",
+  "funding_amount_usd": 1000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://fortune.com/2026/08/18/rillet-unicorn-1-billion-valuation-series-c-nicolas-kopp-accounting-ai/",
+  "source_name": "Fortune",
+  "published_date": "2026-08-18",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-18 23:56:34"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260819013151/https://fortune.com/2026/08/18/rillet-unicorn-1-billion-valuation-series-c-nicolas-kopp-accounting-ai/",
+ "evidence_chars": 12000,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:36:16+00:00"
+}

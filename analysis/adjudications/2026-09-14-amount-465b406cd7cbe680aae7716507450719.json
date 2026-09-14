@@ -1,0 +1,44 @@
+{
+ "key": "amount/465b406cd7cbe680aae7716507450719",
+ "label": "Sapien $180,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Sapien",
+  "headline": "Exclusive: AI startup Sapien raises at $180M valuation to help companies find what’s really driving profit",
+  "summary": "AI startup Sapien has raised funding at a $180M valuation to assist companies in identifying key profit drivers.",
+  "funding_amount": "$180M",
+  "funding_amount_usd": 180000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://fortune.com/2026/09/08/exclusive-ai-startup-sapien-raises-180m-valuation-companies-find-really-driving-profit-cfo/",
+  "source_name": "fortune.com",
+  "published_date": "2026-09-08",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-09 00:05:04"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260908161420/https://fortune.com/2026/09/08/exclusive-ai-startup-sapien-raises-180m-valuation-companies-find-really-driving-profit-cfo/",
+ "evidence_chars": 7858,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:36:22+00:00"
+}

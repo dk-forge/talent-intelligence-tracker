@@ -1,0 +1,44 @@
+{
+ "key": "amount/bcd70c7d3ab3055f36a81ae0fbccbf55",
+ "label": "Homerun $400,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Homerun",
+  "headline": "Homerun capta recursos en medio de esfuerzos para avanzar en proyecto de US$400 millones en Brasil",
+  "summary": "Homerun is securing resources to advance a US$400 million project in Brazil.",
+  "funding_amount": "US$400 millones",
+  "funding_amount_usd": 400000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.bnamericas.com/es/noticias/homerun-capta-recursos-en-medio-de-esfuerzos-para-avanzar-en-proyecto-de-us400-millones-en-brasil",
+  "source_name": "BNamericas",
+  "published_date": "2026-08-20",
+  "collector": "google_news",
+  "city": null,
+  "region": "Latin America",
+  "state": null,
+  "country": "BR",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-20 22:32:05"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://www.bnamericas.com/es/noticias/homerun-capta-recursos-en-medio-de-esfuerzos-para-avanzar-en-proyecto-de-us400-millones-en-brasil",
+ "evidence_chars": 10315,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:36:19+00:00"
+}

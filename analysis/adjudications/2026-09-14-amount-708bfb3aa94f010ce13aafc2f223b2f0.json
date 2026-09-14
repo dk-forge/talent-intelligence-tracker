@@ -1,0 +1,44 @@
+{
+ "key": "amount/708bfb3aa94f010ce13aafc2f223b2f0",
+ "label": "Starcloud $2,300,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Starcloud",
+  "headline": "Orbital data center startup Starcloud valued at $2.3 billion in latest funding",
+  "summary": "Starcloud, an orbital data center startup, has been valued at $2.3 billion in its latest funding round, reflecting renewed investor interest in the space industry.",
+  "funding_amount": "$2.3 billion",
+  "funding_amount_usd": 2300000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://economictimes.indiatimes.com/tech/technology/orbital-data-center-startup-starcloud-valued-at-2-3-billion-in-latest-funding/articleshow/133416465.cms",
+  "source_name": "The Economic Times",
+  "published_date": "2026-08-22",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Redmond",
+  "hq_country": "US",
+  "published_at": "2026-08-23 00:03:12"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260822032017/https://economictimes.indiatimes.com/tech/technology/orbital-data-center-startup-starcloud-valued-at-2-3-billion-in-latest-funding/articleshow/133416465.cms",
+ "evidence_chars": 4812,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:36:19+00:00"
+}

@@ -1,0 +1,44 @@
+{
+ "key": "amount/8b7db65e5a281d5096ef871d61547edf",
+ "label": "Velaura AI $1,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Velaura AI",
+  "headline": "Chip designer Velaura AI valued at more than $1 billion in funding round",
+  "summary": "Velaura AI, a chip designer, has been valued at more than $1 billion in a recent funding round.",
+  "funding_amount": "more than $1 billion",
+  "funding_amount_usd": 1000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.livemint.com/companies/chip-designer-velaura-ai-valued-at-more-than-1-billion-in-funding-round-11787078017188.html",
+  "source_name": "Mint",
+  "published_date": "2026-08-19",
+  "collector": "national_press",
+  "city": null,
+  "region": "Asia",
+  "state": null,
+  "country": "IN",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-18 23:56:34"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260819022046/https://www.livemint.com/companies/chip-designer-velaura-ai-valued-at-more-than-1-billion-in-funding-round-11787078017188.html",
+ "evidence_chars": 2451,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:36:14+00:00"
+}
