@@ -1,7 +1,7 @@
 {
-  "_committed_at": "2026-09-13T23:02:14+00:00",
-  "announced": true,
-  "consecutive_failures": 3,
+  "_committed_at": "2026-09-14T01:08:15+00:00",
+  "announced": false,
+  "consecutive_failures": 0,
   "history": [
     {
       "at": "2026-07-31T01:31:33+00:00",
@@ -52,11 +52,16 @@
       "at": "2026-09-13T18:13:29+00:00",
       "detail": "HTTP 504 from /wp-json/talent/v1/source-health",
       "state": "down"
+    },
+    {
+      "at": "2026-09-14T01:08:15+00:00",
+      "detail": "HTTP 200 in 937ms",
+      "state": "up"
     }
   ],
-  "last_detail": "HTTP 504 from /wp-json/talent/v1/source-health",
-  "last_ok_at": "2026-09-13T16:01:20+00:00",
-  "last_probe_at": "2026-09-13T23:02:14+00:00",
+  "last_detail": "HTTP 200 in 937ms",
+  "last_ok_at": "2026-09-14T01:08:15+00:00",
+  "last_probe_at": "2026-09-14T01:08:15+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -68,9 +73,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1061 in 1540ms",
-      "last_ok_at": "2026-09-13T23:02:14+00:00",
-      "last_probe_at": "2026-09-13T23:02:14+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1063 in 229ms",
+      "last_ok_at": "2026-09-14T01:08:15+00:00",
+      "last_probe_at": "2026-09-14T01:08:15+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     },
@@ -84,14 +89,14 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1061 in 484ms",
-      "last_ok_at": "2026-09-13T23:02:14+00:00",
-      "last_probe_at": "2026-09-13T23:02:14+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1063 in 181ms",
+      "last_ok_at": "2026-09-14T01:08:15+00:00",
+      "last_probe_at": "2026-09-14T01:08:15+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     }
   },
-  "since": "2026-09-13T18:13:29+00:00",
-  "state": "down",
+  "since": "2026-09-14T01:08:15+00:00",
+  "state": "up",
   "version": 1
 }
