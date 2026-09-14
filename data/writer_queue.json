@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-14T21:32:17Z",
-  "last_tick": "2026-09-14T21:32:17Z",
+  "last_tick": "2026-09-14T21:32:48Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -231,6 +231,11 @@
           "at": "2026-09-14T21:32:17Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-09-14T21:32:48Z",
+          "detail": "run 34899363050",
+          "event": "bound"
         }
       ],
       "id": "20260914T200025Z-adjudicate-rows",
@@ -245,7 +250,7 @@
       "reason": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
       "requested_at": "2026-09-14T20:00:25Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "34899363050",
       "state": "dispatched",
       "workflow": "adjudicate-rows.yml"
     },
@@ -270,6 +275,31 @@
       "run_id": null,
       "state": "queued",
       "workflow": "correct-money-basis.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-14T21:32:45Z",
+          "detail": "money figure contradictions",
+          "event": "queued"
+        }
+      ],
+      "id": "20260914T213245Z-adjudicate-rows",
+      "inputs": {
+        "ceiling": "0.60",
+        "dry_run": "false",
+        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure (2026-09-14 audit)",
+        "rows": "734d99623f823e79e2d549649cd1abdf,864e76c30a8fe3e5fb6d1f3568a19aea,005123a94e8243df523375355d856a99,8b7db65e5a281d5096ef871d61547edf,5fa33d0d7c2afdd2c002f6bf68e88d73,bcd70c7d3ab3055f36a81ae0fbccbf55,708bfb3aa94f010ce13aafc2f223b2f0,ea91a78b1a8a8c052f4b4aa5b4e92b37,9e66f52d50313f49f91d35deadc777a2,465b406cd7cbe680aae7716507450719,24351a64d835a6d01ddc4fe727ab88b2"
+      },
+      "priority": 0,
+      "reason": "money figure contradictions",
+      "requested_at": "2026-09-14T21:32:45Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "adjudicate-rows.yml"
     },
     {
       "attempts": 0,
