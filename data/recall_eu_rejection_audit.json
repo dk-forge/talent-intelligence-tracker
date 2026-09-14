@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-12T03:33:27+00:00",
- "measured_on": "2026-09-12",
+ "generated_at": "2026-09-14T14:59:07+00:00",
+ "measured_on": "2026-09-14",
  "goldset_version": "2026-08-eu-v1",
  "gold_events": 46,
  "misses": 22,
@@ -30,6 +30,7 @@
   "sec_execcomp": "2026-07-28",
   "sec_form_d": "2026-07-27",
   "sec_form_d_bulk": "2026-07-29",
+  "spain_borme": "2026-09-13",
   "tripwire": "2026-08-02",
   "uk_paygap": "2026-07-28"
  },
@@ -236,7 +237,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 37,
+   "urls_fetched_from_this_domain": 38,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -369,7 +370,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 93,
+   "urls_fetched_from_this_domain": 96,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -388,7 +389,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 93,
+   "urls_fetched_from_this_domain": 96,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -502,7 +503,7 @@
    "domain": "made-in.be",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 3,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -635,7 +636,7 @@
    "domain": "made-in.be",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 3,
    "live_routes": [
     "gdelt",
     "google_news",
