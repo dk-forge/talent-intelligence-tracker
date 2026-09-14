@@ -35,6 +35,13 @@ REST namespace. Never write one repo's state into the other's docs.
 **Why.** The option won outright, which was correct for exactly as long as every push landed. The host 504'd on 2026-09-12/13, the measurement was committed but never pushed, and the page rendered 21.9% from an earlier set beside a shipped file that said 26.6%. A page about honesty was the stalest thing in the system.
 
 **Guard.** The harness's earlier check "the page must prefer the pushed measurement over the file it shipped with" was the rule that failed; it is replaced by the two directions, and the family seeds in the harness carry a far-future date so they beat the shipped family files.
+## 2026-09-14 - The phone jump bar parks while the hero is on screen; the ribbon counts records, not coverage (1.88.6, pushed, not deployed)
+
+**What.** `assets/dashboard.js`: the jump bar carries `is-parked` while `.tit-hero` intersects the viewport (IntersectionObserver, threshold 0), and loses it when the hero has gone by; without the API the bar shows as before. `assets/dashboard.css`: `.tit-jump.is-parked` is translated below the viewport with opacity 0 and no pointer events, transition honoured by `prefers-reduced-motion`; the wrap's reserved padding is unchanged. `includes/shortcodes.php`: the ribbon reads "Records from N countries; measured coverage varies", the count still in the live `#tit-ribbon-c` span.
+
+**Why.** A fixed bottom bar covers the bottom of the viewport wherever the reader is, and at phone width on first paint that was the hero's own stat tiles, about 44px of the four figures the page opens with. "144 countries" beside "Covering" read as a coverage claim; the recall page measures coverage and it differs by country.
+
+**And the nav.** The live header still reads "Salary u0026amp; Negotiation" at 1.88.4. The repair (`tit_nav_unmangle_labels`, 1.87.2) is proven on a menu seeded in that exact state and the tracker's items are in the live menu, so the sync either runs a stale include or has recorded 1.88.4 as done; the bump re-runs it on the first request after deploy. Verify with `grep -c u0026` on the bare page. If it persists, the sibling's menu writer is the suspect and that is the sibling's to fix.
 
 ## 2026-09-14 - Seven workflows mailed the owner's inbox because they never passed OPS_MAIL_TO
 

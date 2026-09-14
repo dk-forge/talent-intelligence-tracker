@@ -144,6 +144,52 @@ shows the `measured_on` of whichever copy is newer.
 Note the version: 1.88.5 here and 1.88.6 on `fix/mobile-copy-nav` were cut
 from the same main; the second to merge must be re-bumped past main
 (`version-collision`).
+## 2026-09-14: phone jump bar parks while the hero is on screen; the ribbon says "Records from N countries; measured coverage varies"; the nav repair needs a deploy to re-run (1.88.6, branch `fix/mobile-copy-nav`). PUSHED, NOT DEPLOYED.
+
+Three things, one plugin version:
+
+1. **The fixed Filters/Updates bar covered ~44px of the hero stat tiles at
+   phone width.** It is `position:fixed; bottom` and the hero fills the first
+   viewport on a phone, so on first paint it sat on the four figures the page
+   opens with. `dashboard.js` now parks it (`is-parked`: translated below the
+   viewport, opacity 0, no pointer events) while `.tit-hero` intersects the
+   viewport, from an IntersectionObserver, and brings it back the moment the
+   hero has gone by. The wrap's reserved padding is unchanged, so the citation
+   line at the foot is still never trapped. Without IntersectionObserver the
+   bar simply shows, as before. Verify at 375px: load, the bar is absent; scroll
+   past the hero, it appears; scroll back, it parks.
+2. **"144 countries" in the coverage ribbon** now reads "Records from 144
+   countries; measured coverage varies". The count is where a record has been
+   filed; coverage is what the recall page measures, and it differs by
+   country. The number is still the live `#tit-ribbon-c` span the JS repaints
+   under filters and `published_figures` reads.
+3. **The crawler-visible "Salary u0026amp; Negotiation" corruption is STILL
+   LIVE at 1.88.4**, and the repair for it (`tit_nav_unmangle_labels`, shipped
+   in 1.87.2) is correct: `php tests/php/nav_submenu.php --labels mangled`
+   returns "Salary & Negotiation" from a menu seeded in exactly the live
+   state. The tracker's four items ARE in the live menu (so the sync's "only
+   a menu we were already going to write" scope covers it), which leaves two
+   explanations, neither fixable from this checkout: the deployed
+   `nav_submenu.php` predates the repair (the version string comes from the
+   main file alone; this plugin has no build stamp, see "green deploy shipped
+   nothing" in the sibling), or the sync has already recorded 1.88.4 as
+   synced and will not look again. Both are answered by the version bump: the
+   done-flag stores `TIT_VERSION`, so deploying 1.88.6 re-runs the sync on the
+   first request. **Verify after deploy** with
+   `curl -s -A Mozilla/5.0 .../talent-intelligence-tracker/?cb=$RANDOM | grep -c u0026`
+   expecting 0. If it is still nonzero, the deployed include is stale or the
+   sibling's own menu writer is re-mangling it on every one of its deploys
+   ("Methodology u0026 sources" is the sibling's item, and the sibling's writer
+   would need the same `wp_slash()`); that check belongs to the sibling repo
+   and was not made here.
+
+No em dashes in any of the new copy. `tests/test_style_standard.py`,
+`test_reader_copy_says_entries.py`, `test_published_figure_guards.py`,
+`test_rendered_contrast.py` and the dashboard harness pass.
+
+**Deploy is the session's call.** Two plugin PRs were cut from the same
+main: 1.88.5 (`fix/recall-page-newer-measurement`) and this 1.88.6; whichever
+merges second must be re-bumped past main.
 
 ---
 

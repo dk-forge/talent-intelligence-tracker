@@ -3206,6 +3206,14 @@ body:has(.tit-main) header.wp-block-template-part {
      for chrome it will never get. :has() is already load-bearing elsewhere
      in this stylesheet, so it is safe to lean on here. */
   #tit-dashboard:has(.tit-jump) { padding-bottom:74px; }
+  /* Parked below the viewport while the hero is on screen (dashboard.js
+     toggles the class from an IntersectionObserver), so the bar never sits
+     on the stat tiles the page opens with. Off-screen, not display:none,
+     so the wrap's reserved padding stays and nothing jumps when it returns. */
+  .tit-jump { transition:transform .25s ease, opacity .25s ease; }
+  .tit-jump.is-parked { transform:translate(-50%, calc(100% + 24px)); opacity:0;
+    pointer-events:none; }
+  @media (prefers-reduced-motion: reduce){ .tit-jump { transition:none; } }
 }
 .tit-wrap .tit-jump-btn { display:inline-flex; align-items:center; gap:6px;
   padding:10px 16px; border:1px solid var(--tit-line); border-radius:99px;

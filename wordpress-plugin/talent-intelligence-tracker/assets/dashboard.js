@@ -2697,6 +2697,24 @@
   });
   root.appendChild(jumpBar);
 
+  // PARKED WHILE THE HERO IS ON SCREEN. A fixed bar covers the bottom of the
+  // viewport wherever the reader is, and at phone width on first paint that
+  // is the hero's own stat tiles: about 44px of the four figures the page
+  // opens with, hidden behind the buttons meant to help. The bar has nothing
+  // to offer there anyway, the filters are one scroll away. So it stays
+  // parked below the viewport until the hero has gone by, and comes back the
+  // moment it does; the wrap's reserved padding is unchanged, so the citation
+  // line at the foot is never trapped. Without IntersectionObserver the bar
+  // simply shows, as it did before.
+  var hero = root.querySelector('.tit-hero');
+  if (hero && 'IntersectionObserver' in window) {
+    jumpBar.classList.add('is-parked');
+    new IntersectionObserver(function (entries) {
+      var last = entries[entries.length - 1];
+      jumpBar.classList.toggle('is-parked', !!(last && last.isIntersecting));
+    }, { threshold: 0 }).observe(hero);
+  }
+
   // --- Per-chart controls ---------------------------------------------------
   // Every card gets its own expand, share and download, and each one acts on
   // that card alone. The buttons ship hidden from the shortcode and are
