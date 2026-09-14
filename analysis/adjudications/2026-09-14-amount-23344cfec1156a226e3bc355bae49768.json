@@ -1,0 +1,36 @@
+{
+ "key": "amount/23344cfec1156a226e3bc355bae49768",
+ "label": "Elite Metal Finishing and Machine Sciences $40,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": {
+  "company": "Elite Metal Finishing and Machine Sciences",
+  "headline": "Aerospace, defense suppliers plan to invest $40M, create 240-plus jobs in Cedar Park",
+  "summary": "Elite Metal Finishing and Machine Sciences will invest $40 million into a Cedar Park industrial facility, bringing 240 jobs to the Austin-area aerospace hub.",
+  "funding_amount": "$40 million",
+  "funding_amount_usd": 40000000,
+  "funding_stage": null,
+  "deal_type": "outbound_investment",
+  "money_basis": "outbound_investment",
+  "source_url": "https://www.bizjournals.com/austin/news/2026/09/11/cedar-park-aerospace-defense-elite-metal-machine.html",
+  "source_name": "Austin Business Journal",
+  "published_date": "2026-09-11",
+  "collector": "national_press",
+  "city": null,
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-12 01:45:52"
+ },
+ "why": "no evidence page could be read",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "action": "keep",
+ "written_at": "2026-09-14T21:32:41+00:00"
+}

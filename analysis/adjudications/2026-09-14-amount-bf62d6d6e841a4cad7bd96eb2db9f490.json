@@ -1,0 +1,44 @@
+{
+ "key": "amount/bf62d6d6e841a4cad7bd96eb2db9f490",
+ "label": "PepsiCo $59,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "PepsiCo",
+  "headline": "Keiko Fujimori destaca inversión millonaria de PepsiCo y pide más empresas que apuesten por Perú",
+  "summary": "Keiko Fujimori highlighted PepsiCo's $59 million investment in its new logistics center in Callao and called for more companies to invest in Peru.",
+  "funding_amount": "US$59 millones",
+  "funding_amount_usd": 59000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://gestion.pe/economia/empresas/keiko-fujimori-destaca-inversion-de-us59-millones-de-pepsico-noticia/",
+  "source_name": "Gestion",
+  "published_date": "2026-09-10",
+  "collector": "national_press",
+  "city": null,
+  "region": "Latin America",
+  "state": null,
+  "country": "PE",
+  "hq_city": null,
+  "hq_country": "US",
+  "published_at": "2026-09-11 01:32:01"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260911030543/https://gestion.pe/economia/empresas/keiko-fujimori-destaca-inversion-de-us59-millones-de-pepsico-noticia/",
+ "evidence_chars": 8467,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:32:39+00:00"
+}

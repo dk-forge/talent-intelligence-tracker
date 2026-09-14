@@ -1,0 +1,44 @@
+{
+ "key": "place/87bb9cda8eca01f81ee96cb858d75016",
+ "label": "Construmin filed under San Juan, US",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Construmin",
+  "headline": "Luego del conflicto con La Rioja, Vicuña avanza con su ruta de acceso por San Juan",
+  "summary": "The major copper project in the country has awarded contracts to companies Contreras, BBC, and the San Juan-based Construmin to build 63.6 kilometers over two years, creating about 300 jobs.",
+  "funding_amount": null,
+  "funding_amount_usd": null,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": null,
+  "source_url": "https://www.clarin.com/energia-y-mineria/luego-conflicto-rioja-vicuna-avanza-ruta-acceso-san-juan_0_v48wxpYKrF.html",
+  "source_name": "Clarin Economia",
+  "published_date": "2026-09-11",
+  "collector": "national_press",
+  "city": "San Juan",
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-12 01:45:52"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260912063018/https://www.clarin.com/energia-y-mineria/luego-conflicto-rioja-vicuna-avanza-ruta-acceso-san-juan_0_v48wxpYKrF.html",
+ "evidence_chars": 4909,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:32:47+00:00"
+}

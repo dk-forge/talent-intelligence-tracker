@@ -1,0 +1,44 @@
+{
+ "key": "amount/cdb69e97e35490b8a3cee478d6c1b438",
+ "label": "Ayar Labs $650,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Ayar Labs",
+  "headline": "CPO startup Ayar Labs raises 2026 funding to US$650 million, adds Wiwynn as investor",
+  "summary": "Ayar Labs, a co-packaged optics (CPO) startup, has raised an additional US$150 million, bringing the primary capital it has raised so far in 2026 to US$650 million. The company says it will use the money to move its CPO products into high-volume manufacturing.",
+  "funding_amount": "US$650 million",
+  "funding_amount_usd": 650000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.digitimes.com/news/a20260911VL222/cpo-startup-wiwynn-funding-2026.html",
+  "source_name": "DIGITIMES Asia",
+  "published_date": "2026-09-11",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-12 01:45:52"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20260912062929/https://www.digitimes.com/news/a20260911VL222/cpo-startup-wiwynn-funding-2026.html",
+ "evidence_chars": 2785,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-14T21:32:45+00:00"
+}
