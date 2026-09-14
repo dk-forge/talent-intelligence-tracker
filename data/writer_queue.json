@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-14T14:59:44Z",
-  "last_tick": "2026-09-14T14:59:44Z",
+  "last_dispatch": "2026-09-14T15:06:17Z",
+  "last_tick": "2026-09-14T15:06:17Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -221,39 +221,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-14T14:59:44Z",
-      "history": [
-        {
-          "at": "2026-09-14T10:50:16Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-14T14:59:44Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260914T105016Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-14T10:50:16Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-14T15:06:17Z",
       "history": [
         {
           "at": "2026-09-14T13:35:03Z",
           "detail": "scheduled link hygiene (0 7 * * 1,4)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-14T15:06:17Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260914T133503Z-tripwire",
@@ -265,7 +243,7 @@
       "requested_at": "2026-09-14T13:35:03Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "tripwire.yml"
     },
     {
@@ -289,44 +267,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-05T14:41:34Z",
-      "history": [
-        {
-          "at": "2026-09-05T13:00:21Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-05T14:41:34Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-05T14:49:58Z",
-          "detail": "run 33972567130",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-05T14:49:58Z",
-          "detail": "run 33972567130",
-          "event": "landed"
-        }
-      ],
-      "id": "20260905T130021Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-05T14:49:58Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-05T13:00:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "33972567130",
-      "state": "landed",
-      "workflow": "enrich.yml"
     },
     {
       "attempts": 0,
@@ -2606,6 +2546,44 @@
       "run_id": "34808927075",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-14T14:59:44Z",
+      "history": [
+        {
+          "at": "2026-09-14T10:50:16Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-14T14:59:44Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-14T15:06:17Z",
+          "detail": "run 34859237827",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-14T15:06:17Z",
+          "detail": "run 34859237827",
+          "event": "landed"
+        }
+      ],
+      "id": "20260914T105016Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-14T15:06:17Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-09-14T10:50:16Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34859237827",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
