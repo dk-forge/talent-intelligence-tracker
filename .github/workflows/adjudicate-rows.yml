@@ -1,0 +1,168 @@
+name: adjudicate-rows
+
+# Put live rows a session has flagged to two referees from different vendors,
+# and apply only what both agree on. See adjudicate_guardrail.py ("A ROW NO
+# CHECK CAUGHT"): `--row` opens amount/<hash>, `--place-row` opens
+# place/<hash>, each through guardrails.record with an empty check list, and
+# the rest is the guardrail adjudicator unchanged. A disagreement or an
+# unreadable source is written to analysis/adjudications/ and applies nothing;
+# the run then goes RED ONCE so the owner hears about exactly that and nothing
+# else, which is the 2026-09-11 rule.
+#
+# WHY A WORKFLOW. The checkout that wrote this held no OPENROUTER_API_KEY, and
+# the sibling tracker's key through `railway run` charges the sibling's pot
+# (TECHLOG 2026-09-12: "none of it is in this repo's ledger"). This runs on
+# this repository's own key, meters through classify._call like every other
+# paid read, files a priced source_health row (`adjudicate_rows`,
+# discretionary), and commits the spec files with the database.
+#
+# WHY IT IS A WRITER AND HOLDS THE LOCK. accept/reject write publish_guardrails,
+# an edit appends a revision through store.revise and corrects the live row in
+# place, so it shares `talent-collect` and merges its rows back like
+# correct-funding-amount.yml. Queue it, never dispatch it:
+#
+#   gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
+#     -f inputs_json='{"rows":"<hash>,<hash>","place_rows":"<hash>","reason":"why","dry_run":"false"}' \
+#     -f reason='why'
+#
+# PRICE BEFORE, RECORD AFTER. Measured 2026-09-12: $0.016 to $0.030 per row for
+# the pair of referees. The ceiling input bounds one run; the month's switch
+# (TIT_PAID_READS) is read before every request regardless.
+
+on:
+  workflow_dispatch:
+    inputs:
+      rows:
+        description: 'content_hash list, comma separated: money rows (amount/<hash>)'
+        type: string
+        default: ''
+      place_rows:
+        description: 'content_hash list, comma separated: location rows (place/<hash>)'
+        type: string
+        default: ''
+      reason:
+        description: 'Why the session raised them (written to the ledger)'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Ask the referees, write the specs, apply nothing'
+        type: boolean
+        default: true
+      ceiling:
+        description: 'Spend ceiling for this run, USD'
+        type: string
+        default: '0.50'
+
+permissions:
+  contents: write
+
+env:
+  # Which pot pays. A session-raised adjudication is not a scheduled job.
+  TIT_RUN_KIND: discretionary
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db.
+  group: talent-collect
+  # It corrects the live site and then appends the revision that records it.
+  cancel-in-progress: false
+
+jobs:
+  adjudicate:
+    runs-on: ubuntu-latest
+    # A handful of rows, two short calls each, plus the source fetches.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # Forward work is funded first: a discretionary run asks the month's
+      # switch before it can take any headroom. Degrade, never halt: a spent
+      # month makes every referee call a BudgetStop, which is UNDECIDED and
+      # applies nothing.
+      - name: Spend guard (degrade, never halt)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
+      - name: Adjudicate
+        id: adjudicate
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          ROWS: ${{ inputs.rows }}
+          PLACE_ROWS: ${{ inputs.place_rows }}
+          REASON: ${{ inputs.reason }}
+          CEILING: ${{ inputs.ceiling }}
+        run: |
+          set -o pipefail
+          ARGS=(--health --ceiling "${CEILING:-0.50}" --reason "${REASON:-raised through adjudicate-rows.yml}")
+          # --apply only when asked for by name; the input defaults to true, so
+          # a dispatch that says nothing is a dry run.
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS+=(--apply); fi
+          IFS=',' read -ra R <<< "${ROWS}"
+          for h in "${R[@]}"; do h="${h// /}"; [ -n "$h" ] && ARGS+=(--row "$h"); done
+          IFS=',' read -ra P <<< "${PLACE_ROWS}"
+          for h in "${P[@]}"; do h="${h// /}"; [ -n "$h" ] && ARGS+=(--place-row "$h"); done
+          # Exit 3 is "a human decides" (UNKNOWN or disagreement). The specs
+          # are committed first, below, and the last step turns 3 into a red run.
+          RC=0
+          python adjudicate_guardrail.py "${ARGS[@]}" || RC=$?
+          if [ "$RC" != "0" ] && [ "$RC" != "3" ]; then exit "$RC"; fi
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+
+      - name: Commit the database and the specs
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our ledger rows and revisions into the remote's database,
+          # never copy our file over the top of it. merge_db.py carries a
+          # reviewed publish_guardrails row and every new (content_hash,
+          # revision) pair. See correct-funding-amount.yml.
+          cp data/talent_intel.db "$RUNNER_TEMP/adjudicated.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/adjudicated_cache.db"
+          mkdir -p "$RUNNER_TEMP/specs"
+          cp analysis/adjudications/*.json "$RUNNER_TEMP/specs/" 2>/dev/null || true
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/adjudicated.db" data/talent_intel.db
+            mkdir -p analysis/adjudications
+            cp "$RUNNER_TEMP"/specs/*.json analysis/adjudications/ 2>/dev/null || true
+            git add data/talent_intel.db data/talent_intel_cache.db analysis/adjudications
+            if git diff --staged --quiet; then
+              echo "No data change."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "data: two-referee adjudication of session-raised rows $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt); merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" = "1" ]; then
+            exit 0
+          fi
+          # The site was corrected BEFORE the database on purpose (an edit
+          # pushes first), so a run that cannot push has fixed the live row and
+          # lost only the record of having done so. Loud, because nothing else
+          # would say so; the verdicts are in this run's log and nowhere else.
+          echo "::error::could not push after 5 attempts"
+          exit 1
+
+      - name: A human decides
+        if: ${{ steps.adjudicate.outputs.rc == '3' }}
+        run: |
+          echo "::error::At least one row is UNKNOWN or the referees disagreed."
+          echo "::error::Nothing was applied for it. Read the spec under"
+          echo "::error::analysis/adjudications/ and list it for the owner."
+          exit 1
