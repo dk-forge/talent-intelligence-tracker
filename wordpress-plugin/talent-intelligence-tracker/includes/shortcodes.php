@@ -923,10 +923,15 @@ function tit_dashboard_html() {
         */
         ?>
         <p class="tit-hero-links">
+          <?php /* "Records from N countries", never "Covering N countries": the
+                   count is where a record has been filed, and coverage is what
+                   the recall page MEASURES, which differs by country. The
+                   ribbon says so in the same breath, beside the link to the
+                   measurement. */ ?>
           <span class="tit-ribbon-cov"><span id="tit-span"><?php
             echo esc_html(tit_span_note($view_lo, $view_hi)); ?></span>
-            <span aria-hidden="true">·</span> <span id="tit-ribbon-c"><?php
-            echo esc_html(number_format_i18n($countries)); ?></span> countries</span>
+            <span aria-hidden="true">·</span> Records from <span id="tit-ribbon-c"><?php
+            echo esc_html(number_format_i18n($countries)); ?></span> countries; measured coverage varies</span>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
