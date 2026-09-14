@@ -286,10 +286,93 @@ def monthly_allowance(path: str | None = None) -> float | None:
     return None
 
 
-def pots(allowance: float) -> dict[str, float]:
-    """The allowance, split. Adds up to the allowance, by construction."""
+def pots(allowance: float, grant: float = 0.0) -> dict[str, float]:
+    """The allowance, split. Adds up to the allowance, by construction.
+
+    `grant` is a one-time owner approval for THIS month (see `month_grant`)
+    and lands on the DISCRETIONARY side only: it funds referee adjudications
+    and benchmarks, never the collectors, so it can neither raise the stop
+    line the scheduled jobs are measured against nor be spent by them.
+    """
     committed = round(allowance * COMMITTED_SHARE, 4)
-    return {COMMITTED: committed, DISCRETIONARY: round(allowance - committed, 4)}
+    return {COMMITTED: committed,
+            DISCRETIONARY: round(allowance - committed + float(grant or 0.0), 4)}
+
+
+# ---------------------------------------------------------------------------
+# One-time grants: the owner's approvals, written down where the gate reads
+# ---------------------------------------------------------------------------
+#
+# On 2026-09-14 the adjudicate-rows run 34899697295 spent $0.00 and returned
+# every row UNKNOWN: `spend.py --degrade` found the discretionary pot at
+# $1.01 of $0.89 and switched paid reads off, exactly as designed. The owner
+# had approved $10 for referee adjudications the day before, and that
+# approval lived in a conversation, where no gate can read it. A budget the
+# gate cannot see is not a budget. So a grant is a committed file, keyed by
+# UTC month, and a month's grant is added to that month's DISCRETIONARY pot
+# and nothing else: it is catch-up money by the owner's own wording, and a
+# grant that could raise the committed pot would be a way to spend past the
+# collectors' stop line by editing a JSON file.
+
+GRANTS_PATH = os.path.join(ROOT, "data", "discretionary_grants.json")
+GRANT_FIELDS = ("usd", "approved_by", "approved_on", "purpose")
+
+
+class GrantError(ValueError):
+    """The grants file does not say what a grant must say. Loud, never a
+    silent zero: a malformed approval must not read as no approval."""
+
+
+def load_grants(path: str | None = None) -> dict[str, dict]:
+    """Every grant on file, validated. A missing file is no grants."""
+    import json
+    import re
+
+    path = path or GRANTS_PATH
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as fh:
+        try:
+            data = json.load(fh)
+        except ValueError as exc:
+            raise GrantError(f"{path}: not JSON ({exc})") from exc
+    if not isinstance(data, dict):
+        raise GrantError(f"{path}: the top level must be an object keyed by YYYY-MM")
+    for month, entry in data.items():
+        if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", str(month)):
+            raise GrantError(f"{path}: {month!r} is not a YYYY-MM month")
+        if not isinstance(entry, dict):
+            raise GrantError(f"{path}: {month} must be an object with {', '.join(GRANT_FIELDS)}")
+        missing = [f for f in GRANT_FIELDS if f not in entry or entry[f] in ("", None)]
+        if missing:
+            raise GrantError(f"{path}: {month} lacks {', '.join(missing)}")
+        usd = entry["usd"]
+        if isinstance(usd, bool) or not isinstance(usd, (int, float)) or usd <= 0:
+            raise GrantError(f"{path}: {month} usd must be a number above zero, got {usd!r}")
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(entry["approved_on"])):
+            raise GrantError(f"{path}: {month} approved_on must be YYYY-MM-DD")
+    return data
+
+
+def month_grant(today: datetime.date | None = None, path: str | None = None) -> dict | None:
+    """This UTC month's grant, or None. Another month's grant is not ours."""
+    month, _, _ = month_bounds(today)
+    return load_grants(path).get(month)
+
+
+def grant_note(grant: dict | None) -> str:
+    """The words every surface prints for a grant, so the spend is visible."""
+    if not grant:
+        return ""
+    return (f"grant ${float(grant['usd']):,.2f} ({grant['approved_by']}, "
+            f"{grant['approved_on']}, {grant['purpose']})")
+
+
+def pots_for(allowance: float, today: datetime.date | None = None,
+             path: str | None = None) -> dict[str, float]:
+    """`pots()` with this month's grant applied to the discretionary side."""
+    grant = month_grant(today, path)
+    return pots(allowance, float(grant["usd"]) if grant else 0.0)
 
 
 # ---------------------------------------------------------------------------
@@ -508,9 +591,11 @@ def decide(*, kind: str | None = None, allowance: float | None = None,
                          month_total=month_total)
 
     _, _, days_left = month_bounds(today)
-    pot = pots(allowance)[kind]
+    grant = month_grant(today)
+    pot = pots_for(allowance, today)[kind]
     spent = float(charged.get(kind, 0.0))
     remaining = round(pot - spent, 6)
+    granted = (f" That pot carries a {grant_note(grant)}." if grant and kind == DISCRETIONARY else "")
 
     if kind == COMMITTED:
         line = round(pot * stop_at_fraction, 6)
@@ -541,7 +626,7 @@ def decide(*, kind: str | None = None, allowance: float | None = None,
             f"DISCRETIONARY catch-up work spends the headroom that is left: "
             f"${spent:,.4f} of ${pot:,.2f} spent, ${remaining:,.4f} remaining "
             f"over {days_left} day(s) left in the month = ${ceiling:,.4f} for "
-            f"this run. "
+            f"this run.{granted} "
             + (f"That is below the ${MIN_DISCRETIONARY_RUN_USD:,.3f} floor, so "
                f"this run buys NOTHING and SKIPS. It is not broken and not "
                f"finished: the pot refills on the 1st, no cursor is reset and "
@@ -620,7 +705,8 @@ def status_line(*, allowance: float | None = None,
                 "spend.py. This run did not establish what is funded.")
     charged = ledger_spend() if charged is None else charged
     month, span, days_left = month_bounds(today)
-    pot = pots(allowance)
+    grant = month_grant(today)
+    pot = pots_for(allowance, today)
     spent = sum(charged.values())
     elapsed = span - days_left + 1
     projected = spent / elapsed * span if elapsed else 0.0
@@ -628,7 +714,9 @@ def status_line(*, allowance: float | None = None,
         f"BUDGET {month}: ${spent:,.2f} of ${allowance:,.2f} spent "
         f"(current ${charged.get(COMMITTED, 0.0):,.2f}/${pot[COMMITTED]:,.2f}, "
         f"catch-up ${charged.get(DISCRETIONARY, 0.0):,.2f}/"
-        f"${pot[DISCRETIONARY]:,.2f}), {days_left} day(s) left, "
+        f"${pot[DISCRETIONARY]:,.2f}"
+        + (f" incl. {grant_note(grant)}" if grant else "")
+        + f"), {days_left} day(s) left, "
         f"projected ${projected:,.2f} for the month"
         + ("" if measured_total else
            " — from the committed cost ledger, which is a FLOOR: jobs that "
@@ -648,6 +736,10 @@ def report(allowance: float | None = None,
                              measured_total=measured_total))
     if allowance is None:
         return
+    grant = month_grant(today)
+    if grant:
+        print(f"  {grant_note(grant)}: on the discretionary pot only, from "
+              f"{os.path.relpath(GRANTS_PATH, ROOT)}")
     print()
     for kind in KINDS:
         d = decide(kind=kind, allowance=allowance, charged=charged, today=today)

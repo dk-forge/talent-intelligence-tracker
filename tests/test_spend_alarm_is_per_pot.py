@@ -178,12 +178,17 @@ class TestTheWalkerRationReadsAMeasuredPot(unittest.TestCase):
 
     def test_a_walker_reconciles_the_month_total_when_it_is_published(self):
         import os
+        from unittest import mock
 
         os.environ[budget.MONTH_SPEND_ENV] = str(AUGUST_TOTAL)
         try:
-            decision = budget.decide(kind=budget.DISCRETIONARY,
-                                     allowance=ALLOWANCE,
-                                     ledger=self.LEDGER)
+            # The August state, with no owner grant in play: a grant on file
+            # for the current month would fund this pot and prove nothing
+            # about reconciliation (test_budget_allocator covers grants).
+            with mock.patch.object(budget, "GRANTS_PATH", os.devnull + ".absent"):
+                decision = budget.decide(kind=budget.DISCRETIONARY,
+                                         allowance=ALLOWANCE,
+                                         ledger=self.LEDGER)
         finally:
             os.environ.pop(budget.MONTH_SPEND_ENV, None)
         self.assertTrue(

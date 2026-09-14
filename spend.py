@@ -529,7 +529,7 @@ def main() -> int:
     if over:
         problems.append(
             f"this month's {kind} spend ${charged[kind]:.2f} is at or past "
-            f"{int(STOP_AT_FRACTION*100)}% of the ${budget.pots(MONTHLY_ALLOWANCE_USD)[kind]:.2f} "
+            f"{int(STOP_AT_FRACTION*100)}% of the ${budget.pots_for(MONTHLY_ALLOWANCE_USD)[kind]:.2f} "
             f"{kind} pot (of a ${MONTHLY_ALLOWANCE_USD:.2f} allowance)"
         )
 

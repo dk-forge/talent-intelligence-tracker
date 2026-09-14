@@ -41,6 +41,11 @@ _NOT_SOURCES = {
     # other two. The first measurement run after the set landed posted this
     # health id and every PR went red here until it was named.
     "recall_eu": "measures what we miss in Europe",
+    # Two referees re-reading rows we already hold (adjudicate_guardrail.py
+    # --row / --place-row, adjudicate-rows.yml). It files a priced health row
+    # so the spend is in the ledger; it stores nothing new and cites nothing
+    # of its own.
+    "adjudicate_rows": "adjudicates rows we already hold against their own sources",
     "sec_form_d_bulk": "backfills SEC EDGAR Form D, which is listed",
     # It asks a model what we are missing and emits a WORK LIST. Every field it
     # returns is prefixed `claimed_` and dies there; a lead becomes a record

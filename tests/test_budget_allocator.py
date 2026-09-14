@@ -446,3 +446,104 @@ def test_ops_status_does_not_parse_the_allowance_a_second_time():
     assert "budget.monthly_allowance" in (ROOT / "ops_status.py").read_text(), (
         "two parsers for one policy number is how they come to disagree")
     assert ops_status._monthly_allowance() == spend.MONTHLY_ALLOWANCE_USD
+
+
+# --- one-time grants ---------------------------------------------------------
+#
+# The adjudicate-rows run 34899697295 spent $0.00 and returned every row
+# UNKNOWN: the discretionary pot read $1.01 of $0.89 and the gate switched
+# paid reads off, while a $10 owner approval sat in a conversation where no
+# gate could read it. A grant is a committed file, and it lands on the
+# discretionary pot only.
+
+import datetime as _dt
+import json as _json
+
+SEPT = _dt.date(2026, 9, 15)
+
+
+def _grants(tmp_path, body):
+    path = tmp_path / "grants.json"
+    path.write_text(_json.dumps(body) if not isinstance(body, str) else body)
+    return str(path)
+
+
+GRANT = {"usd": 10.0, "approved_by": "owner", "approved_on": "2026-09-13",
+         "purpose": "two-referee adjudications; one time"}
+
+
+def test_a_grant_raises_only_the_discretionary_pot(tmp_path):
+    path = _grants(tmp_path, {"2026-09": GRANT})
+    base = budget.pots(6.04)
+    with_grant = budget.pots_for(6.04, today=SEPT, path=path)
+    assert with_grant[budget.COMMITTED] == base[budget.COMMITTED]
+    assert with_grant[budget.DISCRETIONARY] == pytest.approx(base[budget.DISCRETIONARY] + 10.0)
+
+
+def test_no_grant_changes_nothing(tmp_path):
+    assert budget.pots_for(6.04, today=SEPT, path=str(tmp_path / "absent.json")) == budget.pots(6.04)
+    assert budget.month_grant(SEPT, str(tmp_path / "absent.json")) is None
+
+
+def test_a_grant_for_another_month_is_ignored(tmp_path):
+    path = _grants(tmp_path, {"2026-08": GRANT})
+    assert budget.month_grant(SEPT, path) is None
+    assert budget.pots_for(6.04, today=SEPT, path=path) == budget.pots(6.04)
+
+
+@pytest.mark.parametrize("body", [
+    {"2026-09": {**GRANT, "usd": 0}},
+    {"2026-09": {**GRANT, "usd": -1}},
+    {"2026-09": {**GRANT, "usd": "10"}},
+    {"2026-09": {k: v for k, v in GRANT.items() if k != "approved_by"}},
+    {"2026-09": {k: v for k, v in GRANT.items() if k != "approved_on"}},
+    {"2026-09": {k: v for k, v in GRANT.items() if k != "purpose"}},
+    {"2026-09": {**GRANT, "purpose": ""}},
+    {"2026-9": GRANT},
+    {"2026-09": {**GRANT, "approved_on": "September 13"}},
+    "not json",
+    [GRANT],
+])
+def test_a_malformed_grant_is_loud_never_a_silent_zero(tmp_path, body):
+    path = _grants(tmp_path, body)
+    with pytest.raises(budget.GrantError):
+        budget.load_grants(path)
+
+
+def test_the_committed_grants_file_validates_and_funds_this_repo_only_discretionary():
+    grants = budget.load_grants()
+    assert "2026-09" in grants and grants["2026-09"]["usd"] == 20.0
+    assert grants["2026-09"]["approved_on"] == "2026-09-14"
+    allowance = spend.MONTHLY_ALLOWANCE_USD
+    base, with_grant = budget.pots(allowance), budget.pots_for(allowance, today=SEPT)
+    assert with_grant[budget.COMMITTED] == base[budget.COMMITTED]
+    assert with_grant[budget.DISCRETIONARY] == pytest.approx(base[budget.DISCRETIONARY] + 20.0)
+
+
+def test_a_grant_funds_the_run_that_the_bare_pot_refused(tmp_path, monkeypatch):
+    # The exact state of 2026-09-14: $1.01 charged to catch-up against a
+    # $0.89 pot. Without the grant the run skips; with it, it runs.
+    allowance = 8.00
+    charged = {budget.COMMITTED: 0.0, budget.DISCRETIONARY: 1.01}
+    monkeypatch.setattr(budget, "GRANTS_PATH", str(tmp_path / "absent.json"))
+    refused = budget.decide(kind=budget.DISCRETIONARY, allowance=allowance, charged=charged, today=SEPT)
+    assert refused.skip
+    monkeypatch.setattr(budget, "GRANTS_PATH", _grants(tmp_path, {"2026-09": GRANT}))
+    funded = budget.decide(kind=budget.DISCRETIONARY, allowance=allowance, charged=charged, today=SEPT)
+    assert not funded.skip and funded.ceiling > 0
+    assert "grant $10.00 (owner, 2026-09-13" in funded.reason
+    # And the committed decision is untouched by it.
+    c = budget.decide(kind=budget.COMMITTED, allowance=allowance, charged=charged, today=SEPT)
+    assert c.pot == budget.pots(allowance)[budget.COMMITTED]
+    assert "grant" not in c.reason
+
+
+def test_every_surface_prints_the_grant(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(budget, "GRANTS_PATH", _grants(tmp_path, {"2026-09": GRANT}))
+    line = budget.status_line(allowance=8.00, charged={budget.COMMITTED: 0, budget.DISCRETIONARY: 0}, today=SEPT)
+    assert "grant $10.00 (owner, 2026-09-13, two-referee adjudications; one time)" in line
+    budget.report(allowance=8.00, charged={budget.COMMITTED: 0, budget.DISCRETIONARY: 0}, today=SEPT)
+    assert "grant $10.00 (owner, 2026-09-13" in capsys.readouterr().out
+    source = (ROOT / "ops_status.py").read_text()
+    assert "budget.month_grant" in source and "budget.grant_note" in source and "budget.pots_for" in source
+    assert "budget.pots_for" in (ROOT / "spend.py").read_text(), "the degrade gate must see the grant"

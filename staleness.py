@@ -216,6 +216,14 @@ MAX_AGE_HOURS = {
     # verdict on a source somebody deliberately left unscheduled is how a report
     # earns a false alarm. Same shape and same number as press_archive above.
     "primary_chase": 2400,
+    # adjudicate_rows is DISPATCH-ONLY too: a session raises rows and the
+    # ticket is queued through drain-writers (adjudicate-rows.yml has no cron
+    # and must not gain one, it spends). Its health row exists so the referee
+    # spend is in the ledger, not to promise a cadence. Same number as the
+    # two above, for the same reason: silence between runs is the owner's
+    # pace, not an outage. Its first run (2026-09-14) filed this id and wore
+    # the 336h default nobody chose.
+    "adjudicate_rows": 2400,
     # The two recall families, recall.yml, Mondays 08:00 UTC. Both file a health
     # row from measure_recall.py on every run, one per family
     # (analysis/recall/family.py owns which is which). Weekly cadence plus a day
