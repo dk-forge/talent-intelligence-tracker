@@ -30,11 +30,6 @@
       "last": 1788716370,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
-    "rendered-contrast-audit:main:d8ac800a48694277": {
-      "first": 1789318880,
-      "last": 1789318880,
-      "subject": "CI RED: Rendered contrast audit: RESULT: FAIL, 288 contrast violation(s), 0 overflow(s), 0 theme-control problem(s) are live for readers."
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -46,6 +41,6 @@
       "subject": "CI RED: tests: DevTools listening on ws://127.0.0.1:45949/devtools/browser/13f75258-1af8-408d-813f-4d43c2413fad"
     }
   },
-  "updated_at": "2026-09-14T17:08:38+00:00",
+  "updated_at": "2026-09-14T18:22:55+00:00",
   "version": 1
 }
