@@ -35,11 +35,6 @@
       "last": 1789308761,
       "subject": "CI RED: enrich: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 504: <!DOCTYPE html>"
     },
-    "money-basis-check:main:9a448a684954b92c": {
-      "first": 1789211765,
-      "last": 1789211765,
-      "subject": "CI RED: money-basis check: UNKNOWN  site: could not be read (***/wp-json/talent/v1/aggregate: 504 Server Error: Gateway Timeout for url: ***/wp-json/talent/v1/aggregate). NOT a pas"
-    },
     "rendered-contrast-audit:main:d8ac800a48694277": {
       "first": 1789318880,
       "last": 1789318880,
@@ -51,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-14T09:42:08+00:00",
+  "updated_at": "2026-09-14T13:21:56+00:00",
   "version": 1
 }
