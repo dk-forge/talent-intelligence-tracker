@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-14T05:14:56Z",
-  "last_tick": "2026-09-14T05:14:56Z",
+  "last_dispatch": "2026-09-14T14:59:44Z",
+  "last_tick": "2026-09-14T14:59:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -215,18 +215,23 @@
     "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-14T01:15:11Z",
     "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-14T01:15:11Z",
     "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-14T01:15:11Z",
-    "ticket:20260912T104321Z-collect-structured": "2026-09-13T10:58:45Z",
-    "ticket:20260913T135229Z-enrich": "2026-09-13T14:12:43Z"
+    "ticket:20260912T104321Z-collect-structured": "2026-09-14T14:59:44Z",
+    "ticket:20260913T135229Z-enrich": "2026-09-14T14:59:44Z"
   },
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-14T14:59:44Z",
       "history": [
         {
           "at": "2026-09-14T10:50:16Z",
           "detail": "scheduled link hygiene (30 5 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-14T14:59:44Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260914T105016Z-link-check",
@@ -238,7 +243,7 @@
       "requested_at": "2026-09-14T10:50:16Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "link-check.yml"
     },
     {
