@@ -1,24 +1,24 @@
 {
-  "checked_on": "2026-09-07",
-  "checked_at": "2026-09-07T14:55:00+00:00",
+  "checked_on": "2026-09-14",
+  "checked_at": "2026-09-14T15:46:52+00:00",
   "landmarks_version": "2026-08-v1",
   "landmarks_digest": "ea0fb9518b3e51cf",
   "summary": {
     "total": 20,
-    "held": 8,
+    "held": 14,
     "held_not_live": 0,
     "wrong_amount": 0,
-    "missing": 12,
-    "standing_gaps": 12,
+    "missing": 6,
+    "standing_gaps": 6,
     "regressions": 0,
     "live_lens": "not read",
-    "one_line": "landmarks: 8 of 20 held, 12 standing gaps, 0 regressions"
+    "one_line": "landmarks: 14 of 20 held, 6 standing gaps, 0 regressions"
   },
   "by_quarter": {
     "2025Q1": {
       "total": 4,
-      "held": 0,
-      "missing": 4,
+      "held": 3,
+      "missing": 1,
       "wrong_amount": 0,
       "held_not_live": 0
     },
@@ -31,15 +31,15 @@
     },
     "2025Q3": {
       "total": 3,
-      "held": 1,
-      "missing": 2,
+      "held": 3,
+      "missing": 0,
       "wrong_amount": 0,
       "held_not_live": 0
     },
     "2025Q4": {
       "total": 3,
-      "held": 0,
-      "missing": 3,
+      "held": 1,
+      "missing": 2,
       "wrong_amount": 0,
       "held_not_live": 0
     },
@@ -90,13 +90,20 @@
       "event_date": "2025-03-03",
       "amount_usd": 3500000000,
       "source_url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "88d0b201fef79b4343902e98a1971385",
+        "company": "Anthropic",
+        "headline": "Anthropic raises Series E at $61.5B post-money valuation",
+        "funding_amount_usd": 3500000000,
+        "published_date": "2025-03-03",
+        "source_url": "https://www.anthropic.com/news/anthropic-raises-series-e-at-usd61-5b-post-money-valuation"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -107,13 +114,20 @@
       "event_date": "2025-03-31",
       "amount_usd": 40000000000,
       "source_url": "https://openai.com/index/march-funding-updates/",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "7a788f5c7491918c805221920e4d98f1",
+        "company": "OpenAI",
+        "headline": "New funding to build towards AGI",
+        "funding_amount_usd": 40000000000,
+        "published_date": "2025-03-31",
+        "source_url": "https://openai.com/index/march-funding-updates/"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -124,13 +138,20 @@
       "event_date": "2025-03-31",
       "amount_usd": 600000000,
       "source_url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "af7e7e4bbfb59e87ba491b6a30e12e14",
+        "company": "Isomorphic Labs",
+        "headline": "Isomorphic Labs announces $600m external investment round",
+        "funding_amount_usd": 600000000,
+        "published_date": "2025-03-31",
+        "source_url": "https://www.isomorphiclabs.com/articles/isomorphic-labs-announces-600m-external-investment-round"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -199,13 +220,20 @@
       "event_date": "2025-09-09",
       "amount_usd": 1990000000,
       "source_url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "amount not checked: the document states this round in EUR, so the USD figure here is a conversion",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "3614054787344985aab4acb049feff10",
+        "company": "Mistral AI",
+        "headline": "Mistral AI raises 1.7B€ to accelerate technological progress with AI",
+        "funding_amount_usd": null,
+        "published_date": "2025-09-09",
+        "source_url": "https://mistral.ai/news/mistral-ai-raises-1-7-b-to-accelerate-technological-progress-with-ai/"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -216,13 +244,20 @@
       "event_date": "2025-09-16",
       "amount_usd": 1000000000,
       "source_url": "https://www.figure.ai/news/series-c",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "1438c9dd4cc33e8aa58b46ec4811f23d",
+        "company": "Figure",
+        "headline": "Figure Exceeds $1B in Series C Funding at $39B Post-Money Valuation",
+        "funding_amount_usd": 1000000000,
+        "published_date": "2025-09-16",
+        "source_url": "https://www.figure.ai/news/series-c"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -267,13 +302,20 @@
       "event_date": "2025-12-16",
       "amount_usd": 4000000000,
       "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year",
-      "stored_verdict": "MISSING",
-      "stored_detail": "no row for this event",
+      "stored_verdict": "HELD",
+      "stored_detail": "",
       "live_verdict": "UNKNOWN",
       "live_detail": "the live lens did not run",
-      "status": "missing",
-      "matched": null,
-      "ever_stored": false,
+      "status": "held",
+      "matched": {
+        "signal_id": "13dc7028b78b4081c70e9ffc85cd2b7d",
+        "company": "Databricks",
+        "headline": "Databricks Grows >55% YoY, Surpasses $4.8B Revenue Run-Rate, and is Raising >$4B Series L at $134B Valuation",
+        "funding_amount_usd": 4000000000,
+        "published_date": "2025-12-16",
+        "source_url": "https://www.databricks.com/company/newsroom/press-releases/databricks-surpasses-4-8b-revenue-run-rate-growing-55-year-over-year"
+      },
+      "ever_stored": true,
       "ever_live": false,
       "regression": []
     },
@@ -471,22 +513,22 @@
       "last_held_on": null
     },
     "2025q1-anthropic-3-5b": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-14",
+      "last_held_on": "2026-09-14"
     },
     "2025q1-openai-40b": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-14",
+      "last_held_on": "2026-09-14"
     },
     "2025q1-isomorphic-labs-600m": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-14",
+      "last_held_on": "2026-09-14"
     },
     "2025q2-anysphere-900m": {
       "ever_stored": false,
@@ -504,19 +546,19 @@
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2025q3-mistral-1-7b-eur": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-14",
+      "last_held_on": "2026-09-14"
     },
     "2025q3-figure-1b": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-14",
+      "last_held_on": "2026-09-14"
     },
     "2025q4-reflection-ai-2b": {
       "ever_stored": false,
@@ -531,34 +573,34 @@
       "last_held_on": null
     },
     "2025q4-databricks-4b": {
-      "ever_stored": false,
+      "ever_stored": true,
       "ever_live": false,
-      "first_held_on": null,
-      "last_held_on": null
+      "first_held_on": "2026-09-14",
+      "last_held_on": "2026-09-14"
     },
     "2026q1-xai-20b": {
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2026q1-waymo-16b": {
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2026q1-anthropic-30b": {
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2026q1-openai-122b": {
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2026q2-anduril-5b": {
       "ever_stored": false,
@@ -570,19 +612,19 @@
       "ever_stored": true,
       "ever_live": true,
       "first_held_on": "2026-08-03",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2026q3-helsing-1-8b": {
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-09-07",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     },
     "2026q3-fireworks-1-5b": {
       "ever_stored": true,
       "ever_live": false,
       "first_held_on": "2026-09-07",
-      "last_held_on": "2026-09-07"
+      "last_held_on": "2026-09-14"
     }
   }
 }
