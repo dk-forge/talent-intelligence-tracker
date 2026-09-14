@@ -2,6 +2,76 @@
 
 ---
 
+## 2026-09-14: a deterministic contradiction audit over every published money row; 2 stale verdicts and 11 wrong figures found, both corrections queued through the machinery (branch `fix/money-basis-contradiction-audit`)
+
+`correct_money_basis.py --check` was one question: is any figure unjudged?
+It now asks three, all offline against the committed database and before the
+site is consulted, because a wrong number is wrong whether or not the host
+answers today (it 504'd on 2026-09-12 and 09-13 and the check read UNKNOWN
+both days):
+
+1. **unjudged** (unchanged): a figure nothing examined.
+2. **stale verdict**: a published row summed as `company_raise` that
+   `money_raised.basis()` now excludes. The definition learned two phrases in
+   this branch: the noun form of an outbound spend anchored on the employer
+   ("PepsiCo's $59 million investment in", "inversión de US$59 millones de
+   PepsiCo") and a project licence ("secures investment certificate"). Both
+   write-path and correction pass share them, so the re-judgement is the same
+   function the pipeline calls. **Measured: 2 published rows, $1.04bn** (TikTok
+   $980M, PepsiCo $59M), the exact two the owner named. The correction pass's
+   dry run: published total $721.93bn to $720.89bn; three unpublished rows also
+   move (Nvidia $709bn project_finance, two Alibaba public offerings) through
+   the pre-existing capital_event branch, none of them in a total.
+3. **figure**: a published `company_raise` row whose stored USD figure equals a
+   number the text attributes to a valuation, a project's cost, a purchase
+   price or a revenue figure, and to no raise-verb figure. The basis is right
+   and the AMOUNT is wrong, and only the source can say what it should be, so
+   these are named with the key the referees take and never re-judged by
+   pattern. **Measured: 11 published rows, $13.68bn** (valuation 5, project
+   cost 5, committed revenue 1). Largest: Databricks $7bn run-rate summed as
+   raised; Starcloud $2.3bn, Ominimo $1.6bn, Velaura $1bn and Rillet $1bn
+   valuations; Homerun's $400M project.
+
+"invested", "acquisition" and "committed revenue" as bare words were measured
+and rejected as contradiction rules: over the 4,691 summed rows, "invest*"
+fires on 145 (Form D filers named Investment Group, rounds described as an
+investment FROM somebody), "acqui*" on 13 (SPAC filers), "revenue" on 4 (all
+real raises with a revenue aside). A contradiction is the STORED FIGURE being
+the other number, not the word appearing, and that is what the check tests.
+
+**Both corrections go through the queue, neither ran here.** After merge:
+
+```bash
+# the 2 stale verdicts: re-judge under the current definition, carry to the site
+gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml \
+  -f inputs_json='{"dry_run":"false"}' -f reason='stale money_basis verdicts (2026-09-14 audit)'
+# the 11 wrong figures: two referees each. Price before: 11 x $0.016 to $0.030 = $0.18 to $0.33
+gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
+  -f inputs_json='{"rows":"734d99623f823e79e2d549649cd1abdf,864e76c30a8fe3e5fb6d1f3568a19aea,005123a94e8243df523375355d856a99,8b7db65e5a281d5096ef871d61547edf,5fa33d0d7c2afdd2c002f6bf68e88d73,bcd70c7d3ab3055f36a81ae0fbccbf55,708bfb3aa94f010ce13aafc2f223b2f0,ea91a78b1a8a8c052f4b4aa5b4e92b37,9e66f52d50313f49f91d35deadc777a2,465b406cd7cbe680aae7716507450719,24351a64d835a6d01ddc4fe727ab88b2","reason":"stored amount is a valuation, project cost, purchase price or revenue figure (2026-09-14 audit)","dry_run":"false","ceiling":"0.60"}' \
+  -f reason='money figure contradictions'
+```
+
+`adjudicate-rows.yml` is on branch `fix/adjudicate-live-rows` (PR #142) and
+must land first. `--check` prints the exact ticket every day the class is
+non-empty, so the list above never has to be retyped. **money-basis-check.yml
+is RED from the moment this merges until both land**, and that red is the
+audit working: a published total is wrong today.
+
+### For the owner
+
+1. **Any of the 11 whose referees disagree** (spec under
+   `analysis/adjudications/`): rule as on 2026-09-12 with an `owner-ruled` spec.
+2. **Brandeis $10M "Robert Kraft funds $10M campus project"** is a
+   philanthropic gift to a university, and the money rules have no basis for a
+   gift: it is not a company raise and not an outbound spend. If the referees
+   pick a basis, it will be by analogy; if the owner wants a `gift` kind, that
+   is a vocabulary decision (`vocab.DEAL_TYPES`, `money_raised.EXCLUDING_DEAL_TYPES`).
+3. **The two stale rows are also in PR #142's ticket.** Whichever lands first
+   is right; the second confirms it (a referee `edit` to the basis the pass
+   already wrote is a no-op revision, and the ledger says both looked).
+
+---
+
 ## 2026-09-12: sustained host outages could never reach the third-run alarm (branch `codex/host-watch-sustained-outage-20260912`)
 
 The shared ChemiCloud WordPress origin began returning HTTP 504 on every

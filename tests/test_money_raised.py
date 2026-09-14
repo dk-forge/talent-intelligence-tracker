@@ -75,6 +75,30 @@ REAL_ROWS = [
      "Pantheon has raised $3.2 billion for its co-investment strategy.",
      money_raised.FUND_RAISE),
 
+    # THE NOUN FORM OF AN OUTBOUND SPEND. No verb for the subject test to find:
+    # the spend is a noun and the employer is its possessor. Live under
+    # company_raise on 2026-09-14, $59M of PepsiCo's capex summed as raised.
+    (None, "PepsiCo",
+     "Keiko Fujimori destaca inversión millonaria de PepsiCo y pide más empresas que apuesten por Perú",
+     "Keiko Fujimori highlighted PepsiCo's $59 million investment in its new "
+     "logistics center in Callao and called for more companies to invest in Peru.",
+     money_raised.OUTBOUND_INVESTMENT),
+
+    # The same, in the source's own Spanish (gestion.pe's slug is
+    # "inversion-de-us59-millones-de-pepsico").
+    (None, "PepsiCo",
+     "Keiko Fujimori destaca inversión de US$59 millones de PepsiCo",
+     "",
+     money_raised.OUTBOUND_INVESTMENT),
+
+    # A PROJECT LICENCE. An investment certificate licenses the employer to
+    # spend registered capital on its own project. Live as $980M TikTok raised.
+    (None, "TikTok",
+     "TikTok’s $980 mln HCM City logistics project secures investment certificate",
+     "TikTok's logistics project in HCM City has secured an investment certificate "
+     "with a total registered capital of VNĐ25.85 trillion (US$980 million).",
+     money_raised.OUTBOUND_INVESTMENT),
+
     # A PLEDGE. Commitments from a state visit are not capital received.
     (None, "Marcos",
      "Marcos secures US$2.5B in investment commitments from Canada visit",
@@ -132,6 +156,19 @@ REAL_RAISES = [
      "Powerhouse Investing Group Holding Company, LLC raised $1M in a private "
      "placement",
      "Powerhouse Investing Group Holding Company, LLC raised $1M."),
+
+    # AN INVESTMENT *FROM* SOMEBODY IS A ROUND. The noun form of the outbound
+    # rule needs the preposition that makes the employer the payer; "from" and
+    # "led by" describe who paid.
+    (None, "Acme",
+     "Acme secures $10M investment from Sequoia to expand in Europe",
+     "Acme's $10M investment from Sequoia will fund hiring."),
+
+    # MONEY ARRIVING *EN* THE EMPLOYER. The Romance shape needs `de <head>`
+    # after the amount; `en <head>` is the investee.
+    (None, "PepsiCo",
+     "Fondo anuncia inversión de US$59 millones en PepsiCo",
+     ""),
 
     # A PRODUCT, not a fund. "Vehicle" was in the fund pattern until this row.
     (None, "Vince Gaydarzhiev",
