@@ -125,6 +125,25 @@ The five, with the question each referee pair is asked:
    the owner saw it under "raised" on the live page, that was before
    `enrich.yml` carried the basis over, or a cached render; the live `/query`
    read `outbound_investment` on 2026-09-14.
+## 2026-09-14: the recall page renders the NEWER of the pushed and the shipped measurement (1.88.5, branch `fix/recall-page-newer-measurement`). PUSHED, NOT DEPLOYED.
+
+The page preferred the WordPress option outright. On 2026-09-12 and 09-13 the
+host 504'd; `recall.yml` measured and committed 26.6% but its POST never
+landed, so the page kept rendering the 21.9% option from an earlier set while
+the plugin's own `data/recall.json` said 26.6%. On 2026-09-14 a run got
+through and the live page reads 26.6% (measured 2026-09-14), so the symptom is
+gone today; the rule that produced it was not. `tit_recall_data()` now
+compares `measured_on` and renders the newer copy (`tit_recall_newer()`, pure,
+proven in both directions and at the edges by `tests/php/render_recall.php`).
+Equal dates keep the pushed copy.
+
+**Deploy is the session's call** (`deploy-plugin.yml`, dry_run defaults
+true). Verify after: `curl -s .../talent-intelligence-tracker/recall/?cb=$RANDOM`
+shows the `measured_on` of whichever copy is newer.
+
+Note the version: 1.88.5 here and 1.88.6 on `fix/mobile-copy-nav` were cut
+from the same main; the second to merge must be re-bumped past main
+(`version-collision`).
 
 ---
 
