@@ -447,3 +447,94 @@ def test_a_passing_check_does_not_walk_the_corpus(conn):
     assert verdict == cmb.PASS
     assert not any(u.endswith("/query") for u in session.calls), (
         "the naming walk ran on a clean corpus")
+
+
+# --- the two contradiction classes -------------------------------------------
+#
+# A row nothing examined is one failure. A row that WAS examined and is summed
+# anyway is another, and it has two shapes: the definition moved after the row
+# was judged (stale verdict), or the basis is right and the stored amount is a
+# different number the sentence carries (figure). Both offline, both FAIL.
+
+def _published(conn, **kw):
+    fields = {
+        "signal_id": kw["signal_id"], "headline": kw["headline"], "summary": kw.get("summary", ""),
+        "talent_readthrough": "t", "company": kw["company"], "company_key": kw["company"].lower(),
+        "pillar": "company_development", "signal_direction": "neutral", "confidence": "reported",
+        "source_url": "https://example.com/" + kw["signal_id"], "source_name": "Example",
+        "captured_at": "2026-09-11", "as_of": "2026-09-11", "content_hash": kw["signal_id"],
+        "collector": "google_news", "published_date": "2026-09-11",
+        "funding_amount": kw.get("funding_amount", "$1"), "funding_amount_usd": kw["usd"],
+        "money_basis": kw.get("money_basis", "company_raise"),
+        "published_at": kw.get("published_at", "2026-09-12 01:00:00"), "is_current": 1,
+    }
+    conn.execute(f"INSERT INTO signals ({', '.join(fields)}) VALUES ({', '.join('?' * len(fields))})",
+                 tuple(fields.values()))
+    conn.commit()
+
+
+def test_a_stale_verdict_is_a_fail_and_names_the_queued_correction(conn):
+    _published(conn, signal_id="p" * 32, company="PepsiCo", usd=59_000_000,
+               headline="Keiko Fujimori destaca inversión millonaria de PepsiCo",
+               summary="Keiko Fujimori highlighted PepsiCo's $59 million investment in its new logistics center.")
+    verdict, lines = cmb.check(conn, offline=True)
+    assert verdict == cmb.FAIL
+    text = "\n".join(lines)
+    assert "FAIL  stale verdict: 1 published row" in text and "outbound_investment 1" in text
+    assert "enqueue=correct-money-basis.yml" in text
+
+
+def test_a_stale_verdict_on_an_unpublished_row_is_not_a_fail(conn):
+    _published(conn, signal_id="p" * 32, company="PepsiCo", usd=59_000_000, published_at=None,
+               headline="PepsiCo's $59 million investment in its new logistics center")
+    verdict, lines = cmb.check(conn, offline=True)
+    assert "PASS  stale verdict" in "\n".join(lines)
+    assert verdict == cmb.UNKNOWN, "offline: the site half is still unknown, nothing is red"
+
+
+def test_an_exclusion_the_definition_would_now_lift_is_not_a_fail(conn):
+    # The reverse direction is a row NOT in the total: a backlog, never red.
+    _published(conn, signal_id="q" * 32, company="Acme", usd=10_000_000, money_basis="pledge",
+               headline="Acme raises $10M Series A")
+    _verdict, lines = cmb.check(conn, offline=True)
+    assert "PASS  stale verdict" in "\n".join(lines)
+
+
+@pytest.mark.parametrize("headline,summary,usd,label", [
+    ("Sweden's Lovable valued at $13.3bn with Scaleup Europe Fund backing", "", 13_300_000_000, "valuation"),
+    ("Chip designer Velaura AI valued at more than $1 billion in funding round", "", 1_000_000_000, "valuation"),
+    ("Homerun capta recursos para avanzar en proyecto de US$400 millones", "", 400_000_000, "project cost"),
+    ("$150M BYD EV Assembly Plant Launch in Sindh Delayed Again", "", 150_000_000, "project cost"),
+    ("Acme agrees to buy Widgetco for $250 million", "", 250_000_000, "acquisition price"),
+    ("Acme passes $600 million in annual recurring revenue", "", 600_000_000, "committed revenue"),
+])
+def test_a_stored_amount_that_is_another_figure_is_a_fail(conn, headline, summary, usd, label):
+    _published(conn, signal_id="f" * 32, company="Acme", usd=usd, headline=headline, summary=summary)
+    verdict, lines = cmb.check(conn, offline=True)
+    assert verdict == cmb.FAIL
+    text = "\n".join(lines)
+    assert f"FAIL  figure: 1 published row" in text and f"{label} 1" in text
+    assert "enqueue=adjudicate-rows.yml" in text and "f" * 32 in text, "named with the key the referees take"
+
+
+@pytest.mark.parametrize("headline,usd", [
+    # The raise and the valuation in one sentence: the stored figure is the raise.
+    ("Anthropic raises $65B in Series H funding at $965B post-money valuation", 65_000_000_000),
+    ("AI security startup Onyx raises $113 million Series B at $640 million valuation", 113_000_000),
+    # The revenue figure is beside the raise, and the stored figure is the raise.
+    ("AlphaSense Raises $350 Million At $7.5 Billion Valuation While Surpassing $600 Million In Annual Recurring Revenue", 350_000_000),
+    # A round described as an investment FROM somebody.
+    ("Acme secures $10M investment from Sequoia", 10_000_000),
+])
+def test_a_raise_beside_another_figure_is_not_a_contradiction(conn, headline, usd):
+    _published(conn, signal_id="r" * 32, company="Acme", usd=usd, headline=headline)
+    _verdict, lines = cmb.check(conn, offline=True)
+    assert "PASS  figure" in "\n".join(lines) and "PASS  stale verdict" in "\n".join(lines)
+
+
+def test_the_contradiction_classes_run_offline_and_before_the_site():
+    """A wrong number is a wrong number whether or not the host answers."""
+    import inspect
+    src = inspect.getsource(cmb.check)
+    assert src.index("_contradiction_lines(conn)") < src.index("if offline:")
+    assert "_contradiction_lines" in src

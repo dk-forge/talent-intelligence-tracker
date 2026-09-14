@@ -4,7 +4,8 @@
     python3 correct_money_basis.py --dry-run     # the whole verdict, nothing written
     python3 correct_money_basis.py               # apply locally
     python3 correct_money_basis.py --enrich      # apply, then push to the site
-    python3 correct_money_basis.py --check       # the standing assertion, both corpora
+    python3 correct_money_basis.py --check       # the standing assertion, both corpora,
+                                                 # plus the two contradiction classes
 
 WHAT WAS WRONG
 --------------
@@ -107,11 +108,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sqlite3
 import sys
 from collections import Counter
 
-from pipeline import money_raised, publish, schema
+from pipeline import money_raised, publish, schema, vocab
 
 #: The published corpus, read the way a reader reads it.
 #:
@@ -211,6 +213,175 @@ def unjudged(conn) -> list[dict]:
         "SELECT signal_id, collector, company, headline FROM signals "
         " WHERE is_current = 1 AND funding_amount_usd IS NOT NULL "
         "   AND money_basis IS NULL ORDER BY row_id")]
+
+
+# --- Contradictions: a summed figure that the words say is not a raise --------
+#
+# `unjudged()` catches a row nothing examined. These two catch a row that WAS
+# examined and is summed anyway, in the two ways that can happen.
+#
+# 1. A STALE VERDICT. The row was judged under an older definition, and the
+#    definition has since learned the phrase that excludes it. money_basis is
+#    written once, at write time, so every pattern added to money_raised.py
+#    leaves the rows before it summed until the correction pass re-judges them.
+#    On 2026-09-14 that was PepsiCo's $59M logistics centre ("PepsiCo's $59
+#    million investment in") and TikTok's $980M project licence ("secures
+#    investment certificate"), both live under company_raise. Deterministic:
+#    the same basis() the pipeline calls. The fix is the queued correction.
+#
+# 2. THE FIGURE IS A DIFFERENT NUMBER. The row IS a raise but the stored amount
+#    is the valuation, the project's cost, a purchase price or a revenue
+#    figure the same sentence mentions, and the source states no raise equal
+#    to it. "Sweden's Lovable valued at $13.3bn" was summed as $13.3bn raised.
+#    basis() cannot fix this: the basis is right and the amount is wrong, and
+#    only a reading of the source can say what the amount should be. So these
+#    are named with the key `adjudicate_guardrail.py --row` takes, and the fix
+#    is two referees, never a hand edit.
+#
+# Both read the COMMITTED database, offline, and both are a FAIL: a wrong
+# number on a published page is the state this file exists to catch.
+
+_AMOUNT_RUN = (r"(?:US\$|USD\s?|[$€£₹¥]|R\$)\s?\d[\d.,]*\s*"
+               r"(?:mil\s+millones|millones|milhões|milliards|millions?|billions?"
+               r"|trillion|mn|bn|m|b|crore|lakh)?")
+
+#: (label, pattern whose one group is the figure that is NOT a raise)
+FIGURE_CONTRADICTIONS = (
+    ("valuation", re.compile(
+        r"(?:valuation\s+of|valued\s+at|valuing\s+(?:it|the\s+company|\w+)\s+at|"
+        r"Bewertung\s+(?:von|bei\s+rund)|valorisation\s+de|valuación\s+de)\s+"
+        r"(?:about\s+|around\s+|over\s+|nearly\s+|more\s+than\s+|rund\s+)?(" + _AMOUNT_RUN + r")"
+        r"|(" + _AMOUNT_RUN + r")\s+(?:post-money\s+|pre-money\s+)?valuation\b", re.I)),
+    ("project cost", re.compile(
+        r"(" + _AMOUNT_RUN + r")\s+(?:\w+\s+){0,3}?(?:plant|factory|facility|facilities|campus|"
+        r"data\s+cent(?:er|re)|logistics\s+(?:project|hub|cent(?:er|re))|"
+        r"manufacturing\s+(?:plant|facility|site)|project|proyecto|projeto|projet)\b"
+        r"|\b(?:project|plant|factory|facility|campus|expansion)\s+"
+        r"(?:cost(?:s|ing)?|worth|valued\s+at)\s+(?:about\s+|around\s+|over\s+)?(" + _AMOUNT_RUN + r")"
+        r"|\b(?:inversi[oó]n|investimento|investissement|proyecto|projeto|projet)\s+de\s+(" + _AMOUNT_RUN + r")", re.I)),
+    ("acquisition price", re.compile(
+        r"\b(?:acquire[sd]?|acquiring|buy(?:s|ing)?|bought|takeover|purchas(?:e[sd]?|ing))\b"
+        r"[^.]{0,60}?\bfor\s+(?:about\s+|around\s+|up\s+to\s+)?(" + _AMOUNT_RUN + r")"
+        r"|(" + _AMOUNT_RUN + r")\s+(?:acquisition|takeover|buyout)\b", re.I)),
+    ("committed revenue", re.compile(
+        r"(" + _AMOUNT_RUN + r")\s+(?:in\s+|of\s+)?(?:(?:annual|annualised|annualized|recurring|committed|contracted)\s+){0,3}"
+        r"(?:revenue|revenues|ARR|backlog|bookings)\b"
+        r"|\b(?:revenue|ARR|backlog|bookings)\s+(?:of|to|at|surpassing|exceeding|above)\s+(" + _AMOUNT_RUN + r")", re.I)),
+)
+
+#: A figure the source attaches to a raise verb or a round name. A stored
+#: amount equal to one of these is a raise however many other numbers the
+#: sentence carries ("raises $65B at $965B valuation" is $65B raised).
+RAISE_FIGURE = re.compile(
+    r"\b(?:raise[sd]?|raising|secure[sd]?|land(?:s|ed)?|close[sd]?|closing|net(?:s|ted)?|"
+    r"bag(?:s|ged)?|attract(?:s|ed)?|garner(?:s|ed)?|receive[sd]?|wins?|won|gets?|got|"
+    r"levanta|capta|recauda|lève|sammelt)\s+"
+    r"(?:a\s+|an\s+|another\s+|over\s+|nearly\s+|about\s+|more\s+than\s+|up\s+to\s+|"
+    r"fresh\s+|new\s+|additional\s+|its\s+|a\s+further\s+)?(" + _AMOUNT_RUN + r")"
+    r"|(" + _AMOUNT_RUN + r")\s+(?:series\s+[a-k]|seed|pre[- ]?seed|funding|financing|"
+    r"investment\s+(?:from|led\s+by)|round|raise)\b", re.I)
+
+
+def _figures(pattern: re.Pattern, text: str) -> set[int]:
+    out: set[int] = set()
+    for match in pattern.finditer(text):
+        for group in match.groups():
+            if group:
+                usd = vocab.parse_funding_usd(group)
+                if usd:
+                    out.add(int(usd))
+    return out
+
+
+def stale_verdicts(conn) -> list[tuple[dict, str]]:
+    """Published rows summed as company_raise that basis() now excludes.
+
+    The same derivation as changes(), narrowed to the direction that puts a
+    wrong number on a page: a row the definition would take OUT of the total
+    and the total still holds. The reverse (an exclusion the definition would
+    now lift) is a row NOT in the total and is a backlog, never a red run.
+    """
+    return [(r, v) for r, v in ((r, verdict(r)) for r in rows_with_a_figure(conn))
+            if r.get("published_at") and r.get("money_basis") == money_raised.COMPANY_RAISE
+            and v != money_raised.COMPANY_RAISE]
+
+
+def figure_contradictions(conn) -> list[tuple[dict, str]]:
+    """Published company_raise rows whose stored USD figure is a number the
+    text attributes to something that is not a raise, and to no raise."""
+    out = []
+    for row in rows_with_a_figure(conn):
+        if not row.get("published_at") or row.get("money_basis") != money_raised.COMPANY_RAISE:
+            continue
+        stored = row.get("funding_amount_usd")
+        if not stored:
+            continue
+        text = f"{row.get('headline') or ''} \n {row.get('summary') or ''}"
+        if int(stored) in _figures(RAISE_FIGURE, text):
+            continue
+        for label, pattern in FIGURE_CONTRADICTIONS:
+            if int(stored) in _figures(pattern, text):
+                out.append((row, label))
+                break
+    return out
+
+
+def _contradiction_lines(conn) -> tuple[list[str], list[str]]:
+    """(verdicts, lines) for the two contradiction classes, both offline."""
+    verdicts: list[str] = []
+    lines: list[str] = []
+
+    stale = stale_verdicts(conn)
+    if stale:
+        verdicts.append(FAIL)
+        kinds = Counter(v for _, v in stale)
+        total = _money([r for r, _ in stale])
+        lines.append(
+            f"FAIL  stale verdict: {len(stale)} published row(s) are summed as "
+            f"company_raise and money_raised.basis() now excludes them "
+            f"(${total / 1e9:,.2f}bn): "
+            + ", ".join(f"{k} {n}" for k, n in kinds.most_common()))
+        for row, kind in sorted(stale, key=lambda rv: -(rv[0].get("funding_amount_usd") or 0))[:20]:
+            lines.append(f"          {kind:<20} ${(row.get('funding_amount_usd') or 0) / 1e9:>7.3f}bn  "
+                         f"{(row.get('headline') or '')[:60]}")
+        lines.append(
+            "          The definition moved and these rows were judged before it did. "
+            "Queue the correction, do not run it from here:")
+        lines.append(
+            "          gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml "
+            "-f inputs_json='{\"dry_run\":\"false\"}' -f reason='stale money_basis verdicts'")
+    else:
+        verdicts.append(PASS)
+        lines.append("PASS  stale verdict: every published company_raise row is one "
+                     "the current definition would still sum")
+
+    figures = figure_contradictions(conn)
+    if figures:
+        verdicts.append(FAIL)
+        kinds = Counter(label for _, label in figures)
+        total = _money([r for r, _ in figures])
+        lines.append(
+            f"FAIL  figure: {len(figures)} published row(s) are summed at a figure the "
+            f"text attributes to something other than a raise and to no raise "
+            f"(${total / 1e9:,.2f}bn): "
+            + ", ".join(f"{k} {n}" for k, n in kinds.most_common()))
+        for row, label in sorted(figures, key=lambda rv: -(rv[0].get("funding_amount_usd") or 0))[:20]:
+            lines.append(f"          {label:<20} ${(row.get('funding_amount_usd') or 0) / 1e9:>7.3f}bn  "
+                         f"{(row.get('headline') or '')[:60]}")
+        lines.append(
+            "          The basis is right and the AMOUNT is the question, which only the "
+            "source can answer. Two referees, never a hand edit:")
+        hashes = ",".join(r["signal_id"] for r, _ in figures[:20])
+        lines.append(
+            "          gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml "
+            f"-f inputs_json='{{\"rows\":\"{hashes}\",\"reason\":\"stored amount is a "
+            "valuation, project cost, purchase price or revenue figure\",\"dry_run\":\"false\"}}' "
+            "-f reason='money figure contradictions'")
+    else:
+        verdicts.append(PASS)
+        lines.append("PASS  figure: no published raise is summed at a valuation, project "
+                     "cost, purchase price or revenue figure")
+    return verdicts, lines
 
 
 class LiveUnavailable(RuntimeError):
@@ -381,6 +552,13 @@ def check(conn, *, offline: bool = False, site: str | None = None,
         verdicts.append(PASS)
         lines.append("PASS  pipeline: every figure in the committed database "
                      "has been judged")
+
+    # The contradiction classes read the committed database too, so they run
+    # offline and before the site is consulted: a wrong number is a wrong
+    # number whether or not the host answers today.
+    more_verdicts, more_lines = _contradiction_lines(conn)
+    verdicts.extend(more_verdicts)
+    lines.extend(more_lines)
 
     if offline:
         verdicts.append(UNKNOWN)

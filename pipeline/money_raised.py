@@ -286,6 +286,49 @@ _SUBJECT_WINDOW = 70
 #: which Aavishkaar invests $10 mn" would not.
 _NOT_THE_SUBJECT = re.compile(r"\b(?:in|into|for|to|at)\s+which\b|,\s*where\b", re.I)
 
+#: A currency amount as one token run, for the noun forms below, which need
+#: the amount BETWEEN two anchors rather than merely near a verb.
+_AMOUNT_RUN = (r"(?:US\$|USD\s?|[$€£₹¥]|R\$)\s?\d[\d.,]*\s*"
+               r"(?:mil\s+millones|millones|milhões|milliards|millions?|billions?"
+               r"|trillion|mn|bn|m|b|crore|lakh)?")
+
+# THE NOUN FORM OF AN OUTBOUND SPEND, employer-anchored like the verb form.
+#
+# "Keiko Fujimori highlighted PepsiCo's $59 million investment in its new
+# logistics center in Callao" was published as $59M PepsiCo raised. There is no
+# verb for _OUTBOUND_VERB to find: the spend is a noun, and the employer is its
+# possessor. Two shapes, each anchored on the employer's head word so that a
+# row about the INVESTEE is untouched:
+#
+#   <head>'s $X investment in|into|to build|for ...     English possessive
+#   inversión|investimento|investissement de $X de <head>   Spanish, Portuguese, French
+#
+# NOT `$X investment from` or `investment led by`: that is a round described
+# by who paid for it, and "secures $10M investment from investors" is a raise.
+# The English shape therefore requires the preposition that makes the employer
+# the payer (in, into, to build, for), and the Romance shape requires `de|da|
+# do|par` before the head: "inversión de US$59 millones EN PepsiCo" would be
+# money arriving at PepsiCo and is not matched.
+_OUTBOUND_NOUN_EN = re.compile(
+    r"(?P<head>[A-Za-z0-9&.][\w&.-]*)(?:'s|’s)\s+" + _AMOUNT_RUN +
+    r"\s+investment\s+(?:in|into|to\s+build|for)\b", re.I)
+_OUTBOUND_NOUN_ROMANCE = re.compile(
+    r"\b(?:inversi[oó]n|investimento|investissement)\s+(?:de|of)\s+" + _AMOUNT_RUN +
+    r"\s+(?:de|da|do|par|by)\s+(?P<head>[A-Za-z0-9&.][\w&.-]*)", re.I)
+
+# A PROJECT LICENCE IS THE EMPLOYER'S OWN CAPEX. "TikTok's $980 mln HCM City
+# logistics project secures investment certificate" was published as $980M
+# TikTok raised. An investment certificate (Vietnam's giấy chứng nhận đầu tư,
+# and the same instrument under other names) is the state licensing a company
+# to put ITS money into a project; the figure on it is registered capital the
+# licensee will spend, not capital anyone put into the licensee. Only the
+# licence forms, not `registered capital` bare, which a round can mention.
+_OWN_PROJECT_LICENCE = re.compile(
+    r"\binvestment\s+(?:registration\s+)?certificates?\b"
+    r"|\bcertificates?\s+of\s+investment\s+registration\b"
+    r"|\binvestment\s+licen[cs]es?\b",
+    re.I)
+
 
 # --- 3. Government money -----------------------------------------------------
 #
@@ -376,6 +419,10 @@ def _is_outbound(company: str | None, text: str) -> bool:
     # the verb, adjacent, exactly as a subject and its verb would be. Same
     # trap as capital_event's "Bond Biosciences, Inc.".
     own_name = (company or "").lower()
+    for noun in (_OUTBOUND_NOUN_EN, _OUTBOUND_NOUN_ROMANCE):
+        for m in noun.finditer(text):
+            if m.group("head").lower() == head.lower():
+                return True
     for m in _OUTBOUND_VERB.finditer(text):
         if m.group(0).lower() in own_name:
             continue
@@ -413,6 +460,8 @@ def classify(company: str | None, *texts: str | None) -> str | None:
     # phrase, which a seam cannot manufacture; this one reads a subject and a
     # verb, which a seam can.
     if any(_is_outbound(company, part) for part in parts):
+        return OUTBOUND_INVESTMENT
+    if _OWN_PROJECT_LICENCE.search(joined):
         return OUTBOUND_INVESTMENT
     if _STATE_MONEY.search(joined):
         return STATE_FUNDING

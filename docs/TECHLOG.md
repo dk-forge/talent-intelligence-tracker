@@ -14,6 +14,14 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-14 - The money check asks three questions, not one; two stale verdicts and eleven wrong figures were on the page
+
+**What.** `pipeline/money_raised.py`: `_OUTBOUND_NOUN_EN` (`<head>'s $X investment in|into|to build|for`), `_OUTBOUND_NOUN_ROMANCE` (`inversión|investimento|investissement de $X de|da|do|par <head>`), both employer-anchored inside `_is_outbound`; `_OWN_PROJECT_LICENCE` (investment certificate, investment licence) as a plain rule. `correct_money_basis.py --check`: `stale_verdicts()` (published company_raise rows basis() now excludes, the same function the pipeline calls) and `figure_contradictions()` (the stored USD equals a valuation, project-cost, purchase-price or revenue figure in the text and no raise-verb figure), both offline, both FAIL, run before the site half. The stale section prints the correct-money-basis ticket; the figure section prints the adjudicate-rows ticket with the row keys, because the amount is a question for the source. `money-basis-check.yml` documents the two new reds; no new workflow.
+
+**Why.** The owner's brief named a $59M PepsiCo capex and a $980M TikTok project licence shown as "raised". Both had been judged, under a definition that had no rule for either phrase, and nothing re-asks a judged row. Measured on the committed corpus: 2 stale verdicts ($1.04bn) and 11 figure contradictions ($13.68bn: valuation 5, project cost 5, revenue 1), the largest a $7bn run-rate summed as a raise. Bare-word rules were measured and rejected: "invest*" fires on 145 real raises, "acqui*" on 13 SPAC filers.
+
+**Guard.** `tests/test_money_raised.py`: PepsiCo (EN and ES) and TikTok excluded; "investment from Sequoia" and "inversión ... en PepsiCo" still raises. `tests/test_money_basis_check.py`: a stale verdict is a FAIL that names the queued correction; an unpublished or reverse-direction row is not; six figure shapes are FAILs named with the referee key; four raise-beside-another-figure shapes are not; the classes run before the site half.
+
 ## 2026-09-14 - Seven workflows mailed the owner's inbox because they never passed OPS_MAIL_TO
 
 **What.** `benchmark-diff`, `ci-alert`, `ci-noise-report`, `gate-classifier`, `health-digest`, `host-watch` and `tripwire` now pass `OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}` beside `RESEND_API_KEY`. No Python changed.

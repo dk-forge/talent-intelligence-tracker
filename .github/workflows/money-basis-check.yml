@@ -32,6 +32,17 @@ name: money-basis check
 #      unjudged row is never summed) which is exactly why this can sit for weeks
 #      unnoticed. Queue the correction, per the step below. DO NOT correct from
 #      here.
+#   1b. exit 1, "stale verdict" -- a published row is summed as company_raise
+#      and money_raised.basis() now excludes it: the definition learned a
+#      phrase after the row was judged. A published TOTAL IS wrong. Queue
+#      correct-money-basis.yml; it re-judges the corpus under the current
+#      definition and carries the verdicts to the site.
+#   1c. exit 1, "figure" -- a published raise is summed at a figure the text
+#      attributes to a valuation, a project's cost, a purchase price or a
+#      revenue number, and to no raise. The basis is right and the AMOUNT is
+#      the question, which only the source can answer: the step prints the
+#      adjudicate-rows.yml ticket, two referees, never a hand edit
+#      (adjudicate_guardrail.py, "A ROW NO CHECK CAUGHT").
 #   2. exit 3 -- the check could not be performed: the host was unreachable, or
 #      the live plugin is too old to report `money.coverage.unjudged`. UNKNOWN
 #      is never a pass, and this job goes red for it on purpose, the same rule
@@ -80,7 +91,11 @@ jobs:
         run: |
           echo "::error::correct_money_basis.py --check did not pass. Read the"
           echo "::error::step above: exit 1 is an unjudged figure on a published"
-          echo "::error::page, exit 3 is a check that could not be performed."
+          echo "::error::page, a stale verdict the definition now excludes, or a"
+          echo "::error::raise summed at a valuation, project cost, purchase price"
+          echo "::error::or revenue figure; exit 3 is a check that could not be"
+          echo "::error::performed. A figure contradiction goes to the referees:"
+          echo "::error::the step prints its adjudicate-rows.yml ticket."
           echo "::error::"
           echo "::error::The correction is a DATABASE WRITE and is queued, never"
           echo "::error::dispatched -- an uncoordinated entry into talent-collect"
