@@ -46,7 +46,7 @@ concurrency:
 
 jobs:
   correct:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # 318 withdrawals are one request each with a pause between them, plus two
     # quarter archives to download. Generous, because a timeout mid-run is the
     # failure mode to avoid: the rows already withdrawn stay withdrawn and the

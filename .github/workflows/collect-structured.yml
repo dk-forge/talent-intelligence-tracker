@@ -219,7 +219,7 @@ permissions:
 
 jobs:
   collect:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v5
