@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-14T21:32:17Z",
-  "last_tick": "2026-09-14T21:32:48Z",
+  "last_dispatch": "2026-09-14T21:33:28Z",
+  "last_tick": "2026-09-14T21:33:28Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -215,53 +215,23 @@
     "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-14T01:15:11Z",
     "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-14T01:15:11Z",
     "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-14T01:15:11Z",
-    "ticket:20260912T104321Z-collect-structured": "2026-09-14T14:59:44Z"
+    "ticket:20260912T104321Z-collect-structured": "2026-09-14T14:59:44Z",
+    "ticket:20260914T200025Z-adjudicate-rows": "2026-09-14T21:33:28Z"
   },
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-14T21:32:17Z",
-      "history": [
-        {
-          "at": "2026-09-14T21:02:56Z",
-          "detail": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-14T21:32:17Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-14T21:32:48Z",
-          "detail": "run 34899363050",
-          "event": "bound"
-        }
-      ],
-      "id": "20260914T200025Z-adjudicate-rows",
-      "inputs": {
-        "ceiling": "0.50",
-        "dry_run": "false",
-        "place_rows": "87bb9cda8eca01f81ee96cb858d75016",
-        "reason": "owner brief 2026-09-13: five live rows whose money basis or location contradict their source",
-        "rows": "bf62d6d6e841a4cad7bd96eb2db9f490,23344cfec1156a226e3bc355bae49768,b1435535c98d555c08dccdbc05663b13,cdb69e97e35490b8a3cee478d6c1b438"
-      },
-      "priority": 0,
-      "reason": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
-      "requested_at": "2026-09-14T20:00:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34899363050",
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-14T21:33:28Z",
       "history": [
         {
           "at": "2026-09-14T21:32:12Z",
           "detail": "stale money_basis verdicts (2026-09-14 audit)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-14T21:33:28Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260914T213212Z-correct-money-basis",
@@ -273,7 +243,7 @@
       "requested_at": "2026-09-14T21:32:12Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-money-basis.yml"
     },
     {
@@ -300,44 +270,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-06T13:07:03Z",
-      "history": [
-        {
-          "at": "2026-09-06T13:05:27Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-06T13:07:03Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-06T13:14:15Z",
-          "detail": "run 34035118300",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-06T13:14:15Z",
-          "detail": "run 34035118300",
-          "event": "landed"
-        }
-      ],
-      "id": "20260906T130527Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-06T13:14:15Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-06T13:05:27Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34035118300",
-      "state": "landed",
-      "workflow": "enrich.yml"
     },
     {
       "attempts": 0,
@@ -2579,6 +2511,47 @@
       "run_id": "34869666452",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-14T21:32:17Z",
+      "history": [
+        {
+          "at": "2026-09-14T21:02:56Z",
+          "detail": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-14T21:32:17Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-14T21:32:48Z",
+          "detail": "run 34899363050",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-14T21:33:28Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260914T200025Z-adjudicate-rows",
+      "inputs": {
+        "ceiling": "0.50",
+        "dry_run": "false",
+        "place_rows": "87bb9cda8eca01f81ee96cb858d75016",
+        "reason": "owner brief 2026-09-13: five live rows whose money basis or location contradict their source",
+        "rows": "bf62d6d6e841a4cad7bd96eb2db9f490,23344cfec1156a226e3bc355bae49768,b1435535c98d555c08dccdbc05663b13,cdb69e97e35490b8a3cee478d6c1b438"
+      },
+      "priority": 0,
+      "reason": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
+      "requested_at": "2026-09-14T20:00:25Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34899363050",
+      "state": "failed",
+      "workflow": "adjudicate-rows.yml"
     },
     {
       "attempts": 0,
