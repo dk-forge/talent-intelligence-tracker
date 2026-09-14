@@ -2070,7 +2070,10 @@ def _report_spend() -> list[str]:
 
     ledger = budget.ledger_spend()
     print("    " + budget.status_line(allowance=allowance, charged=ledger))
-    pot = budget.pots(allowance)
+    pot = budget.pots_for(allowance)
+    grant = budget.month_grant()
+    if grant:
+        print(f"    GRANT               {budget.grant_note(grant)}; discretionary only")
     print(f"    TWO POTS            ${pot[budget.COMMITTED]:,.2f} committed "
           f"(the scheduled collectors, paid first) and "
           f"${pot[budget.DISCRETIONARY]:,.2f} discretionary (the backfill "
