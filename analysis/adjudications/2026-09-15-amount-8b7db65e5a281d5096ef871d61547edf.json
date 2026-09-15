@@ -1,0 +1,66 @@
+{
+ "key": "amount/8b7db65e5a281d5096ef871d61547edf",
+ "label": "Velaura AI $1,000,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 110000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'Velaura AI on Tuesday said it raised $110 million in a Series A funding round that valued the chip designing startup at more than $1 billion.' The $110 million is the actual raise (company_raise). The $1 billion is the valuation, not the raise. The stored row incorrectly uses the valuation figure instead of the actual funding amount of $110 million."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 110000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source states, 'Velaura AI on Tuesday said it raised $110 million in a Series A funding round that valued the chip designing startup at more than $1 billion.' The stored amount is a valuation, not the raise amount, which is $110 million."
+  }
+ },
+ "row": {
+  "company": "Velaura AI",
+  "headline": "Chip designer Velaura AI valued at more than $1 billion in funding round",
+  "summary": "Velaura AI, a chip designer, has been valued at more than $1 billion in a recent funding round.",
+  "funding_amount": "more than $1 billion",
+  "funding_amount_usd": 1000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.livemint.com/companies/chip-designer-velaura-ai-valued-at-more-than-1-billion-in-funding-round-11787078017188.html",
+  "source_name": "Mint",
+  "published_date": "2026-08-19",
+  "collector": "national_press",
+  "city": null,
+  "region": "Asia",
+  "state": null,
+  "country": "IN",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-18 23:56:34"
+ },
+ "cost_usd": 0.013238,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008148000000000002,
+  "openai/gpt-4o": 0.005089999999999997
+ },
+ "evidence_url": "https://web.archive.org/web/20260819022046/https://www.livemint.com/companies/chip-designer-velaura-ai-valued-at-more-than-1-billion-in-funding-round-11787078017188.html",
+ "evidence_chars": 2451,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 110000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/8b7db65e5a281d5096ef871d61547edf, both referees say edit. corrected_amount=110000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: 'Velaura AI on Tuesday said it raised $110 million in a Series A funding round that valued the chip designing startup at more than $1 billion.' The $110 million is the actual raise (company_rai; openai/gpt-4o: The source states, 'Velaura AI on Tuesday said it raised $110 million in a Series A funding round that valued the chip designing startup at more than $1 billion.' The stored amount is a valuation, not the raise amount, w",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:36:30+00:00"
+}

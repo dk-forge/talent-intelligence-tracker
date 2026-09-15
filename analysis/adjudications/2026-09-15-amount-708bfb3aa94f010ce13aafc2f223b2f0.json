@@ -1,0 +1,66 @@
+{
+ "key": "amount/708bfb3aa94f010ce13aafc2f223b2f0",
+ "label": "Starcloud $2,300,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 250000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'Starcloud...said on Friday it had raised $250 million at a $2.3 billion valuation'. The $2.3 billion is explicitly the valuation, not the raise amount. The actual raise is $250 million. Rule 3 is clear: 'A VALUATION IS NOT A RAISE...the raise is the amount actually invested'. The stored amount of $2.3 billion is the valuation figure, not the funding raised. The correct amount is $250 million."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 250000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source states 'Starcloud ... said on Friday it had raised $250 million at a $2.3 billion valuation,' indicating the amount raised is $250 million, not $2.3 billion, which is the valuation."
+  }
+ },
+ "row": {
+  "company": "Starcloud",
+  "headline": "Orbital data center startup Starcloud valued at $2.3 billion in latest funding",
+  "summary": "Starcloud, an orbital data center startup, has been valued at $2.3 billion in its latest funding round, reflecting renewed investor interest in the space industry.",
+  "funding_amount": "$2.3 billion",
+  "funding_amount_usd": 2300000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://economictimes.indiatimes.com/tech/technology/orbital-data-center-startup-starcloud-valued-at-2-3-billion-in-latest-funding/articleshow/133416465.cms",
+  "source_name": "The Economic Times",
+  "published_date": "2026-08-22",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Redmond",
+  "hq_country": "US",
+  "published_at": "2026-08-23 00:03:12"
+ },
+ "cost_usd": 0.016811,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010326000000000002,
+  "openai/gpt-4o": 0.006484999999999991
+ },
+ "evidence_url": "https://web.archive.org/web/20260822032017/https://economictimes.indiatimes.com/tech/technology/orbital-data-center-startup-starcloud-valued-at-2-3-billion-in-latest-funding/articleshow/133416465.cms",
+ "evidence_chars": 4812,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 250000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/708bfb3aa94f010ce13aafc2f223b2f0, both referees say edit. corrected_amount=250000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: 'Starcloud...said on Friday it had raised $250 million at a $2.3 billion valuation'. The $2.3 billion is explicitly the valuation, not the raise amount. The actual raise is $250 million. Rule 3; openai/gpt-4o: The source states 'Starcloud ... said on Friday it had raised $250 million at a $2.3 billion valuation,' indicating the amount raised is $250 million, not $2.3 billion, which is the valuation.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:37:01+00:00"
+}

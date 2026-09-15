@@ -1,0 +1,66 @@
+{
+ "key": "amount/ea91a78b1a8a8c052f4b4aa5b4e92b37",
+ "label": "Belca Foodservice $30,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 30000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states \"anunció la construcción de su primer centro de distribución...que implicará una inversión de $30 millones.\" This $30 million is explicitly for construction of a distribution center facility, not venture capital raised from investors. Per the rules, \"project_finance: a loan or bank facility advanced against an asset or a project.\" This is capital for a specific construction project/asset, not a company_raise from private investors or venture lenders."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 30000000,
+   "corrected_basis": "project_finance",
+   "confidence": 100,
+   "reasoning": "The source states 'desarrollo que implicará una inversión de $30 millones,' indicating the amount is an investment for a project, not a company raise."
+  }
+ },
+ "row": {
+  "company": "Belca Foodservice",
+  "headline": "Belca amplía sus operaciones con un nuevo centro de distribución en Alajuela",
+  "summary": "Belca Foodservice construirá su primer centro de distribución en InnovaPark, Alajuela, con una inversión de $30 millones. Operará a finales de 2027 y generará 500 empleos.",
+  "funding_amount": "$30 millones",
+  "funding_amount_usd": 30000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.elfinancierocr.com/negocios/belca-invertira-30-millones-en-su-nuevo-centro-de/H7BWQCOTHJA5HA5ASSERY77UBI/story/",
+  "source_name": "El Financiero CR",
+  "published_date": "2026-08-24",
+  "collector": "national_press",
+  "city": null,
+  "region": "Latin America",
+  "state": null,
+  "country": "CR",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-24 23:59:47"
+ },
+ "cost_usd": 0.016375,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010440000000000005,
+  "openai/gpt-4o": 0.005934999999999996
+ },
+ "evidence_url": "https://web.archive.org/web/20260824223256/https://www.elfinancierocr.com/negocios/belca-invertira-30-millones-en-su-nuevo-centro-de/H7BWQCOTHJA5HA5ASSERY77UBI/story/",
+ "evidence_chars": 4117,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 30000000,
+  "corrected_basis": "project_finance"
+ },
+ "note": "two-model adjudication of amount/ea91a78b1a8a8c052f4b4aa5b4e92b37, both referees say edit. corrected_amount=30000000 corrected_basis=project_finance. anthropic/claude-sonnet-4.5: The source states \"anunció la construcción de su primer centro de distribución...que implicará una inversión de $30 millones.\" This $30 million is explicitly for construction of a distribution center facility, not ventur; openai/gpt-4o: The source states 'desarrollo que implicará una inversión de $30 millones,' indicating the amount is an investment for a project, not a company raise.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:37:11+00:00"
+}

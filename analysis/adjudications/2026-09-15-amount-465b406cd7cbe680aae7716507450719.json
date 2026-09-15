@@ -1,0 +1,64 @@
+{
+ "key": "amount/465b406cd7cbe680aae7716507450719",
+ "label": "Sapien $180,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source states \"Sapien has raised a new funding round led by Neo's Ali Partovi at a $180 million valuation.\" The $180M is explicitly described as a valuation, not the amount raised. Rule 3 is clear: \"A VALUATION IS NOT A RAISE. 'valued at $X after new funding' states what the company is worth; the raise is the amount actually invested.\" The source does not state the actual investment amount, only the post-money valuation. Therefore, no usable funding figure is provided."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "unknown",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states 'Sapien has raised a new funding round led by Neo’s Ali Partovi at a $180 million valuation,' which indicates the $180M is a valuation, not the amount raised. No specific funding amount is mentioned for this event."
+  }
+ },
+ "row": {
+  "company": "Sapien",
+  "headline": "Exclusive: AI startup Sapien raises at $180M valuation to help companies find what’s really driving profit",
+  "summary": "AI startup Sapien has raised funding at a $180M valuation to assist companies in identifying key profit drivers.",
+  "funding_amount": "$180M",
+  "funding_amount_usd": 180000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://fortune.com/2026/09/08/exclusive-ai-startup-sapien-raises-180m-valuation-companies-find-really-driving-profit-cfo/",
+  "source_name": "fortune.com",
+  "published_date": "2026-09-08",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-09 00:05:04"
+ },
+ "cost_usd": 0.019887,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.012132000000000004,
+  "openai/gpt-4o": 0.007755000000000012
+ },
+ "evidence_url": "https://web.archive.org/web/20260908161420/https://fortune.com/2026/09/08/exclusive-ai-startup-sapien-raises-180m-valuation-companies-find-really-driving-profit-cfo/",
+ "evidence_chars": 7858,
+ "action": "reject",
+ "correction": null,
+ "live_row_needs_retraction": true,
+ "note": "two-model adjudication of amount/465b406cd7cbe680aae7716507450719, both referees say reject. anthropic/claude-sonnet-4.5: The source states \"Sapien has raised a new funding round led by Neo's Ali Partovi at a $180 million valuation.\" The $180M is explicitly described as a valuation, not the amount raised. Rule 3 is clear: \"A VALUATION IS NO; openai/gpt-4o: The source states 'Sapien has raised a new funding round led by Neo’s Ali Partovi at a $180 million valuation,' which indicates the $180M is a valuation, not the amount raised. No specific funding amount is mentioned for",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:37:26+00:00"
+}

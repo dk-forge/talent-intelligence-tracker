@@ -1,0 +1,66 @@
+{
+ "key": "amount/5fa33d0d7c2afdd2c002f6bf68e88d73",
+ "label": "Rillet $1,000,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 100000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: \"Rillet...has raised a $100 million Series C at a $1 billion valuation.\" The $1 billion is explicitly identified as a valuation, not the raise amount. The actual capital raised is $100 million. Rule 3 applies: \"A VALUATION IS NOT A RAISE. 'valued at $X after new funding' states what the company is worth; the raise is the amount actually invested.\" The stored amount of $1,000,000,000 is the valuation; the correct raise amount is $100,000,000."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 100000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states: 'Rillet, a two-year-old startup...has raised a $100 million Series C at a $1 billion valuation.' The stored amount is a valuation, not the raise. The correct raise amount is $100 million, which is a company_raise."
+  }
+ },
+ "row": {
+  "company": "Rillet",
+  "headline": "Exclusive: Accounting AI startup Rillet reaches unicorn status with $1 billion valuation. Its founder says he wants to give CFOs back their weekends",
+  "summary": "Rillet, an accounting AI startup, has achieved a $1 billion valuation. CEO Nicolas Kopp emphasizes the company's goal is not to eliminate jobs but to improve work-life balance for CFOs.",
+  "funding_amount": "$1 billion",
+  "funding_amount_usd": 1000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://fortune.com/2026/08/18/rillet-unicorn-1-billion-valuation-series-c-nicolas-kopp-accounting-ai/",
+  "source_name": "Fortune",
+  "published_date": "2026-08-18",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-18 23:56:34"
+ },
+ "cost_usd": 0.025659,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.015771000000000007,
+  "openai/gpt-4o": 0.009887499999999994
+ },
+ "evidence_url": "https://web.archive.org/web/20260819013151/https://fortune.com/2026/08/18/rillet-unicorn-1-billion-valuation-series-c-nicolas-kopp-accounting-ai/",
+ "evidence_chars": 12000,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 100000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/5fa33d0d7c2afdd2c002f6bf68e88d73, both referees say edit. corrected_amount=100000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: \"Rillet...has raised a $100 million Series C at a $1 billion valuation.\" The $1 billion is explicitly identified as a valuation, not the raise amount. The actual capital raised is $100 million.; openai/gpt-4o: The source states: 'Rillet, a two-year-old startup...has raised a $100 million Series C at a $1 billion valuation.' The stored amount is a valuation, not the raise. The correct raise amount is $100 million, which is a co",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:36:39+00:00"
+}

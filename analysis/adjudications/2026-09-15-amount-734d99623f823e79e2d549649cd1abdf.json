@@ -1,0 +1,64 @@
+{
+ "key": "amount/734d99623f823e79e2d549649cd1abdf",
+ "label": "Ominimo $1,600,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "unknown",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source repeatedly states '$1.6 billion valuation' or '€1.48 billion ($1.60 billion)' as the company's worth after the Series B, not the amount raised. The text explicitly says 'Ominimo is not disclosing the Series B amount at the moment as some investors will still join subsequently.' The $1.6B figure is a valuation, not a raise amount. Per rule 3, 'A VALUATION IS NOT A RAISE.' No actual investment amount is stated for this Series B event."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "unknown",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'Ominimo is not disclosing the Series B amount at the moment as some investors will still join subsequently.' This indicates that no specific funding amount for the Series B round is provided, only the valuation is mentioned."
+  }
+ },
+ "row": {
+  "company": "Ominimo",
+  "headline": "1st Serbian unicorn! Ominimo Hits $1.6B Valuation after EBRD supported Series B",
+  "summary": "Serbian Ominimo has officially reached a $1.6 billion valuation following its Series B investment round, which included participation from the investment arm of the European Bank for Reconstruction and Development (EBRD).",
+  "funding_amount": "$1.6B",
+  "funding_amount_usd": 1600000000,
+  "funding_stage": "series_b",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.therecursive.com/1st-serbian-unicorn-ominimo-1-6b-valuation-ebrd-series-b/",
+  "source_name": "The Recursive",
+  "published_date": "2026-07-27",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": "RS",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-07-29 21:47:33"
+ },
+ "cost_usd": 0.021859,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.013269,
+  "openai/gpt-4o": 0.00859
+ },
+ "evidence_url": "https://web.archive.org/web/20260810103921/https://www.therecursive.com/1st-serbian-unicorn-ominimo-1-6b-valuation-ebrd-series-b/",
+ "evidence_chars": 9995,
+ "action": "reject",
+ "correction": null,
+ "live_row_needs_retraction": true,
+ "note": "two-model adjudication of amount/734d99623f823e79e2d549649cd1abdf, both referees say reject. anthropic/claude-sonnet-4.5: The source repeatedly states '$1.6 billion valuation' or '€1.48 billion ($1.60 billion)' as the company's worth after the Series B, not the amount raised. The text explicitly says 'Ominimo is not disclosing the Series B ; openai/gpt-4o: The source text states 'Ominimo is not disclosing the Series B amount at the moment as some investors will still join subsequently.' This indicates that no specific funding amount for the Series B round is provided, only",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:36:00+00:00"
+}

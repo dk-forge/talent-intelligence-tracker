@@ -1,0 +1,66 @@
+{
+ "key": "amount/bcd70c7d3ab3055f36a81ae0fbccbf55",
+ "label": "Homerun $400,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 9400000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The US$400 million is explicitly described as a project cost: \"un proyecto de aproximadamente US$400 millones\" and \"Homerun Resources es propietaria de un proyecto de aproximadamente US$400 millones.\" The actual raise stated is: \"La compañía busca recaudar un total de 13.000.000 dólares canadienses (US$ 9,4 millones), habiendo ya obtenido una primera tranche de C$2 millones...por medio de una operación de deuda convertible\" - this is venture capital (convertible debt) that arrived at the company."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 9400000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states 'La compañía busca recaudar un total de 13.000.000 dólares canadienses (US$ 9,4 millones), habiendo ya obtenido una primera tranche de C$2 millones'. This indicates the amount raised is US$ 9.4 million, not US$ 400 million, which is the project cost."
+  }
+ },
+ "row": {
+  "company": "Homerun",
+  "headline": "Homerun capta recursos en medio de esfuerzos para avanzar en proyecto de US$400 millones en Brasil",
+  "summary": "Homerun is securing resources to advance a US$400 million project in Brazil.",
+  "funding_amount": "US$400 millones",
+  "funding_amount_usd": 400000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.bnamericas.com/es/noticias/homerun-capta-recursos-en-medio-de-esfuerzos-para-avanzar-en-proyecto-de-us400-millones-en-brasil",
+  "source_name": "BNamericas",
+  "published_date": "2026-08-20",
+  "collector": "google_news",
+  "city": null,
+  "region": "Latin America",
+  "state": null,
+  "country": "BR",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-08-20 22:32:05"
+ },
+ "cost_usd": 0.025775,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.016242000000000006,
+  "openai/gpt-4o": 0.0095325
+ },
+ "evidence_url": "https://www.bnamericas.com/es/noticias/homerun-capta-recursos-en-medio-de-esfuerzos-para-avanzar-en-proyecto-de-us400-millones-en-brasil",
+ "evidence_chars": 9981,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 9400000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/bcd70c7d3ab3055f36a81ae0fbccbf55, both referees say edit. corrected_amount=9400000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The US$400 million is explicitly described as a project cost: \"un proyecto de aproximadamente US$400 millones\" and \"Homerun Resources es propietaria de un proyecto de aproximadamente US$400 millones.\" The actual raise st; openai/gpt-4o: The source states 'La compañía busca recaudar un total de 13.000.000 dólares canadienses (US$ 9,4 millones), habiendo ya obtenido una primera tranche de C$2 millones'. This indicates the amount raised is US$ 9.4 million,",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:36:50+00:00"
+}

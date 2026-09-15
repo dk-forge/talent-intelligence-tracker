@@ -1,0 +1,66 @@
+{
+ "key": "amount/864e76c30a8fe3e5fb6d1f3568a19aea",
+ "label": "Databricks $7,000,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 5000000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'Databricks has passed a USD $7 billion revenue run-rate and closed a USD $5 billion funding round, valuing the company at USD $190 billion.' The $7 billion is explicitly identified as a revenue run-rate, NOT a raise. The actual funding round amount is $5 billion. The stored amount confuses revenue with the raise amount."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 5000000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states 'Databricks has passed a USD $7 billion revenue run-rate and closed a USD $5 billion funding round,' indicating the funding amount is $5 billion, not $7 billion, and the basis is company_raise."
+  }
+ },
+ "row": {
+  "company": "Databricks",
+  "headline": "Databricks tops USD $7 billion run-rate after funding",
+  "summary": "Databricks achieves a USD $7 billion revenue run-rate and a USD $190 billion valuation, indicating strong investor demand for private AI software.",
+  "funding_amount": "USD $7 billion",
+  "funding_amount_usd": 7000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://itbrief.co.nz/story/databricks-tops-usd-7-billion-run-rate-after-funding",
+  "source_name": "Techday NZ (IT Brief)",
+  "published_date": "2026-08-14",
+  "collector": "national_press",
+  "city": null,
+  "region": "Oceania",
+  "state": null,
+  "country": "NZ",
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": "2026-08-14 12:25:19"
+ },
+ "cost_usd": 0.016325,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.009902999999999999,
+  "openai/gpt-4o": 0.006422499999999998
+ },
+ "evidence_url": "https://web.archive.org/web/20260815022925/https://itbrief.co.nz/story/databricks-tops-usd-7-billion-run-rate-after-funding",
+ "evidence_chars": 5268,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 5000000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/864e76c30a8fe3e5fb6d1f3568a19aea, both referees say edit. corrected_amount=5000000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: 'Databricks has passed a USD $7 billion revenue run-rate and closed a USD $5 billion funding round, valuing the company at USD $190 billion.' The $7 billion is explicitly identified as a revenu; openai/gpt-4o: The source states 'Databricks has passed a USD $7 billion revenue run-rate and closed a USD $5 billion funding round,' indicating the funding amount is $5 billion, not $7 billion, and the basis is company_raise.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:36:09+00:00"
+}
