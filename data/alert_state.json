@@ -40,6 +40,11 @@
       "last": 1788716370,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "money-basis-check:main:dedcf2329403bf13": {
+      "first": 1789474116,
+      "last": 1789474116,
+      "subject": "CI RED: money-basis check: VERDICT: FAIL"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -51,6 +56,6 @@
       "subject": "CI RED: tests: ('San Juan', 'AR', 'US')"
     }
   },
-  "updated_at": "2026-09-15T05:28:58+00:00",
+  "updated_at": "2026-09-15T12:08:38+00:00",
   "version": 1
 }
