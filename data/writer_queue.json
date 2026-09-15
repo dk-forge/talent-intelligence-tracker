@@ -211,7 +211,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260906T173829Z-backfill-gdelt-2026": "2026-09-15T01:41:39Z",
     "ticket:20260906T202835Z-backfill-gnews-2026": "2026-09-15T01:41:39Z",
     "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-15T01:41:39Z",
     "ticket:20260912T104321Z-collect-structured": "2026-09-14T14:59:44Z",
@@ -221,74 +220,6 @@
     "ticket:20260915T004512Z-adjudicate-rows": "2026-09-15T00:46:44Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-15T07:05:42Z",
-      "history": [
-        {
-          "at": "2026-09-15T05:01:27Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-15T07:05:42Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260915T050127Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-15T05:01:27Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-06T19:05:17Z",
-      "history": [
-        {
-          "at": "2026-09-06T17:38:29Z",
-          "detail": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-07-01)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-06T19:05:17Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-06T19:18:08Z",
-          "detail": "run 34053770386",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-06T19:18:08Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260906T173829Z-backfill-gdelt-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "max_readthroughs": "35",
-        "start": "2026-01-01"
-      },
-      "priority": 10,
-      "reason": "next slice of backfill-gdelt-2026:2026-01-01..2026-07-26 (resumes at 2026-07-01)",
-      "requested_at": "2026-09-06T17:38:29Z",
-      "requested_by": "backfill-slices",
-      "run_id": "34053770386",
-      "state": "failed",
-      "workflow": "backfill-gdelt-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-06T19:18:08Z",
@@ -2560,6 +2491,44 @@
       "run_id": "34914483541",
       "state": "failed",
       "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-15T07:05:42Z",
+      "history": [
+        {
+          "at": "2026-09-15T05:01:27Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-15T07:05:42Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-15T07:32:00Z",
+          "detail": "run 34939986056",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-15T07:32:00Z",
+          "detail": "run 34939986056",
+          "event": "landed"
+        }
+      ],
+      "id": "20260915T050127Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-15T07:32:00Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-15T05:01:27Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34939986056",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
