@@ -30,6 +30,11 @@
       "last": 1789257465,
       "subject": "CI RED: collect: requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
     },
+    "collect:main:d4a1e784895c129b": {
+      "first": 1789432218,
+      "last": 1789432218,
+      "subject": "CI RED: collect: urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='openrouter.ai', port=443): Read timed out. (read timeout=45)"
+    },
     "correct-money-basis:main:6ddf2f90e4b4f8ce": {
       "first": 1789421741,
       "last": 1789421741,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-14T21:35:42+00:00",
+  "updated_at": "2026-09-15T00:30:20+00:00",
   "version": 1
 }
