@@ -1,0 +1,60 @@
+{
+ "key": "amount/b1435535c98d555c08dccdbc05663b13",
+ "label": "TikTok $980,000,000",
+ "status": "disagree",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 196000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states: 'total registered capital of VNĐ25.85 trillion (US$980 million), including $196 million in contributed capital, or 20 per cent of total investment, with the remaining $784 million expected to be raised.' This is a logistics project receiving an investment certificate, not a venture capital raise. The $784M is still to be raised (pledge), and only $196M is contributed capital. This is project_finance (infrastructure investment), not company_raise. The actual invested amount is $196M, not $980M."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 980000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states 'The project has a total registered capital of VNĐ25.85 trillion (US$980 million), including $196 million in contributed capital, or 20 per cent of total investment, with the remaining $784 million expected to be raised.' This indicates project financing, not a company raise."
+  }
+ },
+ "row": {
+  "company": "TikTok",
+  "headline": "TikTok’s $980 mln HCM City logistics project secures investment certificate",
+  "summary": "TikTok's logistics project in HCM City has secured an investment certificate with a total registered capital of VNĐ25.85 trillion (US$980 million), including $196 million in contributed capital.",
+  "funding_amount": "$980 million",
+  "funding_amount_usd": 980000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://vietnamnews.vn/economy/1799326/tiktok-s-980-mln-hcm-city-logistics-project-secures-investment-certificate.html",
+  "source_name": "Vietnam News (VNS)",
+  "published_date": "2026-09-10",
+  "collector": "national_press",
+  "city": null,
+  "region": "Asia",
+  "state": null,
+  "country": "VN",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-11 01:32:01"
+ },
+ "cost_usd": 0.019173,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.011805000000000003,
+  "openai/gpt-4o": 0.007367499999999999
+ },
+ "evidence_url": "https://web.archive.org/web/20260911073823/https://vietnamnews.vn/economy/1799326/tiktok-s-980-mln-hcm-city-logistics-project-secures-investment-certificate.html",
+ "evidence_chars": 7340,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-15T00:45:58+00:00"
+}

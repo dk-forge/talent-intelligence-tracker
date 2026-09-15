@@ -1,0 +1,63 @@
+{
+ "key": "amount/cdb69e97e35490b8a3cee478d6c1b438",
+ "label": "Ayar Labs $650,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source clearly states: 'Ayar Labs, a co-packaged optics (CPO) startup, has raised an additional US$150 million, bringing the primary capital it has raised so far in 2026 to US$650 million.' This is explicitly described as 'primary capital' raised in 2026, which qualifies as company_raise. The $650 million represents the cumulative total of new capital that arrived at the company from investors during 2026, meeting the definition of company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states: 'Ayar Labs, a co-packaged optics (CPO) startup, has raised an additional US$150 million, bringing the primary capital it has raised so far in 2026 to US$650 million.' This confirms the total amount raised and the basis as company_raise."
+  }
+ },
+ "row": {
+  "company": "Ayar Labs",
+  "headline": "CPO startup Ayar Labs raises 2026 funding to US$650 million, adds Wiwynn as investor",
+  "summary": "Ayar Labs, a co-packaged optics (CPO) startup, has raised an additional US$150 million, bringing the primary capital it has raised so far in 2026 to US$650 million. The company says it will use the money to move its CPO products into high-volume manufacturing.",
+  "funding_amount": "US$650 million",
+  "funding_amount_usd": 650000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.digitimes.com/news/a20260911VL222/cpo-startup-wiwynn-funding-2026.html",
+  "source_name": "DIGITIMES Asia",
+  "published_date": "2026-09-11",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-12 01:45:52"
+ },
+ "cost_usd": 0.014233,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008795999999999998,
+  "openai/gpt-4o": 0.005437499999999998
+ },
+ "evidence_url": "https://web.archive.org/web/20260912062929/https://www.digitimes.com/news/a20260911VL222/cpo-startup-wiwynn-funding-2026.html",
+ "evidence_chars": 2785,
+ "action": "accept",
+ "correction": null,
+ "note": "two-model adjudication of amount/cdb69e97e35490b8a3cee478d6c1b438, both referees say accept. anthropic/claude-sonnet-4.5: The source clearly states: 'Ayar Labs, a co-packaged optics (CPO) startup, has raised an additional US$150 million, bringing the primary capital it has raised so far in 2026 to US$650 million.' This is explicitly describ; openai/gpt-4o: The source states: 'Ayar Labs, a co-packaged optics (CPO) startup, has raised an additional US$150 million, bringing the primary capital it has raised so far in 2026 to US$650 million.' This confirms the total amount rai",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:46:07+00:00"
+}

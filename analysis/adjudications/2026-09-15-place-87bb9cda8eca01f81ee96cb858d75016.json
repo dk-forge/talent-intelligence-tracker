@@ -1,0 +1,64 @@
+{
+ "key": "place/87bb9cda8eca01f81ee96cb858d75016",
+ "label": "Construmin filed under San Juan, US",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "location_stated": true,
+   "recommended": "edit",
+   "corrected_city": "San Juan",
+   "corrected_country": "AR",
+   "confidence": 100,
+   "reasoning": "The source explicitly states the activity is located in San Juan, Argentina. Multiple references confirm this: 'la sanjuanina Construmin' (the San Juan-based Construmin), 'íntegramente dentro de San Juan' (entirely within San Juan), and the article discusses the provinces of San Juan and La Rioja in Argentina. The source is from Clarín, an Argentine outlet, discussing Argentine mining projects. The stored country code 'US' is incorrect; it should be 'AR' for Argentina."
+  },
+  "openai/gpt-4o": {
+   "location_stated": true,
+   "recommended": "edit",
+   "corrected_city": "San Juan",
+   "corrected_country": "AR",
+   "confidence": 100,
+   "reasoning": "The source states: 'Vicuña adjudicó a tres constructoras argentinas las primeras dos secciones del Corredor Norte, la futura ruta de acceso a su proyecto de cobre, oro y plata en la Cordillera íntegramente dentro de San Juan.' This indicates the activity is in San Juan, Argentina, not the US."
+  }
+ },
+ "row": {
+  "company": "Construmin",
+  "headline": "Luego del conflicto con La Rioja, Vicuña avanza con su ruta de acceso por San Juan",
+  "summary": "The major copper project in the country has awarded contracts to companies Contreras, BBC, and the San Juan-based Construmin to build 63.6 kilometers over two years, creating about 300 jobs.",
+  "funding_amount": null,
+  "funding_amount_usd": null,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": null,
+  "source_url": "https://www.clarin.com/energia-y-mineria/luego-conflicto-rioja-vicuna-avanza-ruta-acceso-san-juan_0_v48wxpYKrF.html",
+  "source_name": "Clarin Economia",
+  "published_date": "2026-09-11",
+  "collector": "national_press",
+  "city": "San Juan",
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-12 01:45:52"
+ },
+ "cost_usd": 0.016363,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010250999999999996,
+  "openai/gpt-4o": 0.006112499999999993
+ },
+ "evidence_url": "https://web.archive.org/web/20260912063018/https://www.clarin.com/energia-y-mineria/luego-conflicto-rioja-vicuna-avanza-ruta-acceso-san-juan_0_v48wxpYKrF.html",
+ "evidence_chars": 4909,
+ "action": "edit",
+ "correction": {
+  "corrected_city": "San Juan",
+  "corrected_country": "AR"
+ },
+ "note": "two-model adjudication of place/87bb9cda8eca01f81ee96cb858d75016, both referees say edit. corrected_city=San Juan corrected_country=AR. anthropic/claude-sonnet-4.5: The source explicitly states the activity is located in San Juan, Argentina. Multiple references confirm this: 'la sanjuanina Construmin' (the San Juan-based Construmin), 'íntegramente dentro de San Juan' (entirely withi; openai/gpt-4o: The source states: 'Vicuña adjudicó a tres constructoras argentinas las primeras dos secciones del Corredor Norte, la futura ruta de acceso a su proyecto de cobre, oro y plata en la Cordillera íntegramente dentro de San ",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-15T00:46:15+00:00"
+}
