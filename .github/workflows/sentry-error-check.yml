@@ -1,0 +1,136 @@
+name: sentry-error-check
+
+# Hourly: is anything NEW throwing in production, and if it is, what does it
+# look like in plain language.
+#
+# WHY THIS EXISTS. Every other alarm in this repo watches what we COLLECTED
+# (a source going stale, a wrong published figure, a red CI run). None of
+# them watches the application itself throwing an exception, because nothing
+# here has ever reported to an error tracker. sentry_error_alert.py asks
+# Sentry for issues that are unresolved and first seen in the last hour,
+# dedupes them the way ci_alert.py dedupes a CI failure (numbers normalised
+# out before hashing), and sends through this repo's one door, ops_notify.py.
+# See sentry_error_alert.py's own docstring for the full design.
+#
+# WHY THIS IS NOT IN THE `talent-collect` LOCK. It writes
+# data/sentry_alert_state.json and data/sentry_ops_spend.json and never
+# touches the collected database (the two files split at the 100 MiB
+# boundary; see CLAUDE.md), so it is not a database writer and must not queue
+# behind one - tests/test_workflows.py finds writers by scanning workflow
+# text for that database's own filename, and this file deliberately never
+# names it. No concurrency group either, for the same reason host-watch.yml
+# has none: GitHub keeps exactly one pending run per group, an hourly job
+# would collide with itself under any delay, and two overlapping runs here
+# are harmless (the ledger claim re-derives on a race; see alert_state.py).
+#
+# TWO SEPARATE CREDENTIALS, NEITHER SHARED WITH ANYTHING ELSE THIS REPO
+# SPENDS. SENTRY_AUTH_TOKEN reads issues only (project/event/org read
+# scopes). OPENROUTER_OPS_KEY is its own OpenRouter key with its own
+# $3.00/month provider limit, SHARED ACROSS THREE REPOSITORIES, and used for
+# nothing but the one summary call in sentry_error_alert.summarize(). It must
+# never be confused with OPENROUTER_API_KEY (spend.py's own allowance for the
+# collection pipeline) - see data/sentry_ops_spend.json, this key's own
+# committed ledger, kept apart from data/spend_month.json and
+# data/discretionary_grants.json for exactly that reason.
+#
+# COST: at most one model call an hour, only when a genuinely NEW cause
+# appears, metered against its own $3/month cap before it is ever made. Every
+# other tick - the overwhelming majority - costs nothing: no issues, no call,
+# no commit.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would be sent; alert and commit nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # commit data/sentry_alert_state.json and
+                     # data/sentry_ops_spend.json
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No `pip install`. sentry_error_alert.py, alert_state.py, ci_alert.py,
+      # opsmail.py and ops_notify.py are all stdlib-only, so the one path
+      # whose job is to notice something is wrong cannot itself be broken by
+      # a dependency resolution failure.
+      - name: Check Sentry for new errors
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          # A separate key, a separate $3.00/month cap, shared across three
+          # repositories. Used for nothing but the one summary call in
+          # sentry_error_alert.summarize() - never for anything spend.py
+          # already governs.
+          OPENROUTER_OPS_KEY: ${{ secrets.OPENROUTER_OPS_KEY }}
+          # The relay that carries operational mail, deliberately not the
+          # host these alerts would be about. See opsmail.py.
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}
+          # Travels WITH the key, always - see tests/test_ops_sender.py.
+          OPS_MAIL_FROM: ${{ vars.OPS_MAIL_FROM }}
+          # Beside data/alert_state.json, never inside it: a Sentry cause and
+          # a CI cause must never collide on one key.
+          ALERT_STATE_PATH: data/sentry_alert_state.json
+          # The claim is COMMITTED BEFORE THE SEND, same as every other
+          # alarm here - `git push` to main is the compare-and-swap that
+          # keeps one cause to one email across two overlapping runs. See
+          # alert_state.py.
+          ALERT_STATE_COMMIT: 'true'
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          set -euo pipefail
+          # Needed by the ledger claim above, which commits
+          # data/sentry_alert_state.json before anything is sent.
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          python3 sentry_error_alert.py ${DRY:-}
+
+      # data/sentry_ops_spend.json is written locally by summarize() and is
+      # NOT covered by the alert_state claim above (that claim only commits
+      # the ledger it reads back through ALERT_STATE_PATH). Same
+      # fetch-reset-commit-push shape as every other committed ledger here
+      # (host-watch.yml, ci-alert.yml): re-derive on a rejected push rather
+      # than replay a diff, because the spend ledger cannot be re-derived -
+      # a lost commit here is a lost record of a real dollar spent, not a
+      # value this step can recompute.
+      - name: Commit the OPENROUTER_OPS_KEY spend ledger
+        if: ${{ !inputs.dry_run && !cancelled() }}
+        run: |
+          set -euo pipefail
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git add data/sentry_ops_spend.json 2>/dev/null || true
+            if git diff --staged --quiet; then
+              echo "Nothing new to record."
+              exit 0
+            fi
+            git commit -q -m "sentry-ops-spend: update $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push origin HEAD:main; then
+              echo "Recorded on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) - re-deriving on current main."
+            git fetch origin main
+            git reset --hard origin/main
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not record the OPENROUTER_OPS_KEY spend ledger"
+          echo "::error::after 5 attempts. The ledger this workflow reads for"
+          echo "::error::its monthly cap is now out of date on main."
+          exit 1
