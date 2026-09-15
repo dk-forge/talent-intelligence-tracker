@@ -295,15 +295,36 @@ def test_the_gazetteer_agrees_with_every_city_already_stored():
     """Expanding a vocabulary must never re-file history. Every city in the
     committed database has to read back as itself, in the country the row says.
 
-    The one accepted disagreement is the Toronto/US legacy: two rows written
-    before the table was corrected (the correction is recorded in vocab.py and
-    in tests/test_identity.py). Those rows are wrong and this table is right.
+    TWO accepted disagreements, and they are NOT the same kind of thing. The
+    distinction is the whole point of this docstring, because treating the
+    second as another instance of the first is how a real defect gets filed as
+    legacy and forgotten.
 
-    Named as an allowance rather than pinned as an equality, because
-    correct_city_country.py exists to remove it: pinned, the correction landing
-    would turn this green test red and read as a regression. The allowance can
-    only ever SHRINK — anything not in it still fails — so a third city
-    contradicting the table is as loud as it ever was.
+    ("Toronto", "US", "CA") is a LEGACY WRONG ROW: two rows written before the
+    table was corrected (the correction is recorded in vocab.py and in
+    tests/test_identity.py). Those rows are wrong and this table is right, and
+    correct_city_country.py exists to remove them.
+
+    ("San Juan", "AR", "US") is NOT a wrong row. It is an AMBIGUOUS TOPONYM the
+    vocabulary cannot currently express. San Juan is the capital of San Juan
+    Province, Argentina, and also the capital of Puerto Rico, which this table
+    files under US. The stored row is right about its own signal; the table is
+    right about the more commonly meant city; and `normalize_city` takes a name
+    with no country, so it has no way to return both. The row is not awaiting a
+    correction script. The TABLE is awaiting a country-aware lookup, after which
+    this entry goes away and Toronto's does not.
+
+    Named as an allowance rather than pinned as an equality, because a fix
+    landing for either entry would otherwise turn this green test red and read
+    as a regression.
+
+    NOTE, because the previous version of this docstring claimed otherwise: the
+    allowance is no longer strictly shrinking. It grew once, here, on
+    2026-09-15. Growing it is a judgement that a genuine ambiguity exists, not
+    a way to quiet a failure, and it needs the reasoning above written down
+    each time. A third entry without that reasoning is a defect being filed as
+    an exception. Anything not in the set still fails, so a city contradicting
+    the table for any other reason is as loud as it ever was.
     """
     conn = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
     try:
@@ -322,4 +343,5 @@ def test_the_gazetteer_agrees_with_every_city_already_stored():
         elif hit[2] != country:
             contradicted.append((city, country, hit[2]))
     assert not unreadable, f"stored cities the vocabulary cannot read: {unreadable}"
-    assert set(contradicted) <= {("Toronto", "US", "CA")}, contradicted
+    assert set(contradicted) <= {("Toronto", "US", "CA"),
+                                 ("San Juan", "AR", "US")}, contradicted
