@@ -35,11 +35,6 @@
       "last": 1789432218,
       "subject": "CI RED: collect: urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='openrouter.ai', port=443): Read timed out. (read timeout=45)"
     },
-    "correct-money-basis:main:6ddf2f90e4b4f8ce": {
-      "first": 1789421741,
-      "last": 1789421741,
-      "subject": "CI RED: correct-money-basis: pipeline.publish.PublishError: /enrich did not answer after 4 attempts: 503: {\"code\":\"wp_die\",\"message\":\"Briefly unavailable for scheduled maintenance."
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1788716370,
@@ -51,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-15T00:30:20+00:00",
+  "updated_at": "2026-09-15T00:35:22+00:00",
   "version": 1
 }
