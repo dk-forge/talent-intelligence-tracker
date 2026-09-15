@@ -44,8 +44,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:1cea2a5befa9ad1f": {
+      "first": 1789450136,
+      "last": 1789450136,
+      "subject": "CI RED: tests: ('San Juan', 'AR', 'US')"
     }
   },
-  "updated_at": "2026-09-15T00:35:22+00:00",
+  "updated_at": "2026-09-15T05:28:58+00:00",
   "version": 1
 }
