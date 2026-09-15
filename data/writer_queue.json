@@ -216,81 +216,10 @@
     "ticket:20260906T205450Z-backfill-gnews-2026": "2026-09-14T01:15:11Z",
     "ticket:20260912T104321Z-collect-structured": "2026-09-14T14:59:44Z",
     "ticket:20260914T200025Z-adjudicate-rows": "2026-09-14T21:33:28Z",
-    "ticket:20260914T213245Z-adjudicate-rows": "2026-09-14T21:36:54Z"
+    "ticket:20260914T213245Z-adjudicate-rows": "2026-09-14T21:36:54Z",
+    "ticket:20260915T000708Z-adjudicate-rows": "2026-09-15T00:38:02Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-15T00:35:25Z",
-      "history": [
-        {
-          "at": "2026-09-15T00:07:08Z",
-          "detail": "money figure contradictions, rerun with the owner grant",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-15T00:35:25Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260915T000708Z-adjudicate-rows",
-      "inputs": {
-        "ceiling": "0.60",
-        "dry_run": "false",
-        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure (2026-09-14 audit)",
-        "rows": "734d99623f823e79e2d549649cd1abdf,864e76c30a8fe3e5fb6d1f3568a19aea,005123a94e8243df523375355d856a99,8b7db65e5a281d5096ef871d61547edf,5fa33d0d7c2afdd2c002f6bf68e88d73,bcd70c7d3ab3055f36a81ae0fbccbf55,708bfb3aa94f010ce13aafc2f223b2f0,ea91a78b1a8a8c052f4b4aa5b4e92b37,9e66f52d50313f49f91d35deadc777a2,465b406cd7cbe680aae7716507450719,24351a64d835a6d01ddc4fe727ab88b2"
-      },
-      "priority": 0,
-      "reason": "money figure contradictions, rerun with the owner grant",
-      "requested_at": "2026-09-15T00:07:08Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-06T18:09:37Z",
-      "history": [
-        {
-          "at": "2026-09-06T16:54:48Z",
-          "detail": "resume backfill-gnews-2026:2026-01-01..2026-07-26 at 2026-07-13, 4 slices to finish; ration BLANK so the budget-derived 13/day-window applies (not the recorded 37), ceiling $0.0115/slice = $0.046 to finish. Re-enqueued: the first attempt was evicted out of drain-writers own pending slot by a dispatch 5s later",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-06T18:09:37Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-06T18:38:52Z",
-          "detail": "run 34050827405",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-06T18:38:52Z",
-          "detail": "run 34050827405",
-          "event": "landed"
-        }
-      ],
-      "id": "20260906T165448Z-backfill-gnews-2026",
-      "inputs": {
-        "dry_run": "false",
-        "end": "2026-07-26",
-        "fetch_only": "false",
-        "ration": "",
-        "start": "2026-01-01"
-      },
-      "landed_at": "2026-09-06T18:38:52Z",
-      "priority": 10,
-      "reason": "resume backfill-gnews-2026:2026-01-01..2026-07-26 at 2026-07-13, 4 slices to finish; ration BLANK so the budget-derived 13/day-window applies (not the recorded 37), ceiling $0.0115/slice = $0.046 to finish. Re-enqueued: the first attempt was evicted out of drain-writers own pending slot by a dispatch 5s later",
-      "requested_at": "2026-09-06T16:54:48Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34050827405",
-      "state": "landed",
-      "workflow": "backfill-gnews-2026.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-06T17:39:32Z",
@@ -2562,6 +2491,46 @@
       "run_id": "34913450121",
       "state": "landed",
       "workflow": "correct-money-basis.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-15T00:35:25Z",
+      "history": [
+        {
+          "at": "2026-09-15T00:07:08Z",
+          "detail": "money figure contradictions, rerun with the owner grant",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-15T00:35:25Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-15T00:38:02Z",
+          "detail": "run 34913816029",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-15T00:38:02Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260915T000708Z-adjudicate-rows",
+      "inputs": {
+        "ceiling": "0.60",
+        "dry_run": "false",
+        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure (2026-09-14 audit)",
+        "rows": "734d99623f823e79e2d549649cd1abdf,864e76c30a8fe3e5fb6d1f3568a19aea,005123a94e8243df523375355d856a99,8b7db65e5a281d5096ef871d61547edf,5fa33d0d7c2afdd2c002f6bf68e88d73,bcd70c7d3ab3055f36a81ae0fbccbf55,708bfb3aa94f010ce13aafc2f223b2f0,ea91a78b1a8a8c052f4b4aa5b4e92b37,9e66f52d50313f49f91d35deadc777a2,465b406cd7cbe680aae7716507450719,24351a64d835a6d01ddc4fe727ab88b2"
+      },
+      "priority": 0,
+      "reason": "money figure contradictions, rerun with the owner grant",
+      "requested_at": "2026-09-15T00:07:08Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "34913816029",
+      "state": "failed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
