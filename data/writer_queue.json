@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-14T21:35:44Z",
-  "last_tick": "2026-09-15T00:07:12Z",
+  "last_dispatch": "2026-09-15T00:30:11Z",
+  "last_tick": "2026-09-15T00:30:11Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -222,12 +222,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-15T00:30:11Z",
       "history": [
         {
           "at": "2026-09-15T00:06:47Z",
           "detail": "stale money_basis verdicts (2026-09-14 audit), rerun after the maintenance window",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-15T00:30:11Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260915T000647Z-correct-money-basis",
@@ -239,7 +244,7 @@
       "requested_at": "2026-09-15T00:06:47Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-money-basis.yml"
     },
     {
