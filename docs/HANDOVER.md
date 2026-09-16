@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-09-16 (run 3 dispatched, result NOT seen): vocabulary closed, neutral made gradeable, a mid-run brake added
+
+**Run 3: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/35099742572**,
+dispatched 13:06Z through `drain-writers`, priced **$1.31** against a $2.00
+ceiling. **This session ended before it finished. Nobody has read its result.**
+Read `analysis/extraction/result-2026-09-16.json` on main (run 3 overwrites the
+run 2 file of the same name; run 2's numbers are preserved in the TECHLOG entry
+of this date).
+
+**What changed for it** (PR #156, merged):
+- The prompt states the verdict vocabulary as CLOSED, names the consequence of
+  a fourth word, says `not_stated` is the only way to decline, and says every
+  stored value is gradeable INCLUDING `neutral`, which is an ordinary value of
+  `signal_direction` beside hiring, displacement and comp_shift.
+- `parse_answer` is UNCHANGED and stays all-or-nothing by owner ruling. A
+  referee answer that cannot be fully read is UNKNOWN; the vocabulary check
+  still refuses a fourth word rather than admitting one.
+- `referee_to_stop()`: after 20 readable rows, a referee failing more than half
+  stops the run instead of buying the rest of the sample. Recorded as
+  `referee_stop`, distinct from `budget_stop` (the budget working exits 0; a
+  broken referee reds the workflow).
+- PR #152 (merged earlier) keeps 600 characters of an unparseable answer, so
+  run 3 records the word the referee writes even if the prompt fix does not
+  land it.
+
+**Spend:** run 1 $0.8503 + run 2 $0.9345 = $1.7848 spent; run 3 priced $1.31,
+so about **$16.9 of the $20.00 grant remains** once it settles. Confirm against
+`budget.status_line()` rather than this arithmetic.
+
+**Three things for whoever reads run 3:**
+1. **If funding is judged**, the six field accuracies and the funding cells are
+   the first complete read of extraction accuracy. **If funding is still
+   UNKNOWN, say so plainly and STOP: the owner ruled no fourth run.** Read the
+   parse failures first; they now carry the answer text.
+2. **The recall page fold is NOT done, deliberately.** Accuracy was not
+   published to `/talent-intelligence-tracker/recall/` while run 3 was in
+   flight, because the figures would have been superseded within the hour and
+   the funding cells said UNKNOWN for a REFEREE defect rather than a property
+   of the tracker. The page publishes what the tracker MISSES (recall); accuracy
+   is a different question and needs its own framing, a plugin version bump and
+   a deploy. Do it from run 3's numbers, and do not put a field on the page
+   whose cell is UNKNOWN.
+3. **A referee stop or a preflight refusal is not a measurement failure.** Both
+   exit before buying the sample; the rows already graded stand.
+
+---
+
 ## 2026-09-16 (latest): the benchmark has numbers on 5 of 6 fields; funding is UNKNOWN because the second referee will not grade "neutral"
 
 Run 35093665611: haiku-4.5 + gpt-4o-mini, 167 of 200 bodies read, **$0.9345**
