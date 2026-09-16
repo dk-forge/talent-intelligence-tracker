@@ -2,6 +2,36 @@
 
 ---
 
+## 2026-09-16 (run 3 READ): the brake worked, the word is read, funding is STILL UNKNOWN, and it stops here
+
+Run 35099742572 fired the new mid-run brake after 20 readable rows:
+`openai/gpt-4o-mini failed 18 of 20`. **$0.1214 spent** against a $1.31
+estimate, so the brake saved about $1.19 rather than paying out the sample.
+
+**THE CAUSE IS NOW READ, NOT CORRELATED.** `openai/gpt-4o-mini` writes `"verdict": "neutral"` for `signal_direction`: it echoes the stored VALUE into the verdict slot instead of grading it. All 18 failing rows have stored direction `neutral` and all 18 captured answers carry `"verdict": "neutral"`. The other five fields in the same answers are graded correctly with legal verdicts, so this is one field's vocabulary bleeding into the verdict vocabulary, not a refusal and not a reasoning failure. The prompt change did not stop it and may have made it likelier: telling the referee that "neutral is an ordinary value of signal_direction" puts the word `neutral` in the same paragraph as the verdict words.
+
+**Funding is STILL UNKNOWN and no fourth run was bought**, per the owner's
+ruling. Only 2 of 20 readable rows parsed. **The standing accuracy numbers are
+run 2's**, in the section below and in the TECHLOG: company 98.4 percent
+(n=62), amount 97.2 (36), headcount 100 (39), country 95.5 (44), direction 100
+(63), event type 98.0 (49), funding UNKNOWN on every field.
+
+**Spend: $0.8503 + $0.9345 + $0.1214 = $1.9062 of the $20.00 grant; about
+$18.1 remains.**
+
+**If a fourth run is ever authorised**, the fix it needs is to stop the stored
+value reaching the verdict slot for `signal_direction` alone: put the value in
+`source_value` only, and either rename that field's answer key, show a worked
+example with stored `neutral` and verdict `correct`, or order the JSON so the
+verdict precedes the field name. Do not weaken the vocabulary check to admit
+`neutral` as a verdict: it would silently count an echo as a grade.
+
+**Also note:** run 3 OVERWROTE run 2's `result-2026-09-16.json`. Run 2's file
+is at commit 9af9efdd. The result filename carries a date, not a run, so two
+runs on one day collide. Worth fixing before the next run.
+
+---
+
 ## 2026-09-16 (run 3 dispatched, result NOT seen): vocabulary closed, neutral made gradeable, a mid-run brake added
 
 **Run 3: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/35099742572**,
