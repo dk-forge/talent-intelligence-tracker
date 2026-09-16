@@ -14,6 +14,39 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-16 - A scheduled merge train, so a green queue stops waiting for a session
+
+**Guard:** `tests/test_merge_train.py` (53 assertions, every guard
+mutation-proved) and `tests/test_merge_train_config.py` (this repo's floor, the
+deploy window, forbidden-path parity with `self_heal.FORBIDDEN`, and the
+absence of auto-merge).
+
+Pull requests sat open and mergeable for days. Nothing was wrong with any of
+them: the merge step had no owner that outlives a session, and a session ends,
+hits a rate limit, or hands off badly.
+
+`.github/workflows/merge-train.yml` runs every 30 minutes on the VPS runner, at
+:12 and :42 so it does not contend with the sibling tracker's train, and merges
+AT MOST ONE pull request per run.
+
+It verifies everything itself rather than reading a rollup: the head SHA is
+resolved first (the rollup reports the previous commit after a force-push),
+`cancelled` counts as failing, and an empty or tiny check list is "CI has not
+started" rather than "no failures" against a measured floor of 3 (pytest and
+the two compare jobs, on 29 of the last 30 merged pull requests). It never uses
+auto-merge and never re-runs a live run.
+
+Unsticking is bookkeeping only: a `docs/TECHLOG.md` conflict kept both ways, a
+clean rebase, and one re-run of a COMPLETED infrastructure-shaped failure, two
+per head SHA and three per pull request. `inspect_diff()` refuses a removed
+assertion, an added suppression, a moved threshold, or any path outside the
+mechanical allowlist before anything is pushed, and `self_heal.FORBIDDEN` is
+refused by name. A code defect or any tripwire, recall or money-basis red is
+labelled `needs-human` and mailed once through `ops_notify.py`, never healed.
+
+It unsticks OR it merges in a given run, never both. It ships DISARMED: every
+scheduled tick is a dry run until `MERGE_TRAIN_ARMED` is `true`.
+
 ## 2026-09-16 - Run 3: the brake worked, the word is read, and funding is STILL UNKNOWN
 
 **What.** Actions run 35099742572, the first run with the closed vocabulary, the gradeable-neutral block and the mid-run brake. The brake fired: `openai/gpt-4o-mini failed 18 of 20 readable row(s); the rest of the sample was not bought`. 26 rows reached (20 readable, 6 unreadable), **$0.1214 spent against a $1.31 estimate**, so the brake saved about $1.19 of the sample. `referee_stop` is recorded and `budget_stop` is absent, as designed; the run exited 2 and reddened, which is a broken referee reaching a human rather than the budget working.
