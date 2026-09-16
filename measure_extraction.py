@@ -491,7 +491,17 @@ def ask(model: str, prompt: str, *, start_usd: float, ceiling: float,
     if content is None:
         return None, reason or "no answer", cost
     verdict, why = parse_answer(content)
+    if verdict is None:
+        # Keep WHAT was said, not only that it did not parse. The 2026-09-16
+        # re-run lost 99 of 167 rows to `field signal_direction carries no
+        # usable verdict` and the word the referee actually wrote was gone
+        # with the run, so the cause was a correlation rather than a reading.
+        why = f"{why}; answer: {' '.join(content.split())[:ANSWER_CHARS]}"
     return verdict, why, cost
+
+
+#: How much of an unparseable answer is kept beside its reason.
+ANSWER_CHARS = 600
 
 
 #: How much of a refusal is kept. `classify._call` already clips the upstream

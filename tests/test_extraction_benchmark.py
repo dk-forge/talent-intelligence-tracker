@@ -352,6 +352,30 @@ def test_a_referee_error_is_recorded_with_its_message_not_only_its_class(monkeyp
     assert {entry["reason"] for entry in record["fields"].values()} == {"no_verdict"}
 
 
+def test_an_unparseable_answer_is_kept_beside_its_reason(monkeypatch):
+    """The word the referee wrote travels with the parse failure.
+
+    On 2026-09-16 the second referee failed 99 of 167 rows on one field and
+    the answers were not kept, so the cause could only be correlated (93 of
+    the 99 had a stored direction of `neutral`), never read.
+    """
+    monkeypatch.setattr(bench, "REFEREES", ("vendor-a/m", "vendor-b/m"))
+    bad = json.loads(_answer())
+    bad["fields"]["signal_direction"]["verdict"] = "partially_correct"
+
+    def call(model, system, user, **kw):
+        return json.dumps(bad) if model == "vendor-b/m" else _answer()
+
+    record = bench.grade_row(ITEM, STORED, start_usd=0.0, ceiling=1.0,
+                             fetch=lambda url, **kw: "x" * 2000,
+                             wayback=lambda url: None, call=call)
+    reason = record["referees"]["vendor-b/m"]["reason"]
+    assert reason.startswith("field signal_direction carries no usable verdict; answer: ")
+    assert "partially_correct" in reason
+    assert record["parse_failures"][0]["reason"] == reason
+    assert len(reason) <= bench.ANSWER_CHARS + 80
+
+
 def test_a_long_upstream_message_is_clipped_not_dropped():
     from pipeline import classify
 
