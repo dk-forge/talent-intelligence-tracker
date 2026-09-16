@@ -22,7 +22,10 @@ name: extraction-benchmark
 #
 # PRICE BEFORE, RECORD AFTER. `--grade` prints the live estimate before the
 # first request and REFUSES a run whose estimate is past the ceiling. Measured
-# 2026-09-16 at the drawn 200: $1.43 (claude-haiku-4.5 + gpt-5-mini). The hard
+# 2026-09-16 at the drawn 200: $1.25 (claude-haiku-4.5 + gpt-4o-mini). Then it
+# asks each referee ONE one-line question and refuses the run if either gives
+# no answer: the first paid run spent $0.85 grading 164 rows against a referee
+# whose endpoint rejected every request. The hard
 # bar in the program is $6.00 of the owner's one-time $20.00 grant; the month's
 # switch (TIT_PAID_READS) is read before every request regardless.
 #
