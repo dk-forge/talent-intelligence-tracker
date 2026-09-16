@@ -320,6 +320,112 @@ def test_two_agreeing_referees_grade_the_fields(monkeypatch):
     assert record["language"] == "fr"
 
 
+# --- a referee that raises ---------------------------------------------------
+
+def test_a_referee_error_is_recorded_with_its_message_not_only_its_class(monkeypatch):
+    """The result file must be diagnosable on its own.
+
+    The first paid run stored 164 rows of `no answer (ClassifyError)` and the
+    run log printed nothing more; the cause had to be reconstructed from the
+    bill. The upstream message travels into the referee record AND the
+    parse-failure entry, whitespace collapsed, clipped at REASON_CHARS.
+    """
+    from pipeline import classify
+
+    monkeypatch.setattr(bench, "REFEREES", ("vendor-a/m", "vendor-b/m"))
+    upstream = ("OpenRouter 400: {\"error\":{\"message\":\"Unsupported value: "
+                "\'temperature\' does not support 0 with this model.\n Only the "
+                "default (1) value is supported.\"}}")
+
+    def call(model, system, user, **kw):
+        if model == "vendor-b/m":
+            raise classify.ClassifyError(upstream)
+        return _answer()
+
+    record = bench.grade_row(ITEM, STORED, start_usd=0.0, ceiling=1.0,
+                             fetch=lambda url, **kw: "x" * 2000,
+                             wayback=lambda url: None, call=call)
+    reason = record["referees"]["vendor-b/m"]["reason"]
+    assert reason.startswith("no answer (ClassifyError: OpenRouter 400:")
+    assert "temperature" in reason and "\n" not in reason
+    assert record["parse_failures"] == [{"model": "vendor-b/m", "reason": reason}]
+    assert {entry["reason"] for entry in record["fields"].values()} == {"no_verdict"}
+
+
+def test_a_long_upstream_message_is_clipped_not_dropped():
+    from pipeline import classify
+
+    reason = bench.no_answer(classify.ClassifyError("x" * 5000))
+    assert reason.startswith("no answer (ClassifyError: xxx")
+    assert len(reason) < bench.REASON_CHARS + 40
+
+
+# --- the preflight ------------------------------------------------------------
+
+def test_preflight_names_the_referee_that_cannot_answer_and_its_reason(monkeypatch):
+    """One one-line question per referee, before any body is fetched."""
+    from pipeline import classify
+
+    gates, calls = [], []
+    monkeypatch.setattr(bench.adj, "_gate",
+                        lambda start, ceiling=None: gates.append((start, ceiling)))
+
+    def call(model, system, user, **kw):
+        calls.append((model, kw.get("max_tokens")))
+        if model == "vendor-b/m":
+            raise classify.ClassifyError("OpenRouter 404: No endpoints found")
+        return '{"ok": true}'
+
+    dead = bench.preflight(start_usd=0.0, ceiling=1.0,
+                           referees=("vendor-a/m", "vendor-b/m"), call=call)
+    assert list(dead) == ["vendor-b/m"]
+    assert "OpenRouter 404" in dead["vendor-b/m"]
+    # One gate read per attempt, one request per attempt, a tiny answer asked for.
+    assert len(gates) == len(calls) == 1 + bench.ATTEMPTS
+    assert all(max_tokens == bench.PREFLIGHT_MAX_TOKENS for _m, max_tokens in calls)
+
+
+def test_preflight_is_empty_when_both_referees_answer():
+    assert bench.preflight(start_usd=0.0, ceiling=1.0,
+                           referees=("vendor-a/m", "vendor-b/m"),
+                           call=lambda *a, **k: '{"ok": true}') == {}
+
+
+def test_a_dead_referee_refuses_the_run_before_a_single_row_is_graded(
+        monkeypatch, tmp_path, capsys):
+    """$0.85 was spent grading 164 rows against a referee that answered none.
+
+    The refusal is exit 1 with the referee and its reason on stderr, and
+    `grade_row` is never reached, so the sample costs nothing.
+    """
+    sample = {"drawn_on": "2026-09-16", "seed": "s", "target": 1, "items": [
+        {"content_hash": "h1", "signal_id": "s1", "region": "US",
+         "event_type": "funding", "likely_non_english": False,
+         "collector": "google_news", "source_url": "https://x.example.com/a",
+         "archive_url": "", "stored": {}}]}
+    sample_path = tmp_path / "sample-2026-09-16.json"
+    sample_path.write_text(json.dumps(sample))
+    result_path = tmp_path / "result-2026-09-16.json"
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "not-a-real-key")
+    monkeypatch.setattr(bench, "estimate", lambda *a, **k: (0.01, []))
+    monkeypatch.setattr(bench, "prices", lambda *a, **k: {})
+    monkeypatch.setattr(bench, "preflight",
+                        lambda **k: {"vendor-b/m": "no answer (ClassifyError: OpenRouter 400: nope)"})
+
+    def never(*args, **kwargs):
+        raise AssertionError("a row was graded after a referee failed the preflight")
+
+    monkeypatch.setattr(bench, "grade_row", never)
+    monkeypatch.setattr(bench.schema, "connect", never)
+    rc = bench.main(["--grade", "--sample", str(sample_path),
+                     "--result", str(result_path), "--ceiling", "1.00"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "vendor-b/m" in err and "OpenRouter 400" in err
+    assert not result_path.exists()
+
+
 # --- the meter -------------------------------------------------------------
 
 def test_the_gate_is_read_before_every_request_and_the_retry_is_outside_the_call(monkeypatch):
@@ -468,6 +574,7 @@ def test_a_budget_stop_is_not_an_incomplete_measurement(monkeypatch, tmp_path, c
     monkeypatch.setenv("OPENROUTER_API_KEY", "not-a-real-key")
     monkeypatch.setattr(bench, "estimate", lambda *a, **k: (0.01, []))
     monkeypatch.setattr(bench, "prices", lambda *a, **k: {})
+    monkeypatch.setattr(bench, "preflight", lambda **k: {})
 
     class _Row(dict):
         pass

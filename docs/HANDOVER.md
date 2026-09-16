@@ -2,6 +2,32 @@
 
 ---
 
+## 2026-09-16 (later): the first paid benchmark run judged nothing; second referee replaced, preflight added, re-run queued
+
+**What happened.** Actions run 35085956345 spent **$0.85** and judged **0 of 200**.
+`openai/gpt-5-mini` answered none of its 164 requests; claude-haiku-4.5 answered
+all 164 readable bodies. Two referees must agree, so every readable row became
+`no_verdict` and every stratum judged nothing (exit 1). The 36 `no_evidence`
+rows are the separate, expected class. The failed result is kept as
+`analysis/extraction/result-2026-09-16-no-second-referee.json`.
+
+**Cause.** gpt-5-mini billed nothing on 164 requests: a 4xx before generation,
+not a truncation. `classify._call` sends `temperature: 0` and the GPT-5 family
+refuses it. The harness recorded only the exception's class name, so the exact
+refusal text is gone with that run. Third GPT-5 model to answer nothing through
+this door (TECHLOG, same date).
+
+**Fixed (fix/benchmark-second-referee).** Second referee is now
+`openai/gpt-4o-mini` (gpt-4o was priced first: $3.62 for the pair, past the
+$2.00 ceiling). A referee's error message is recorded in the result file. A
+preflight asks each referee one one-line question before any body is fetched
+and refuses the run (exit 1) if either gives no answer.
+
+**Re-run priced at $1.25** (haiku $1.10 + gpt-4o-mini $0.15), ceiling $2.00,
+grant remaining about $19.1 before it. **The numbers go below when it lands.**
+
+---
+
 ## 2026-09-16: extraction is measured against the ARTICLE BODIES for the first time; harness and 200-row sample landed, the paid run is queued and not yet run (branch `measure/extraction-benchmark`)
 
 Three measurements existed here and none of them asked this question.

@@ -101,11 +101,22 @@ HEALTH_NAME = "extraction_benchmark"
 #: it. They are NOT the adjudicator's pair (sonnet-4.5 + gpt-4o): that pair
 #: decides a published figure one row at a time, this one reads 200 bodies, and
 #: at 200 rows the adjudicator's pair prices at about $4 against this one's
-#: $1.4. Overridable so a later run can re-measure with a stronger pair and say
+#: $1.25. Overridable so a later run can re-measure with a stronger pair and say
 #: which it used; the pair is written into the result file either way.
+#:
+#: NOT A GPT-5 FAMILY MODEL. The first paid run (2026-09-16, $0.85) paired
+#: haiku with gpt-5-mini and gpt-5-mini answered 0 of 164: every request was
+#: rejected before generation (zero billed tokens on 164 rows, so a 4xx and
+#: not a truncation), and `classify._call` sends `temperature: 0`, which that
+#: family refuses. It is the third time this repo has sent a GPT-5 model
+#: through that door and the third time it answered nothing (gpt-5-nano:
+#: "40 errors, unusable" 2026-07-28; 0 of 75 on 2026-08-14). gpt-4o-mini is
+#: the same vendor and the same non-reasoning request shape the adjudicator's
+#: gpt-4o answered 16 rows with on the same day. gpt-4o itself prices this run
+#: at $3.62, past the $2.00 ceiling the run is approved at.
 REFEREES = (
     os.environ.get("BENCH_REFEREE_A", "anthropic/claude-haiku-4.5"),
-    os.environ.get("BENCH_REFEREE_B", "openai/gpt-5-mini"),
+    os.environ.get("BENCH_REFEREE_B", "openai/gpt-4o-mini"),
 )
 
 #: The six fields the benchmark grades, as (stored column, reader-facing label).
@@ -474,13 +485,66 @@ def ask(model: str, prompt: str, *, start_usd: float, ceiling: float,
                            timeout=CALL_TIMEOUT, max_tokens=MAX_TOKENS, json_mode=True)
             break
         except (classify.Throttled, classify.ClassifyError) as exc:
-            reason = f"no answer ({type(exc).__name__})"
+            reason = no_answer(exc)
             content = None
     cost = float(classify.STATS.get("usd", 0.0)) - before
     if content is None:
         return None, reason or "no answer", cost
     verdict, why = parse_answer(content)
     return verdict, why, cost
+
+
+#: How much of a refusal is kept. `classify._call` already clips the upstream
+#: body to 300 characters; this keeps the whole of that.
+REASON_CHARS = 320
+
+
+def no_answer(exc: BaseException) -> str:
+    """The reason recorded for a referee that raised instead of answering.
+
+    The exception's MESSAGE, not only its class. The first paid run recorded
+    164 rows of `no answer (ClassifyError)` and the run log printed nothing
+    more, so the cause (an HTTP 4xx from the second referee's endpoint) had to
+    be reconstructed from the bill. A result file must be diagnosable alone.
+    """
+    text = " ".join(str(exc).split())
+    return f"no answer ({type(exc).__name__}: {text[:REASON_CHARS]})"
+
+
+#: What the preflight asks. Tiny, so a referee that cannot answer at all costs
+#: a fraction of a cent rather than the sample.
+PREFLIGHT_PROMPT = 'Reply with exactly this JSON object and nothing else: {"ok": true}'
+PREFLIGHT_MAX_TOKENS = 20
+
+
+def preflight(*, start_usd: float, ceiling: float, referees=None,
+              call=None, attempts: int = ATTEMPTS) -> dict[str, str]:
+    """{model: reason} for every referee that gives NO answer to a one-line question.
+
+    Runs before the first body is fetched. On 2026-09-16 the second referee
+    rejected every one of its 164 requests and the run still paid the first
+    referee $0.85 to grade 164 rows nobody could agree with. Same discipline as
+    `ask`: the gate is read before every attempt and each attempt is exactly one
+    request. Only whether a reply came back is judged, never its content: a
+    referee that answers is then graded on the sample like any other. An empty
+    dict means every referee answered.
+    """
+    call = call or classify._call
+    dead: dict[str, str] = {}
+    for model in referees or REFEREES:
+        reason = ""
+        for _attempt in range(attempts):
+            adj._gate(start_usd, ceiling)
+            try:
+                call(model, classify.MINI_SYSTEM, PREFLIGHT_PROMPT,
+                     timeout=CALL_TIMEOUT, max_tokens=PREFLIGHT_MAX_TOKENS, json_mode=True)
+                reason = ""
+                break
+            except (classify.Throttled, classify.ClassifyError) as exc:
+                reason = no_answer(exc)
+        if reason:
+            dead[model] = reason
+    return dead
 
 
 # --------------------------------------------------------------------------
@@ -802,6 +866,16 @@ def main(argv=None) -> int:
                   "     -f inputs_json='{\"ceiling\":\"2.00\"}' -f reason='...'",
                   file=sys.stderr)
             return 1
+        start_usd = float(classify.STATS.get("usd", 0.0))
+        dead = preflight(start_usd=start_usd, ceiling=args.ceiling)
+        if dead:
+            print("REFUSING: a referee gave no answer to a one-line question, so the "
+                  "sample is not graded and nothing more is spent. Fix the referee "
+                  "(or name another with BENCH_REFEREE_A/B) and queue the run again:",
+                  file=sys.stderr)
+            for model, reason in dead.items():
+                print(f"  {model}: {reason}", file=sys.stderr)
+            return 1
         conn = schema.connect()
         by_hash = {}
         for item in items:
@@ -810,7 +884,6 @@ def main(argv=None) -> int:
                 (item["content_hash"],)).fetchone()
             by_hash[item["content_hash"]] = dict(row) if row else None
 
-        start_usd = float(classify.STATS.get("usd", 0.0))
         records: list[dict] = []
         stopped = ""
         for index, item in enumerate(items, 1):
