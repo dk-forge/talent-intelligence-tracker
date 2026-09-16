@@ -39,13 +39,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:measure-extraction-benchmark:b2d7c0f0713ec06d": {
-      "first": 1789553637,
-      "last": 1789553637,
-      "subject": "CI RED: tests: assert not ['analysis/extraction/sample-2026-09-16.json (banned pattern #2)']"
     }
   },
-  "updated_at": "2026-09-16T10:13:58+00:00",
+  "updated_at": "2026-09-16T10:28:32+00:00",
   "version": 1
 }
