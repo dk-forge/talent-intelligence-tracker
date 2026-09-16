@@ -14,6 +14,40 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-16 - The extraction benchmark's first real numbers, and a second referee that cannot say "correct" about "neutral"
+
+**What.** Actions run 35093665611 (`extraction-benchmark.yml`, queued through `drain-writers`, on main at a1a9726a plus the drain tick) graded the committed 200-row sample with `anthropic/claude-haiku-4.5` + `openai/gpt-4o-mini`. The preflight passed, 167 bodies were read (33 unreadable, median 4,366 characters), and the run spent **$0.9345** against a $2.00 ceiling and a $1.25 estimate. Result: `analysis/extraction/result-2026-09-16.json`. The run exited 2 (a stratum judged nothing) and the workflow turned that red so a human reads it, which is the designed outcome, not a fault.
+
+**The numbers, overall (denominator is correct + wrong; 95% Wilson).**
+
+| field | judged | correct | wrong | accuracy | interval |
+|---|---|---|---|---|---|
+| company | 62 | 61 | 1 | 98.4% | 91.4 to 99.7 |
+| amount | 36 | 35 | 1 | 97.2% | 85.8 to 99.5 |
+| headcount | 39 | 39 | 0 | 100.0% | 91.0 to 100.0 |
+| country | 44 | 42 | 2 | 95.5% | 84.9 to 98.7 |
+| direction | 63 | 63 | 0 | 100.0% | 94.3 to 100.0 |
+| event type | 49 | 48 | 1 | 98.0% | 89.3 to 99.6 |
+
+Every field has 33 `no_evidence` and 99 `no_verdict` unknowns (below). `not_stated_in_source`: amount 30, headcount 18, country 8. `referees_disagree`: company 6, amount 2, headcount 11, country 16, direction 5, event type 19.
+
+**By region** (accuracy, n judged): US company 100% (8), amount 100% (4), headcount 100% (5), country 100% (9), direction 100% (7), event type 100% (6). Europe company 100% (24), amount 92% (13), headcount 100% (15), country 89% (18), direction 100% (24), event type 94% (18). RoW company 97% (30), amount 100% (19), headcount 100% (19), country 100% (17), direction 100% (32), event type 100% (25). The US cells are too thin for their intervals to say much (n of 4 to 9, lower bounds 51% to 70%).
+
+**By event type:** funding is UNKNOWN on all six fields (0 judged). Hiring is UNKNOWN on amount and country and judged on 1 or 2 rows elsewhere. Leadership company 100% (28), amount 100% (23), headcount 100% (23), country 94% (16), direction 100% (31), event type 100% (31). Pay company 100% (11), amount 100% (3), headcount 100% (3), country 88% (8), direction 100% (9), event type 90% (10). Working practices company 95% (21), amount 90% (10), headcount 100% (12), country 100% (20), direction 100% (21), event type 100% (6).
+
+**What went wrong, and how far it is understood.** `parse_failures_by_model: {"openai/gpt-4o-mini": 99}`, every one `field signal_direction carries no usable verdict`. The answer parsed as JSON and company, amount, headcount and country carried valid verdicts, so on the direction field gpt-4o-mini wrote a word outside `correct|wrong|not_stated`. The word is UNKNOWN: `parse_answer` kept the reason and dropped the answer. What is stored correlates hard: 93 of the 99 rows have a stored direction of `neutral` (38 neutral rows did parse), all 38 readable funding rows failed, and haiku answered all 99 (78 correct, 20 wrong, 1 not_stated on direction). The likely reading is that gpt-4o-mini will not call `neutral` correct or wrong and invents a third word for it, but that is a hypothesis until an answer is read. So the funding stratum's six UNKNOWNs and the 99 `no_verdict` rows are a REFEREE finding, not an extraction finding, and none of them says anything about the extraction of funding rows.
+
+**Language.** Measured where both referees answered: en 26, ar 7, es 7, fr 6, de 3, it 3, ko 3, pt 3, ja 2, sv 2, id 1, nl 1, pl 1, vi 1, disagree 2; unknown 132 (99 parse failures + 33 unreadable). The parse failures skew English (67 of 99 by the draw-time proxy), so the judged rows over-represent non-English bodies (44 of 68 parsed).
+
+**Fix shipped for the next run** (fix/benchmark-keep-answer): a parse failure keeps the first 600 characters of the answer beside its reason, so the next run reads the word instead of correlating around it. NOT shipped, deliberately: a third paid run (priced $1.25, same ceiling), a prompt change for the direction field, or per-field salvage of an answer whose other five fields parsed. Each is a change to what the measurement is, and the salvage question in particular (`parse_answer` is all-or-nothing by design so a truncated answer cannot be counted) needs a decision before the code moves.
+
+**Spend against the owner's $20.00 grant.** Run 1 (dead second referee) $0.8503, run 2 $0.9345, total **$1.7848**; about $18.2 of the grant remains. Both runs filed priced `extraction_benchmark` health rows on the DISCRETIONARY pot; `budget.status_line()` reads catch-up $2.05 of $20.89 after the second.
+
+**This measures and moves nothing.** No model swap follows from it.
+
+---
+
+
 ## 2026-09-16 - The extraction benchmark's second referee answered nothing, and the run paid for the first anyway
 
 **What.** Actions run 35085956345 (`extraction-benchmark.yml`, queued through `drain-writers`) graded the 200-row sample for real and spent $0.85 judging ZERO items. `analysis/extraction/result-2026-09-16-no-second-referee.json` (kept under that name so the re-run's file can carry the date) reads `parse_failures_by_model: {"openai/gpt-5-mini": 164}`; every gpt-5-mini record is `no answer (ClassifyError)` and claude-haiku-4.5 answered every one of the 164 readable bodies. Two referees must agree, so 164 readable rows became `no_verdict`, every stratum judged nothing, and the run exited 1. The 36 `no_evidence` rows are the separate, expected class (unreadable bodies) and cost nothing by design.

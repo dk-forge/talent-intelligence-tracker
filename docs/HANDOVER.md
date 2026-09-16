@@ -2,6 +2,58 @@
 
 ---
 
+## 2026-09-16 (latest): the benchmark has numbers on 5 of 6 fields; funding is UNKNOWN because the second referee will not grade "neutral"
+
+Run 35093665611: haiku-4.5 + gpt-4o-mini, 167 of 200 bodies read, **$0.9345**
+spent (estimate $1.25, ceiling $2.00). Exit 2, red by design (a stratum judged
+nothing). Result: `analysis/extraction/result-2026-09-16.json`.
+
+**Overall** (correct + wrong is the denominator; 95% Wilson):
+
+| field | judged | accuracy | interval |
+|---|---|---|---|
+| company | 62 | 98.4% | 91.4 to 99.7 |
+| amount | 36 | 97.2% | 85.8 to 99.5 |
+| headcount | 39 | 100.0% | 91.0 to 100.0 |
+| country | 44 | 95.5% | 84.9 to 98.7 |
+| direction | 63 | 100.0% | 94.3 to 100.0 |
+| event type | 49 | 98.0% | 89.3 to 99.6 |
+
+Unknowns per field: 33 `no_evidence`, 99 `no_verdict`, plus `not_stated_in_source`
+(amount 30, headcount 18, country 8) and `referees_disagree` (company 6, amount
+2, headcount 11, country 16, direction 5, event type 19).
+
+**By region** (accuracy, n): US all six fields 100% on n of 4 to 9 (too thin to
+quote; lower bounds 51% to 70%). Europe company 100% (24), amount 92% (13),
+headcount 100% (15), country 89% (18), direction 100% (24), event type 94%
+(18). RoW company 97% (30), amount 100% (19), headcount 100% (19), country
+100% (17), direction 100% (32), event type 100% (25).
+
+**By event type:** **funding UNKNOWN on every field (0 judged)**; hiring UNKNOWN
+on amount and country, 1 to 2 judged elsewhere; leadership 94% to 100% on n of
+16 to 31; pay 88% to 100% on n of 3 to 11; working practices 90% to 100% on n
+of 6 to 21. Full cells in the TECHLOG entry of the same date.
+
+**Why funding is UNKNOWN, and what is not known.** gpt-4o-mini failed to parse
+on 99 of 167 rows, every one `field signal_direction carries no usable
+verdict`. 93 of the 99 have a stored direction of `neutral`; all 38 readable
+funding rows failed; haiku answered all 99. The word gpt-4o-mini wrote is
+UNKNOWN because a parse failure did not keep the answer. This is a referee
+finding and says nothing about how funding rows are extracted.
+
+**Spend against the $20.00 grant:** run 1 $0.85 + run 2 $0.93 = **$1.78**;
+about **$18.2 remains**.
+
+**Open, needs a decision before more is spent:** (a) a third run at $1.25 after
+`fix/benchmark-keep-answer` lands, to read the offending word; (b) whether
+`parse_answer` should salvage the five fields that did parse when one carries
+an invented word (today it is all-or-nothing so a truncated answer cannot be
+counted); (c) whether the direction wording in the prompt needs a line telling
+the referee that `neutral` is a value to be graded correct or wrong like any
+other. None of these was taken unasked.
+
+---
+
 ## 2026-09-16 (later): the first paid benchmark run judged nothing; second referee replaced, preflight added, re-run queued
 
 **What happened.** Actions run 35085956345 spent **$0.85** and judged **0 of 200**.
