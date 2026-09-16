@@ -362,6 +362,7 @@ class EveryJobThatMailsCarriesTheKeyThatLetsItMail(unittest.TestCase):
         "run_benchmark_diff.py": ("benchmark-diff.yml",),
         "train_gate_classifier.py": ("gate-classifier.yml",),
         "host_watch.py": ("host-watch.yml",),
+        "merge_train.py": ("merge-train.yml",),
     }
 
     @staticmethod

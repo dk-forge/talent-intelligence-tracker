@@ -1,0 +1,116 @@
+name: Merge train
+
+# THE QUEUE NO LONGER WAITS FOR A PERSON.
+#
+# Work in this repo repeatedly stalled with pull requests green, mergeable, and
+# nothing merging them, because the only thing that merges a pull request is a
+# session. Sessions end, hit rate limits, and hand off badly. This runs every
+# 30 minutes on the VPS runner and needs no session at all.
+#
+# ONE MERGE PER RUN, then it exits. The single self-hosted runner must not be
+# flooded, and one-per-run buys deploy spacing for free.
+#
+# IT IS DRY BY DEFAULT AND MUST BE ARMED DELIBERATELY. A scheduled run reports
+# what it WOULD do unless the repository variable MERGE_TRAIN_ARMED is exactly
+# "true":
+#
+#     gh variable set MERGE_TRAIN_ARMED --body true  -R dk-forge/talent-intelligence-tracker
+#
+# Until then every scheduled tick is a free read that prints its reasoning to
+# the job summary. Disarming is the same command with `false`, and it takes
+# effect on the next tick without touching any code.
+#
+# WHAT IT REFUSES TO TRUST is in merge_train.py, at length: the rollup
+# summary (stale after a force-push), a `cancelled` conclusion (not green), an
+# empty check list (CI has not started, not "no failures"), and `fixture:` jobs
+# (red by design in the sibling sandbox). It never uses auto-merge:
+# auto-merge landed PR #954 untested in the sandbox when no ruleset existed.
+#
+# It never re-runs a live run, because re-running a live run cancels it,
+# cancelled reads as failed, and the loop feeds itself.
+
+on:
+  schedule:
+    # Twice an hour, off the top of the hour and offset from the sibling
+    # tracker's train, so the two do not contend for the one VPS runner.
+    - cron: '12,42 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Judge every pull request and report, but merge nothing'
+        type: boolean
+        default: true
+
+concurrency:
+  # ONE TRAIN AT A TIME, AND NEVER CANCEL THE ONE IN FLIGHT. A cancelled run is
+  # a conclusion this repo's alerter and healer then have to interpret, and the
+  # run it would cancel may be mid-merge.
+  group: merge-train
+  cancel-in-progress: false
+
+permissions:
+  contents: write        # squash merge, and push a mechanical rebase
+  pull-requests: write   # merge, comment, label
+  actions: write         # re-run ONE completed infrastructure-shaped job
+  issues: write          # the needs-human label lives on the issue side
+
+jobs:
+  train:
+    runs-on: [self-hosted, linux, contabo]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The unstick path rebases a branch on main, which a shallow clone
+          # cannot do (memory: "shallow fetch breaks merge-base").
+          fetch-depth: 0
+
+      - name: Prove the tools exist
+        run: |
+          set -euo pipefail
+          python3 --version
+          gh --version
+          gh auth status >/dev/null
+
+      - name: Decide dry run
+        id: mode
+        env:
+          ARMED: ${{ vars.MERGE_TRAIN_ARMED }}
+          EVENT: ${{ github.event_name }}
+          INPUT: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            dry="$INPUT"
+          elif [ "$ARMED" = "true" ]; then
+            dry=false
+          else
+            dry=true
+          fi
+          echo "dry=$dry" >> "$GITHUB_OUTPUT"
+          echo "dry run: $dry"
+
+      - name: Run the merge train
+        env:
+          GH_TOKEN: ${{ secrets.MERGE_TRAIN_TOKEN || github.token }}
+          # Only set when a real token exists. Without it the train REFUSES to
+          # push a rebase, because a push made with the default Actions token
+          # does not start workflows, so the rebased head would carry no checks
+          # at all and the train would wait on it forever.
+          MERGE_TRAIN_PUSH_TOKEN: ${{ secrets.MERGE_TRAIN_TOKEN }}
+          MERGE_TRAIN_DRY_RUN: ${{ steps.mode.outputs.dry }}
+          MERGE_TRAIN_NOTIFIER: ops_notify
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}
+          # OPS_MAIL_FROM GOES WHEREVER RESEND_API_KEY GOES. It is unset
+          # today, so opsmail's default applies and nothing looks wrong; the
+          # day it is set to move the sender, a job that does not carry it
+          # would keep the old From and there would be two From lines again.
+          # tests/test_ops_sender.py fails on a workflow that takes the key
+          # without it, and caught this one.
+          OPS_MAIL_FROM: ${{ vars.OPS_MAIL_FROM }}
+          GIT_AUTHOR_NAME: merge-train
+          GIT_AUTHOR_EMAIL: ops@asktherecruiter.com
+          GIT_COMMITTER_NAME: merge-train
+          GIT_COMMITTER_EMAIL: ops@asktherecruiter.com
+        run: python3 merge_train.py
