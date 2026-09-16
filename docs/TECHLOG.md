@@ -1140,6 +1140,37 @@ keeping `moved` out of the rot count.
 ---
 
 
+## 2026-09-16 - /re-source: the narrow door for a citation, so the general one never widens (plugin 1.88.7, branch `feat/re-source-route`, not deployed)
+
+**What.** 82 published rows cite an aggregator as their source (PR #151 found
+them and shut the ingest hole). Fixing a live citation means writing
+`source_url`, `source_name` and, because the stored headline carries the
+aggregator's masthead as a trailing " - Outlet", the headline. `/correct`'s
+allowlist forbids all three by a standing test, so that a correction bug can
+never rewrite what a document said. That reason stands. Rather than widen it,
+the plugin gains `/re-source`: keyed, collector-scoped, its own three-column
+allowlist, and one invariant the general door could not hold: **the headline
+may only lose a trailing masthead that names the row's CURRENT source**,
+byte-for-byte otherwise. The citation must move to a different https host,
+both halves of it are required, nothing can be blanked, nothing is created.
+`tit_api_correct()` never reads the new list and the two lists are disjoint
+(`tests/test_re_source_route.py`); `tests/php/re_source.php` runs both doors
+against an in-memory table and proves `/correct` still drops the three fields
+while `/re-source` moves a citation, strips the masthead, refuses a changed
+word, a same-host move, a half citation and a foreign collector.
+
+**The client half.** `pipeline/re_source.py` pushes only a row whose proposed
+(url, name, headline) exactly matches a committed ledger entry
+(`data/re_source_ledger.json`), because the index the re-chase reads is not
+stable: on 2026-09-16 one row's publisher was in the index in the morning and
+gone by afternoon. The dry run is evidence; the ledger is the record; the push
+is refused without it.
+
+**Not done here.** `correct_aggregator_sources.py` (PR #151) still posts to
+`/correct` and raises `PluginTooOld`; switching it to `re_source.push` with a
+ledger written by its dry run is that PR's change. Nothing deployed; the
+version is bumped past main so the deploy flushes when it lands.
+
 ## 2026-09-09 - Denmark's CVR, built blind against a public mapping, shipped dormant
 
 **What.** `collectors/denmark_cvr.py` (+ `denmark_cvr_probe.py`,

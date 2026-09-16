@@ -57,6 +57,12 @@ function tit_register_routes() {
     register_rest_route(TIT_NS, '/correct', array(
         'methods' => 'POST', 'callback' => 'tit_api_correct', 'permission_callback' => $keyed,
     ));
+    // Re-point a citation from an aggregator at the outlet that reported the
+    // event. Its own door, its own allowlist, and a server-side rule that the
+    // headline may only LOSE the old masthead: see tit_api_resource().
+    register_rest_route(TIT_NS, '/re-source', array(
+        'methods' => 'POST', 'callback' => 'tit_api_resource', 'permission_callback' => $keyed,
+    ));
     register_rest_route(TIT_NS, '/health', array(
         'methods' => 'POST', 'callback' => 'tit_api_report_health', 'permission_callback' => $keyed,
     ));
@@ -1725,6 +1731,159 @@ function tit_api_correct(WP_REST_Request $req) {
         'collector' => $collector, 'corrected' => $updated,
         'unchanged_or_missing' => $missing, 'skipped_no_fields' => $skipped,
         'errors' => $errors,
+    ));
+}
+
+/*
+ * RE-SOURCING A CITATION, added 1.88.7. A door of its own, on purpose.
+ *
+ * On 2026-09-16, 82 published rows were found citing an aggregator as their
+ * source: a commercial data provider's "news note" pages and finance.yahoo.com
+ * mirrors, all surfaced one at a time through Google News. The store refuses
+ * those hosts now (pipeline/validate.py), but the 82 are live, and the way to
+ * fix a live row's citation is to point it at the publisher that reported the
+ * event. That means writing source_url, source_name and, because the stored
+ * headline carries the aggregator's masthead as a trailing " - Outlet", the
+ * headline too.
+ *
+ * tit_correctable_columns() does NOT carry those three, and
+ * tests/test_form_d_correction.py forbids them there by name, so that a bug in
+ * a correction pass can never rewrite what a document said. That reason stands
+ * and this route does not weaken it. Instead of widening the general door, this
+ * is a second, narrower one, and the server holds the invariant the general
+ * door could not:
+ *
+ *  - THE HEADLINE MAY ONLY LOSE A MASTHEAD. The new headline must be the live
+ *    headline exactly, or the live headline minus a trailing " - X" / " | X"
+ *    whose X is the row's CURRENT source_name (case-insensitive). No other
+ *    edit is accepted. A re-source cannot add, remove or change a word of what
+ *    the document said; it can only take the aggregator's name off the end.
+ *  - THE CITATION MUST MOVE. The new source_url must be https, must parse to a
+ *    host, and that host must differ from the live source_url's host. A
+ *    re-source that leaves the row on the same host is not one.
+ *  - source_url and source_name are BOTH required and non-empty. A citation is
+ *    a URL and a name together; half of one is refused, never written.
+ *  - Same scope as /correct: the request NAMES the collector, every UPDATE is
+ *    bound to it, is_current = 1 is required, and a row it cannot find is
+ *    reported and not created.
+ *
+ * Why in place and not withdraw-and-republish: content_hash is md5 of
+ * company_key|pillar|published_date|normalised_headline, and the normalised
+ * headline is the STRIPPED form (pipeline/validate.py strip_outlet_suffix), so
+ * removing the masthead and changing the source do not move the hash. A
+ * republish under the same hash would be refused as a duplicate.
+ *
+ * The client side of the same rule lives in pipeline/re_source.py: a push is
+ * made only for a row that has a matching entry in a committed re-chase
+ * ledger, so nothing reaches this door that was not first recorded.
+ *
+ * NOTE FOR THE NEXT EDITOR: tests read the BODY of tit_correctable_columns()
+ * and of tit_resourceable_columns() as text, and tit_api_correct() must never
+ * name tit_resourceable_columns(). Keep prose out of the function bodies.
+ */
+function tit_resourceable_columns() {
+    return array('source_url', 'source_name', 'headline');
+}
+
+/**
+ * The one edit a re-source may make to a headline: dropping a trailing
+ * masthead that names the row's current source. Returns true when $proposed is
+ * $live unchanged, or $live minus exactly that suffix. Mirrors the tail rule of
+ * pipeline/validate.py strip_outlet_suffix() for the matched-source branch.
+ */
+function tit_headline_only_lost_the_masthead($live, $proposed, $current_source_name) {
+    $live = trim((string) $live);
+    $proposed = trim((string) $proposed);
+    if ($proposed === '') return false;
+    if ($proposed === $live) return true;
+    if (strpos($live, $proposed) !== 0) return false;
+    $rest = substr($live, strlen($proposed));
+    // A separator, then the masthead, then nothing.
+    if (!preg_match('/^\s+[-\x{2013}\x{2014}|]\s+(.+)$/u', $rest, $m)) return false;
+    $masthead = trim($m[1]);
+    $name = trim((string) $current_source_name);
+    return $name !== '' && mb_strtolower($masthead) === mb_strtolower($name);
+}
+
+function tit_api_resource(WP_REST_Request $req) {
+    global $wpdb;
+    $body = $req->get_json_params();
+    $rows = isset($body['rows']) && is_array($body['rows']) ? $body['rows'] : null;
+    $collector = isset($body['collector']) ? sanitize_text_field($body['collector']) : '';
+
+    if ($rows === null || $collector === '') {
+        return new WP_Error('tit_bad_body',
+            'Expected {"collector": "...", "rows": [...]}: a re-source must name '
+            . 'the source it is correcting.', array('status' => 400));
+    }
+
+    $table = tit_table_name();
+    $updated = 0; $missing = 0; $errors = array();
+
+    foreach ($rows as $i => $row) {
+        if (!is_array($row) || empty($row['content_hash'])) {
+            $errors[] = array('index' => $i, 'error' => 'content_hash is required');
+            continue;
+        }
+        $hash = (string) $row['content_hash'];
+        $new_url = isset($row['source_url']) ? trim((string) $row['source_url']) : '';
+        $new_name = isset($row['source_name']) ? trim((string) $row['source_name']) : '';
+        if ($new_url === '' || $new_name === '') {
+            $errors[] = array('index' => $i,
+                              'error' => 'source_url and source_name are both required');
+            continue;
+        }
+        $new_host = strtolower((string) parse_url($new_url, PHP_URL_HOST));
+        if (strpos($new_url, 'https://') !== 0 || $new_host === '') {
+            $errors[] = array('index' => $i, 'error' => 'source_url must be an https URL with a host');
+            continue;
+        }
+
+        $live = $wpdb->get_row($wpdb->prepare(
+            "SELECT headline, source_url, source_name FROM {$table}
+              WHERE content_hash = %s AND collector = %s AND is_current = 1",
+            $hash, $collector), ARRAY_A);
+        if (!$live) { $missing++; continue; }
+
+        $old_host = strtolower((string) parse_url((string) $live['source_url'], PHP_URL_HOST));
+        if ($new_host === $old_host) {
+            $errors[] = array('index' => $i,
+                              'error' => 'the citation must move to a different host');
+            continue;
+        }
+
+        $headline = array_key_exists('headline', $row) && $row['headline'] !== null
+            ? (string) $row['headline'] : (string) $live['headline'];
+        if (!tit_headline_only_lost_the_masthead($live['headline'], $headline, $live['source_name'])) {
+            $errors[] = array('index' => $i,
+                              'error' => 'headline may only lose the current masthead suffix');
+            continue;
+        }
+
+        $data = array('source_url' => $new_url, 'source_name' => $new_name);
+        if (trim($headline) !== trim((string) $live['headline'])) {
+            $data['headline'] = trim($headline);
+        }
+        $ok = $wpdb->update($table, $data, array(
+            'content_hash' => $hash,
+            'collector'    => $collector,
+            'is_current'   => 1,
+        ));
+        if ($ok === false) {
+            $errors[] = array('index' => $i, 'error' => 'update failed');
+        } elseif ($ok === 0) {
+            $missing++;
+        } else {
+            $updated += (int) $ok;
+        }
+    }
+
+    if ($updated > 0) {
+        tit_flush_caches();
+    }
+    return rest_ensure_response(array(
+        'collector' => $collector, 'resourced' => $updated,
+        'unchanged_or_missing' => $missing, 'errors' => $errors,
     ));
 }
 

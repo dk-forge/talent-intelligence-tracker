@@ -201,12 +201,25 @@ def test_sourced_location_is_not_enrichable_on_either_side():
 
 
 def test_the_correction_route_writes_those_two_columns_and_nothing_else():
+    """The general door. What a document SAID never goes through it.
+
+    Since 1.88.7 there is a second, narrower door, /re-source, that may write
+    source_url, source_name and headline, and ONLY those, under a server-side
+    rule that the headline can do no more than lose its current masthead
+    (tests/test_re_source_route.py, tests/php/re_source.php). That door
+    exists so this one never has to widen: the columns below stay forbidden
+    HERE, and tit_api_correct() must never reach for the other list.
+    """
     allowlist = API[API.index("function tit_correctable_columns"):]
     allowlist = allowlist[:allowlist.index("}")]
     assert "signal_direction" in allowlist and "talent_readthrough" in allowlist
-    for forbidden in ("headline", "company", "source_url", "funding_amount",
-                      "published_date", "confidence"):
+    for forbidden in ("headline", "company", "source_url", "source_name",
+                      "funding_amount", "published_date", "confidence"):
         assert forbidden not in allowlist, forbidden
+    handler = API[API.index("function tit_api_correct"):]
+    handler = handler[:handler.index("\n}\n")]
+    assert "tit_resourceable_columns" not in handler
+    assert "tit_correctable_columns()" in handler
 
 
 def test_a_correction_must_name_the_source_it_is_correcting():
