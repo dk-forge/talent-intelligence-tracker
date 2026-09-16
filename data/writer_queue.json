@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-16T06:21:29Z",
-  "last_tick": "2026-09-16T06:21:29Z",
+  "last_dispatch": "2026-09-16T10:32:00Z",
+  "last_tick": "2026-09-16T10:32:00Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -221,12 +221,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-16T10:32:00Z",
       "history": [
         {
           "at": "2026-09-16T10:07:57Z",
           "detail": "scheduled link hygiene (30 5 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-16T10:32:00Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260916T100757Z-link-check",
@@ -238,8 +243,30 @@
       "requested_at": "2026-09-16T10:07:57Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-16T10:31:57Z",
+          "detail": "measure extraction accuracy against the bodies (owner grant, est $1.43)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260916T103157Z-extraction-benchmark",
+      "inputs": {
+        "ceiling": "2.00"
+      },
+      "priority": 0,
+      "reason": "measure extraction accuracy against the bodies (owner grant, est $1.43)",
+      "requested_at": "2026-09-16T10:31:57Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "extraction-benchmark.yml"
     },
     {
       "attempts": 0,
