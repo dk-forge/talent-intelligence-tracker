@@ -53,6 +53,7 @@ on:
       - collect
       - collect national press
       - collect-structured
+      - correct-aggregator-sources
       - correct-city-country
       - correct-company-key
       - correct-form-d

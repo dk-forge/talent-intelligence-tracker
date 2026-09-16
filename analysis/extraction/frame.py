@@ -222,6 +222,29 @@ def cites_a_provider(row: dict) -> bool:
                for field in ("headline", "company", "source_url", "source_name"))
 
 
+def sourced_from_an_aggregator(row: dict) -> bool:
+    """True when the row's STORED SOURCE is an aggregator: the host of
+    `source_url` is one the store refuses under "aggregators are discovery
+    pointers, never stored sources".
+
+    THIS IS NOT `cites_a_provider`, and the difference is two rows. That
+    function answers "would a provider's name be written into the public
+    sample" and reads four fields; it is the right gate for a committed
+    artifact and the wrong classifier for "is this row aggregator-sourced".
+    Measured 2026-09-16 on the 83 rows it flagged: two are SEBI Regulation 30
+    filings on the Bombay Stock Exchange for a listed company whose NAME
+    contains a provider's name, and one is a named outlet's article about a
+    provider raising money. An exchange publishing a company's own filing is a
+    primary document, and an outlet is a publisher whoever the story is about.
+    So the aggregator question asks ONE thing: who served the document. It is
+    `validate.is_aggregator_host`, the same predicate the write path applies,
+    so the classifier and the guard cannot disagree about a host.
+    """
+    from pipeline import validate
+    host = (urlparse(row.get("source_url") or "").hostname or "").lower()
+    return validate.is_aggregator_host(host)
+
+
 def allocate(cell_sizes: dict[tuple[str, str], int], target: int,
              min_cell: int = 5) -> dict[tuple[str, str], int]:
     """How many rows each cell contributes to a sample of `target`.

@@ -806,6 +806,32 @@ def test_a_row_citing_a_commercial_provider_never_reaches_the_frame():
     assert frame.cites_a_provider({"headline": f"Acme raises $1M - {banned}"})
 
 
+def test_aggregator_sourced_is_narrower_than_cites_a_provider():
+    """Two questions, two functions. `cites_a_provider` keeps a name out of
+    the public sample and reads four fields. `sourced_from_an_aggregator`
+    asks who served the document and reads the source host alone. A listed
+    company NAMED like a provider, filing on its stock exchange, is caught by
+    the first and must never be caught by the second: the exchange is a
+    primary document. The first stays the frame gate because the sample is a
+    committed artifact; the second is what "is this row aggregator-sourced"
+    means, and it is the write path's own predicate.
+    """
+    from pipeline import provider_names
+
+    banned = provider_names.BANNED[0]
+    filing = {"collector": "bse_india", "content_hash": "abc",
+              "company": f"{banned.title()} Technologies Ltd",
+              "headline": f"{banned.title()} Technologies Ltd: Appointment of a director",
+              "source_url": "https://www.bseindia.com/corporates/anndet_new?newsid=1"}
+    assert frame.cites_a_provider(filing)
+    assert not frame.sourced_from_an_aggregator(filing)
+
+    note = {"collector": "google_news", "content_hash": "def",
+            "source_url": f"https://app.{provider_names.BANNED[1]}.co/news/note/x"}
+    assert frame.cites_a_provider(note)
+    assert frame.sourced_from_an_aggregator(note)
+
+
 def test_the_committed_sample_carries_no_provider_name():
     from pipeline import provider_names
 

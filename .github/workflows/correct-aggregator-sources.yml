@@ -1,0 +1,131 @@
+name: correct-aggregator-sources
+
+# Re-point rows that cite an aggregator at the publisher that reported the
+# event. See correct_aggregator_sources.py: the document's own rel=canonical
+# first, and when the aggregator will not answer (the 79 rows of 2026-09-16 sit
+# behind a bot wall), the event is chased through the Google News index on
+# employer name, headline figure and date. Anything short of the whole rule is
+# UNKNOWN, printed with its reason, and left for the owner. Nothing here
+# retracts.
+#
+# $0.00: no model is called. One index query, two resolution requests and at
+# most one publisher fetch per row.
+#
+# WHY IN PLACE ON THE SITE, AND NOT WITHDRAW-AND-REPUBLISH
+# The stored headline carries the aggregator's masthead as a " - Outlet"
+# suffix and content_hash hashes the STRIPPED form, so the corrected revision
+# carries the SAME hash as the row it replaces, and tit_insert_signal() refuses
+# any hash it has already seen. A withdraw-then-republish would take the rows
+# off the live page and get 'retracted' back. So this is the
+# correct-city-country.yml shape: the site is corrected IN PLACE through
+# /correct, then the revision is appended locally.
+#
+# TODAY THE SITE REFUSES, BY DESIGN. tit_correctable_columns() does not carry
+# headline, source_url or source_name, and a standing test forbids them there
+# so a correction bug can never rewrite what a document said. Until the owner
+# widens that allowlist, an --apply run against a published row raises
+# PluginTooOld before writing anything and this job is red; the dry run
+# (the default) is the evidence. See correct_aggregator_sources.py's header.
+#
+# WHY IT MERGES RATHER THAN REBASES: the pass APPENDS a revision through
+# store.revise(), so every corrected row is a new (content_hash, revision + 1),
+# exactly the key merge_db.py merges on. Reset to origin/main and merge our
+# rows back in, never copy our file over the top of it.
+#
+# A run that leaves rows UNKNOWN exits 1 and is RED ONCE so the owner hears
+# about exactly those rows, the adjudicate-rows rule.
+#
+# Queue it, never dispatch it:
+#   gh workflow run drain-writers.yml -f enqueue=correct-aggregator-sources.yml \
+#     -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+      limit:
+        description: 'Stop after N rows (blank for all)'
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db.
+  group: talent-collect
+  # It corrects the live site and then appends the revision that records it.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: [self-hosted, linux, contabo]
+    # About eighty rows at a one-second pace plus the host's retry pauses.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          # The script writes ONLY with --apply, and this is the only place it
+          # can be passed: the input defaults to true, so a dispatch that says
+          # nothing is a dry run rather than a live edit of published rows.
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
+          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
+          # No `|| true`: a plugin that cannot accept the fields, or a row left
+          # UNKNOWN, must fail the run rather than pass quietly.
+          python correct_aggregator_sources.py $ARGS
+
+      - name: Commit the database
+        if: ${{ always() && inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our revisions into the remote's database, never copy our file
+          # over the top of it. See merge_db.py.
+          cp data/talent_intel.db "$RUNNER_TEMP/corrected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/corrected_cache.db"
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/corrected.db" data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
+            if git diff --staged --quiet; then
+              echo "No data change."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "data: re-point aggregator citations at the outlet that reported the event $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt) - merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" = "1" ]; then
+            exit 0
+          fi
+          # The site was corrected BEFORE the database on purpose, so a run that
+          # cannot push has corrected the live rows and lost only the record of
+          # having done so. The worklist is derived from what is stored, so
+          # re-queueing finds the same rows and re-sends values the site
+          # already holds. Loud, because nothing else would say so.
+          echo "::error::could not push the corrected database after 5 attempts."
+          echo "::error::The live site is already corrected; the revisions are not"
+          echo "::error::committed. Re-queue this workflow - it is idempotent."
+          exit 1
