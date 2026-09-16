@@ -102,6 +102,13 @@ jobs:
           MERGE_TRAIN_NOTIFIER: ops_notify
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}
+          # OPS_MAIL_FROM GOES WHEREVER RESEND_API_KEY GOES. It is unset
+          # today, so opsmail's default applies and nothing looks wrong; the
+          # day it is set to move the sender, a job that does not carry it
+          # would keep the old From and there would be two From lines again.
+          # tests/test_ops_sender.py fails on a workflow that takes the key
+          # without it, and caught this one.
+          OPS_MAIL_FROM: ${{ vars.OPS_MAIL_FROM }}
           GIT_AUTHOR_NAME: merge-train
           GIT_AUTHOR_EMAIL: ops@asktherecruiter.com
           GIT_COMMITTER_NAME: merge-train
