@@ -1,0 +1,3872 @@
+{
+  "drawn_on": "2026-09-16",
+  "seed": "extraction-2026-09-16",
+  "target": 200,
+  "frame": {
+    "definition": "current signals from the LLM extraction path with a fetchable source",
+    "collectors": [
+      "google_news",
+      "gdelt",
+      "national_press",
+      "press_archive",
+      "primary_chase",
+      "tripwire_chase"
+    ],
+    "size": 8268,
+    "cells": {
+      "Europe/funding": 74,
+      "Europe/hiring": 312,
+      "Europe/leadership": 1397,
+      "Europe/pay": 61,
+      "Europe/working_practices": 465,
+      "RoW/funding": 1797,
+      "RoW/hiring": 627,
+      "RoW/leadership": 2123,
+      "RoW/pay": 83,
+      "RoW/working_practices": 831,
+      "US/funding": 147,
+      "US/hiring": 38,
+      "US/leadership": 138,
+      "US/pay": 8,
+      "US/working_practices": 167
+    }
+  },
+  "strata": {
+    "region": [
+      "US",
+      "Europe",
+      "RoW"
+    ],
+    "event_type": [
+      "funding",
+      "hiring",
+      "leadership",
+      "pay",
+      "working_practices"
+    ],
+    "language": "proxy at draw time (non-Latin script, or a non-anglophone publisher); the measured language comes back from the referees"
+  },
+  "drawn_cells": {
+    "Europe/funding": 6,
+    "Europe/hiring": 10,
+    "Europe/leadership": 26,
+    "Europe/pay": 6,
+    "Europe/working_practices": 12,
+    "RoW/funding": 32,
+    "RoW/hiring": 15,
+    "RoW/leadership": 37,
+    "RoW/pay": 6,
+    "RoW/working_practices": 18,
+    "US/funding": 7,
+    "US/hiring": 6,
+    "US/leadership": 7,
+    "US/pay": 5,
+    "US/working_practices": 7
+  },
+  "drawn_language_proxy": {
+    "likely_non_english": 94,
+    "non_latin_script": 18
+  },
+  "items": [
+    {
+      "content_hash": "c904bd313a86ce3d7449676e52dab55f",
+      "signal_id": "c904bd313a86ce3d7449676e52dab55f",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://sifted.eu/articles/etn-tbpn-launch-funding-round-axel-springer/",
+      "archive_url": "https://web.archive.org/web/20260729061431/https://sifted.eu/articles/etn-tbpn-launch-funding-round-axel-springer",
+      "stored": {
+        "headline": "ETN steps up bid to become Europe’s TBPN with $1.6m raise",
+        "company": "ETN",
+        "funding_amount": "$1.6m",
+        "headcount": "",
+        "country": "GB",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "60ab65c4b71cadde017980224b439b9d",
+      "signal_id": "60ab65c4b71cadde017980224b439b9d",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://fr.investing.com/news/company-news/swvl-leve-13-millions--via-un-placement-prive-mene-par-coefficient-93CH-3571133",
+      "archive_url": "",
+      "stored": {
+        "headline": "Swvl lève 13 millions $ via un placement privé mené par Coefficient",
+        "company": "Swvl",
+        "funding_amount": "13 millions $",
+        "headcount": "",
+        "country": "FR",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "264c70f3e936f9e98b472e136cafa3d0",
+      "signal_id": "264c70f3e936f9e98b472e136cafa3d0",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.electronicsweekly.com/news/business/finance/xona-space-raises-170m-series-c-for-pnt-satellite-network-2026-04/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Xona Space raises $170m Series C for PNT satellite network",
+        "company": "Xona Space",
+        "funding_amount": "$170m",
+        "headcount": "",
+        "country": "GB",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "fda3b2a7a2903b3cd6d0654397a48abc",
+      "signal_id": "fda3b2a7a2903b3cd6d0654397a48abc",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "gdelt",
+      "source_url": "https://arcticstartup.com/lightbringer-raises-10m-series-a/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Swedish legaltech startup Lightbringer secures $10M Series A to expand AI-powered patent platform",
+        "company": "Lightbringer",
+        "funding_amount": "$10M",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "5c3a290482bd18d64f6d1eb21e5110e1",
+      "signal_id": "5c3a290482bd18d64f6d1eb21e5110e1",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.startupticker.ch/en/news/l-e-s-s-raises-usd-22-million-series-c-financing",
+      "archive_url": "",
+      "stored": {
+        "headline": "L.E.S.S. raises $22 million Series C Financing - Startupticker.ch",
+        "company": "L.E.S.S.",
+        "funding_amount": "$22 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "219d127186829d14f1639c0243a926ef",
+      "signal_id": "219d127186829d14f1639c0243a926ef",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.startupticker.ch/en/news/vaderis-therapeutics-closes-usd-152-million-series-b-financing",
+      "archive_url": "https://web.archive.org/web/20260812043214/https://www.startupticker.ch/en/news/vaderis-therapeutics-closes-usd-152-million-series-b-financing",
+      "stored": {
+        "headline": "Vaderis Therapeutics closes USD 152 million Series B Financing - Startupticker.ch",
+        "company": "Vaderis Therapeutics",
+        "funding_amount": "USD 152 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "ee60db3f41f3e48b132e377ee1ced94c",
+      "signal_id": "ee60db3f41f3e48b132e377ee1ced94c",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://n24.com.tr/sirket/moa-technology-tarimsal-ot-mucadelesi-icin-222-milyon-sterlin-yatirim-aldi-803",
+      "archive_url": "",
+      "stored": {
+        "headline": "Moa Technology, Tarımsal Ot Mücadelesi İçin 22,2 Milyon Sterlin Yatırım Aldı",
+        "company": "Moa Technology",
+        "funding_amount": "22,2 Milyon Sterlin",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "85e7adbb0449c211961ced3ab24e703e",
+      "signal_id": "85e7adbb0449c211961ced3ab24e703e",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.eu-startups.com/2026/09/munich-based-furo-raises-e3-44-million-to-make-industrial-battery-storage-economically-viable/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Munich-based Furo raises €3.44 million to make industrial battery storage economically viable",
+        "company": "Furo",
+        "funding_amount": "€3.44 million",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "a60e73fc33db37d8914cfb719d156937",
+      "signal_id": "a60e73fc33db37d8914cfb719d156937",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.eu-startups.com/2026/08/scotlands-singular-photonics-secures-e1-85-million-to-scale-spad-image-sensors-with-on-chip-computing/",
+      "archive_url": "https://web.archive.org/web/20260821081040/https://www.eu-startups.com/2026/08/scotlands-singular-photonics-secures-e1-85-million-to-scale-spad-image-sensors-with-on-chip-computing/",
+      "stored": {
+        "headline": "Scotland’s Singular Photonics secures €1.85 million to scale SPAD image sensors with on-chip computing",
+        "company": "Singular Photonics",
+        "funding_amount": "€1.85 million",
+        "headcount": "",
+        "country": "GB",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "75a770f15ed615efce96b0f77484306f",
+      "signal_id": "75a770f15ed615efce96b0f77484306f",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.breakit.se/artikel/47253/miljonvinst-for-merch-of-sweden-rinaldos-hemliga-bolag-front-agency-10-anstallda-nu",
+      "archive_url": "https://web.archive.org/web/20260901071014/https://www.breakit.se/artikel/47253/miljonvinst-for-merch-of-sweden-rinaldos-hemliga-bolag-front-agency-10-anstallda-nu",
+      "stored": {
+        "headline": "Miljonvinst för Merch of Sweden-Rinaldos hemliga bolag Front Agency: “10 anställda nu”",
+        "company": "Front Agency",
+        "funding_amount": "",
+        "headcount": 10,
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "d05d99023b0596ce1e261b9448c542d4",
+      "signal_id": "d05d99023b0596ce1e261b9448c542d4",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.frenchweb.fr/implicity-leve-35-millions-deuros-pour-passer-du-tri-des-alertes-a-la-cardiologie-predictive/463361",
+      "archive_url": "https://web.archive.org/web/20260910084349/https://www.frenchweb.fr/implicity-leve-35-millions-deuros-pour-passer-du-tri-des-alertes-a-la-cardiologie-predictive/463361",
+      "stored": {
+        "headline": "IMPLICITY raises 35 million euros to move from alert sorting to predictive cardiology",
+        "company": "Implicity",
+        "funding_amount": "35 millions d’euros",
+        "headcount": "",
+        "country": "FR",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "043358ddaeb726c775ca817e18a5a4bb",
+      "signal_id": "043358ddaeb726c775ca817e18a5a4bb",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.frenchweb.fr/deel-quinze-acquisitions-pour-transformer-une-roadmap-produit-en-strategie-industrielle/462962",
+      "archive_url": "https://web.archive.org/web/20260826092226/https://www.frenchweb.fr/deel-quinze-acquisitions-pour-transformer-une-roadmap-produit-en-strategie-industrielle/462962",
+      "stored": {
+        "headline": "DEEL : quinze acquisitions pour transformer une roadmap produit en stratégie industrielle",
+        "company": "DEEL",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "FR",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "28f1367e0d42b724e002056694375f67",
+      "signal_id": "28f1367e0d42b724e002056694375f67",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.eu-startups.com/2026/08/stockholms-pixelgen-technologies-secures-e13-26-million-to-advance-spatial-mapping-of-cell-surface-proteins/",
+      "archive_url": "https://web.archive.org/web/20260821132806/https://www.eu-startups.com/2026/08/stockholms-pixelgen-technologies-secures-e13-26-million-to-advance-spatial-mapping-of-cell-surface-proteins/",
+      "stored": {
+        "headline": "Stockholm’s Pixelgen Technologies secures €13.26 million to advance spatial mapping of cell-surface proteins",
+        "company": "Pixelgen Technologies",
+        "funding_amount": "€13.26 million",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "cbbde648100f3ae4515e0b8aea0da083",
+      "signal_id": "cbbde648100f3ae4515e0b8aea0da083",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.eu-startups.com/2026/08/germanys-computomics-secures-e6-3-million-to-help-crop-breeders-stay-ahead-of-heat-and-drought/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Germany’s Computomics secures €6.3 million to help crop breeders stay ahead of heat and drought",
+        "company": "Computomics",
+        "funding_amount": "€6.3 million",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "5812d685ade5ec906f0de9567c72df42",
+      "signal_id": "5812d685ade5ec906f0de9567c72df42",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.eu-startups.com/2026/09/facing-5000-new-attacks-weekly-italys-exein-raises-e234-million-for-physical-ai-cybersecurity/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Exein reaches Unicorn status as it faces 5,000 attacks weekly and raises €234 million for Physical AI cybersecurity",
+        "company": "Exein",
+        "funding_amount": "€234 million",
+        "headcount": "",
+        "country": "IT",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "527bab009ba521f565e7e616c98e88f7",
+      "signal_id": "527bab009ba521f565e7e616c98e88f7",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://elreferente.es/inversiones/onalabs-capta-mas-de-93-millones-de-euros-para-escalar-sus-soluciones-de-monitorizacion-continua-de-la-salud/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Onalabs capta más de 9,3 millones de euros para escalar sus soluciones de monitorización continua de la salud",
+        "company": "Onalabs",
+        "funding_amount": "9,3 millones de euros",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "e597f8a5f3856493623be3a5c4115c65",
+      "signal_id": "e597f8a5f3856493623be3a5c4115c65",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://fr.investing.com/news/stock-market-news/united-launch-alliance-nomme-mark-peller-comme-nouveau-pdg-93CH-3560584",
+      "archive_url": "",
+      "stored": {
+        "headline": "United Launch Alliance nomme Mark Peller comme nouveau PDG",
+        "company": "United Launch Alliance",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "FR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "3b780557207aaec8c79f5fdaadaebab3",
+      "signal_id": "3b780557207aaec8c79f5fdaadaebab3",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.irishexaminer.com/business/companies/arid-41899678.html",
+      "archive_url": "https://web.archive.org/web/20260824172406/https://www.irishexaminer.com/business/companies/arid-41899678.html",
+      "stored": {
+        "headline": "Engineering firm Glanua appoints new MD at UK-Irish unit",
+        "company": "Glanua",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "7724307a00cb23791c6e227ef0b36578",
+      "signal_id": "7724307a00cb23791c6e227ef0b36578",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.milanlive.it/2026/03/12/furlani-salutera-il-milan-scelto-il-nuovo-amministratore-delegato/",
+      "archive_url": "https://web.archive.org/web/20260418192842/https://www.milanlive.it/2026/03/12/furlani-salutera-il-milan-scelto-il-nuovo-amministratore-delegato/",
+      "stored": {
+        "headline": "\"Furlani saluterà il Milan\", scelto il nuovo Amministratore delegato",
+        "company": "Milan",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IT",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9196a85dd6882b962d50877b79fa6b8b",
+      "signal_id": "9196a85dd6882b962d50877b79fa6b8b",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://techsavvy.media/bilplatform-henter-tidligere-mckinsey-partner-ind-som-ny-cco/",
+      "archive_url": "https://web.archive.org/web/20260819095133/https://techsavvy.media/bilplatform-henter-tidligere-mckinsey-partner-ind-som-ny-cco/",
+      "stored": {
+        "headline": "Bilplatform henter tidligere McKinsey-partner ind som ny CCO",
+        "company": "AutoUncle",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DK",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "aace0b0a8ee0800d573f0ba6f92ca388",
+      "signal_id": "aace0b0a8ee0800d573f0ba6f92ca388",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.e15.cz/domaci/hejtman-kuba-ma-novou-funkci-ministr-ho-poslal-do-vedeni-budejovickeho-budvaru-1435193",
+      "archive_url": "https://web.archive.org/web/20260825225649/https://www.e15.cz/domaci/hejtman-kuba-ma-novou-funkci-ministr-ho-poslal-do-vedeni-budejovickeho-budvaru-1435193",
+      "stored": {
+        "headline": "Hejtman Kuba má novou funkci. Ministr ho poslal do vedení Budějovického Budvaru",
+        "company": "Budějovický Budvar",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "CZ",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "75dfd426254dbeb1665266e250ee7836",
+      "signal_id": "75dfd426254dbeb1665266e250ee7836",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.ad-hoc-news.de/boerse/news/unternehmensnachrichten/kulicke-and-soffa-raj-talluri-wird-ceo/69965889",
+      "archive_url": "https://web.archive.org/web/20260819153533/https://www.ad-hoc-news.de/boerse/news/unternehmensnachrichten/kulicke-and-soffa-raj-talluri-wird-ceo/69965889",
+      "stored": {
+        "headline": "Kulicke and Soffa: Raj Talluri wird CEO",
+        "company": "Kulicke and Soffa",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9317833733414354eaaaa8d29513a286",
+      "signal_id": "9317833733414354eaaaa8d29513a286",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.siljannews.se/arbetsliv/carina-farm-ny-vd-for-nodava/",
+      "archive_url": "https://web.archive.org/web/20260218004412/https://www.siljannews.se/arbetsliv/carina-farm-ny-vd-for-nodava/",
+      "stored": {
+        "headline": "Carina Färm ny vd för Nodava",
+        "company": "Nodava",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "18a7456743be25768c55713a54fa3216",
+      "signal_id": "18a7456743be25768c55713a54fa3216",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://transporte3.com/noticia/23488-acendix-nombra-a-jose-luis-quero-nuevo-ceo/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Acendix nombra a José Luis Quero nuevo CEO",
+        "company": "Acendix",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "e5a39e93db313a570996eb51436cec15",
+      "signal_id": "e5a39e93db313a570996eb51436cec15",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.agendalogistica.cl/gerencia-hanseatic-global-terminals-logistica/rodrigo-galleguillos-sera-el-nuevo-ceo-regional-de-hanseatic-global-terminals/2081480",
+      "archive_url": "https://web.archive.org/web/20260415073114/https://www.agendalogistica.cl/gerencia-hanseatic-global-terminals-logistica/rodrigo-galleguillos-sera-el-nuevo-ceo-regional-de-hanseatic-global-terminals/2081480",
+      "stored": {
+        "headline": "Rodrigo Galleguillos será el nuevo CEO regional de Hanseatic Global Terminals",
+        "company": "Hanseatic Global Terminals",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "015c39907048c2533da56c6cbe36f1a5",
+      "signal_id": "015c39907048c2533da56c6cbe36f1a5",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.ehandel.se/farska-siffror-fran-krisade-chimi-ny-vd-och-vice-vd-pa-plats",
+      "archive_url": "https://web.archive.org/web/20260418043324/https://www.ehandel.se/farska-siffror-fran-krisade-chimi-ny-vd-och-vice-vd-pa-plats",
+      "stored": {
+        "headline": "Färska siffror från krisade Chimi - ny VD och vice VD på plats",
+        "company": "Chimi",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9c32ef53acc20d3a14a7263b63a312b0",
+      "signal_id": "9c32ef53acc20d3a14a7263b63a312b0",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://exxpress.at/news/ueberraschung-im-orf-stiftungsrat-vize-tritt-zurueck/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Überraschung im ORF: Stiftungsrat-Vize tritt zurück",
+        "company": "ORF",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9ac3be6483fc525814e9b1f877829456",
+      "signal_id": "9ac3be6483fc525814e9b1f877829456",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.nsk.se/hassleholm/stoby-byter-vd-igen-ska-vara-ratt-for-alla-parter/",
+      "archive_url": "https://web.archive.org/web/20260301161742/https://www.nsk.se/hassleholm/stoby-byter-vd-igen-ska-vara-ratt-for-alla-parter/",
+      "stored": {
+        "headline": "Stoby byter vd – igen: ”Ska vara rätt för alla parter”",
+        "company": "Stoby",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "a6da0ccd1d4cd4afe4102fef59a9e7d3",
+      "signal_id": "a6da0ccd1d4cd4afe4102fef59a9e7d3",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.nowytydzien.pl/dyrektor-osemki-rezygnuje/",
+      "archive_url": "https://web.archive.org/web/20260824173015/https://www.nowytydzien.pl/dyrektor-osemki-rezygnuje/",
+      "stored": {
+        "headline": "Dyrektor Ósemki rezygnuje",
+        "company": "Ósemki",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "PL",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "f67e5fc705b81136066c2b8a36b10ec3",
+      "signal_id": "f67e5fc705b81136066c2b8a36b10ec3",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.corriere.it/economia/finanza/26_luglio_22/fibercop-accelera-sul-nuovo-amministratore-delegato-in-lizza-labriola-gallo-e-nespolo-07e9c9b7-19e9-4f5f-baae-2d9579f9bxlk.shtml",
+      "archive_url": "",
+      "stored": {
+        "headline": "Fibercop accelera sul nuovo amministratore delegato: in lizza Labriola, Gallo e Nespolo",
+        "company": "Fibercop",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IT",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "594bffe11923e8c36ca62937f7c1f630",
+      "signal_id": "594bffe11923e8c36ca62937f7c1f630",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.svenskbyggtidning.se/2026/03/10/eva-karlsson-utses-till-vd-for-swegon-group/",
+      "archive_url": "https://web.archive.org/web/20260630185902/https://www.svenskbyggtidning.se/2026/03/10/eva-karlsson-utses-till-vd-for-swegon-group/",
+      "stored": {
+        "headline": "Eva Karlsson utses till VD för Swegon Group",
+        "company": "Swegon Group",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "d5e69e089feedfb7336c1bddaf606d4a",
+      "signal_id": "d5e69e089feedfb7336c1bddaf606d4a",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.independent.ie/business/karen-preston-to-step-down-as-mediahuis-ireland-chief-commercial-officer-in-october/a/159369490.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Karen Preston to step down as Mediahuis Ireland chief commercial officer in October",
+        "company": "Mediahuis Ireland",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "0e287c72aa88756415d8e7fd5e4be3ab",
+      "signal_id": "0e287c72aa88756415d8e7fd5e4be3ab",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.nsk.se/osby/fran-bebisbubbla-till-toppjobb-angelica-35-ar-ny-vd-pa-osbybostader/",
+      "archive_url": "https://web.archive.org/web/20260719095431/https://www.nsk.se/osby/fran-bebisbubbla-till-toppjobb-angelica-35-ar-ny-vd-pa-osbybostader/",
+      "stored": {
+        "headline": "Från bebisbubbla till toppjobb – Angelica, 35, är ny vd på Osbybostäder",
+        "company": "Osbybostäder",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "713a2e7d21473ac9be746b98641dc99b",
+      "signal_id": "713a2e7d21473ac9be746b98641dc99b",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.agefi.fr/investisseurs-institutionnels/actualites/florent-combes-est-nomme-directeur-general-de-garance",
+      "archive_url": "https://web.archive.org/web/20260116180254/https://www.agefi.fr/investisseurs-institutionnels/actualites/florent-combes-est-nomme-directeur-general-de-garance",
+      "stored": {
+        "headline": "Florent Combes est nommé directeur général de Garance",
+        "company": "Garance",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "500188ef54a40e4c222ef2d9cefe6cd9",
+      "signal_id": "500188ef54a40e4c222ef2d9cefe6cd9",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.hbvl.be/politiek/graag-zo-snel-mogelijk-een-nieuwe-topman-voor-de-vdab/124376205.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "“Graag zo snel mogelijk een nieuwe topman voor de VDAB”",
+        "company": "VDAB",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "a78d297175d7be5d854982a0ae6d367f",
+      "signal_id": "a78d297175d7be5d854982a0ae6d367f",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://bourse.fortuneo.fr/actualites/stephane-ledermann-prend-les-renes-d-ab-science-en-tant-que-pdg-9602528",
+      "archive_url": "",
+      "stored": {
+        "headline": "Stéphane Ledermann prend les rênes d'AB Science en tant que PDG",
+        "company": "AB Science",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "6270ac8040bfe3223f489ce33e5e24f4",
+      "signal_id": "6270ac8040bfe3223f489ce33e5e24f4",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://de.fashionnetwork.com/news/Melanie-steinhilber-wird-ceo-der-uhlsport-gmbh,1812657.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Melanie Steinhilber wird CEO der Uhlsport GmbH",
+        "company": "Uhlsport GmbH",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "d2b6fcedaef559c3745c2f727d3749f5",
+      "signal_id": "d2b6fcedaef559c3745c2f727d3749f5",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.tourinews.es/empresas-turismo/zoilo-aleman-nombrado-director-general-fundacion-auditorio-teatro-palmas-gran-canaria_4493988_102_amp.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Zoilo Alemán, nuevo director general de la Fundación Auditorio y Teatro de Las Palmas de Gran Canaria",
+        "company": "Fundación Auditorio y Teatro de Las Palmas de Gran Canaria",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "d31a4c82fca6405c7eba469895bc0f4d",
+      "signal_id": "d31a4c82fca6405c7eba469895bc0f4d",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.privataaffarer.se/privatekonomi/pension/hon-blir-ny-vd-for-min-pension/",
+      "archive_url": "https://web.archive.org/web/20260905022511/https://www.privataaffarer.se/privatekonomi/pension/hon-blir-ny-vd-for-min-pension/",
+      "stored": {
+        "headline": "Hon blir ny vd för Min Pension",
+        "company": "Min Pension",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "1cbadc44d5e3713b809ed64bc633907d",
+      "signal_id": "1cbadc44d5e3713b809ed64bc633907d",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.mineriaydesarrollo.com/noticias/2026/03/03/23669-minera-con-activos-de-litio-en-catamarca-nombra-a-nuevo-ceo",
+      "archive_url": "",
+      "stored": {
+        "headline": "Minera con activos de litio en Catamarca nombra a nuevo CEO",
+        "company": "Minera con activos de litio en Catamarca",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "d5a9a8daf3681da9a27904797e6cda28",
+      "signal_id": "d5a9a8daf3681da9a27904797e6cda28",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.evangelisch-in-westfalen.de/aktuelles/detailansicht/news/default-68b245b337568ecb1df8a5a7af59938d/",
+      "archive_url": "https://web.archive.org/web/20260209202407/https://www.evangelisch-in-westfalen.de/aktuelles/detailansicht/news/default-68b245b337568ecb1df8a5a7af59938d/",
+      "stored": {
+        "headline": "Dr. Bartolt Haase ist neuer Vorstandsvorsitzender der von Bodelschwinghschen Stiftungen Bethel",
+        "company": "von Bodelschwinghschen Stiftungen Bethel",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "c4098b5407577eebc7cca93658f0ee21",
+      "signal_id": "c4098b5407577eebc7cca93658f0ee21",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.svenskdam.se/noje/steffo-tornquist-har-nytt-jobb-efter-alla-ar-pa-tv4-utvecklas/11603088",
+      "archive_url": "",
+      "stored": {
+        "headline": "Steffo Törnquist has a new job – after all the years at TV4: \"Develops\"",
+        "company": "TV4",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "f9aaed22327aa64a15e504880afbe5a5",
+      "signal_id": "f9aaed22327aa64a15e504880afbe5a5",
+      "region": "Europe",
+      "event_type": "pay",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.milanotoday.it/economia/offerte-di-lavoro/enel-assunzioni-e-distribuzione.html",
+      "archive_url": "https://web.archive.org/web/20260728095216/https://www.milanotoday.it/economia/offerte-di-lavoro/enel-assunzioni-e-distribuzione.html",
+      "stored": {
+        "headline": "Enel, firmato l'accordo: 1.000 nuove assunzioni e stipendi più alti. I profili ricercati e come candidarsi",
+        "company": "Enel",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IT",
+        "signal_direction": "hiring",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "0fba735d4427497482838d5e524ba66a",
+      "signal_id": "0fba735d4427497482838d5e524ba66a",
+      "region": "Europe",
+      "event_type": "pay",
+      "likely_non_english": true,
+      "collector": "gdelt",
+      "source_url": "https://thehardtackle.com/transfer-news/2026/06/24/leeds-united-ready-to-hand-pay-rise-to-harry-wilson-talks-advance/",
+      "archive_url": "https://web.archive.org/web/20260628180424/https://thehardtackle.com/transfer-news/2026/06/24/leeds-united-ready-to-hand-pay-rise-to-harry-wilson-talks-advance/",
+      "stored": {
+        "headline": "Leeds United ready to hand pay rise to Harry Wilson , talks advance",
+        "company": "Leeds United",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "28457ded64887797fb0071088374aeae",
+      "signal_id": "28457ded64887797fb0071088374aeae",
+      "region": "Europe",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.theguardian.com/business/2026/may/25/metro-bank-investors-reject-executive-pay-report-bonus",
+      "archive_url": "https://web.archive.org/web/20260802174353/https://www.theguardian.com/business/2026/may/25/metro-bank-investors-reject-executive-pay-report-bonus",
+      "stored": {
+        "headline": "Metro Bank investors urged to reject executive pay report",
+        "company": "Metro Bank",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "GB",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "10c274e95a197584ce96762c36a8e95c",
+      "signal_id": "10c274e95a197584ce96762c36a8e95c",
+      "region": "Europe",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.aol.co.uk/articles/v-workers-hold-ballot-strike-145309000.html",
+      "archive_url": "https://web.archive.org/web/20260726203345/https://www.aol.co.uk/articles/v-workers-hold-ballot-strike-145309000.html",
+      "stored": {
+        "headline": "V & A workers hold ballot to strike over pay and heatwave conditions",
+        "company": "V & A",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "4983a4bbf434df0b8fc942040935c382",
+      "signal_id": "4983a4bbf434df0b8fc942040935c382",
+      "region": "Europe",
+      "event_type": "pay",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.tijd.be/r/t/1/id/10680547",
+      "archive_url": "",
+      "stored": {
+        "headline": "Topman Colruyt-groep verdiende vorig jaar 1,3 miljoen euro",
+        "company": "Colruyt",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BE",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "661d1d8b7f522a49ddb4fcf5144682a9",
+      "signal_id": "661d1d8b7f522a49ddb4fcf5144682a9",
+      "region": "Europe",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.midweekherald.co.uk/news/25890908.supermarket-aldi-pay-rise-devon-staff-announced/",
+      "archive_url": "https://web.archive.org/web/20260227081958/https://www.midweekherald.co.uk/news/25890908.supermarket-aldi-pay-rise-devon-staff-announced/",
+      "stored": {
+        "headline": "Supermarket Aldi pay rise in Devon for staff announced",
+        "company": "Aldi",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "GB",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "c0bf3af1d3a69ddfcceedf6485a41373",
+      "signal_id": "c0bf3af1d3a69ddfcceedf6485a41373",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.abc.es/economia/reolum-siemens-aceleran-puesta-marcha-planta-combustibles-20260730013920-nt.html",
+      "archive_url": "https://web.archive.org/web/20260819185931/https://www.abc.es/economia/reolum-siemens-aceleran-puesta-marcha-planta-combustibles-20260730013920-nt.html",
+      "stored": {
+        "headline": "Reolum y Siemens Energy se alían para poner en marcha la planta de combustibles sintéticos más avanzada de Europa",
+        "company": "Reolum",
+        "funding_amount": "",
+        "headcount": 1600,
+        "country": "ES",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "75e1cfc9a8e4e768192ce4a7fd7112f2",
+      "signal_id": "75e1cfc9a8e4e768192ce4a7fd7112f2",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://shiftdelete.net/mke-dunyanin-dort-bir-tarafinda-fabrika-kuruyor-yilda-250-milyon-fisek-uretim-kapasitesi",
+      "archive_url": "https://web.archive.org/web/20260813170211/https://shiftdelete.net/mke-dunyanin-dort-bir-tarafinda-fabrika-kuruyor-yilda-250-milyon-fisek-uretim-kapasitesi",
+      "stored": {
+        "headline": "MKE Dünyanın Dört Bir Tarafında Fabrika Kuruyor! Yılda 250 Milyon Fişek Üretim Kapasitesi",
+        "company": "MKE",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "TR",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "c07c5a32790f81298da57f4e5d7f69fb",
+      "signal_id": "c07c5a32790f81298da57f4e5d7f69fb",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://se.investing.com/news/company-news/innio-planerar-expansion-i-wisconsin-for-300-miljoner-usd-och-500-nya-jobb-93CH-505250",
+      "archive_url": "",
+      "stored": {
+        "headline": "INNIO planerar expansion i Wisconsin för 300 miljoner USD och 500 nya jobb",
+        "company": "INNIO",
+        "funding_amount": "",
+        "headcount": 500,
+        "country": "SE",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "cf627cc6ba91e8a42f9e91d7837ab9cb",
+      "signal_id": "cf627cc6ba91e8a42f9e91d7837ab9cb",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.lne.es/economia/2026/07/29/eurocaja-rural-abre-oficina-oviedo-132908716.html",
+      "archive_url": "https://web.archive.org/web/20260730024141/https://www.lne.es/economia/2026/07/29/eurocaja-rural-abre-oficina-oviedo-132908716.html",
+      "stored": {
+        "headline": "Eurocaja Rural abre oficina en Oviedo reforzando su presencia en el Principado de Asturias",
+        "company": "Eurocaja Rural",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ES",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "9b4b3a6edb33c3e3495c54514f0e7759",
+      "signal_id": "9b4b3a6edb33c3e3495c54514f0e7759",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://quifinanza.it/lavoro/atitech-manutenzione-aerea-assunzioni/958701/",
+      "archive_url": "https://web.archive.org/web/20260421234725/https://quifinanza.it/lavoro/atitech-manutenzione-aerea-assunzioni/958701/",
+      "stored": {
+        "headline": "Aeronautica, settore manutenzione aerei di Atitech in crescita: nuove assunzioni",
+        "company": "Atitech",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IT",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "bda4c4966fed8549b278c5328cd60ad0",
+      "signal_id": "bda4c4966fed8549b278c5328cd60ad0",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://n1info.ba/vijesti/nakon-vala-otkaza-jp-komunalno-mostar-trazi-14-novih-radnika/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Nakon vala otkaza: JP \"Komunalno\" Mostar traži 14 novih radnika",
+        "company": "JP \"Komunalno\" d.o.o. Mostar",
+        "funding_amount": "",
+        "headcount": 14,
+        "country": "BA",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "63d3954bd3d6555c6efaf1cf62e09ba8",
+      "signal_id": "63d3954bd3d6555c6efaf1cf62e09ba8",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.khaberni.com/news/841581-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%A8%D8%A7%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%A7%D9%84%D9%85%D8%A7%D9%86%D9%8A%D8%A9-%D8%AA%D8%AD%D8%A7%D9%88%D9%84-%D8%AA%D9%88%D8%B8%D9%8A%D9%81-%D9%85%D8%AD%D8%AA%D8%B1%D9%81%D9%8A-%D8%A7%D9%84%D8%B9%D8%A7%D8%A8-%D8%A7%D9%84%D9%83%D9%85%D8%A8%D9%8A%D9%88%D8%AA%D8%B1-",
+      "archive_url": "https://web.archive.org/web/20260824161731/https://www.khaberni.com/news/841581-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%A8%D8%A7%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%A7%D9%84%D9%85%D8%A7%D9%86%D9%8A%D8%A9-%D8%AA%D8%AD%D8%A7%D9%88%D9%84-%D8%AA%D9%88%D8%B8%D9%8A%D9%81-%D9%85%D8%AD%D8%AA%D8%B1%D9%81%D9%8A-%D8%A7%D9%84%D8%B9%D8%A7%D8%A8-%D8%A7%D9%84%D9%83%D9%85%D8%A8%D9%8A%D9%88%D8%AA%D8%B1-",
+      "stored": {
+        "headline": "الاستخبارات الألمانية تحاول توظيف محترفي ألعاب الكمبيوتر !",
+        "company": "الاستخبارات الألمانية",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DE",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "3034726fecf2085aa0fb7077a2c40782",
+      "signal_id": "3034726fecf2085aa0fb7077a2c40782",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.yorkpress.co.uk/news/25795926.salko-uk-near-goole-seeks-120-staff-uk-wide-roles/",
+      "archive_url": "https://web.archive.org/web/20260225065342/https://www.yorkpress.co.uk/news/25795926.salko-uk-near-goole-seeks-120-staff-uk-wide-roles/",
+      "stored": {
+        "headline": "Salko united kingdom near Goole seeks 120 staff for united kingdom - wide roles",
+        "company": "Salko",
+        "funding_amount": "",
+        "headcount": 120,
+        "country": "GB",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "c80aa207e86d58e1791d76d617877eeb",
+      "signal_id": "c80aa207e86d58e1791d76d617877eeb",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.eleconomista.es/empleo/noticias/14011976/09/26/eroski-firma-un-convenio-con-la-fundacion-once-por-el-que-contratara-a-86-personas-con-discapacidad-hasta-2030.html",
+      "archive_url": "https://web.archive.org/web/20260905113403/https://www.eleconomista.es/empleo/noticias/14011976/09/26/eroski-firma-un-convenio-con-la-fundacion-once-por-el-que-contratara-a-86-personas-con-discapacidad-hasta-2030.html",
+      "stored": {
+        "headline": "Eroski firma un convenio con la Fundación ONCE por el que contratará a 86 personas con discapacidad hasta 2030",
+        "company": "Eroski",
+        "funding_amount": "",
+        "headcount": 86,
+        "country": "ES",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "265fe4fcb112790efd69f9874f1e7f75",
+      "signal_id": "265fe4fcb112790efd69f9874f1e7f75",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.autointernationaal.nl/2026/03/mercedes-creeert-in-hongarije-duizenden-nieuwe-banen/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Mercedes creëert in Hongarije duizenden nieuwe banen",
+        "company": "Mercedes",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "e29502b13779b1d00fc3537e43b86925",
+      "signal_id": "e29502b13779b1d00fc3537e43b86925",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.siliconrepublic.com/jobs-news/global-fintech-platform-currenxie-30-dublin-based-jobs-seekers",
+      "archive_url": "",
+      "stored": {
+        "headline": "Global fintech platform Currenxie to create 30 Dublin - based jobs",
+        "company": "Currenxie",
+        "funding_amount": "",
+        "headcount": 30,
+        "country": "IE",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "c9521eb7973891e374e98484d73ea491",
+      "signal_id": "c9521eb7973891e374e98484d73ea491",
+      "region": "Europe",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.rte.ie/news/business/2026/0812/1587565-culligan-water-jobs/",
+      "archive_url": "https://web.archive.org/web/20260813182307/https://www.rte.ie/news/business/2026/0812/1587565-culligan-water-jobs/",
+      "stored": {
+        "headline": "Culligan Ireland to create 54 jobs in coming 12 months",
+        "company": "Culligan Ireland",
+        "funding_amount": "",
+        "headcount": 54,
+        "country": "IE",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "f83debae590da4deed5228d1300dab6e",
+      "signal_id": "f83debae590da4deed5228d1300dab6e",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.medianews4u.com/zilo-bags-15-3-million-series-a-led-by-peak-xv-to-scale-fashion-quick-commerce/",
+      "archive_url": "https://web.archive.org/web/20260317090949/https://www.medianews4u.com/zilo-bags-15-3-million-series-a-led-by-peak-xv-to-scale-fashion-quick-commerce/",
+      "stored": {
+        "headline": "ZILO bags $15.3 million Series A led by Peak XV to scale fashion quick commerce - MediaNews4U",
+        "company": "ZILO",
+        "funding_amount": "$15.3 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "124e05addf5df0fb5c12e541259c99fa",
+      "signal_id": "124e05addf5df0fb5c12e541259c99fa",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://techmoran.com/2026/09/01/wiocc-raises-300m-from-afc-and-vision-invest-to-accelerate-expansion-across-africa/",
+      "archive_url": "https://web.archive.org/web/20260902141627/https://techmoran.com/2026/09/01/wiocc-raises-300m-from-afc-and-vision-invest-to-accelerate-expansion-across-africa/",
+      "stored": {
+        "headline": "WIOCC Raises $300M from AFC and Vision Invest to Accelerate Expansion Across Africa",
+        "company": "WIOCC",
+        "funding_amount": "$300M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "95b11f626eabb22c1c7f46b8c65cd2bd",
+      "signal_id": "95b11f626eabb22c1c7f46b8c65cd2bd",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://aecmag.com/ai/build-raises-8-5m-seed-for-ai-driven-infrastructure-due-diligence-platform/",
+      "archive_url": "https://web.archive.org/web/20260702103252/https://aecmag.com/ai/build-raises-8-5m-seed-for-ai-driven-infrastructure-due-diligence-platform/",
+      "stored": {
+        "headline": "Build raises $8.5m seed for AI-driven infrastructure due diligence platform - AEC Magazine",
+        "company": "Build",
+        "funding_amount": "$8.5m",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "07ac50db3f9776ec1c3bcb219ad08cab",
+      "signal_id": "07ac50db3f9776ec1c3bcb219ad08cab",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://entrepreneur.economictimes.indiatimes.com/news/funding/hegdinvst-secures-13-million-series-a-funding-for-multi-asset-hedge-fund/132701638",
+      "archive_url": "https://web.archive.org/web/20260905122802/https://entrepreneur.economictimes.indiatimes.com/news/funding/hegdinvst-secures-13-million-series-a-funding-for-multi-asset-hedge-fund/132701638",
+      "stored": {
+        "headline": "Hegdinvst raises $1.3 mn series A funding - Indiatimes",
+        "company": "Hegdinvst",
+        "funding_amount": "$1.3 mn",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "0596b5163b0a3a05d343b602959589c3",
+      "signal_id": "0596b5163b0a3a05d343b602959589c3",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://betakit.com/neo-financial-secures-68-5-million-in-equity-as-it-adopts-big-bank-funding-playbook/",
+      "archive_url": "https://web.archive.org/web/20260716211332/https://betakit.com/neo-financial-secures-68-5-million-in-equity-as-it-adopts-big-bank-funding-playbook/",
+      "stored": {
+        "headline": "Neo Financial secures $68.5 million in equity as it adopts big-bank funding playbook - betakit.com",
+        "company": "Neo Financial",
+        "funding_amount": "$68.5 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "a4ecd8187a498e98d4fd4b4329fd322a",
+      "signal_id": "a4ecd8187a498e98d4fd4b4329fd322a",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://mercado.com.ar/finanzas/kast-recaudo-us-80-millones-en-serie-a-para-expandirse-en-tres-regiones",
+      "archive_url": "https://web.archive.org/web/20260518113741/https://mercado.com.ar/finanzas/kast-recaudo-us-80-millones-en-serie-a-para-expandirse-en-tres-regiones",
+      "stored": {
+        "headline": "Kast recaudó US$ 80 millones en Serie A para expandirse en tres regiones",
+        "company": "Kast",
+        "funding_amount": "US$ 80 millones",
+        "headcount": "",
+        "country": "AR",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "9cad75cff058611eb49cf10eec92fcbf",
+      "signal_id": "9cad75cff058611eb49cf10eec92fcbf",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.businesswire.com/news/home/20260625167565/en/Trase-Raises-%24107M-Seed-Round-Led-by-ARCH-Venture-Partners-to-Continue-Building-Agentic-Operating-System-for-Regulated-Industries",
+      "archive_url": "https://web.archive.org/web/20260626175256/https://www.businesswire.com/news/home/20260625167565/en/Trase-Raises-%24107M-Seed-Round-Led-by-ARCH-Venture-Partners-to-Continue-Building-Agentic-Operating-System-for-Regulated-Industries",
+      "stored": {
+        "headline": "Trase Raises $107M Seed Round Led by ARCH Venture Partners to Continue Building Agentic Operating System for Regulated Industries - Business Wire",
+        "company": "Trase",
+        "funding_amount": "$107M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "168370b6c30c8717d71db5a81ba08f3c",
+      "signal_id": "168370b6c30c8717d71db5a81ba08f3c",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://technode.global/2026/01/19/indonesias-spun-raises-1-8m-seed-funding-to-expand-ai-enabled-visa-infrastructure-across-southeast-asia/",
+      "archive_url": "https://web.archive.org/web/20260219085640/https://technode.global/2026/01/19/indonesias-spun-raises-1-8m-seed-funding-to-expand-ai-enabled-visa-infrastructure-across-southeast-asia/",
+      "stored": {
+        "headline": "Indonesia's SPUN raises $1.8M seed funding to expand AI-enabled visa infrastructure across Southeast Asia - TNGlobal",
+        "company": "SPUN",
+        "funding_amount": "$1.8M",
+        "headcount": "",
+        "country": "ID",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "d390399f6a3ed89d707df11d45d9a75d",
+      "signal_id": "d390399f6a3ed89d707df11d45d9a75d",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.menabytes.com/holo-series-a/?utm_source=rss&utm_medium=rss&utm_campaign=holo-series-a",
+      "archive_url": "",
+      "stored": {
+        "headline": "Dubai’s Holo raises $22 million Series A to expand digital mortgage platform across GCC",
+        "company": "Holo",
+        "funding_amount": "$22 million",
+        "headcount": "",
+        "country": "AE",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "7744296fce28ccee40e5c1c6cca94076",
+      "signal_id": "7744296fce28ccee40e5c1c6cca94076",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://payloadspace.com/samara-closes-10m-seed-round/",
+      "archive_url": "https://web.archive.org/web/20260516051519/https://payloadspace.com/samara-closes-10m-seed-round/",
+      "stored": {
+        "headline": "Samara Closes $10M Seed Round - payloadspace.com",
+        "company": "Samara",
+        "funding_amount": "$10M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "6413a5321b1d8be2a72946188bedc49a",
+      "signal_id": "6413a5321b1d8be2a72946188bedc49a",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.prnewswire.com/news-releases/corgi-insurance-raises-108-million-receives-regulatory-approval-to-launch-the-first-full-stack-insurance-carrier-for-startups-302657727.html",
+      "archive_url": "https://web.archive.org/web/20260507062655/https://www.prnewswire.com/news-releases/corgi-insurance-raises-108-million-receives-regulatory-approval-to-launch-the-first-full-stack-insurance-carrier-for-startups-302657727.html",
+      "stored": {
+        "headline": "Corgi Insurance Raises $108 Million, Receives Regulatory Approval to Launch the First Full-Stack Insurance Carrier for Startups",
+        "company": "Corgi Insurance",
+        "funding_amount": "$108 Million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "cf2dee5f0fb006ef3b8b9e73fe7dde94",
+      "signal_id": "cf2dee5f0fb006ef3b8b9e73fe7dde94",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://dabafinance.com/en/news/shiprazor-raises-seed-round-to-fix-delivery-costs",
+      "archive_url": "",
+      "stored": {
+        "headline": "Shiprazor Raises $2.65M Seed to Cut E-Commerce Delivery Costs - Dabafinance",
+        "company": "Shiprazor",
+        "funding_amount": "$2.65M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "9715d71badb2982a0f56445e8bbdfe3e",
+      "signal_id": "9715d71badb2982a0f56445e8bbdfe3e",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://latamlist.com/einship-raises-1m-seed-round-led-by-parceiro-ventures/",
+      "archive_url": "https://web.archive.org/web/20260804155524/https://latamlist.com/einship-raises-1m-seed-round-led-by-parceiro-ventures/",
+      "stored": {
+        "headline": "Einship raises $1M seed round led by Parceiro Ventures",
+        "company": "Einship",
+        "funding_amount": "$1M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "35dad40eee4032b0ff57dcb34d66e855",
+      "signal_id": "35dad40eee4032b0ff57dcb34d66e855",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.satellitetoday.com/finance/2026/07/16/swissto12-secures-70m-in-series-c-round/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Swissto12 Secures $70M in Series C Round - Via Satellite",
+        "company": "Swissto12",
+        "funding_amount": "$70M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "c5934238fd8e3433f6af979a3a931a0b",
+      "signal_id": "c5934238fd8e3433f6af979a3a931a0b",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.citybiz.co/article/828463/yuzu-health-raises-35-million-series-a/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Yuzu Health Raises $35 Million Series A - citybiz.co",
+        "company": "Yuzu Health",
+        "funding_amount": "$35 Million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "530743f2c386dde9d2110758a70d7460",
+      "signal_id": "530743f2c386dde9d2110758a70d7460",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://ventureburn.com/renofi-raises-22m-series-b-to-transform-renovation-finance/",
+      "archive_url": "https://web.archive.org/web/20260304213639/https://ventureburn.com/renofi-raises-22m-series-b-to-transform-renovation-finance/",
+      "stored": {
+        "headline": "RenoFi Raises $22M Series B to Transform Renovation Finance",
+        "company": "RenoFi",
+        "funding_amount": "$22M",
+        "headcount": "",
+        "country": "ZA",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "0dc7971f483fbb608839846bbaf95b04",
+      "signal_id": "0dc7971f483fbb608839846bbaf95b04",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://ventureburn.com/claros-raises-55m-series-b-pfas-destruction/",
+      "archive_url": "https://web.archive.org/web/20260728233626/https://ventureburn.com/claros-raises-55m-series-b-pfas-destruction/",
+      "stored": {
+        "headline": "Claros Raises $55M to Scale Global PFAS Destruction Tech",
+        "company": "Claros",
+        "funding_amount": "$55M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "747e7816864b79280ebaa9e26d6dd95c",
+      "signal_id": "747e7816864b79280ebaa9e26d6dd95c",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://theaiinsider.tech/2026/02/20/solidrange-raises-2-4m-seed-round-to-expand-ai-driven-cybersecurity-and-grc-automation/",
+      "archive_url": "https://web.archive.org/web/20260816091553/https://theaiinsider.tech/2026/02/20/solidrange-raises-2-4m-seed-round-to-expand-ai-driven-cybersecurity-and-grc-automation/",
+      "stored": {
+        "headline": "Solidrange Raises $2.4M Seed Round to Expand AI-Driven Cybersecurity and GRC Automation - AI Insider",
+        "company": "Solidrange",
+        "funding_amount": "$2.4M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "b4031daf39bf661aa0dfc42033a22254",
+      "signal_id": "b4031daf39bf661aa0dfc42033a22254",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.wsj.com/business/entrepreneurship/lucid-secures-750-million-in-new-funding-names-new-ceo-8eb78afc",
+      "archive_url": "",
+      "stored": {
+        "headline": "Lucid Secures $750 Million in New Funding, Names New CEO - WSJ",
+        "company": "Lucid",
+        "funding_amount": "$750 Million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "7d340a4ffa94d5f4b7aa39054ca6f652",
+      "signal_id": "7d340a4ffa94d5f4b7aa39054ca6f652",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.calcalistech.com/ctechnews/article/r1hg5zuefg",
+      "archive_url": "https://web.archive.org/web/20260719233351/https://www.calcalistech.com/ctechnews/article/r1hg5zuefg",
+      "stored": {
+        "headline": "Beacon Security raises $13 million Seed to build the data layer powering AI cybersecurity agents - calcalistech.com",
+        "company": "Beacon Security",
+        "funding_amount": "$13 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "3641b9fdc3852122e2e6d758b9299276",
+      "signal_id": "3641b9fdc3852122e2e6d758b9299276",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "press_archive",
+      "source_url": "https://obj.ca/cyclic-materials-us75m-series-c-other-news-from-region/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Cyclic Materials raises US$75M in Series C and other news from around the region | Ottawa Business Journal",
+        "company": "Cyclic Materials",
+        "funding_amount": "US$75M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "f64abab084441b70d09e0234f2ce2ce0",
+      "signal_id": "f64abab084441b70d09e0234f2ce2ce0",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.wearetech.africa/fr/fils/breves/breves-simple/watu-leve-7-millions-de-dollars-pour-poursuivre-son-expansion-en-afrique",
+      "archive_url": "",
+      "stored": {
+        "headline": "Watu lève 7 millions de dollars pour poursuivre son expansion en Afrique",
+        "company": "Watu",
+        "funding_amount": "7 millions de dollars",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "72d9892123989936f49c7bb6041d9ce4",
+      "signal_id": "72d9892123989936f49c7bb6041d9ce4",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://coverager.com/sixfold-raises-30m-series-b/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Sixfold raises $30 million Series B - Coverager",
+        "company": "Sixfold",
+        "funding_amount": "$30 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "f2ef3dabe369c0ca36e0297c6fc28d75",
+      "signal_id": "f2ef3dabe369c0ca36e0297c6fc28d75",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.coindesk.com/es/business/2026/07/24/sam-altman-backed-world-network-secures-fresh-funding-to-fight-online-ai-deepfakes",
+      "archive_url": "",
+      "stored": {
+        "headline": "World Foundation recauda 52,5 millones de dólares en una nueva ronda de financiación liderada por Pantera Capital",
+        "company": "World Foundation",
+        "funding_amount": "$52.5M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "f6feae6112c4de73a750bab68eb18527",
+      "signal_id": "f6feae6112c4de73a750bab68eb18527",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://financialit.net/news/fundraising-news/natural-raises-30m-series-build-payments-infrastructure-ai-agents",
+      "archive_url": "",
+      "stored": {
+        "headline": "Natural Raises $30M Series A to Build Payments Infrastructure for AI Agents - Financial IT",
+        "company": "Natural",
+        "funding_amount": "$30M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "f73e028b8f2238a6e17e5b6055e155df",
+      "signal_id": "f73e028b8f2238a6e17e5b6055e155df",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://theaiinsider.tech/2026/08/05/avatar-robotics-raises-6-5m-in-seed-funding-to-develop-industrial-humanoid-robots/",
+      "archive_url": "https://web.archive.org/web/20260807050802/https://theaiinsider.tech/2026/08/05/avatar-robotics-raises-6-5m-in-seed-funding-to-develop-industrial-humanoid-robots/",
+      "stored": {
+        "headline": "Avatar Robotics Raises $6.5M in Seed Funding to Develop Industrial Humanoid Robots - theaiinsider.tech",
+        "company": "Avatar Robotics",
+        "funding_amount": "$6.5M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "fe18afcf756bf2191591ed91035ff7db",
+      "signal_id": "fe18afcf756bf2191591ed91035ff7db",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://app.dealroom.co/news/note/blank-street-raises-75m-series-b-at-650m-valuation-for-west-coast-push",
+      "archive_url": "https://web.archive.org/web/20260824113554/https://app.dealroom.co/news/note/blank-street-raises-75m-series-b-at-650m-valuation-for-west-coast-push",
+      "stored": {
+        "headline": "Blank Street raises $75M Series B at $650M valuation for west coast push - Dealroom",
+        "company": "Blank Street",
+        "funding_amount": "$75M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "278ffb5c6ff8fcd189c9d60cc8491b69",
+      "signal_id": "278ffb5c6ff8fcd189c9d60cc8491b69",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.straitstimes.com/business/mistral-ai-raises-at-31-billion-valuation-in-samsung-led-round",
+      "archive_url": "https://web.archive.org/web/20260909020409/https://www.straitstimes.com/business/mistral-ai-raises-at-31-billion-valuation-in-samsung-led-round",
+      "stored": {
+        "headline": "Mistral AI raises $4.4b in Samsung-led round, at $31b valuation",
+        "company": "Mistral AI",
+        "funding_amount": "$4.4b",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "7bc36470cddf2d1b1df5ee3b01116307",
+      "signal_id": "7bc36470cddf2d1b1df5ee3b01116307",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://inc42.com/buzz/neogeo-bags-20-mn-to-scale-its-full-stack-geospatial-business/",
+      "archive_url": "https://web.archive.org/web/20260821043000/https://inc42.com/buzz/neogeo-bags-20-mn-to-scale-its-full-stack-geospatial-business/",
+      "stored": {
+        "headline": "NeoGeo Bags $20 Mn To Scale Its Full-Stack Geospatial Business",
+        "company": "NeoGeo",
+        "funding_amount": "$20 Mn",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "6dd3efc4ec85893dccc1cb0f7790d7a3",
+      "signal_id": "6dd3efc4ec85893dccc1cb0f7790d7a3",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.digitalbusiness.africa/rdc-eastcastle-leve-328-millions-pour-construire-728-nouvelles-tours-telecoms/",
+      "archive_url": "",
+      "stored": {
+        "headline": "RDC : Eastcastle lève 32,8 millions $ pour construire 728 nouvelles tours télécoms",
+        "company": "Eastcastle",
+        "funding_amount": "32,8 millions $",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "67f16f48d6f8909b301cb47e4e8c4dda",
+      "signal_id": "67f16f48d6f8909b301cb47e4e8c4dda",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://nunn.house.gov/2026/04/24/nunn-secures-1-million-investment-to-expand-youth-recovery-and-workforce-pathways-in-central-iowa/",
+      "archive_url": "https://web.archive.org/web/20260516015521/https://nunn.house.gov/2026/04/24/nunn-secures-1-million-investment-to-expand-youth-recovery-and-workforce-pathways-in-central-iowa/",
+      "stored": {
+        "headline": "Nunn Secures $1 Million Investment to Expand Youth Recovery and Workforce Pathways in Central Iowa - Congressman Zach Nunn (.gov)",
+        "company": "Nunn",
+        "funding_amount": "$1 Million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "7794db700127f11b69a337f4014b08f8",
+      "signal_id": "7794db700127f11b69a337f4014b08f8",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://pulse2.com/ringg-ai-raises-15-million-series-a-led-by-peak-xv-partners/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Ringg AI Raises $15 Million Series A Led By Peak XV Partners - pulse2.com",
+        "company": "Ringg AI",
+        "funding_amount": "$15 Million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "2f1ad6cbf685ede4cf237a462fa113eb",
+      "signal_id": "2f1ad6cbf685ede4cf237a462fa113eb",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://bourse.fortuneo.fr/actualites/nexans-leve-500-millions-d-euros-7943349",
+      "archive_url": "",
+      "stored": {
+        "headline": "Nexans lève 500 millions d'euros...",
+        "company": "Nexans",
+        "funding_amount": "500 millions d'euros",
+        "headcount": "",
+        "country": "SN",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "8cbe8031ba446b57aa83620894473401",
+      "signal_id": "8cbe8031ba446b57aa83620894473401",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.thesaasnews.com/news/bestat-raises-310m-series-a/",
+      "archive_url": "https://web.archive.org/web/20260726144134/https://www.thesaasnews.com/news/bestat-raises-310m-series-a/",
+      "stored": {
+        "headline": "bestat Raises ¥310M Series A",
+        "company": "bestat",
+        "funding_amount": "¥310M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "b03261ec9b2d6aeed3ede3184d0531cd",
+      "signal_id": "b03261ec9b2d6aeed3ede3184d0531cd",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.financialafrik.com/2026/09/14/nigeria-la-bank-of-industry-leve-environ-207-millions-en-emission-obligataire-record/",
+      "archive_url": "https://web.archive.org/web/20260914202349/https://www.financialafrik.com/2026/09/14/nigeria-la-bank-of-industry-leve-environ-207-millions-en-emission-obligataire-record/",
+      "stored": {
+        "headline": "Nigeria : la Bank of Industry lève environ 207 millions en émission obligataire record",
+        "company": "Bank of Industry",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "NG",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "de3fd5506936e20a62942ada5bad1e4a",
+      "signal_id": "de3fd5506936e20a62942ada5bad1e4a",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.irishtimes.com/business/2026/02/18/iput-raises-175m-in-equity-investment-from-cbre-im/",
+      "archive_url": "https://web.archive.org/web/20260316210134/https://www.irishtimes.com/business/2026/02/18/iput-raises-175m-in-equity-investment-from-cbre-im/",
+      "stored": {
+        "headline": "Iput raises €175m in new equity investment from CBRE - The Irish Times",
+        "company": "Iput",
+        "funding_amount": "€175m",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "fe00236b62190796610a047d70de5dfb",
+      "signal_id": "fe00236b62190796610a047d70de5dfb",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.tahawultech.com/channel/nvidia-to-acquire-ai-startup-hugging-face/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Nvidia to acquire AI startup Hugging Face",
+        "company": "Nvidia",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "7e94ea5a4c2e7cede55a0ba31d4df060",
+      "signal_id": "7e94ea5a4c2e7cede55a0ba31d4df060",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.semiconductor-today.com/news_items/2026/jul/nextgoepi-150726.shtml",
+      "archive_url": "https://web.archive.org/web/20260716024021/https://www.semiconductor-today.com/news_items/2026/jul/nextgoepi-150726.shtml",
+      "stored": {
+        "headline": "NextGO Epi raises €2m in pre-seed funding - Semiconductor Today",
+        "company": "NextGO Epi",
+        "funding_amount": "€2m",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "283f8d33a490d7dba2feca46eda0a806",
+      "signal_id": "283f8d33a490d7dba2feca46eda0a806",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.cairo24.com/2479476",
+      "archive_url": "",
+      "stored": {
+        "headline": "راية القابضة: أمان تحصل على تمويل من جهاز تنمية المشروعات بقيمة 250 مليون جنيه",
+        "company": "أمان",
+        "funding_amount": "250 مليون جنيه",
+        "headcount": "",
+        "country": "EG",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "6a9c9281e8513110b6a50a9357269bad",
+      "signal_id": "6a9c9281e8513110b6a50a9357269bad",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://entrackr.com/snippets/home-cleaning-products-startup-scrubsy-raises-rs-27-cr-from-v3-ventures-12256241",
+      "archive_url": "https://web.archive.org/web/20260816090957/https://entrackr.com/snippets/home-cleaning-products-startup-scrubsy-raises-rs-27-cr-from-v3-ventures-12256241",
+      "stored": {
+        "headline": "Home cleaning products startup Scrubsy raises Rs 27 Cr from V3 Ventures",
+        "company": "Scrubsy",
+        "funding_amount": "Rs 27 crore",
+        "headcount": "",
+        "country": "IN",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "9d2fc750a8036323f821c371f46da10f",
+      "signal_id": "9d2fc750a8036323f821c371f46da10f",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.infomoney.com.br/mercados/seremos-uma-empresa-de-capital-aberto-em-2027-diz-cfo-da-openai/",
+      "archive_url": "https://web.archive.org/web/20260820002548/https://www.infomoney.com.br/mercados/seremos-uma-empresa-de-capital-aberto-em-2027-diz-cfo-da-openai/",
+      "stored": {
+        "headline": "“Seremos uma empresa de capital aberto em 2027”, diz CFO da OpenAI",
+        "company": "OpenAI",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "65a2a3892fdfdf53c894367fa66dc4b8",
+      "signal_id": "65a2a3892fdfdf53c894367fa66dc4b8",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.thehindubusinessline.com/companies/utsav-raises-36-crore-in-round-led-by-atomic-capital/article71392536.ece",
+      "archive_url": "https://web.archive.org/web/20260827161134/https://www.thehindubusinessline.com/companies/utsav-raises-36-crore-in-round-led-by-atomic-capital/article71392536.ece",
+      "stored": {
+        "headline": "Utsav raises ₹36 crore in round led by Atomic Capital",
+        "company": "Utsav",
+        "funding_amount": "₹36 crore",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "214310dd7bc1212dbfa2d3bb16965acc",
+      "signal_id": "214310dd7bc1212dbfa2d3bb16965acc",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://b2b.economictimes.indiatimes.com/news/entrepreneur/dusq-raises-24-cr-in-seed-round-led-by-fireside-ventures/128295900",
+      "archive_url": "https://web.archive.org/web/20260521041721/https://b2b.economictimes.indiatimes.com/news/entrepreneur/dusq-raises-24-cr-in-seed-round-led-by-fireside-ventures/128295900",
+      "stored": {
+        "headline": "DUSQ raises ₹24 cr in seed round led by Fireside Ventures - b2b.economictimes.indiatimes.com",
+        "company": "DUSQ",
+        "funding_amount": "₹24 cr",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "3fc0247c38258386cb0c67f21edead67",
+      "signal_id": "3fc0247c38258386cb0c67f21edead67",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.eu-startups.com/2026/09/mirava-raises-e4-2-million-to-build-a-new-category-in-recreational-boating-sponsored/",
+      "archive_url": "",
+      "stored": {
+        "headline": "MIRAVA raises €4.2 million to build a new category in recreational boating (Sponsored)",
+        "company": "MIRAVA",
+        "funding_amount": "€4.2 million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "9cbb23bde58b5c0d9514d61f41f5e567",
+      "signal_id": "9cbb23bde58b5c0d9514d61f41f5e567",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://tech.eu/2026/05/12/regulate-raises-eur14m-seed-to-bring-science-backed-breathwork-into-the-workplace/",
+      "archive_url": "https://web.archive.org/web/20260608201240/https://tech.eu/2026/05/12/regulate-raises-eur14m-seed-to-bring-science-backed-breathwork-into-the-workplace/",
+      "stored": {
+        "headline": "Regulate raises €1.4M Seed to bring science-backed breathwork into the workplace - Tech.eu",
+        "company": "Regulate",
+        "funding_amount": "€1.4M",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "ef502068823c235208819607735a1709",
+      "signal_id": "ef502068823c235208819607735a1709",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://infoekonomi.id/2026/07/indodana-finance-perkuat-layanan-pembiayaan-lewat-dukungan-pendanaan-rp15-triliun-dari-bca/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Indodana Finance Perkuat Layanan Pembiayaan Lewat Dukungan Pendanaan Rp1,5 Triliun dari BCA - Info Ekonomi",
+        "company": "Indodana Finance",
+        "funding_amount": "Rp1,5 Triliun",
+        "headcount": "",
+        "country": "ID",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "1007d504f35b7c1fe280e00808d4ccc8",
+      "signal_id": "1007d504f35b7c1fe280e00808d4ccc8",
+      "region": "RoW",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.arageek.com/infobrim-%D8%AA%D8%AD%D8%B5%D8%AF-%D8%AA%D9%85%D9%88%D9%8A%D9%84%D8%A7%D9%8B-%D8%AC%D8%AF%D9%8A%D8%AF%D8%A7%D9%8B-%D9%84%D8%AF%D9%81%D8%B9-%D8%AB%D9%88%D8%B1%D8%A9-%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D9%86",
+      "archive_url": "https://web.archive.org/web/20260423084141/https://www.arageek.com/infobrim-%d8%aa%d8%ad%d8%b5%d8%af-%d8%aa%d9%85%d9%88%d9%8a%d9%84%d8%a7%d9%8b-%d8%ac%d8%af%d9%8a%d8%af%d8%a7%d9%8b-%d9%84%d8%af%d9%81%d8%b9-%d8%ab%d9%88%d8%b1%d8%a9-%d8%a7%d9%84%d8%a8%d9%8a%d8%a7%d9%86",
+      "stored": {
+        "headline": "Infobrim تحصد تمويلاً جديداً لدفع ثورة البيانات المدعومة بالذكاء الاصطناعي في السعودية",
+        "company": "Infobrim",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SA",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "e616b329b1774e81c780da5c4134881e",
+      "signal_id": "e616b329b1774e81c780da5c4134881e",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://vn.investing.com/news/company-news/ceo-herbalife-gratziani-se-tu-chuc-cfo-tam-thoi-dam-nhan-vai-tro-93CH-2702955",
+      "archive_url": "https://web.archive.org/web/20260901180302/https://vn.investing.com/news/company-news/ceo-herbalife-gratziani-se-tu-chuc-cfo-tam-thoi-dam-nhan-vai-tro-93CH-2702955",
+      "stored": {
+        "headline": "CEO Herbalife Gratziani sẽ từ chức, CFO tạm thời đảm nhận vai trò",
+        "company": "Herbalife",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "fca0dc8a74e4746dddcd79a584f42057",
+      "signal_id": "fca0dc8a74e4746dddcd79a584f42057",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://news.agrofy.com.br/noticia/209767/pepsico-nomeia-novo-ceo-da-divisao-alimentos-no-brasil",
+      "archive_url": "https://web.archive.org/web/20260412092705/https://news.agrofy.com.br/noticia/209767/pepsico-nomeia-novo-ceo-da-divisao-alimentos-no-brasil",
+      "stored": {
+        "headline": "PepsiCo nomeia novo CEO da divisão de Alimentos no Brasil - Agrofy News Brasil",
+        "company": "PepsiCo",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "57c6c19e01a551fe7da5c830a8124482",
+      "signal_id": "57c6c19e01a551fe7da5c830a8124482",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://itbrief.co.nz/story/outsized-names-martin-bouroncle-as-anz-managing-director",
+      "archive_url": "https://web.archive.org/web/20260821155337/https://itbrief.co.nz/story/outsized-names-martin-bouroncle-as-anz-managing-director",
+      "stored": {
+        "headline": "Outsized names Martin Bouroncle as ANZ Managing Director",
+        "company": "Outsized",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AU",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "f3124ecf44fb159ea6f51122393262da",
+      "signal_id": "f3124ecf44fb159ea6f51122393262da",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.theiconomics.com/change-management/direktur-utama-bank-ibk-indonesia-mengundurkan-diri/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Direktur Utama Bank IBK Indonesia Mengundurkan Diri",
+        "company": "Bank IBK Indonesia",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ID",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "17864af14698a5686ea6f7858ecab545",
+      "signal_id": "17864af14698a5686ea6f7858ecab545",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://ledesk.ma/encontinu/le-francais-jean-pittion-nomme-directeur-general-du-conrad-rabat-arzana/",
+      "archive_url": "https://web.archive.org/web/20240914013154/https://ledesk.ma/encontinu/le-francais-jean-pittion-nomme-directeur-general-du-conrad-rabat-arzana/",
+      "stored": {
+        "headline": "Le Français Jean Pittion nommé directeur général du Conrad Rabat Arzana",
+        "company": "Conrad Rabat Arzana",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "MA",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "220e428a0d122cf272e32825fa0cec71",
+      "signal_id": "220e428a0d122cf272e32825fa0cec71",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://mainichi.jp/articles/20260407/k00/00m/040/231000c",
+      "archive_url": "https://web.archive.org/web/20260408155958/https://mainichi.jp/articles/20260407/k00/00m/040/231000c",
+      "stored": {
+        "headline": "NHK、理事7人が異例の同時退任へ 井上会長のもと体制一新",
+        "company": "NHK",
+        "funding_amount": "",
+        "headcount": 7,
+        "country": "JP",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "4d3c95fe90c6cafbb54e56fee3dd82bd",
+      "signal_id": "4d3c95fe90c6cafbb54e56fee3dd82bd",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://platinonline.com/sirketler/vestele-yeni-ceo-atandi-1095291",
+      "archive_url": "https://web.archive.org/web/20260215071537/https://www.platinonline.com/sirketler/vestele-yeni-ceo-atandi-1095291",
+      "stored": {
+        "headline": "Vestel'e yeni CEO atandı",
+        "company": "Vestel",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "196a78bf1a0357a32dd8a1bbf46f6352",
+      "signal_id": "196a78bf1a0357a32dd8a1bbf46f6352",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.nsctotal.com.br/colunista/estela-benetti/longevo-grupo-supermercadista-de-sc-muda-gestao-e-traz-ex-brf-para-ceo/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Longevo grupo supermercadista de SC muda gestão e traz ex-BRF para CEO",
+        "company": "Longevo grupo supermercadista de SC",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "4d32ffb3139fd32de548bf068ab888fa",
+      "signal_id": "4d32ffb3139fd32de548bf068ab888fa",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.yabiladi.com/articles/details/190899/stuttgart-recrute-finitivement-bilal-khannouss.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Le VfB Stuttgart recrute définitivement Bilal El Khannouss",
+        "company": "VfB Stuttgart",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "1e0fc82c3507db1951fc451bb1254806",
+      "signal_id": "1e0fc82c3507db1951fc451bb1254806",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://magazine.hankyung.com/business/article/202601052598b",
+      "archive_url": "https://web.archive.org/web/20260105231755/https://magazine.hankyung.com/business/article/202601052598b",
+      "stored": {
+        "headline": "삼화페인트, 오너 3세 김현정 대표이사 선임",
+        "company": "삼화페인트",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "ab61695544588eef96a413494e4b78cc",
+      "signal_id": "ab61695544588eef96a413494e4b78cc",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://vn.investing.com/news/company-news/nasus-pharma-bo-nhiem-ong-brendan-ogrady-lam-ceo-moi-93CH-2674696",
+      "archive_url": "",
+      "stored": {
+        "headline": "Nasus Pharma bổ nhiệm ông Brendan O’Grady làm CEO mới",
+        "company": "Nasus Pharma",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "c9056898efabd5d5494e0d623e034fb3",
+      "signal_id": "c9056898efabd5d5494e0d623e034fb3",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.healthservicesdaily.com.au/exclusive-anderson-steps-down-as-ceo-of-sdpr-implementation-authority/52515",
+      "archive_url": "",
+      "stored": {
+        "headline": "Anderson steps down as CEO of SDPR Implementation Authority",
+        "company": "SDPR Implementation Authority",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9bb85ac2b7c7f008d6551fa301bc5f15",
+      "signal_id": "9bb85ac2b7c7f008d6551fa301bc5f15",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.tourmag.com/Laurent-Magnin-devient-PDG-de-La-Compagnie_a84407.html",
+      "archive_url": "https://web.archive.org/web/20260414025829/https://www.tourmag.com/Laurent-Magnin-devient-PDG-de-La-Compagnie_a84407.html",
+      "stored": {
+        "headline": "Laurent Magnin devient PDG de La Compagnie",
+        "company": "La Compagnie",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "42697e63b5853c3a2ac4c2cd85852993",
+      "signal_id": "42697e63b5853c3a2ac4c2cd85852993",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://es.marketscreener.com/noticias/marc-de-ponteves-nombrado-director-general-de-amundi-en-suiza-ce785bd8df8ef52c",
+      "archive_url": "",
+      "stored": {
+        "headline": "Marc de Pontevès, nombrado director general de Amundi en Suiza",
+        "company": "Amundi",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "76820ca01aa9ad50b8e03c8ae6e13c1e",
+      "signal_id": "76820ca01aa9ad50b8e03c8ae6e13c1e",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "http://news.albraq-news.com/economy/43267.html",
+      "archive_url": "https://web.archive.org/web/20260816172340/http://news.albraq-news.com/economy/43267.html",
+      "stored": {
+        "headline": "تعلن شركة ملاذ للتأمين التعاوني عن استقالة عضوين من مجلس إدارتها",
+        "company": "شركة ملاذ للتأمين التعاوني",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "d6511023a221587d3d84e670744dad9f",
+      "signal_id": "d6511023a221587d3d84e670744dad9f",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://maaal.com/news/details/%D8%A7%D8%B3%D8%AA%D9%82%D8%A7%D9%84%D8%A9-%D8%B2%D9%8A%D8%A7%D8%AF-%D9%85%D8%B1%D8%AA%D8%AC%D9%89-%D8%B9%D8%B6%D9%88-%D9%85%D8%AC%D9%84%D8%B3-%D8%A5%D8%AF/",
+      "archive_url": "",
+      "stored": {
+        "headline": "استقالة زياد مرتجى عضو مجلس إدارة 'المعمر لأنظمة المعلومات'",
+        "company": "المعمر لأنظمة المعلومات",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "e60a85cb7fc61d08e174ebe3d356844a",
+      "signal_id": "e60a85cb7fc61d08e174ebe3d356844a",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.bakingbusiness.com/articles/66822-barchemy-llc-names-new-ceo",
+      "archive_url": "",
+      "stored": {
+        "headline": "Barchemy, LLC names new CEO",
+        "company": "Barchemy, LLC",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "c0f27eb351d328e56d54854efa05af53",
+      "signal_id": "c0f27eb351d328e56d54854efa05af53",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://ch.marketscreener.com/boerse-nachrichten/amotiv-ceo-tritt-zurueck-ce7859dadc8cf527",
+      "archive_url": "",
+      "stored": {
+        "headline": "Amotiv-CEO tritt zurück",
+        "company": "Amotiv",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9f3f6b47d95eb23a5f74342cae99152a",
+      "signal_id": "9f3f6b47d95eb23a5f74342cae99152a",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.thd.tn/ooredoo-tunisie-eyas-naif-assaf-nomme-directeur-general-mansoor-al-khater-prend-la-tete-du-qatar-financial-centre/",
+      "archive_url": "https://web.archive.org/web/20260520010425/https://www.thd.tn/ooredoo-tunisie-eyas-naif-assaf-nomme-directeur-general-mansoor-al-khater-prend-la-tete-du-qatar-financial-centre/",
+      "stored": {
+        "headline": "Ooredoo Tunisie : Eyas Naif Assaf nommé Directeur général, Mansoor Al-Khater prend la tête du Qatar Financial Centre",
+        "company": "Ooredoo Tunisie",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "TN",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "f3083d018c95558f22d9eab195ca8116",
+      "signal_id": "f3083d018c95558f22d9eab195ca8116",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.mubasher.info/news/4645579/-%D8%A7%D9%84%D9%85%D8%B7%D8%A7%D8%AD%D9%86-%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B9%D8%A9-%D8%AA%D8%B9%D9%84%D9%86-%D8%A7%D8%B3%D8%AA%D9%82%D8%A7%D9%84%D8%A9-%D8%B9%D8%B6%D9%88-%D9%85%D8%AC%D9%84%D8%B3-%D8%A7%D9%84%D8%A5%D8%AF%D8%A7%D8%B1%D8%A9-%D8%A8%D8%B1%D8%A7%D8%B4%D8%A7%D9%86%D8%AA-%D9%81%D8%A7%D8%AA%D9%83%D8%A7%D8%B1/",
+      "archive_url": "",
+      "stored": {
+        "headline": "المطاحن الرابعة تعلن استقالة عضو مجلس الإدارة براشانت فاتكار",
+        "company": "المطاحن الرابعة",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "78faaebeeb7c1af046e009c6e21da520",
+      "signal_id": "78faaebeeb7c1af046e009c6e21da520",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.tahawultech.com/home-slide/saviynt-appoints-kamel-heus-vp-sales-for-middle-east-and-africa/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Saviynt appoints Kamel Heus VP Sales for Middle East and Africa",
+        "company": "Saviynt",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AE",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "37482edcd01f7fde16972de5d856e578",
+      "signal_id": "37482edcd01f7fde16972de5d856e578",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.nikkei.com/article/DGKKZO98114970S6A810C2FFJ000/",
+      "archive_url": "",
+      "stored": {
+        "headline": "タタ会長、来年2月退任 取締役会で再任反対意見",
+        "company": "タタ",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "JP",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "bc9d38be8fed32ed9cc9a2bfb1387384",
+      "signal_id": "bc9d38be8fed32ed9cc9a2bfb1387384",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.zitamar.com/waldemar-de-sousa-named-new-bank-of-mozambique-governor/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Waldemar de Sousa named new Bank of Mozambique governor",
+        "company": "Bank of Mozambique",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "MZ",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "aa65a12c147844c9ddf26a52e8b53687",
+      "signal_id": "aa65a12c147844c9ddf26a52e8b53687",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://itforum.com.br/noticias/distrito-itaqui-anuncia-novo-ceo/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Distrito Itaqui anuncia novo CEO e inicia fase de expansão",
+        "company": "Distrito Itaqui",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "4cbb68222e3a49dd352cd50a5c384c20",
+      "signal_id": "4cbb68222e3a49dd352cd50a5c384c20",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.meioemensagem.com.br/gente/ana-coutinho-assume-como-ceo-da-galeria",
+      "archive_url": "https://web.archive.org/web/20260815054817/https://www.meioemensagem.com.br/gente/ana-coutinho-assume-como-ceo-da-galeria",
+      "stored": {
+        "headline": "Ana Coutinho assume como CEO da Galeria",
+        "company": "Galeria",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "eb9f7d33bd1b834029994a8c6a9fb5ba",
+      "signal_id": "eb9f7d33bd1b834029994a8c6a9fb5ba",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.mubasher.info/news/4657618/-%D8%A3%D8%B3%D9%88%D8%A7%D9%82-%D8%A7%D9%84%D8%B9%D8%AB%D9%8A%D9%85-%D8%AA%D9%82%D8%A8%D9%84-%D8%A7%D8%B3%D8%AA%D9%82%D8%A7%D9%84%D8%A9-%D9%85%D9%88%D9%81%D9%82-%D9%85%D8%A8%D8%A7%D8%B1%D9%87-%D9%88%D8%AA%D8%B9%D9%8A%D9%86-%D8%B9%D8%B6%D9%88%D8%A7-%D8%AC%D8%AF%D9%8A%D8%AF%D8%A7-%D9%84%D8%A5%D9%83%D9%85%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D8%A9-%D8%A7%D9%84%D8%AD%D8%A7%D9%84%D9%8A%D8%A9/%7B%7Bdetails.article.section.url%7D%7D",
+      "archive_url": "https://web.archive.org/web/20260813085204/https://www.mubasher.info/news/4657618/-%D8%A3%D8%B3%D9%88%D8%A7%D9%82-%D8%A7%D9%84%D8%B9%D8%AB%D9%8A%D9%85-%D8%AA%D9%82%D8%A8%D9%84-%D8%A7%D8%B3%D8%AA%D9%82%D8%A7%D9%84%D8%A9-%D9%85%D9%88%D9%81%D9%82-%D9%85%D8%A8%D8%A7%D8%B1%D9%87-%D9%88%D8%AA%D8%B9%D9%8A%D9%86-%D8%B9%D8%B6%D9%88%D8%A7-%D8%AC%D8%AF%D9%8A%D8%AF%D8%A7-%D9%84%D8%A5%D9%83%D9%85%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D8%A9-%D8%A7%D9%84%D8%AD%D8%A7%D9%84%D9%8A%D8%A9/%7B%7Bdetails.article.section.url%7D%7D/",
+      "stored": {
+        "headline": "\"أسواق العثيم\" تقبل استقالة موفق مباره وتعين عضواً جديداً لإكمال الدورة الحالية",
+        "company": "أسواق العثيم",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "MA",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "a22c5947d4757fdf7681ffa728284ddd",
+      "signal_id": "a22c5947d4757fdf7681ffa728284ddd",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.afr.com/street-talk/hotdoc-founder-ben-hurst-steps-away-after-14-years-20260730-p60jxz?ref=rss&utm_medium=rss&utm_source=rss_technology",
+      "archive_url": "",
+      "stored": {
+        "headline": "HotDoc founder Ben Hurst steps away after 14 years",
+        "company": "HotDoc",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AU",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "58f8fa4081ea5abd6bb8f4b3e91934a1",
+      "signal_id": "58f8fa4081ea5abd6bb8f4b3e91934a1",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.cnnbrasil.com.br/infra/appian-anuncia-novo-ceo-de-minerais-criticos/",
+      "archive_url": "https://web.archive.org/web/20260417100929/https://www.cnnbrasil.com.br/infra/appian-anuncia-novo-ceo-de-minerais-criticos/",
+      "stored": {
+        "headline": "Appian anuncia novo CEO de minerais críticos",
+        "company": "Appian",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "447911e22f124037355db75a2228a84a",
+      "signal_id": "447911e22f124037355db75a2228a84a",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://stock.mk.co.kr/news/view/1120998",
+      "archive_url": "https://web.archive.org/web/20260906190221/https://stock.mk.co.kr/news/view/1120998",
+      "stored": {
+        "headline": "SUI 그룹 홀딩스, CIO 스티븐 매킨토시 사임..경영구조 재편 착수",
+        "company": "SUI 그룹 홀딩스",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "KR",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "a551b55ea539c0b8672b9a90de8e99f4",
+      "signal_id": "a551b55ea539c0b8672b9a90de8e99f4",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://medias24.com/2026/08/11/onssa-abdelghani-azzi-nomme-directeur-general-par-interim-1739175/",
+      "archive_url": "",
+      "stored": {
+        "headline": "ONSSA : Abdelghani Azzi nommé directeur général par intérim",
+        "company": "ONSSA",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SN",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "1eb4e61ba3cb4ea22c07f531e3c29ebf",
+      "signal_id": "1eb4e61ba3cb4ea22c07f531e3c29ebf",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://kaieteurnewsonline.com/2026/08/01/ug-names-transitional-leadership-team-as-vice-chancellors-term-ends/",
+      "archive_url": "https://web.archive.org/web/20260801110001/https://kaieteurnewsonline.com/2026/08/01/ug-names-transitional-leadership-team-as-vice-chancellors-term-ends/",
+      "stored": {
+        "headline": "UG names transitional leadership team as Vice-Chancellor’s term ends",
+        "company": "University of Guyana",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "GY",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "3a114ce84dfaa46c8870d9e153603973",
+      "signal_id": "3a114ce84dfaa46c8870d9e153603973",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.zonebourse.com/actualite-bourse/h100-group-nomme-un-nouveau-pdg-ce7859dade8ff625",
+      "archive_url": "",
+      "stored": {
+        "headline": "H100 Group nomme un nouveau PDG",
+        "company": "H100 Group",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "ad16167cadc62aa231ecdefb99771203",
+      "signal_id": "ad16167cadc62aa231ecdefb99771203",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "http://www.lanacion.com.py/negocios/2026/09/14/alicia-borja-asume-la-gerencia-general-de-nasta/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Alicia Borja assumes General Management of Nasta",
+        "company": "Nasta",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "537c36c9199471945df36169b2fd8796",
+      "signal_id": "537c36c9199471945df36169b2fd8796",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://aeroin.net/aerea-australiana-com-grande-frota-de-avioes-embraer-contrata-um-novo-ceo/?amp",
+      "archive_url": "",
+      "stored": {
+        "headline": "Aérea australiana com grande frota de aviões Embraer contrata um novo CEO",
+        "company": "Aérea australiana com grande frota de aviões Embraer",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AU",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "7e24008732fc04fd0a351ea0b8ef004d",
+      "signal_id": "7e24008732fc04fd0a351ea0b8ef004d",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.adgully.com/post/19840/rishi-kapoor-steps-down-as-ceo-director-of-team-marksmen-network",
+      "archive_url": "https://web.archive.org/web/20260828092228/https://www.adgully.com/post/19840/rishi-kapoor-steps-down-as-ceo-director-of-team-marksmen-network",
+      "stored": {
+        "headline": "Rishi Kapoor steps down as CEO & Director of Team Marksmen Network",
+        "company": "Team Marksmen Network",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "655a9c800b9595b1689f23673323fd61",
+      "signal_id": "655a9c800b9595b1689f23673323fd61",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://bworldonline.com/corporate/2026/08/21/771580/alaska-milk-names-marjorie-garrovillo-managing-director/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Alaska Milk names Marjorie Garrovillo managing director",
+        "company": "Alaska Milk Corp.",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "PH",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "201295d3987f7bec14e539217b5a7284",
+      "signal_id": "201295d3987f7bec14e539217b5a7284",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://betakit.com/damon-motors-ceo-cfo-and-board-resign-following-prolonged-struggle-on-public-markets/",
+      "archive_url": "https://web.archive.org/web/20260315084924/https://betakit.com/damon-motors-ceo-cfo-and-board-resign-following-prolonged-struggle-on-public-markets/",
+      "stored": {
+        "headline": "Damon CEO, CFO, and board resign following prolonged struggle on public markets",
+        "company": "Damon",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "CA",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "0c9af266ebe2a04ba1548c5e713fb44e",
+      "signal_id": "0c9af266ebe2a04ba1548c5e713fb44e",
+      "region": "RoW",
+      "event_type": "pay",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://alkhaleej-services.net/news58753.html",
+      "archive_url": "https://web.archive.org/web/20260906130110/https://alkhaleej-services.net/news58753.html",
+      "stored": {
+        "headline": "انضم إلى كبرى شركات الاتصالات: فرص عمل فودافون قطر للقطريين برواتب ومزايا تنافسية",
+        "company": "فودافون قطر",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "QA",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "89db91a9c60f0c06738207fa42132df1",
+      "signal_id": "89db91a9c60f0c06738207fa42132df1",
+      "region": "RoW",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.theguardian.com/business/2026/aug/13/elon-musk-tesla-pay-workers",
+      "archive_url": "",
+      "stored": {
+        "headline": "Tesla paid Elon Musk 2.5m times more as CEO than its average worker in 2025",
+        "company": "Tesla",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "937f5fc3d42aacfda0f99de17d9138da",
+      "signal_id": "937f5fc3d42aacfda0f99de17d9138da",
+      "region": "RoW",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.hcamag.com/nz/specialisation/benefits/bunnings-failed-to-follow-its-own-bonus-process-for-nz-hr-leader-era-finds/573558",
+      "archive_url": "",
+      "stored": {
+        "headline": "Bunnings failed to follow its own bonus process for NZ HR leader, ERA finds",
+        "company": "Bunnings",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AU",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "94df431554dc88af02369f15880fcaa7",
+      "signal_id": "94df431554dc88af02369f15880fcaa7",
+      "region": "RoW",
+      "event_type": "pay",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.etnews.com/20260901000402",
+      "archive_url": "https://web.archive.org/web/20260901111853/https://www.etnews.com/20260901000402",
+      "stored": {
+        "headline": "삼성바이오로직스 노사, 8일 사후 조정…임금협상 돌파구 찾나",
+        "company": "삼성바이오로직스",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "KR",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "78451d52b4d93b66eca59df1c3899772",
+      "signal_id": "78451d52b4d93b66eca59df1c3899772",
+      "region": "RoW",
+      "event_type": "pay",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.vietnam.vn/ar/tiet-lo-muc-luong-cua-tan-ceo-apple",
+      "archive_url": "",
+      "stored": {
+        "headline": "تم الكشف عن راتب الرئيس التنفيذي الجديد لشركة آبل.",
+        "company": "آبل",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "1a72c542d5f5a21bf6f8abc67f9b3331",
+      "signal_id": "1a72c542d5f5a21bf6f8abc67f9b3331",
+      "region": "RoW",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.rnz.co.nz/news/business/1102842/xero-s-ceo-gets-pay-rise-after-review-finds-pay-below-other-technology-company-leaders",
+      "archive_url": "https://web.archive.org/web/20260824143528/https://www.rnz.co.nz/news/business/1102842/xero-s-ceo-gets-pay-rise-after-review-finds-pay-below-other-technology-company-leaders",
+      "stored": {
+        "headline": "Xero's CEO gets pay-rise after review finds pay below other technology company leaders",
+        "company": "Xero",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "NZ",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "77bc7bb49f620ce4131190ae22d0b581",
+      "signal_id": "77bc7bb49f620ce4131190ae22d0b581",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.thehindubusinessline.com/brandhub/pr-release/ansr-announces-ansr-medtech-a-global-capability-center-for-a-high-growth-medtech-company/article70833216.ece",
+      "archive_url": "",
+      "stored": {
+        "headline": "ANSR Announces ANSR MedTech, a Global Capability Center for a High-Growth MedTech Company",
+        "company": "ANSR",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IN",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "e2ffef67bf97038b7214621838230a10",
+      "signal_id": "e2ffef67bf97038b7214621838230a10",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://slaati.com/2026/08/20/p2859591.html/?utm_campaign",
+      "archive_url": "",
+      "stored": {
+        "headline": "وظائف شاغرة في مستشفى دلة في الرياض",
+        "company": "مستشفى دلة",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SA",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "a4bd3bca44f682103ab607da39377188",
+      "signal_id": "a4bd3bca44f682103ab607da39377188",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.thehindubusinessline.com/brandhub/pr-release/zurich-launches-global-capability-center-in-hyderabad-to-power-next-gen-tech-and-ai/article70916105.ece",
+      "archive_url": "https://web.archive.org/web/20260802015638/https://www.thehindubusinessline.com/brandhub/pr-release/zurich-launches-global-capability-center-in-hyderabad-to-power-next-gen-tech-and-ai/article70916105.ece",
+      "stored": {
+        "headline": "Zurich launches Global Capability Center in Hyderabad to power next-gen tech and AI",
+        "company": "Zurich",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IN",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "256f5427e5e5f3d03a65a17b9c43acc7",
+      "signal_id": "256f5427e5e5f3d03a65a17b9c43acc7",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.thenationalnews.com/business/2026/08/12/first-electric-cars-designed-for-gulf-to-be-built-in-qatar/",
+      "archive_url": "https://web.archive.org/web/20260814043911/https://www.thenationalnews.com/business/2026/08/12/first-electric-cars-designed-for-gulf-to-be-built-in-qatar/",
+      "stored": {
+        "headline": "First electric cars designed for Gulf to be built in Qatar",
+        "company": "WATT Electric Vehicle Company",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "QA",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "559f798740ddf95bab32682ad078fceb",
+      "signal_id": "559f798740ddf95bab32682ad078fceb",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.bizjournals.com/jacksonville/news/2026/08/17/coldtrack-plans-to-hire-about-50-people-for-new-ja.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "ColdTrack plans to hire about 50 people for new Jax facility, as direct-to-consumer market grows",
+        "company": "ColdTrack",
+        "funding_amount": "",
+        "headcount": 50,
+        "country": "",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "76633821484b5feab2bb60ae5c566e95",
+      "signal_id": "76633821484b5feab2bb60ae5c566e95",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://asia.nikkei.com/business/technology/artificial-intelligence/itochu-expands-into-data-centers-targets-10-facilities-across-japan",
+      "archive_url": "https://web.archive.org/web/20260819214556/https://asia.nikkei.com/business/technology/artificial-intelligence/itochu-expands-into-data-centers-targets-10-facilities-across-japan",
+      "stored": {
+        "headline": "Itochu expands into data centers, targets 10 facilities across Japan",
+        "company": "Itochu",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "JP",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "6d2061120a1c172c79cbbe34579400fd",
+      "signal_id": "6d2061120a1c172c79cbbe34579400fd",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.khaleejtimes.com/business/flydubai-to-lead-move-from-dxb-to-dwc-from-early-2027-says-dubai-airports-ceo",
+      "archive_url": "https://web.archive.org/web/20260911141640/https://www.khaleejtimes.com/business/flydubai-to-lead-move-from-dxb-to-dwc-from-early-2027-says-dubai-airports-ceo",
+      "stored": {
+        "headline": "Flydubai to lead move from DXB to DWC from early 2027, says Dubai Airports CEO",
+        "company": "Flydubai",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AE",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "1925f457f709e3ae2e330e0f583b3328",
+      "signal_id": "1925f457f709e3ae2e330e0f583b3328",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://sinmordaza.com/noticia/513601-funes-proyecta-mas-de-10-000-nuevos-puestos-de-trabajo-generamos-condiciones-para-que-los-empresarios-inviertan.html",
+      "archive_url": "https://web.archive.org/web/20260728163259/https://sinmordaza.com/noticia/513601-funes-proyecta-mas-de-10-000-nuevos-puestos-de-trabajo-generamos-condiciones-para-que-los-empresarios-inviertan.html",
+      "stored": {
+        "headline": "Funes proyecta más de 10.000 nuevos puestos de trabajo: “Generamos condiciones para que los empresarios inviertan",
+        "company": "Funes",
+        "funding_amount": "",
+        "headcount": 10000,
+        "country": "",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "55d24f98491a2f56a20aa043d1cd277f",
+      "signal_id": "55d24f98491a2f56a20aa043d1cd277f",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://diariodocomercio.com.br/mix/fifa-vai-contratar-milhares-de-brasileiros-para-trabalharem-na-copa-do-mundo-feminina-de-2027-veja-como-se-inscrever/",
+      "archive_url": "",
+      "stored": {
+        "headline": "FIFA vai contratar milhares de brasileiros para trabalharem na Copa do Mundo feminina de 2027; veja como se inscrever",
+        "company": "FIFA",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "BR",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "f61ca7d8455f58bbffefcd65c567400a",
+      "signal_id": "f61ca7d8455f58bbffefcd65c567400a",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.thailand-business-news.com/pr-news/justco-continues-expansion-plan-by-growing-singapore-network-with-a-new-centre-at-raffles-city-tower",
+      "archive_url": "https://web.archive.org/web/20260902053235/https://www.thailand-business-news.com/pr-news/justco-continues-expansion-plan-by-growing-singapore-network-with-a-new-centre-at-raffles-city-tower",
+      "stored": {
+        "headline": "JustCo Continues Expansion Plan By Growing Singapore Network With A New Centre At Raffles City Tower",
+        "company": "JustCo",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "SG",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "5584f29bb16a062e08a249abdc90dbfb",
+      "signal_id": "5584f29bb16a062e08a249abdc90dbfb",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.livemint.com/companies/elon-musk-hiring-engineers-for-spacexai-says-no-prior-ai-experience-needed-smart-humans-figure-it-out-fast-11779345571889.html",
+      "archive_url": "https://web.archive.org/web/20260624061838/https://www.livemint.com/companies/elon-musk-hiring-engineers-for-spacexai-says-no-prior-ai-experience-needed-smart-humans-figure-it-out-fast-11779345571889.html",
+      "stored": {
+        "headline": "Elon Musk hiring engineers for SpaceXAI , says no prior AI experience needed :  Smart humans figure it out fast",
+        "company": "SpaceXAI",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "IN",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "85bbc9ee7ae315a761742b24dcd7c840",
+      "signal_id": "85bbc9ee7ae315a761742b24dcd7c840",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.elfinancierocr.com/negocios/empleo-costa-rica/ofertas-de-empleo/busca-una-nueva-oportunidad-laboral-grupo-purdy/XDU2FNORJ5AQNOUGGXFGUONDH4/story/",
+      "archive_url": "https://web.archive.org/web/20260905041511/https://www.elfinancierocr.com/negocios/empleo-costa-rica/ofertas-de-empleo/busca-una-nueva-oportunidad-laboral-grupo-purdy/XDU2FNORJ5AQNOUGGXFGUONDH4/story/",
+      "stored": {
+        "headline": "¿Busca una nueva oportunidad laboral? Grupo Purdy ofrecerá 60 puestos este sábado",
+        "company": "Grupo Purdy",
+        "funding_amount": "",
+        "headcount": 60,
+        "country": "CR",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "72da6d8c342fb6cf778b6efda812877c",
+      "signal_id": "72da6d8c342fb6cf778b6efda812877c",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://cafef.vn/ceo-vincons-tiet-lo-100000-cong-nhan-tuyen-moi-tu-vung-nong-thon-mien-nui-khong-lay-cua-doanh-nghiep-khac-188260904230206584.chn",
+      "archive_url": "https://web.archive.org/web/20260904212703/https://cafef.vn/ceo-vincons-tiet-lo-100000-cong-nhan-tuyen-moi-tu-vung-nong-thon-mien-nui-khong-lay-cua-doanh-nghiep-khac-188260904230206584.chn",
+      "stored": {
+        "headline": "CEO VinCons tiết lộ 100.000 công nhân tuyển mới từ vùng nông thôn, miền núi, không lấy của doanh nghiệp khác",
+        "company": "VinCons",
+        "funding_amount": "",
+        "headcount": 100000,
+        "country": "VN",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "a939eb1f442a5d39ee40650629ca45e9",
+      "signal_id": "a939eb1f442a5d39ee40650629ca45e9",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.liputan6.com/bisnis/read/8284528/sony-indonesia-buka-lowongan-kerja-untuk-lulusan-baru",
+      "archive_url": "https://web.archive.org/web/20260907040258/https://www.liputan6.com/bisnis/read/8284528/sony-indonesia-buka-lowongan-kerja-untuk-lulusan-baru",
+      "stored": {
+        "headline": "Sony Indonesia Buka Lowongan Kerja untuk Lulusan Baru",
+        "company": "PT Sony Indonesia",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "ID",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "898142ec05bd43dad40e6e1a3e7760ac",
+      "signal_id": "898142ec05bd43dad40e6e1a3e7760ac",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.businesstoday.com.my/2026/08/18/golden-destinations-sets-sights-on-east-malaysia-singapore-expansion/?utm_source=rss&utm_medium=rss&utm_campaign=golden-destinations-sets-sights-on-east-malaysia-singapore-expansion",
+      "archive_url": "",
+      "stored": {
+        "headline": "Golden Destinations Sets Sights On East Malaysia, Singapore Expansion",
+        "company": "Golden Destinations Group Bhd",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "MY",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "4c9b591b835e76745783b32a8bfc1509",
+      "signal_id": "4c9b591b835e76745783b32a8bfc1509",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "national_press",
+      "source_url": "https://www.khaleejtimes.com/business/dubais-parkin-in-talks-to-expand-operations-to-other-emirates-gcc-countries-says-ceo",
+      "archive_url": "https://web.archive.org/web/20260825100238/https://www.khaleejtimes.com/business/dubais-parkin-in-talks-to-expand-operations-to-other-emirates-gcc-countries-says-ceo",
+      "stored": {
+        "headline": "Dubai’s Parkin in talks to expand operations to other emirates, GCC countries, says CEO",
+        "company": "Parkin Company",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "AE",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "c6bc813920b4558c93677b9df7e5875d",
+      "signal_id": "c6bc813920b4558c93677b9df7e5875d",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.elboyaldia.cl/noticia/sociedad/postulaciones-abiertas-bhp-oferta-puestos-de-trabajo-en-sus-operaciones-del-norte-d",
+      "archive_url": "",
+      "stored": {
+        "headline": "Postulaciones abiertas: BHP oferta puestos de trabajo en sus operaciones del norte del país",
+        "company": "BHP",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "CL",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "06a3ef76006e2f1317b82cb21d0ead65",
+      "signal_id": "06a3ef76006e2f1317b82cb21d0ead65",
+      "region": "RoW",
+      "event_type": "working_practices",
+      "likely_non_english": true,
+      "collector": "press_archive",
+      "source_url": "https://algerie-eco.com/2026/01/06/lanpdp-recrute-des-controleurs-et-des-auditeurs/",
+      "archive_url": "",
+      "stored": {
+        "headline": "L'ANPDP recrute des contrôleurs et des auditeurs",
+        "company": "ANPDP",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "DZ",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "839174bd857e8564f9c57b4dcea70f25",
+      "signal_id": "839174bd857e8564f9c57b4dcea70f25",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.bizjournals.com/boston/news/2026/08/14/replimune-preps-commercial-launch.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Replimune rehires commercial team, secures $150M after FDA reversal on melanoma drug",
+        "company": "Replimune Group",
+        "funding_amount": "$150 million",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "hiring",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "d2dd27a608ceff6e8471e0922d13eaf7",
+      "signal_id": "d2dd27a608ceff6e8471e0922d13eaf7",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://dot.la/observable-space-90m-beyond-rockets-2676972318.html",
+      "archive_url": "https://web.archive.org/web/20260722204545/https://dot.la/observable-space-90m-beyond-rockets-2676972318.html",
+      "stored": {
+        "headline": "Observable Space Raises $90M to Build Beyond Rockets",
+        "company": "Observable Space",
+        "funding_amount": "$90M",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "babc37cdd9d86a1c844828fd6f7e6c09",
+      "signal_id": "babc37cdd9d86a1c844828fd6f7e6c09",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.bizjournals.com/phoenix/news/2026/08/14/miihealth-raises-seed-round.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Phoenix startup MiiHealth AI raises $2.8 million to scale patient intake agent",
+        "company": "MiiHealth AI",
+        "funding_amount": "$2.8 million",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "170f3d75254e0994e90d79c049823a66",
+      "signal_id": "170f3d75254e0994e90d79c049823a66",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.benzinga.com/markets/tech/26/03/51204702/rj-scaringe-says-hes-betting-on-industrial-robots-instead-of-ones-that-can-do-cartwheels-as-rivian-s",
+      "archive_url": "https://web.archive.org/web/20260313113858/https://www.benzinga.com/markets/tech/26/03/51204702/rj-scaringe-says-hes-betting-on-industrial-robots-instead-of-ones-that-can-do-cartwheels-as-rivian-s",
+      "stored": {
+        "headline": "RJ Scaringe Says He Betting On Industrial Robots Instead Of Ones That Can Do Cartwheels As Rivian Spinoff Secures $500 Million Funding",
+        "company": "Rivian Automotive",
+        "funding_amount": "$500 Million",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "d9012b19a5ef4264ae56724f8c2705f1",
+      "signal_id": "d9012b19a5ef4264ae56724f8c2705f1",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.alleywatch.com/2026/04/amperos-health-healthcare-billing-denial-revenue-cycle-insurance-claims-recovery-rcm-automation-michal-miernowski/",
+      "archive_url": "https://web.archive.org/web/20260513213222/https://www.alleywatch.com/2026/04/amperos-health-healthcare-billing-denial-revenue-cycle-insurance-claims-recovery-rcm-automation-michal-miernowski/",
+      "stored": {
+        "headline": "Amperos Health Raises $16M to Automate Insurance Denial Management for Healthcare Providers",
+        "company": "Amperos Health",
+        "funding_amount": "$16M",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "6e97fcfae6b761e4f827fd97753c8897",
+      "signal_id": "6e97fcfae6b761e4f827fd97753c8897",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://techcrunch.com/2026/03/19/bluesky-announces-100m-series-b-after-ceo-transition/",
+      "archive_url": "https://web.archive.org/web/20260723092150/https://techcrunch.com/2026/03/19/bluesky-announces-100m-series-b-after-ceo-transition/",
+      "stored": {
+        "headline": "Bluesky announces $100M Series B after CEO transition",
+        "company": "Bluesky",
+        "funding_amount": "$100M",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "3a50f7f77c6974f633315a573b1a30e6",
+      "signal_id": "3a50f7f77c6974f633315a573b1a30e6",
+      "region": "US",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.businessinsider.com/convey-raises-38-million-a16z-to-automate-repetitive-office-work-2026-6",
+      "archive_url": "https://web.archive.org/web/20260727030721/https://www.businessinsider.com/convey-raises-38-million-a16z-to-automate-repetitive-office-work-2026-6",
+      "stored": {
+        "headline": "Convey Raises $38 Million From A16z to Automate Repetitive Office Work",
+        "company": "Convey",
+        "funding_amount": "$38 Million",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "ae8ceb574ad2c4041e5fd3c0c9b8dcd4",
+      "signal_id": "ae8ceb574ad2c4041e5fd3c0c9b8dcd4",
+      "region": "US",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.thecourierexpress.com/tri_county_sunday/growing-with-purpose-jha-companies-opens-new-office-at-dubois-airport/article_a4e4e65e-5c11-44b5-b975-d2cff6b9793b.html",
+      "archive_url": "https://web.archive.org/web/20260726093301/https://www.thecourierexpress.com/tri_county_sunday/growing-with-purpose-jha-companies-opens-new-office-at-dubois-airport/article_a4e4e65e-5c11-44b5-b975-d2cff6b9793b.html",
+      "stored": {
+        "headline": "Growing with Purpose: JHA Companies opens new office at DuBois Airport",
+        "company": "JHA Companies",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "hiring",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "6bbc25185f14bed75327e837cff19fd2",
+      "signal_id": "6bbc25185f14bed75327e837cff19fd2",
+      "region": "US",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.prnewswire.com/news-releases/saltbox-accelerates-national-expansion-with-third-atlanta-location-chicago-market-entry-and-series-c-funding-led-by-packard-capital-302763539.html",
+      "archive_url": "https://web.archive.org/web/20260506130310/https://www.prnewswire.com/news-releases/saltbox-accelerates-national-expansion-with-third-atlanta-location-chicago-market-entry-and-series-c-funding-led-by-packard-capital-302763539.html",
+      "stored": {
+        "headline": "Saltbox Accelerates National Expansion with Third Atlanta Location, Chicago Market Entry, and Series C Funding Led by Packard Capital",
+        "company": "Saltbox",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "ccf831cb2f1a5640e7ec471ff1f10eab",
+      "signal_id": "ccf831cb2f1a5640e7ec471ff1f10eab",
+      "region": "US",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.news-medical.net/news/20260112/OutSee-completes-seed-funding-round-and-establishes-partnership-with-o2h-discovery-for-lead-drug-target-candidate.aspx",
+      "archive_url": "https://web.archive.org/web/20260218094230/https://www.news-medical.net/news/20260112/OutSee-completes-seed-funding-round-and-establishes-partnership-with-o2h-discovery-for-lead-drug-target-candidate.aspx",
+      "stored": {
+        "headline": "OutSee completes seed funding round and establishes partnership with o2h discovery for lead drug target candidate",
+        "company": "OutSee",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "592cebe8b3356ec3efbc2d770c08d3ac",
+      "signal_id": "592cebe8b3356ec3efbc2d770c08d3ac",
+      "region": "US",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.trendingtopics.eu/dynatrace-arize/",
+      "archive_url": "https://web.archive.org/web/20260814043257/https://www.trendingtopics.eu/dynatrace-arize/",
+      "stored": {
+        "headline": "Dynatrace Buys US Startup Arize for $915 Million to Strengthen Its Position in the AI Race",
+        "company": "Dynatrace",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "0f0e6b20241740bf835c6c6fa8dc4ad3",
+      "signal_id": "0f0e6b20241740bf835c6c6fa8dc4ad3",
+      "region": "US",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://braziljournal.com/o-economics-do-nubank-nos-eua/",
+      "archive_url": "https://web.archive.org/web/20260911165228/https://braziljournal.com/o-economics-do-nubank-nos-eua/",
+      "stored": {
+        "headline": "O economics do Nubank nos EUA",
+        "company": "Nubank",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "be95192c6aaa8b5f7688ebcaafa5d45c",
+      "signal_id": "be95192c6aaa8b5f7688ebcaafa5d45c",
+      "region": "US",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.bizjournals.com/austin/news/2026/08/12/solar-tech-firm-leases-buda-space-ipo-sunscout.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "SunScout prices $15.5M IPO as it expands U.S. operations to the Austin area",
+        "company": "SunScout Holding Limited",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "39c42e5ffd29c5b225f1f3d1dca83d2d",
+      "signal_id": "39c42e5ffd29c5b225f1f3d1dca83d2d",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.bizjournals.com/boston/news/2026/08/17/realtime-robotics-new-ceo.html",
+      "archive_url": "https://web.archive.org/web/20260817181537/https://www.bizjournals.com/boston/news/2026/08/17/realtime-robotics-new-ceo.html",
+      "stored": {
+        "headline": "New Realtime Robotics CEO wants to build the 'factory of the future'",
+        "company": "Realtime Robotics",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "91fecf793487e828e13436c8a4d1945c",
+      "signal_id": "91fecf793487e828e13436c8a4d1945c",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://hvilleblast.com/huntsville-airport-ceo-retirement-butch-roberts/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Huntsville airport names new CEO after retirement of Butch Roberts",
+        "company": "Huntsville airport",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "9b15aec8508fe74cf24b9498d6f41237",
+      "signal_id": "9b15aec8508fe74cf24b9498d6f41237",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.executivebiz.com/articles/robert-geckle-ceo-thales-usa-north-america",
+      "archive_url": "https://web.archive.org/web/20260625084517/https://www.executivebiz.com/articles/robert-geckle-ceo-thales-usa-north-america",
+      "stored": {
+        "headline": "Robert Geckle Named CEO of Thales united states , Thales North America",
+        "company": "Thales North America",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "30a351c4f11401c701587b3444844cfa",
+      "signal_id": "30a351c4f11401c701587b3444844cfa",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.cultofmac.com/apple-history/john-sculley-steps-down-as-apple-ceo",
+      "archive_url": "https://web.archive.org/web/20260723134432/https://www.cultofmac.com/apple-history/john-sculley-steps-down-as-apple-ceo",
+      "stored": {
+        "headline": "John Sculley steps down as Apple CEO : Today in Apple history",
+        "company": "Apple",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "86bb1d39ed42a71c8467255c977cfa1d",
+      "signal_id": "86bb1d39ed42a71c8467255c977cfa1d",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.pilotonline.com/2026/07/31/virginia-beach-spca-ceo/",
+      "archive_url": "https://web.archive.org/web/20260731161631/https://www.pilotonline.com/2026/07/31/virginia-beach-spca-ceo/",
+      "stored": {
+        "headline": "Virginia Beach SPCA names bank executive as new CEO",
+        "company": "Virginia Beach SPCA",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "35d48083e93b2787c2ae2439ac0b9fce",
+      "signal_id": "35d48083e93b2787c2ae2439ac0b9fce",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.kait8.com/2026/04/11/mississippi-county-hospital-system-names-new-ceo/",
+      "archive_url": "https://web.archive.org/web/20260413030314/https://www.kait8.com/2026/04/11/mississippi-county-hospital-system-names-new-ceo/",
+      "stored": {
+        "headline": "Mississippi County Hospital System names new CEO",
+        "company": "Mississippi County Hospital System",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "a8315966738adb5138eee2ecefec4fdf",
+      "signal_id": "a8315966738adb5138eee2ecefec4fdf",
+      "region": "US",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.bizjournals.com/austin/news/2026/08/12/masonwood-development-transition-housing-executive.html",
+      "archive_url": "",
+      "stored": {
+        "headline": "Longtime local developer aiming for expansion after leadership shakeup",
+        "company": "Masonwood Development",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "775f39ce8d72a6190c02dcd691ef4b64",
+      "signal_id": "775f39ce8d72a6190c02dcd691ef4b64",
+      "region": "US",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.local10.com/news/florida/2026/07/31/florida-department-of-corrections-expands-hiring-incentives-for-correctional-officers/",
+      "archive_url": "https://web.archive.org/web/20260731190036/https://www.local10.com/news/florida/2026/07/31/florida-department-of-corrections-expands-hiring-incentives-for-correctional-officers/",
+      "stored": {
+        "headline": "Florida Department of Corrections expands hiring incentives for correctional officers",
+        "company": "Florida Department of Corrections",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "f2f627f1fbc29e635043a34eb1bef24c",
+      "signal_id": "f2f627f1fbc29e635043a34eb1bef24c",
+      "region": "US",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.lefigaro.fr/societes/ce-n-est-plus-une-affaire-privee-mais-une-charge-collective-bank-of-america-depense-250-millions-pour-les-traitements-anti-obesite-de-ses-salaries-20260818",
+      "archive_url": "https://web.archive.org/web/20260819022310/https://www.lefigaro.fr/societes/ce-n-est-plus-une-affaire-privee-mais-une-charge-collective-bank-of-america-depense-250-millions-pour-les-traitements-anti-obesite-de-ses-salaries-20260818",
+      "stored": {
+        "headline": "Bank of America dépense 250 millions pour les traitements anti-obésité de ses salariés",
+        "company": "Bank of America",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "09fb11142478e9634b00c15218ae5aad",
+      "signal_id": "09fb11142478e9634b00c15218ae5aad",
+      "region": "US",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.medicaldaily.com/atrium-health-executive-pay-2025-wakemed-deal-prices-478569",
+      "archive_url": "https://web.archive.org/web/20260912050930/https://www.medicaldaily.com/atrium-health-executive-pay-2025-wakemed-deal-prices-478569",
+      "stored": {
+        "headline": "Atrium Health Executive Pay Rose an Average of 21 Percent as a Proposed WakeMed Deal Raises Price Questions",
+        "company": "Atrium Health",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "50ffb1980ca9e8564b9d883b867fea05",
+      "signal_id": "50ffb1980ca9e8564b9d883b867fea05",
+      "region": "US",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://bleedingcool.com/comics/dark-horse-comics-decides-to-voluntarily-recognise-employee-union/",
+      "archive_url": "https://web.archive.org/web/20260707193817/https://bleedingcool.com/comics/dark-horse-comics-decides-to-voluntarily-recognise-employee-union/",
+      "stored": {
+        "headline": "Dark Horse Comics Decides To Voluntarily Recognise Employee Union",
+        "company": "Dark Horse Comics",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "b3ae701731b8dc027b234924d8f68f67",
+      "signal_id": "b3ae701731b8dc027b234924d8f68f67",
+      "region": "US",
+      "event_type": "pay",
+      "likely_non_english": false,
+      "collector": "national_press",
+      "source_url": "https://www.manilatimes.net/2026/08/23/business/boeing-workers-reject-contract-offer/2410314",
+      "archive_url": "https://web.archive.org/web/20260823031215/https://www.manilatimes.net/2026/08/23/business/boeing-workers-reject-contract-offer/2410314",
+      "stored": {
+        "headline": "Boeing workers reject contract offer",
+        "company": "Boeing",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "comp_shift",
+        "pillar": "rewards_comp"
+      }
+    },
+    {
+      "content_hash": "f75291f7aa981bbc6cb7e933b66a5e6c",
+      "signal_id": "f75291f7aa981bbc6cb7e933b66a5e6c",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://itbrief.news/story/sift-names-co-founder-ceo-opens-san-francisco-office",
+      "archive_url": "https://web.archive.org/web/20260606021754/https://itbrief.news/story/sift-names-co-founder-ceo-opens-san-francisco-office",
+      "stored": {
+        "headline": "Sift names co-founder CEO & opens San Francisco office",
+        "company": "Sift",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "11be172b912f4c76857f3687aea61013",
+      "signal_id": "11be172b912f4c76857f3687aea61013",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.reviewjournal.com/local/henderson/something-new-is-happening-officials-break-ground-on-new-community-ambulance-hq-in-henderson-3796991/",
+      "archive_url": "https://web.archive.org/web/20260506021200/https://www.reviewjournal.com/local/henderson/something-new-is-happening-officials-break-ground-on-new-community-ambulance-hq-in-henderson-3796991/",
+      "stored": {
+        "headline": "Officials break ground on Community Ambulance campus in Henderson",
+        "company": "Community Ambulance",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "faee5d057112b14c7846501a5fc8db0d",
+      "signal_id": "faee5d057112b14c7846501a5fc8db0d",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://dced.pa.gov/newsroom/creating-jobs-in-york-county-governor-shapiro-secures-2-1-million-investment-from-gerard-daniel-worldwide-to-expand-manufacturing-operations-creating-35-new-jobs/",
+      "archive_url": "https://web.archive.org/web/20260827161707/https://dced.pa.gov/newsroom/creating-jobs-in-york-county-governor-shapiro-secures-2-1-million-investment-from-gerard-daniel-worldwide-to-expand-manufacturing-operations-creating-35-new-jobs/",
+      "stored": {
+        "headline": "Creating Jobs in York County: Governor Shapiro Secures $2.1 Million Investment from Gerard Daniel Worldwide to Expand Manufacturing Operations, Creating 35 New Jobs",
+        "company": "Gerard Daniel Worldwide",
+        "funding_amount": "$2.1 Million",
+        "headcount": 35,
+        "country": "US",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "ca4a2a867c56dfc4a859cc594e89a3a0",
+      "signal_id": "ca4a2a867c56dfc4a859cc594e89a3a0",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://longisland.news12.com/2026/09/09/newarks-first-chick-fil-a-expected-to-open-this-fall-hiring-up-to-80-workers/2YrFiIsRy4j2WnKekB0JBB",
+      "archive_url": "",
+      "stored": {
+        "headline": "Newark's First Chick Fil A Expected To Open This Fall Hiring Up To 80 Workers",
+        "company": "Chick Fil A",
+        "funding_amount": "",
+        "headcount": 80,
+        "country": "US",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "781c11c0bc3beb85d87cebdadb1ee547",
+      "signal_id": "781c11c0bc3beb85d87cebdadb1ee547",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.washingtontimes.com/multimedia/image/ap_immigration_ice_hiring_spree_42114jpg/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Immigration ICE Hiring Spree",
+        "company": "Immigration ICE",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "6f7e71b3fcafc913851849f0c8913fc9",
+      "signal_id": "6f7e71b3fcafc913851849f0c8913fc9",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://communityimpact.com/austin/san-marcos-buda-kyle/development/2026/01/02/perseus-defense-names-buda-as-location-for-new-headquarters/",
+      "archive_url": "https://web.archive.org/web/20260114064928/https://communityimpact.com/austin/san-marcos-buda-kyle/development/2026/01/02/perseus-defense-names-buda-as-location-for-new-headquarters/",
+      "stored": {
+        "headline": "Perseus Defense names Buda as location for new headquarters",
+        "company": "Perseus Defense",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "US",
+        "signal_direction": "neutral",
+        "pillar": "how_we_work"
+      }
+    },
+    {
+      "content_hash": "99aeee5e6ae87a482e67bfb6f08b36de",
+      "signal_id": "99aeee5e6ae87a482e67bfb6f08b36de",
+      "region": "US",
+      "event_type": "working_practices",
+      "likely_non_english": false,
+      "collector": "gdelt",
+      "source_url": "https://www.insurancebusinessmag.com/us/news/technology/thrivent-to-hire-600-new-advisors-in-2026-568447.aspx",
+      "archive_url": "",
+      "stored": {
+        "headline": "Thrivent to hire 600 new advisors in 2026",
+        "company": "Thrivent",
+        "funding_amount": "",
+        "headcount": 600,
+        "country": "US",
+        "signal_direction": "hiring",
+        "pillar": "how_we_work"
+      }
+    }
+  ]
+}

@@ -63,6 +63,7 @@ on:
       - correct-sec-filer-name
       - correct-sec-pillar
       - enrich
+      - extraction-benchmark
       - link-check
       - place-unplaced
       - recall

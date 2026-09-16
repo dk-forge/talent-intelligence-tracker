@@ -1,0 +1,150 @@
+name: extraction-benchmark
+
+# Grade production extraction against the BODIES of the articles it read, on the
+# committed stratified sample (analysis/extraction/sample-*.json). See
+# measure_extraction.py: two referees from different vendors, agreement only,
+# UNKNOWN for anything they do not settle, parse failures counted apart.
+#
+# WHY A WORKFLOW. The checkout that wrote this holds no OPENROUTER_API_KEY, and
+# the sibling tracker's key charges the sibling's pot. This runs on this
+# repository's own key, meters through classify._call like every other paid read
+# here, files a priced source_health row (`extraction_benchmark`, discretionary)
+# and commits the result file with the database.
+#
+# WHY IT HOLDS THE WRITER LOCK. `--health` writes a row to
+# data/talent_intel.db, so it merges its rows back like every other writer and
+# shares `talent-collect`. That membership is also what lets it be QUEUED —
+# `writer_queue.enqueue` refuses a workflow outside the lock group. Queue it,
+# never dispatch it directly:
+#
+#   gh workflow run drain-writers.yml -f enqueue=extraction-benchmark.yml \
+#     -f inputs_json='{"ceiling":"2.00"}' -f reason='measure extraction accuracy'
+#
+# PRICE BEFORE, RECORD AFTER. `--grade` prints the live estimate before the
+# first request and REFUSES a run whose estimate is past the ceiling. Measured
+# 2026-09-16 at the drawn 200: $1.43 (claude-haiku-4.5 + gpt-5-mini). The hard
+# bar in the program is $6.00 of the owner's one-time $20.00 grant; the month's
+# switch (TIT_PAID_READS) is read before every request regardless.
+#
+# THIS MEASURES AND MOVES NOTHING. No model swap follows from a run of this
+# workflow on its own.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ceiling:
+        description: 'Spend ceiling for this run, USD (hard bar 6.00)'
+        type: string
+        default: '2.00'
+      sample:
+        description: 'Sample file to grade (default: the newest committed one)'
+        type: string
+        default: ''
+      limit:
+        description: 'Grade only the first N rows (a smoke run; 0 = all)'
+        type: string
+        default: '0'
+
+permissions:
+  contents: write
+
+env:
+  # Which pot pays. A measurement is not a scheduled collector.
+  TIT_RUN_KIND: discretionary
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db.
+  group: talent-collect
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    # 200 bodies to fetch and two short calls each. Well under
+    # writer_queue.LONG_HOLD_MINUTES: a measurement must not starve the queue.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # Forward work is funded first: a discretionary run asks the month's
+      # switch before it can take any headroom. Degrade, never halt — a spent
+      # month makes every referee call a BudgetStop, which is UNDECIDED, leaves
+      # the rows ungraded, and is not a red run.
+      - name: Spend guard (degrade, never halt)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
+      - name: Grade the sample against the bodies
+        id: measure
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CEILING: ${{ inputs.ceiling }}
+          SAMPLE: ${{ inputs.sample }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          set -o pipefail
+          ARGS=(--grade --health --ceiling "${CEILING:-2.00}")
+          if [ -n "${SAMPLE}" ]; then ARGS+=(--sample "${SAMPLE}"); fi
+          if [ -n "${LIMIT}" ] && [ "${LIMIT}" != "0" ]; then ARGS+=(--limit "${LIMIT}"); fi
+          # Exit 2 is "a stratum judged nothing", which is an incomplete
+          # measurement and not a failed run. The result is committed first,
+          # below, and the last step turns 2 into a red run so a human reads it.
+          RC=0
+          python measure_extraction.py "${ARGS[@]}" || RC=$?
+          if [ "$RC" != "0" ] && [ "$RC" != "2" ]; then exit "$RC"; fi
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+
+      - name: Commit the result and the health row
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE the health row into the remote's database, never copy our file
+          # over the top of it: a collect run that pushed while this one was
+          # fetching 200 articles would lose everything it stored.
+          cp data/talent_intel.db "$RUNNER_TEMP/measured.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/measured_cache.db"
+          mkdir -p "$RUNNER_TEMP/results"
+          cp analysis/extraction/result-*.json "$RUNNER_TEMP/results/" 2>/dev/null || true
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/measured.db" data/talent_intel.db
+            mkdir -p analysis/extraction
+            cp "$RUNNER_TEMP"/results/*.json analysis/extraction/ 2>/dev/null || true
+            git add data/talent_intel.db data/talent_intel_cache.db analysis/extraction
+            if git diff --staged --quiet; then
+              echo "No change to commit."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "measure: extraction accuracy against the bodies $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt); merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" = "1" ]; then
+            exit 0
+          fi
+          # The money was spent and the numbers are in this run's log and
+          # nowhere else. Loud, because nothing else would say so.
+          echo "::error::could not push after 5 attempts; the measurement is in this log only"
+          exit 1
+
+      - name: A human reads it
+        if: ${{ steps.measure.outputs.rc == '2' }}
+        run: |
+          echo "::error::At least one stratum judged nothing, so the measurement"
+          echo "::error::is incomplete. Read analysis/extraction/result-*.json:"
+          echo "::error::an UNKNOWN is not a pass and not a failure."
+          exit 1

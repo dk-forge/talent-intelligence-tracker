@@ -46,6 +46,11 @@ _NOT_SOURCES = {
     # so the spend is in the ledger; it stores nothing new and cites nothing
     # of its own.
     "adjudicate_rows": "adjudicates rows we already hold against their own sources",
+    # Two referees re-reading the BODIES behind rows we already hold
+    # (measure_extraction.py, extraction-benchmark.yml). It grades what
+    # extraction got right, stores no row and cites nothing of its own;
+    # its health row carries the spend and nothing else.
+    "extraction_benchmark": "grades the extraction of rows we already hold",
     "sec_form_d_bulk": "backfills SEC EDGAR Form D, which is listed",
     # It asks a model what we are missing and emits a WORK LIST. Every field it
     # returns is prefixed `claimed_` and dies there; a lead becomes a record

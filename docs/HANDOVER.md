@@ -2,6 +2,84 @@
 
 ---
 
+## 2026-09-16: extraction is measured against the ARTICLE BODIES for the first time; harness and 200-row sample landed, the paid run is queued and not yet run (branch `measure/extraction-benchmark`)
+
+Three measurements existed here and none of them asked this question.
+`measure_recall.py` asks what we missed. `ab_models.py` scores a challenger's
+AGREEMENT with the incumbent, which is blind when both are wrong. The gate gold
+set grades one yes/no question on 75 English items. Nothing graded the fields we
+publish. `measure_extraction.py` does: the six fields a record IS - company, the
+amount, the headcount, the country, the direction and the event type - against
+the body of the article each row came from.
+
+**How the sample was drawn** (`analysis/extraction/sample-2026-09-16.json`,
+committed, reproducible from seed `extraction-2026-09-16`):
+
+- **Frame:** the 8,268 current signals from the LLM extraction path
+  (google_news, gdelt, national_press, press_archive, primary_chase,
+  tripwire_chase) that carry a fetchable source URL. The structured collectors
+  are excluded by name: grading a deterministic filing parser would be a
+  measurement of something else under this heading.
+- **Strata:** region x event type, 15 cells, floor of 5 per cell, otherwise
+  proportional to the frame. US 32 / Europe 60 / RoW 108; funding 45, hiring 31,
+  leadership 70, pay 17, working practices 37.
+- **Multilingual:** the language mix is held INSIDE each cell, not globally - a
+  global floor is satisfied by emptying one cell's foreign-language pool. 94 of
+  200 are non-English by the draw-time proxy and 18 are in a non-Latin script.
+  The proxy is coarse (non-Latin script, or a non-anglophone publisher); the
+  MEASURED language of each body comes back from the referees and is reported
+  beside it. Do not quote the proxy as the language finding.
+- **Region is a proxy too, and it has to be:** it is read off the row's own
+  stored country, which is one of the fields under measurement. A row filed in
+  the wrong country sits in the wrong cell, and the graded country field is
+  where that would show up.
+
+**How a field is graded.** The owner's 2026-09-11 rule, unchanged: two referees
+from different vendors, agreement only. Both correct is CORRECT; both wrong is
+WRONG; a disagreement, a "this source does not settle it", or a referee that
+gave no usable answer is UNKNOWN with the reason recorded. **The denominator is
+correct + wrong alone.** An UNKNOWN is never a pass and never a failure, and a
+PARSE FAILURE is counted apart from a wrong answer and can never reach a
+denominator - the sibling stored 33 of 90 truncated, code-fenced answers as
+rejections and measured a model on them.
+
+Bodies are not stored (`signals` has no `raw_text`), so they are fetched at
+grading time through `adjudicate_guardrail.fetch_evidence`: archived copy, then
+publisher, then Wayback, and a read under the thin-read floor is refused rather
+than guessed from. A row whose body cannot be read is UNKNOWN for all six fields
+and spends NOTHING - the fetch happens before either referee is asked. A free
+12-row probe on 2026-09-16 read 11 (one 403 from a publisher), across Japanese,
+Arabic, Spanish, Swedish, French and English.
+
+**THE MEASUREMENT HAS NOT RUN. The numbers are not in yet.** The paid run needs
+`OPENROUTER_API_KEY`, which lives in Actions, and a new `workflow_dispatch`
+workflow is not dispatchable until its file is on main. So the order is: merge
+this branch, then queue the run - never dispatch it directly, it holds the
+writer lock:
+
+```bash
+gh workflow run drain-writers.yml -f enqueue=extraction-benchmark.yml \
+  -f inputs_json='{"ceiling":"2.00"}' -f reason='measure extraction accuracy against the bodies'
+```
+
+**Priced before it runs, as required.** DISCRETIONARY, against the owner's
+one-time $20.00 grant. 200 items at 14,819 prompt characters each is **$1.43**
+(claude-haiku-4.5 $1.10 + gpt-5-mini $0.34), read from the live OpenRouter price
+list at estimate time. The run REFUSES to start if the live estimate is past its
+ceiling; `CEILING_MAX_USD = 6.00` is a hard bar the program will not take an
+argument past, and is asserted against the committed grant by a test. A budget
+stop is UNDECIDED, leaves rows ungraded and is not a red run.
+
+**When the run lands**, `analysis/extraction/result-<date>.json` carries the
+per-field accuracy with 95% Wilson intervals, the same table by region and by
+event type, the unknowns by reason, the parse failures by model and the measured
+language mix. A stratum that judged nothing exits 2 and reds the workflow, so an
+incomplete measurement is read rather than rounded to a pass. **Write the
+numbers into this file in the same session the run lands.**
+
+**This measures and moves nothing.** No model swap follows from it. If the
+answer is poor, the next step is a decision the owner takes on the numbers.
+
 ## 2026-09-14: a deterministic contradiction audit over every published money row; 2 stale verdicts and 11 wrong figures found, both corrections queued through the machinery (branch `fix/money-basis-contradiction-audit`)
 
 `correct_money_basis.py --check` was one question: is any figure unjudged?
