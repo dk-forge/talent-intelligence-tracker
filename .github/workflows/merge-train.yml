@@ -66,6 +66,21 @@ jobs:
           fetch-depth: 0
 
       - name: Prove the tools exist
+        env:
+          # `gh auth status` READS this. Without it the step asks a logged-out
+          # CLI whether it is logged in, and on the Contabo runner nothing has
+          # ever run `gh auth login`, so this step fails and the train never
+          # reaches the code that judges a pull request. Measured, not feared:
+          # the identical YAML in the sibling ai-layoff-tracker died here on
+          # its first dispatch with "You are not logged into any GitHub hosts".
+          #
+          # Invisible on a hosted runner, which is why it shipped: the gh in
+          # the GitHub image picks up a token the runner already exports. A
+          # workflow that only runs on our own box cannot rely on that.
+          #
+          # Same expression as the run step below, so the preflight exercises
+          # the credential the train will actually use.
+          GH_TOKEN: ${{ secrets.MERGE_TRAIN_TOKEN || github.token }}
         run: |
           set -euo pipefail
           python3 --version

@@ -711,3 +711,116 @@ def test_the_cache_file_is_committed_not_ignored():
     assert result.returncode != 0, (
         f"{CACHE_FILE} is gitignored. It is half of the database, not scratch."
     )
+
+
+# ---------------------------------------------------------------------------
+# A step that runs `gh` must have a token in its own environment.
+#
+# WRITTEN FROM A LIVE FAILURE, 2026-09-16. The merge train landed here (#161)
+# and in the sibling ai-layoff-tracker with the same YAML. The sibling's first
+# dispatch died in its second step:
+#
+#     gh version 2.100.0 (2026-09-03)
+#     You are not logged into any GitHub hosts. To log in, run: gh auth login
+#     ##[error]Process completed with exit code 1.
+#
+# `Prove the tools exist` ran `gh auth status` while carrying no GH_TOKEN; the
+# token was set only on the later step that does the work, and env lookup in
+# Actions is per step. The preflight asked a logged-out CLI whether it was
+# logged in. Every scheduled tick would have failed identically, so this repo's
+# train was dead on arrival too and nothing said so.
+#
+# WHY IT SHIPPED: the failure is invisible on a hosted runner, whose `gh` picks
+# up a token the runner already exports. The train runs on the Contabo box,
+# where nothing has ever run `gh auth login`.
+# ---------------------------------------------------------------------------
+
+import re as _re
+
+#: `gh` as a command, not as a substring. Guards against `highlight`,
+#: `weigh.py`, `gherkin-runner`.
+_GH_COMMAND = _re.compile(r"(?m)(?:^|[|&;(\s])gh\s")
+
+#: Any of these in scope means `gh` can authenticate.
+_TOKEN_KEYS = ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN")
+
+
+def _has_token(*envs):
+    return any(key in (env or {}) for env in envs for key in _TOKEN_KEYS)
+
+
+#: Lines that merely PRINT the word. Two live workflows tell a human what to
+#: run next with `echo "::error::  gh workflow run drain-writers.yml"`, which is
+#: instructional text and not an invocation. Scanning the whole `run:` block
+#: flagged both, and a guard that cries wolf on a correct file gets deleted.
+#: Narrow on purpose: only echo and printf, only when they START the command.
+_PRINTS_IT = _re.compile(r"^\s*(?:echo|printf)\b")
+
+
+def _invokes_gh(run):
+    """True when a line RUNS gh, rather than printing the word."""
+    for line in (run or "").splitlines():
+        if _PRINTS_IT.match(line) or line.lstrip().startswith("#"):
+            continue
+        if _GH_COMMAND.search(line):
+            return True
+    return False
+
+
+@pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
+def test_every_step_that_runs_gh_can_authenticate(path):
+    """Step, job and workflow `env` all count; Actions inherits those.
+
+    A sibling step's does not, which is the whole defect.
+    """
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    workflow_env = doc.get("env") or {}
+    offenders = []
+    for job_name, job in (doc.get("jobs") or {}).items():
+        if not isinstance(job, dict):
+            continue
+        job_env = job.get("env") or {}
+        for step in job.get("steps") or []:
+            if not isinstance(step, dict):
+                continue
+            run = step.get("run")
+            if not run or not _invokes_gh(run):
+                continue
+            if _has_token(step.get("env"), job_env, workflow_env):
+                continue
+            offenders.append(
+                "%s :: %s" % (job_name,
+                              step.get("name") or step.get("id") or "<unnamed>"))
+    assert not offenders, (
+        "%s: these steps invoke gh with no token in scope, so gh runs "
+        "unauthenticated and `gh auth status` fails outright on a self-hosted "
+        "runner: %s" % (path.name, offenders))
+
+
+def test_the_gh_token_detector_sees_the_defect_it_was_written_for():
+    """A guard that cannot fail is not a guard."""
+    step = {"name": "preflight", "run": "set -e\ngh auth status >/dev/null"}
+    assert _invokes_gh(step["run"])
+    assert not _has_token(step.get("env"), {}, {})
+    assert _has_token({"GH_TOKEN": "x"}, {}, {})
+
+
+@pytest.mark.parametrize(
+    "run", ["echo highlight", "python3 weigh.py", "./gherkin-runner", "echo 'ugh'"])
+def test_the_gh_detector_ignores_a_word_merely_containing_gh(run):
+    assert not _invokes_gh(run)
+
+
+@pytest.mark.parametrize("run", [
+    'echo "::error::  gh workflow run drain-writers.yml"',
+    "printf 'run: gh pr list\\n'",
+    "  # gh auth status",
+])
+def test_the_gh_detector_ignores_a_line_that_only_prints_the_command(run):
+    """Two live workflows tell a human what to run next. That is text."""
+    assert not _invokes_gh(run)
+
+
+def test_the_gh_detector_still_fires_when_a_real_call_follows_a_printed_one():
+    """The narrow exclusion must not blind the whole block."""
+    assert _invokes_gh('echo "try: gh pr list"\ngh pr merge 1 --squash')
