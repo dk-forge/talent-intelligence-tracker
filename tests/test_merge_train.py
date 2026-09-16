@@ -23,6 +23,10 @@ The mutations that were run, and what failed:
   the cap comparison flipped to `>`               -> test_it_stops_at_the_attempt_cap
   unstick moved above the merge loop              -> test_it_never_unsticks_and_merges_in_one_run
   the `status != completed` guard removed         -> test_it_never_reruns_an_in_flight_job
+  the run-level in-flight guard removed           -> test_it_never_reruns_an_in_flight_job
+  `failure` made re-runnable                      -> test_a_failing_assertion_is_never_re_run
+  the mechanical-allowlist path rule deleted      -> test_it_refuses_a_path_outside_the_mechanical_allowlist
+  glob patterns stop matching in path_matches     -> test_a_glob_forbidden_pattern_is_honoured
 
 No test here opens a socket or shells out to git or gh: the client is a fake.
 """
@@ -444,6 +448,27 @@ class TheUnstickGuardRails(_Quiet):
         refusals = mt.inspect_diff(diff, cfg(),
                                    allowed_paths=["railway/"])
         self.assertTrue(any("forbidden" in r for r in refusals), refusals)
+
+    def test_a_glob_forbidden_pattern_is_honoured(self):
+        """The sandbox's healer spells its FORBIDDEN list with globs
+        (`supabase/migrations/*`). Reading those as literal prefixes would
+        match nothing at all, which is a guard that silently does not guard."""
+        c = cfg(forbidden_paths=["supabase/migrations/*", "migrations/*",
+                                 ".github/*"])
+        for path in ("supabase/migrations/0001_init.sql",
+                     "migrations/20260916_add.sql",
+                     ".github/workflows/deploy.yml"):
+            with self.subTest(path):
+                diff = f"--- a/{path}\n+++ b/{path}\n@@\n+x\n"
+                self.assertTrue(any("forbidden" in r for r in
+                                    mt.inspect_diff(diff, c, allowed_paths=[path])),
+                                path)
+
+    def test_a_directory_prefix_does_not_match_a_sibling(self):
+        """`data/` must not swallow `database.py`."""
+        self.assertTrue(mt.path_matches("data/rows.json", "data/"))
+        self.assertFalse(mt.path_matches("database.py", "data"))
+        self.assertTrue(mt.path_matches("data", "data"))
 
     def test_a_clean_mechanical_diff_is_accepted(self):
         """The guard has to let the legitimate case through, or it is just a

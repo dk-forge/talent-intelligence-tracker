@@ -74,6 +74,7 @@ import os
 import re
 import subprocess
 import sys
+from fnmatch import fnmatch
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -408,6 +409,27 @@ _NUM = re.compile(r"-?\d+(?:\.\d+)?")
 _ASSERT = re.compile(r"(?i)\b(assert\w*|expect|self\.assert\w+|should\b)")
 
 
+
+def path_matches(path: str, pattern: str) -> bool:
+    """Does `path` fall under `pattern`?
+
+    Three spellings, because the two repos that already keep a FORBIDDEN list
+    write them differently and this must honour BOTH without either being
+    rewritten: an exact path, a directory prefix ending in `/`, and a glob
+    (`supabase/migrations/*`, which is how the sandbox's healer spells it).
+    """
+    if not pattern:
+        return False
+    if "*" in pattern or "?" in pattern:
+        stem = pattern.rstrip("*").rstrip("/")
+        return fnmatch(path, pattern) or (bool(stem) and (path == stem or path.startswith(stem + "/")))
+    return path == pattern or path.startswith(pattern if pattern.endswith("/") else pattern + "/")
+
+
+def any_match(path: str, patterns: Sequence[str]) -> bool:
+    return any(path_matches(path, p) for p in patterns)
+
+
 def _diff_files(diff_text: str) -> list[str]:
     return re.findall(r"^\+\+\+ b/(.+)$", diff_text, re.MULTILINE)
 
@@ -426,13 +448,10 @@ def inspect_diff(diff_text: str,
     allowed = tuple(allowed_paths) if allowed_paths is not None else cfg.mechanical_paths
 
     for path in _diff_files(diff_text):
-        for bad in cfg.forbidden_paths:
-            if path == bad or path.startswith(bad):
-                refusals.append(f"touches a forbidden path: {path}")
-                break
-        else:
-            if allowed and not any(path == a or path.startswith(a) for a in allowed):
-                refusals.append(f"touches a path outside the mechanical allowlist: {path}")
+        if any_match(path, cfg.forbidden_paths):
+            refusals.append(f"touches a forbidden path: {path}")
+        elif allowed and not any_match(path, allowed):
+            refusals.append(f"touches a path outside the mechanical allowlist: {path}")
 
     removed = [l[1:] for l in diff_text.splitlines()
                if l.startswith("-") and not l.startswith("---")]
@@ -487,12 +506,12 @@ def conflict_plan(conflicted: Sequence[str], cfg: Config) -> tuple[dict[str, str
     plan: dict[str, str] = {}
     escalate: list[str] = []
     for path in conflicted:
-        if any(path == p or path.startswith(p) for p in cfg.forbidden_paths):
+        if any_match(path, cfg.forbidden_paths):
             escalate.append(f"{path} (forbidden)")
             continue
-        if any(path == p or path.startswith(p) for p in cfg.mechanical_take_main):
+        if any_match(path, cfg.mechanical_take_main):
             plan[path] = "take-main"
-        elif any(path == p or path.startswith(p) for p in cfg.mechanical_keep_both):
+        elif any_match(path, cfg.mechanical_keep_both):
             plan[path] = "keep-both"
         else:
             escalate.append(path)
@@ -1011,8 +1030,7 @@ def _try_rebase(client: GitHubClient, cfg: Config, pr: dict, rep: Report, *,
     after_files = set(_changed_files(root, "origin/main", "HEAD"))
     new_paths = sorted(after_files - before_files)
     allowed = cfg.mechanical_paths
-    stray = [p for p in new_paths
-             if not any(p == a or p.startswith(a) for a in allowed)]
+    stray = [p for p in new_paths if not any_match(p, allowed)]
     if stray:
         _run(["git", "rebase", "--abort"], cwd=root, check=False)
         _escalate(client, cfg, number, rep,
