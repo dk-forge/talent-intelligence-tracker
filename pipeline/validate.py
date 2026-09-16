@@ -175,6 +175,30 @@ _BLOCKED_SOURCE_HOSTS = frozenset({
 # import is deferred into the function below so that `pipeline` does not take a
 # module-import dependency on `collectors`, which is the wrong direction.
 _BLOCKED_SOURCE_DOMAINS_CACHE: frozenset[str] | None = None
+_BLOCKED_SOURCE_HOSTS_CACHE: frozenset[str] | None = None
+
+
+def _blocked_hosts() -> frozenset[str]:
+    """Every host the store refuses as a source: the general list above UNION
+    the feed loader's `_AGGREGATOR_HOSTS`, which is where the commercial data
+    providers live (base64-held there, standalone-brand rule).
+
+    THIS IS THE HOLE 79 LIVE ROWS CAME THROUGH (2026-09-16). The feed loader
+    refused to LOAD a feed hosted on a commercial provider, and this module,
+    which decides what may be STORED, had never heard of those hosts: its list
+    stopped at the four general news aggregators. So a provider's own "news
+    note" pages, surfaced one at a time by Google News, walked straight in and
+    were cited as the source on 79 published rows over July to September. The
+    2026-07-30 fix unified how the two layers MATCH (registrable domain) and
+    left them holding two different LISTS. One list now, read from the loader
+    so the two cannot drift again; `tests/test_canonical_source_host.py`
+    plants a provider URL and proves the store refuses it.
+    """
+    global _BLOCKED_SOURCE_HOSTS_CACHE
+    if _BLOCKED_SOURCE_HOSTS_CACHE is None:
+        from collectors.national_press import _AGGREGATOR_HOSTS
+        _BLOCKED_SOURCE_HOSTS_CACHE = _BLOCKED_SOURCE_HOSTS | _AGGREGATOR_HOSTS
+    return _BLOCKED_SOURCE_HOSTS_CACHE
 
 
 def _blocked_domains() -> frozenset[str]:
@@ -182,18 +206,26 @@ def _blocked_domains() -> frozenset[str]:
     if _BLOCKED_SOURCE_DOMAINS_CACHE is None:
         from collectors.national_press import registrable_domain
         _BLOCKED_SOURCE_DOMAINS_CACHE = frozenset(
-            d for d in (registrable_domain(h) for h in _BLOCKED_SOURCE_HOSTS) if d
+            d for d in (registrable_domain(h) for h in _blocked_hosts()) if d
         )
     return _BLOCKED_SOURCE_DOMAINS_CACHE
 
 
 def is_aggregator_host(host: str) -> bool:
-    """Whether a host is a discovery pointer rather than a publisher."""
-    from collectors.national_press import registrable_domain
+    """Whether a host is a discovery pointer rather than a publisher.
+
+    The one exception is the loader's `_EDITORIAL_EXCEPTIONS`: a bylined
+    newsroom that happens to live on a provider's domain is the publisher of
+    its own reporting (settled 2026-07-23 with the sibling tracker), so it is
+    exempted by EXACT host while the database on the same domain stays blocked.
+    """
+    from collectors.national_press import _EDITORIAL_EXCEPTIONS, registrable_domain
     host = (host or "").lower()
     if not host:
         return False
-    return host in _BLOCKED_SOURCE_HOSTS or registrable_domain(host) in _blocked_domains()
+    if host in _EDITORIAL_EXCEPTIONS:
+        return False
+    return host in _blocked_hosts() or registrable_domain(host) in _blocked_domains()
 
 
 def prefer_canonical(raw: dict) -> str:

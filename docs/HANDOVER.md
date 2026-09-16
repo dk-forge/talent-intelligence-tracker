@@ -2,6 +2,96 @@
 
 ---
 
+## 2026-09-16 (aggregator rows): the classifier was two questions in one, the store had never heard of the host, 23 of 82 re-chased to a named outlet, 59 UNKNOWN, the live door is a decision the owner keeps (branch `fix/aggregator-sourced-rows`, PR open, not merged)
+
+**Decided by two agents, not the owner (his 2026-09-16 ruling): this is the
+doer's half, and every decision below carries its evidence for the verifier.**
+
+**1. The classifier was wrong on 4 of 83, and the corrected rule finds 82.**
+`frame.cites_a_provider` reads four fields for a provider NAME; that is the
+right gate for a committed public sample and the wrong classifier for "is this
+row aggregator-sourced". Of its 83: two are SEBI Regulation 30 filings served
+by the Bombay Stock Exchange for a listed company whose NAME contains a
+provider's name (a primary document), one is a named outlet's article about a
+provider raising money, one is the bylined newsroom on a provider's domain that
+`national_press._EDITORIAL_EXCEPTIONS` already treats as a publisher. The new
+`frame.sourced_from_an_aggregator(row)` asks one thing, who served the
+document, and is `validate.is_aggregator_host`, the write path's own
+predicate. It finds **82**: 79 on the provider's app host, plus the THREE
+`*.yahoo.com` rows the 2026-07-30 correction script was written for and never
+applied to, because that script had no workflow. `cites_a_provider` stays the
+frame gate; the two functions are pinned apart by
+`tests/test_extraction_benchmark.py::test_aggregator_sourced_is_narrower_than_cites_a_provider`.
+
+**2. Why 79 rows got in: two layers, one rule, two lists.**
+`validate._BLOCKED_SOURCE_HOSTS` held four general news aggregators.
+`collectors/national_press._AGGREGATOR_HOSTS` held the commercial providers
+(base64, standalone-brand rule). The 2026-07-30 fix unified how the two layers
+MATCH (registrable domain) and left them holding different LISTS, so the feed
+loader refused the provider's feeds while the store accepted the provider's
+pages one at a time through Google News. `validate._blocked_hosts()` is now the
+UNION, read from the loader, and `is_aggregator_host` honours the loader's
+editorial exception by exact host. `tests/test_canonical_source_host.py::
+ThePlantedProviderRow` plants a provider URL of exactly the live rows' shape
+and proves `precheck` refuses it before any model is paid; the exchange filing
+and the newsroom are pinned as accepted. **Mutation-proven:** with
+`pipeline/validate.py` reverted to main, 11 tests fail; restored, all pass.
+
+**3. The re-chase, $0.00, through `correct_aggregator_sources.py`.** The
+provider serves its note pages behind a bot wall (HTTP 403, no canonical), so
+the existing canonical route found nothing for all 79. A second route now
+chases the EVENT the way `tripwire_chase` chases a lead: the row's headline
+with the masthead stripped goes to the Google News RSS index, and a candidate
+is accepted only on the WHOLE rule (outlet not an aggregator, employer in the
+title, the headline money figure in the title normalised, inside 30 days),
+earliest outlet credited. Deterministic on purpose: matching a name, a figure
+and a date is not a judgement, so the two-referee adjudicator was not spent on
+it; a row that would need a referee is UNKNOWN, not guessed. **Dry run against a
+copy of the committed database, 2026-09-16: 82 targets, 23 re-pointed (2 via
+canonical: the 7-Eleven and Haus Cramer yahoo rows to cstoredive.com and
+just-drinks.com; 21 via the index), 59 UNKNOWN.** UNKNOWN by reason: 31 the
+index held only the provider's own note; 9 the index returned no candidate; 13
+a candidate but the employer or the figure was not in its title; 4 no money
+figure in the headline (HSBC, Medicall, Boheng, Marwood: a referee's question);
+1 candidates outside the window; 1 employer absent. Every UNKNOWN is printed
+with its content_hash in the run log, redacted (`provider_names.redact` on
+every line: the run log of a public repo is a tracked artifact). Nothing
+retracts; retraction of published rows is the owner's door.
+Workflow `correct-aggregator-sources.yml` (dispatch only, `talent-collect`,
+merge_db shape, wired into the drainer), queue it, never dispatch it. Three of
+the 21 credited outlets deserve a second look by the verifier (a market-data
+site, a crypto trade title, a small Indian startup blog): they pass the rule
+because "outlet" is tested only against the blocklist.
+
+**4. The live door is CLOSED, by a standing decision, and this branch did not
+open it.** All 82 rows are published. `/correct`'s allowlist
+(`tit_correctable_columns()`) does not carry `headline`, `source_url` or
+`source_name`, and `tests/test_form_d_correction.py::
+test_the_correction_route_writes_those_two_columns_and_nothing_else` forbids
+them by name so a correction bug can never rewrite what a document said. The
+first cut of this branch widened it (plugin 1.88.7) and that test went red;
+widening a guard to pass is the thing the rules forbid, so it was reverted.
+Consequence: `--apply` today raises `PluginTooOld` on the first published row
+and writes NOTHING, locally or live; the dry run is the whole result. **Owner
+decision, one line each way:** (a) allow the three columns in
+`tit_correctable_columns()` and adjust that test, then queue the workflow
+with `dry_run=false` and the 23 land in place with their hashes unchanged and
+the provider's masthead off the public headline; or (b) leave the door shut,
+in which case the 82 stay live as they are and only retraction (his) or a
+withdraw-and-republish moves them. The repo is right either way; the page is
+wrong until (a) or (b).
+
+**Spend: $0.00.** No model was called. Exit codes: suite 1923 passed with the
+one red above (fixed by the revert; the targeted rerun of 280 tests passes,
+exit 0); dry run exit 1 (rows left for a human, by design).
+
+**A finding in passing:** running the offline suite modified
+`data/talent_intel.db` in the worktree (0 insertions, 0 deletions, a header
+or page write). Restored with `git checkout` before committing; not chased
+here.
+
+---
+
 ## 2026-09-16 (later): the first paid benchmark run judged nothing; second referee replaced, preflight added, re-run queued
 
 **What happened.** Actions run 35085956345 spent **$0.85** and judged **0 of 200**.

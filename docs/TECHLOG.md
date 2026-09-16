@@ -14,6 +14,24 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-16 - 82 published rows cited an aggregator; the store had never heard of the host
+
+**What.** The extraction benchmark's draw (same day) found 83 current rows whose text names a commercial data provider. Re-classified by who SERVED the document (`frame.sourced_from_an_aggregator`, new), 82 cite an aggregator as their stored source: 79 on one provider's app host, July to September, all surfaced by Google News; 3 on `*.yahoo.com` since July, which the 2026-07-30 correction script was written for and never applied to (it had no workflow). The other 4 of the 83 are primary or named-outlet documents whose text happens to carry a provider's name (two exchange filings by a company named like a provider, one outlet article about a provider, one bylined newsroom on a provider's domain).
+
+**Root cause.** Two layers of one rule held two LISTS. `collectors/national_press._AGGREGATOR_HOSTS` (the feed loader) knew the commercial providers; `validate._BLOCKED_SOURCE_HOSTS` (the store) stopped at four general news aggregators. The 2026-07-30 fix unified how they MATCH (registrable domain) and not WHAT they match, so the loader refused the provider's feeds and the store accepted the provider's pages one at a time. Nothing reported it: an accepted row produces no error.
+
+**Fix (PR: fix/aggregator-sourced-rows).**
+- `validate._blocked_hosts()` is the union of both lists, read from the loader; `is_aggregator_host` honours the loader's editorial exception by exact host. Planted-instance test, mutation-proven (11 tests red with the change reverted).
+- `frame.sourced_from_an_aggregator` asks the write path's predicate; `cites_a_provider` stays the frame gate for the public sample. Pinned apart by test.
+- `correct_aggregator_sources.py` gains a second route when the canonical will not answer (the provider bot-walls its pages): chase the event through the Google News index on employer name, normalised headline figure and a 30-day window, earliest outlet credited, everything short of the whole rule UNKNOWN. Redacted stdout. Per-host refusal remembered so a bot wall is asked once, not 79 times. `correct-aggregator-sources.yml` added and wired into the drainer.
+- Dry run on a copy of the database: 23 re-pointed (2 canonical, 21 index), 59 UNKNOWN with reasons; `docs/HANDOVER.md` has the table.
+- NOT done, on purpose: widening `tit_correctable_columns()` to carry `headline`/`source_url`/`source_name`. `tests/test_form_d_correction.py` forbids it by name and the reason stands; `push_citation` raises `PluginTooOld` before writing anything. The owner decides whether the door opens; until then the 82 are live as they are.
+
+**Guard.** `tests/test_canonical_source_host.py` +6, `tests/test_aggregator_source_correction.py` (new, 18), `tests/test_extraction_benchmark.py` +1.
+
+**Spend.** $0.00.
+
+
 ## 2026-09-16 - The extraction benchmark's second referee answered nothing, and the run paid for the first anyway
 
 **What.** Actions run 35085956345 (`extraction-benchmark.yml`, queued through `drain-writers`) graded the 200-row sample for real and spent $0.85 judging ZERO items. `analysis/extraction/result-2026-09-16-no-second-referee.json` (kept under that name so the re-run's file can carry the date) reads `parse_failures_by_model: {"openai/gpt-5-mini": 164}`; every gpt-5-mini record is `no answer (ClassifyError)` and claude-haiku-4.5 answered every one of the 164 readable bodies. Two referees must agree, so 164 readable rows became `no_verdict`, every stratum judged nothing, and the run exited 1. The 36 `no_evidence` rows are the separate, expected class (unreadable bodies) and cost nothing by design.

@@ -48,11 +48,30 @@ class TheSubdomainHole(unittest.TestCase):
 
     def test_the_domain_set_is_derived_and_not_typed(self):
         # Typed twice, the two lists drift and the subdomain hole reopens. This
-        # asserts the derivation rather than the contents.
-        self.assertEqual(
-            validate._blocked_domains(),
+        # asserts the derivation rather than the contents: every host the store
+        # refuses reduces to a blocked domain, the four general aggregators are
+        # among them, and nothing is in the set that no host put there.
+        from collectors.national_press import registrable_domain
+        derived = frozenset(
+            registrable_domain(h) for h in validate._blocked_hosts())
+        self.assertEqual(validate._blocked_domains(), derived)
+        self.assertLessEqual(
             frozenset({"google.com", "yahoo.com", "msn.com", "flipboard.com"}),
-        )
+            validate._blocked_domains())
+
+    def test_the_store_and_the_feed_loader_hold_one_list(self):
+        # 2026-09-16: 79 published rows cited a commercial data provider's
+        # "news note" pages. The feed loader had refused that host since July;
+        # this module, which decides what is STORED, had never heard of it.
+        # One list now, and this is the assertion that keeps it one.
+        from collectors import national_press
+        self.assertLessEqual(national_press._AGGREGATOR_HOSTS,
+                             validate._blocked_hosts())
+        for host in national_press._AGGREGATOR_HOSTS:
+            if host in national_press._EDITORIAL_EXCEPTIONS:
+                continue
+            self.assertTrue(validate.is_aggregator_host(host),
+                            "a loader-refused host the store accepts (masked)")
 
 
 def _raw(url, canonical=None, **kw):
@@ -117,6 +136,68 @@ class TheCanonicalDecides(unittest.TestCase):
                    "https://www.example.com/careers/engineer-dublin")
         with self.assertRaises(validate.Rejected):
             validate.precheck(raw)
+
+
+class ThePlantedProviderRow(unittest.TestCase):
+    """A provider URL of exactly the shape the 79 live rows carry is refused
+    at precheck, before any model is paid; the same company's exchange filing
+    and a named outlet's article about a provider are not.
+
+    Hosts come from the loader's encoded list and are never typed here: a test
+    that spells the thing it forbids trips the tree-wide name guard.
+    """
+
+    def _provider_app_host(self):
+        from collectors import national_press
+        hosts = sorted(h for h in national_press._AGGREGATOR_HOSTS
+                       if h.startswith("app."))
+        self.assertTrue(hosts, "the loader's list holds no app.* provider host")
+        return hosts[0]
+
+    def test_a_provider_news_note_is_refused_as_a_stored_source(self):
+        host = self._provider_app_host()
+        raw = _raw(f"https://{host}/news/note/acme-raises-20m-series-a")
+        with self.assertRaises(validate.Rejected) as caught:
+            validate.precheck(raw)
+        self.assertIn("aggregator stored as source", str(caught.exception))
+
+    def test_a_provider_note_whose_canonical_is_a_publisher_is_kept(self):
+        # The pointer is followed, exactly as for the general aggregators.
+        host = self._provider_app_host()
+        raw = _raw(f"https://{host}/news/note/acme-raises-20m-series-a",
+                   "https://www.publisher-example.com/2026/09/acme-raises-20m/")
+        validate.precheck(raw)
+        self.assertEqual(raw["source_url"],
+                         "https://www.publisher-example.com/2026/09/acme-raises-20m/")
+
+    def test_an_exchange_filing_is_a_primary_document_whatever_the_filer_is_called(self):
+        # bse_india: SEBI Regulation 30 filings served by the exchange. Two
+        # live rows are for a listed company whose name contains a provider
+        # name; the source is the exchange and the exchange is not an
+        # aggregator. The company name is not typed here for the same reason
+        # as above; the point is the host.
+        raw = _raw("https://www.bseindia.com/corporates/anndet_new?newsid=89fb219e-ccb8-4298",
+                   company="Some Technologies Ltd")
+        validate.precheck(raw)
+        self.assertFalse(validate.is_aggregator_host("www.bseindia.com"))
+
+    def test_a_bylined_newsroom_on_a_provider_domain_is_still_a_publisher(self):
+        from collectors import national_press
+        for host in national_press._EDITORIAL_EXCEPTIONS:
+            self.assertFalse(validate.is_aggregator_host(host))
+            validate.precheck(_raw(f"https://{host}/venture/acme-raises-75m/"))
+
+    def test_the_narrowed_classifier_asks_only_who_served_the_document(self):
+        from analysis.extraction import frame
+        host = self._provider_app_host()
+        self.assertTrue(frame.sourced_from_an_aggregator(
+            {"source_url": f"https://{host}/news/note/x"}))
+        self.assertFalse(frame.sourced_from_an_aggregator(
+            {"source_url": "https://www.bseindia.com/corporates/anndet_new?newsid=1",
+             "company": "Named Like A Provider Technologies Ltd"}))
+        self.assertFalse(frame.sourced_from_an_aggregator(
+            {"source_url": "https://www.finsmes.com/2026/01/x-raises-7m.html"}))
+        self.assertFalse(frame.sourced_from_an_aggregator({"source_url": ""}))
 
 
 if __name__ == "__main__":
