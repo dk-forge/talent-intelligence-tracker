@@ -214,6 +214,12 @@ The tracker's own definitions, which are the rules you apply:
 
 {direction}
 
+EVERY VERDICT IS EXACTLY ONE OF THESE THREE WORDS, spelled exactly:
+"correct", "wrong", "not_stated". There is no fourth word. Do not write
+"partially_correct", "unclear", "n/a", "neutral", or any other value, and do
+not leave a field out: an answer carrying any other word is discarded unread
+and the row is lost from the measurement.
+
 WHAT EACH ANSWER MEANS:
 - "correct": the source text states this, and the stored value is it. An empty
   stored value is CORRECT when the source states nothing for that field.
@@ -224,6 +230,20 @@ WHAT EACH ANSWER MEANS:
   is one the definition says comes from outside the text). Use it whenever you
   would have to guess. "not_stated" is not a criticism; it is honesty, and the
   tracker records it as UNKNOWN rather than as a pass or a failure.
+
+"not_stated" IS THE ONLY WAY TO DECLINE. If you cannot judge a field for any
+reason at all, answer "not_stated" for that field and say why in "why". Never
+express doubt by inventing a verdict word, by omitting a field, or by writing
+prose outside the JSON object.
+
+EVERY STORED VALUE IS GRADEABLE, INCLUDING "neutral". "neutral" is an ordinary
+value of signal_direction with a definition above, exactly like "hiring",
+"displacement" and "comp_shift". Judge it the same way: "correct" when the
+source describes an event that the definition calls neutral, "wrong" when the
+source describes one of the other three. That the stored value is "neutral",
+or is empty, or looks like a default, is NEVER a reason to decline a verdict
+or to reach for a word outside the three. The same holds for every other
+field.
 
 THE STORED RECORD:
 {row}
@@ -519,6 +539,38 @@ def no_answer(exc: BaseException) -> str:
     """
     text = " ".join(str(exc).split())
     return f"no answer ({type(exc).__name__}: {text[:REASON_CHARS]})"
+
+
+#: The mid-run brake. The preflight catches a referee that cannot answer AT
+#: ALL; it cannot catch one that answers a one-line question and then fails on
+#: the real prompt, which is what happened on 2026-09-16 (gpt-4o-mini, 99 of
+#: 167 rows, a word outside the verdict vocabulary). After this many rows with
+#: a readable body, a referee failing more than `ABORT_RATE` of them stops the
+#: run instead of paying out the remaining sample.
+ABORT_AFTER_ROWS = 20
+ABORT_RATE = 0.5
+
+
+class RefereeStop(RuntimeError):
+    """A referee is failing most rows, so the rest of the sample is not bought."""
+
+
+def referee_to_stop(records: list[dict]) -> tuple[str, int, int] | None:
+    """(model, failures, readable rows) for a referee past the brake, else None.
+
+    Judged only on rows with a readable body: an unreadable one asks nobody and
+    must not count against a referee. UNKNOWN is not a verdict here either -
+    this decides whether to keep SPENDING, and the rows already graded stand.
+    """
+    readable = [r for r in records if r.get("evidence_chars")]
+    if len(readable) < ABORT_AFTER_ROWS:
+        return None
+    for model in REFEREES:
+        failed = sum(1 for r in readable
+                     if not (r.get("referees", {}).get(model) or {}).get("answered"))
+        if failed > ABORT_RATE * len(readable):
+            return model, failed, len(readable)
+    return None
 
 
 #: What the preflight asks. Tiny, so a referee that cannot answer at all costs
@@ -895,7 +947,7 @@ def main(argv=None) -> int:
             by_hash[item["content_hash"]] = dict(row) if row else None
 
         records: list[dict] = []
-        stopped = ""
+        stopped, budget_stopped = "", False
         for index, item in enumerate(items, 1):
             row = by_hash.get(item["content_hash"])
             if row is None:
@@ -911,12 +963,24 @@ def main(argv=None) -> int:
             try:
                 record = grade_row(item, row, start_usd=start_usd, ceiling=args.ceiling)
             except adj.BudgetStop as stop:
-                stopped = str(stop)
+                stopped, budget_stopped = str(stop), True
                 print(f"\nBUDGET STOP after {index - 1} row(s): {stopped}")
                 print("UNDECIDED, not a verdict: the rows not reached are not "
                       "graded and are not counted against anything.")
                 break
             records.append(record)
+            brake = referee_to_stop(records)
+            if brake:
+                model, failed, readable = brake
+                stopped = (f"{model} failed {failed} of {readable} readable row(s); "
+                           "the rest of the sample was not bought")
+                print(f"\n  [{index}/{len(items)}] {item['region']}/{item['event_type']} "
+                      f"{record['evidence_chars']}ch")
+                print(f"\nREFEREE STOP: {stopped}")
+                print("The rows already graded stand; what was not reached is not "
+                      "a finding. Read the parse failures in the result file: they "
+                      "carry the answer the referee gave.")
+                break
             print(f"  [{index}/{len(items)}] {item['region']}/{item['event_type']} "
                   f"{record['evidence_chars']}ch "
                   + ", ".join(f"{label}:{record['fields'][key]['outcome'][:4]}"
@@ -924,8 +988,10 @@ def main(argv=None) -> int:
 
         spend = float(classify.STATS.get("usd", 0.0)) - start_usd
         summary = summarise(sample, records, spend, args.ceiling, estimated)
-        if stopped:
+        if stopped and budget_stopped:
             summary["budget_stop"] = stopped
+        elif stopped:
+            summary["referee_stop"] = stopped
         summary["records"] = records
         result_path = Path(args.result) if args.result else (
             OUT_DIR / f"result-{_dt.date.today().isoformat()}.json")
@@ -941,7 +1007,7 @@ def main(argv=None) -> int:
                 usage={"model": " + ".join(REFEREES), "cost_usd": round(spend, 6),
                        "reads_bought": 2 * len(records)})
             conn.commit()
-        if stopped:
+        if stopped and budget_stopped:
             # A budget stop is UNDECIDED, never a verdict, and never a red run.
             # Every field it left ungraded would otherwise read as "judged
             # nothing" and redden the workflow for the budget working.
