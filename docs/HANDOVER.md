@@ -80,6 +80,26 @@ numbers into this file in the same session the run lands.**
 **This measures and moves nothing.** No model swap follows from it. If the
 answer is poor, the next step is a decision the owner takes on the numbers.
 
+### A finding the draw turned up, not fixed here
+
+**83 of the 35,789 current rows cite a commercial data aggregator as their
+source** (81 `google_news`, 2 `bse_india`, four hosts, all 83 published),
+against the standing rule that an aggregator is a discovery pointer and never a
+stored source. The first drawn sample contained one of them and CI caught it -
+the local suite passed because the new sample file was not yet tracked when it
+ran, and that guard reads tracked files. `frame.cites_a_provider` removes them
+from the benchmark's frame (8,268 to 8,187), which is right for the benchmark
+and is NOT a fix for the rows: they are still stored and still published.
+Somebody has to decide whether they are retracted, re-chased to the publisher's
+own article, or left. Listing them costs nothing:
+
+```python
+python3 -c "import sqlite3,sys; sys.path.insert(0,'.'); \
+from analysis.extraction import frame; \
+c=sqlite3.connect('file:data/talent_intel.db?mode=ro',uri=True); c.row_factory=sqlite3.Row; \
+print([dict(r)['content_hash'] for r in c.execute('select * from signals where is_current=1') if frame.cites_a_provider(dict(r))])"
+```
+
 ## 2026-09-14: a deterministic contradiction audit over every published money row; 2 stale verdicts and 11 wrong figures found, both corrections queued through the machinery (branch `fix/money-basis-contradiction-audit`)
 
 `correct_money_basis.py --check` was one question: is any figure unjudged?

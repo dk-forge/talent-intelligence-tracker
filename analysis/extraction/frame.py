@@ -40,6 +40,8 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
+from pipeline import provider_names
+
 #: Collectors whose rows were built by the LLM extraction path. Everything else
 #: in `signals` came off a filing or a register through a deterministic parser.
 NEWS_COLLECTORS = (
@@ -192,11 +194,33 @@ def eligible(row: dict) -> bool:
     `is_current` is applied by the query, not here — this is the per-row half,
     so a test can hand it one dict.
     """
-    return bool(
-        (row.get("collector") or "") in NEWS_COLLECTORS
-        and (row.get("source_url") or "").startswith("http")
-        and (row.get("content_hash") or "")
-    )
+    if (row.get("collector") or "") not in NEWS_COLLECTORS:
+        return False
+    if not (row.get("source_url") or "").startswith("http"):
+        return False
+    if not (row.get("content_hash") or ""):
+        return False
+    return not cites_a_provider(row)
+
+def cites_a_provider(row: dict) -> bool:
+    """True when this row names a commercial data provider anywhere it would
+    be written into the sample.
+
+    TWO reasons, and either alone is enough. The sample is a COMMITTED, PUBLIC
+    artifact, and `tests/test_no_provider_names.py` refuses a provider name in
+    any tracked file — the standalone-brand rule. And a row whose source IS an
+    aggregator should not exist in the first place ("aggregators are discovery
+    pointers, never stored sources"), so the body behind it is not the kind of
+    document this benchmark grades against.
+
+    Redaction is the wrong answer here, unlike in the gate ledger where the
+    text is the payload: this benchmark has to FETCH `source_url`, and a
+    redacted URL fetches nothing. The row leaves the frame instead, and the
+    exclusion is a stated limit of the measurement.
+    """
+    return any(provider_names.contains(str(row.get(field) or ""))
+               for field in ("headline", "company", "source_url", "source_name"))
+
 
 def allocate(cell_sizes: dict[tuple[str, str], int], target: int,
              min_cell: int = 5) -> dict[tuple[str, str], int]:

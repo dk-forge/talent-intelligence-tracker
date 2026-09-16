@@ -497,3 +497,43 @@ def test_a_budget_stop_is_not_an_incomplete_measurement(monkeypatch, tmp_path, c
     assert "UNDECIDED" in out
     written = json.loads(result_path.read_text())
     assert written["budget_stop"]
+
+
+# --- the standalone-brand rule ---------------------------------------------
+
+def test_a_row_citing_a_commercial_provider_never_reaches_the_frame():
+    """Two rules at once, and either alone would be enough.
+
+    The sample is a committed, PUBLIC artifact and no tracked file here may
+    carry a commercial data-provider name. And a row whose source is an
+    aggregator should not exist at all - aggregators are discovery pointers,
+    never stored sources - so the page behind it is not the kind of document
+    this benchmark grades against. Redaction is the wrong answer, unlike in the
+    gate ledger where the text IS the payload: this benchmark has to FETCH the
+    URL, and a redacted URL fetches nothing.
+
+    The banned name is taken from `provider_names.BANNED` and never typed here:
+    a guard that has to spell the thing it forbids trips the guard beside it,
+    which is how this test first went red.
+
+    It was CI that caught the real row, not review: the local suite passed
+    because the freshly written sample was not yet tracked when it ran.
+    """
+    from pipeline import provider_names
+
+    banned = provider_names.BANNED[1]
+    row = {"collector": "google_news", "content_hash": "abc",
+           "source_url": f"https://app.{banned}.co/news/note/x"}
+    assert frame.cites_a_provider(row)
+    assert not frame.eligible(row)
+    assert frame.eligible({**row, "source_url": "https://sifted.eu/articles/x"})
+    # The same name in a headline, which is how it usually arrives.
+    assert frame.cites_a_provider({"headline": f"Acme raises $1M - {banned}"})
+
+
+def test_the_committed_sample_carries_no_provider_name():
+    from pipeline import provider_names
+
+    path = bench.latest("sample-*.json")
+    assert path
+    assert not provider_names.contains(path.read_text())

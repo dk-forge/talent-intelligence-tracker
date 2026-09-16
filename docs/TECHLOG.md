@@ -26,7 +26,22 @@ REST namespace. Never write one repo's state into the other's docs.
 
 **Guard.** `tests/test_extraction_benchmark.py`, 42 tests, offline, every network door stubbed at the argument: a collector in the corpus that is in neither frame tuple reds the file, so a new source cannot silently leave the population; the allocation hits its target, holds its floor, never over-draws a cell and does not depend on dict order; the draw reproduces exactly for a seed and holds both languages inside a cell; every graded field's rule is still the live production wording; the referee sees the six values and not the summary it would otherwise grade; a fenced answer parses, a truncated one is a failure with a reason, an invented verdict word is refused; the full agreement truth table; an unreadable body asks nobody and spends nothing; a thin read is refused; one referee failing to parse is UNKNOWN and counted apart; the gate is read before every attempt and the retry sits outside the call; UNKNOWN never reaches a denominator in either direction; an unpriceable run is UNKNOWN and never free; a ceiling past the owner's bar is refused rather than clamped, and that bar is asserted against the committed grant. Full suite: 5034 passed, 7 skipped, 495 subtests.
 
-**This measures and moves nothing.** No model swap follows from it. `staleness.py` gets a 2400h dispatch-only leash and `tests/test_sources_page.py` a `_NOT_SOURCES` reason, both for the same purpose the `adjudicate_rows` entries serve: a health row that carries spend is not a promise of a cadence.
+**This measures and moves nothing.** No model swap follows from it.
+
+**And it found something on its way in.** The first drawn sample carried a
+commercial data-provider's name and CI caught it - the local suite passed
+because the freshly written sample was not yet tracked when it ran, and that
+guard reads tracked files. The name was not typed: it was a stored row whose
+SOURCE URL is the aggregator itself. 83 of 35,789 current rows are in that
+state (81 google_news, 2 bse_india, four hosts, all 83 published), against the
+standing rule that aggregators are discovery pointers and never stored sources.
+`frame.cites_a_provider` takes them out of the benchmark's frame (8,268 to
+8,187) for two independent reasons: the sample is a committed public artifact,
+and the page behind such a row is not the kind of document this benchmark
+grades against. Redaction would be wrong here, unlike in the gate ledger where
+the text IS the payload - this program has to FETCH the URL, and a redacted URL
+fetches nothing. **The 83 rows themselves are not fixed by this change and are
+left named for a session that can decide what to do with them.** `staleness.py` gets a 2400h dispatch-only leash and `tests/test_sources_page.py` a `_NOT_SOURCES` reason, both for the same purpose the `adjudicate_rows` entries serve: a health row that carries spend is not a promise of a cadence.
 
 ## 2026-09-15 - An hourly Sentry watch, deduped and metered like everything else here
 

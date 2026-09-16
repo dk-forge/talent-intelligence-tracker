@@ -12,19 +12,19 @@
       "primary_chase",
       "tripwire_chase"
     ],
-    "size": 8268,
+    "size": 8187,
     "cells": {
-      "Europe/funding": 74,
-      "Europe/hiring": 312,
+      "Europe/funding": 73,
+      "Europe/hiring": 311,
       "Europe/leadership": 1397,
       "Europe/pay": 61,
       "Europe/working_practices": 465,
-      "RoW/funding": 1797,
-      "RoW/hiring": 627,
+      "RoW/funding": 1734,
+      "RoW/hiring": 612,
       "RoW/leadership": 2123,
       "RoW/pay": 83,
       "RoW/working_practices": 831,
-      "US/funding": 147,
+      "US/funding": 146,
       "US/hiring": 38,
       "US/leadership": 138,
       "US/pay": 8,
@@ -53,8 +53,8 @@
     "Europe/pay": 6,
     "Europe/working_practices": 12,
     "RoW/funding": 32,
-    "RoW/hiring": 15,
-    "RoW/leadership": 37,
+    "RoW/hiring": 14,
+    "RoW/leadership": 38,
     "RoW/pay": 6,
     "RoW/working_practices": 18,
     "US/funding": 7,
@@ -64,7 +64,7 @@
     "US/working_practices": 7
   },
   "drawn_language_proxy": {
-    "likely_non_english": 94,
+    "likely_non_english": 95,
     "non_latin_script": 18
   },
   "items": [
@@ -1703,25 +1703,6 @@
       }
     },
     {
-      "content_hash": "fe18afcf756bf2191591ed91035ff7db",
-      "signal_id": "fe18afcf756bf2191591ed91035ff7db",
-      "region": "RoW",
-      "event_type": "funding",
-      "likely_non_english": false,
-      "collector": "google_news",
-      "source_url": "https://app.dealroom.co/news/note/blank-street-raises-75m-series-b-at-650m-valuation-for-west-coast-push",
-      "archive_url": "https://web.archive.org/web/20260824113554/https://app.dealroom.co/news/note/blank-street-raises-75m-series-b-at-650m-valuation-for-west-coast-push",
-      "stored": {
-        "headline": "Blank Street raises $75M Series B at $650M valuation for west coast push - Dealroom",
-        "company": "Blank Street",
-        "funding_amount": "$75M",
-        "headcount": "",
-        "country": "",
-        "signal_direction": "neutral",
-        "pillar": "company_development"
-      }
-    },
-    {
       "content_hash": "278ffb5c6ff8fcd189c9d60cc8491b69",
       "signal_id": "278ffb5c6ff8fcd189c9d60cc8491b69",
       "region": "RoW",
@@ -1810,6 +1791,25 @@
         "headline": "Ringg AI Raises $15 Million Series A Led By Peak XV Partners - pulse2.com",
         "company": "Ringg AI",
         "funding_amount": "$15 Million",
+        "headcount": "",
+        "country": "",
+        "signal_direction": "neutral",
+        "pillar": "company_development"
+      }
+    },
+    {
+      "content_hash": "b2c7144f4fc671b4c7d984c1e4f64e50",
+      "signal_id": "b2c7144f4fc671b4c7d984c1e4f64e50",
+      "region": "RoW",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "collector": "google_news",
+      "source_url": "https://www.businesswire.com/news/home/20260824525357/en/Quintessent-Raises-%2440-Million-Series-A-and-Begins-Sampling-First-Product-for-AI-Optical-Interconnects",
+      "archive_url": "",
+      "stored": {
+        "headline": "Quintessent Raises $40 Million Series A and Begins Sampling First Product for AI Optical Interconnects - Business Wire",
+        "company": "Quintessent",
+        "funding_amount": "$40 Million",
         "headcount": "",
         "country": "",
         "signal_direction": "neutral",
@@ -2038,25 +2038,6 @@
         "headline": "MIRAVA raises €4.2 million to build a new category in recreational boating (Sponsored)",
         "company": "MIRAVA",
         "funding_amount": "€4.2 million",
-        "headcount": "",
-        "country": "",
-        "signal_direction": "neutral",
-        "pillar": "company_development"
-      }
-    },
-    {
-      "content_hash": "9cbb23bde58b5c0d9514d61f41f5e567",
-      "signal_id": "9cbb23bde58b5c0d9514d61f41f5e567",
-      "region": "RoW",
-      "event_type": "hiring",
-      "likely_non_english": false,
-      "collector": "google_news",
-      "source_url": "https://tech.eu/2026/05/12/regulate-raises-eur14m-seed-to-bring-science-backed-breathwork-into-the-workplace/",
-      "archive_url": "https://web.archive.org/web/20260608201240/https://tech.eu/2026/05/12/regulate-raises-eur14m-seed-to-bring-science-backed-breathwork-into-the-workplace/",
-      "stored": {
-        "headline": "Regulate raises €1.4M Seed to bring science-backed breathwork into the workplace - Tech.eu",
-        "company": "Regulate",
-        "funding_amount": "€1.4M",
         "headcount": "",
         "country": "",
         "signal_direction": "neutral",
@@ -2686,6 +2667,25 @@
         "funding_amount": "",
         "headcount": "",
         "country": "GY",
+        "signal_direction": "neutral",
+        "pillar": "leadership_change"
+      }
+    },
+    {
+      "content_hash": "f35b0cfbb8ca4833aa92880a01f592cc",
+      "signal_id": "f35b0cfbb8ca4833aa92880a01f592cc",
+      "region": "RoW",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "collector": "google_news",
+      "source_url": "https://www.lenouvelliste.ma/issam-mghabbar-nomme-directeur-general-adjoint-de-cfg-bank/",
+      "archive_url": "",
+      "stored": {
+        "headline": "Issam Mghabbar nommé Directeur Général Adjoint de CFG Bank",
+        "company": "CFG Bank",
+        "funding_amount": "",
+        "headcount": "",
+        "country": "",
         "signal_direction": "neutral",
         "pillar": "leadership_change"
       }
