@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   correct:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # 994 retractions are one request each, and the corrections go in batches
     # of 25. Generous, but a timeout mid-run is the failure mode to avoid.
     timeout-minutes: 90

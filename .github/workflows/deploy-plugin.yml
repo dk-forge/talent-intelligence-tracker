@@ -48,7 +48,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # SIZED FROM MEASUREMENT, 2026-08-13: over the last 60 successful runs the
     # median is 0.8 min, but that median is two eras averaged. Everything before
     # 2026-08-10 ran in 0.6 to 1.4; the four runs since the rendered-contrast
@@ -114,7 +114,7 @@ jobs:
           FTP_PASSWORD: ${{ secrets.CHEMICLOUD_PASSWORD_FTP }}
         run: |
           set -e
-          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          command -v lftp >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq lftp)
           for DIR in / /blog /wp-content /wp-content/plugins /blog/wp-content/plugins; do
             echo "===== $DIR ====="
             lftp -c "
@@ -130,10 +130,16 @@ jobs:
           echo "Probe only. Nothing was uploaded."
           exit 0
 
+      # The self-hosted runner (the Contabo VPS, 2026-09-13) ships php-cli 8.3
+      # from Ubuntu 24.04; setup-php there would apt-install a PPA build on
+      # every dispatch. GitHub-hosted runners still get the action.
       - uses: shivammathur/setup-php@v2
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && runner.environment != 'self-hosted' }}
         with:
           php-version: '8.2'
+      - name: Confirm a PHP CLI exists on this runner
+        if: ${{ !inputs.probe }}
+        run: php --version
 
       # A syntax error in a WordPress plugin fatals the whole site section.
       # Nothing uploads until every file parses.
@@ -196,7 +202,7 @@ jobs:
           REMOTE_DIR: ${{ vars.WP_PLUGIN_REMOTE_DIR }}
         run: |
           set -e
-          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          command -v lftp >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq lftp)
           WP_ROOT="$(dirname "$(dirname "$(dirname "$REMOTE_DIR")")")"
           echo "Expecting wp-config.php in $WP_ROOT"
           # No redirect inside the lftp script: lftp parses "2>/dev/null" as a
@@ -252,7 +258,7 @@ jobs:
           REMOTE_DIR: ${{ vars.WP_PLUGIN_REMOTE_DIR }}
         run: |
           set -e
-          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          command -v lftp >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq lftp)
           lftp -c "
             $LFTP_SETTINGS
             open -u '$FTP_USERNAME','$FTP_PASSWORD' '$FTP_HOST';
