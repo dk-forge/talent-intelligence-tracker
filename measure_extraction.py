@@ -858,6 +858,14 @@ def main(argv=None) -> int:
                 usage={"model": " + ".join(REFEREES), "cost_usd": round(spend, 6),
                        "reads_bought": 2 * len(records)})
             conn.commit()
+        if stopped:
+            # A budget stop is UNDECIDED, never a verdict, and never a red run.
+            # Every field it left ungraded would otherwise read as "judged
+            # nothing" and redden the workflow for the budget working.
+            print("\nUNDECIDED: the run stopped on its ceiling, so what is not "
+                  "graded is not a finding. Re-queue with a higher ceiling "
+                  f"(hard bar ${CEILING_MAX_USD:.2f}) or a smaller --limit.")
+            return 0
         gaps = incomplete(summary)
         if gaps:
             print("\nINCOMPLETE, so a human reads it:")

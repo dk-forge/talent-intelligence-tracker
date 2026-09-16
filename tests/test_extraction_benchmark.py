@@ -447,3 +447,53 @@ def test_the_committed_sample_is_the_one_this_code_would_draw():
     assert all(item["source_url"].startswith("http") for item in items)
     # Multilingual is a property of the sample, not an aspiration in a docstring.
     assert sample["drawn_language_proxy"]["likely_non_english"] >= 40
+
+
+def test_a_budget_stop_is_not_an_incomplete_measurement(monkeypatch, tmp_path, capsys):
+    """The budget working must not manufacture a red run.
+
+    A ceiling reached part way through leaves every remaining field ungraded.
+    Read as "this stratum judged nothing" that is exit 2 and a red workflow,
+    which is an alarm about a brake doing its job.
+    """
+    sample = {"drawn_on": "2026-09-16", "seed": "s", "target": 1, "items": [
+        {"content_hash": "h1", "signal_id": "s1", "region": "US",
+         "event_type": "funding", "likely_non_english": False,
+         "collector": "google_news", "source_url": "https://x.example.com/a",
+         "archive_url": "", "stored": {}}]}
+    sample_path = tmp_path / "sample-2026-09-16.json"
+    sample_path.write_text(json.dumps(sample))
+    result_path = tmp_path / "result-2026-09-16.json"
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "not-a-real-key")
+    monkeypatch.setattr(bench, "estimate", lambda *a, **k: (0.01, []))
+    monkeypatch.setattr(bench, "prices", lambda *a, **k: {})
+
+    class _Row(dict):
+        pass
+
+    class _Conn:
+        def execute(self, *args):
+            class _Cur:
+                def fetchone(self_inner):
+                    return {"headline": "h", "company": "Acme", "funding_amount": "",
+                            "headcount": None, "country": "US",
+                            "signal_direction": "neutral", "pillar": "company_development"}
+            return _Cur()
+
+        def commit(self):
+            pass
+
+    monkeypatch.setattr(bench.schema, "connect", lambda *a, **k: _Conn())
+
+    def stop(*args, **kwargs):
+        raise bench.adj.BudgetStop("run ceiling $0.01 reached")
+
+    monkeypatch.setattr(bench, "grade_row", stop)
+    rc = bench.main(["--grade", "--sample", str(sample_path),
+                     "--result", str(result_path), "--ceiling", "0.01"])
+    out = capsys.readouterr().out
+    assert rc == 0, "the budget working reddened the run"
+    assert "UNDECIDED" in out
+    written = json.loads(result_path.read_text())
+    assert written["budget_stop"]
