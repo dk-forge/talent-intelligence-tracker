@@ -22,10 +22,14 @@ name: extraction-benchmark
 #
 # PRICE BEFORE, RECORD AFTER. `--grade` prints the live estimate before the
 # first request and REFUSES a run whose estimate is past the ceiling. Measured
-# 2026-09-16 at the drawn 200: $1.25 (claude-haiku-4.5 + gpt-4o-mini). Then it
-# asks each referee ONE one-line question and refuses the run if either gives
-# no answer: the first paid run spent $0.85 grading 164 rows against a referee
-# whose endpoint rejected every request. The hard
+# 2026-09-16 at the drawn 200: $1.31 (claude-haiku-4.5 + gpt-4o-mini, after the
+# verdict-vocabulary block was added to the prompt). Then it asks each referee
+# ONE one-line question and refuses the run if either gives no answer: the
+# first paid run spent $0.85 grading 164 rows against a referee whose endpoint
+# rejected every request. A referee that passes the preflight and then fails
+# more than half of the first 20 readable rows stops the run mid-sample
+# (`referee_to_stop`), because the second run lost 99 of 167 rows that way and
+# paid for all of them. The hard
 # bar in the program is $6.00 of the owner's one-time $20.00 grant; the month's
 # switch (TIT_PAID_READS) is read before every request regardless.
 #

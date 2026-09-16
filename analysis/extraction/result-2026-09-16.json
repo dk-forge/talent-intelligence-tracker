@@ -1,0 +1,2946 @@
+{
+  "measured_on": "2026-09-16T13:09Z",
+  "sample": {
+    "drawn_on": "2026-09-16",
+    "seed": "extraction-2026-09-16",
+    "items": 200,
+    "graded": 26
+  },
+  "referees": [
+    "anthropic/claude-haiku-4.5",
+    "openai/gpt-4o-mini"
+  ],
+  "extraction_model_at_measurement": "google/gemini-2.5-flash-lite",
+  "evidence": {
+    "read": 20,
+    "unreadable": 6,
+    "median_chars": 4774
+  },
+  "parse_failures": 18,
+  "parse_failures_by_model": {
+    "openai/gpt-4o-mini": 18
+  },
+  "language_measured": {
+    "da": 1,
+    "en": 1,
+    "unknown": 24
+  },
+  "overall": {
+    "company": {
+      "label": "company",
+      "correct": 1,
+      "wrong": 0,
+      "judged": 1,
+      "unknown": 25,
+      "unknown_by_reason": {
+        "no_evidence": 6,
+        "no_verdict": 18,
+        "referees_disagree": 1
+      },
+      "accuracy": 1.0,
+      "interval": [
+        0.20654931437723742,
+        1.0
+      ]
+    },
+    "funding_amount": {
+      "label": "amount",
+      "correct": 1,
+      "wrong": 0,
+      "judged": 1,
+      "unknown": 25,
+      "unknown_by_reason": {
+        "no_evidence": 6,
+        "no_verdict": 18,
+        "not_stated_in_source": 1
+      },
+      "accuracy": 1.0,
+      "interval": [
+        0.20654931437723742,
+        1.0
+      ]
+    },
+    "headcount": {
+      "label": "headcount",
+      "correct": 0,
+      "wrong": 0,
+      "judged": 0,
+      "unknown": 26,
+      "unknown_by_reason": {
+        "no_evidence": 6,
+        "no_verdict": 18,
+        "not_stated_in_source": 2
+      },
+      "accuracy": null,
+      "interval": null
+    },
+    "country": {
+      "label": "country",
+      "correct": 1,
+      "wrong": 0,
+      "judged": 1,
+      "unknown": 25,
+      "unknown_by_reason": {
+        "no_evidence": 6,
+        "no_verdict": 18,
+        "referees_disagree": 1
+      },
+      "accuracy": 1.0,
+      "interval": [
+        0.20654931437723742,
+        1.0
+      ]
+    },
+    "signal_direction": {
+      "label": "direction",
+      "correct": 2,
+      "wrong": 0,
+      "judged": 2,
+      "unknown": 24,
+      "unknown_by_reason": {
+        "no_evidence": 6,
+        "no_verdict": 18
+      },
+      "accuracy": 1.0,
+      "interval": [
+        0.3423802275066531,
+        1.0
+      ]
+    },
+    "pillar": {
+      "label": "event type",
+      "correct": 2,
+      "wrong": 0,
+      "judged": 2,
+      "unknown": 24,
+      "unknown_by_reason": {
+        "no_evidence": 6,
+        "no_verdict": 18
+      },
+      "accuracy": 1.0,
+      "interval": [
+        0.3423802275066531,
+        1.0
+      ]
+    }
+  },
+  "by_region": {
+    "US": {
+      "company": {
+        "label": "company",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      }
+    },
+    "Europe": {
+      "company": {
+        "label": "company",
+        "correct": 1,
+        "wrong": 0,
+        "judged": 1,
+        "unknown": 25,
+        "unknown_by_reason": {
+          "no_evidence": 6,
+          "no_verdict": 18,
+          "referees_disagree": 1
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.20654931437723742,
+          1.0
+        ]
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 1,
+        "wrong": 0,
+        "judged": 1,
+        "unknown": 25,
+        "unknown_by_reason": {
+          "no_evidence": 6,
+          "no_verdict": 18,
+          "not_stated_in_source": 1
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.20654931437723742,
+          1.0
+        ]
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 26,
+        "unknown_by_reason": {
+          "no_evidence": 6,
+          "no_verdict": 18,
+          "not_stated_in_source": 2
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 1,
+        "wrong": 0,
+        "judged": 1,
+        "unknown": 25,
+        "unknown_by_reason": {
+          "no_evidence": 6,
+          "no_verdict": 18,
+          "referees_disagree": 1
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.20654931437723742,
+          1.0
+        ]
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 2,
+        "wrong": 0,
+        "judged": 2,
+        "unknown": 24,
+        "unknown_by_reason": {
+          "no_evidence": 6,
+          "no_verdict": 18
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.3423802275066531,
+          1.0
+        ]
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 2,
+        "wrong": 0,
+        "judged": 2,
+        "unknown": 24,
+        "unknown_by_reason": {
+          "no_evidence": 6,
+          "no_verdict": 18
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.3423802275066531,
+          1.0
+        ]
+      }
+    },
+    "RoW": {
+      "company": {
+        "label": "company",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      }
+    }
+  },
+  "by_event_type": {
+    "funding": {
+      "company": {
+        "label": "company",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 6,
+        "unknown_by_reason": {
+          "no_evidence": 2,
+          "no_verdict": 4
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 6,
+        "unknown_by_reason": {
+          "no_evidence": 2,
+          "no_verdict": 4
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 6,
+        "unknown_by_reason": {
+          "no_evidence": 2,
+          "no_verdict": 4
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 6,
+        "unknown_by_reason": {
+          "no_evidence": 2,
+          "no_verdict": 4
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 6,
+        "unknown_by_reason": {
+          "no_evidence": 2,
+          "no_verdict": 4
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 6,
+        "unknown_by_reason": {
+          "no_evidence": 2,
+          "no_verdict": 4
+        },
+        "accuracy": null,
+        "interval": null
+      }
+    },
+    "hiring": {
+      "company": {
+        "label": "company",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 3,
+          "no_verdict": 7
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 3,
+          "no_verdict": 7
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 3,
+          "no_verdict": 7
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 3,
+          "no_verdict": 7
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 3,
+          "no_verdict": 7
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 3,
+          "no_verdict": 7
+        },
+        "accuracy": null,
+        "interval": null
+      }
+    },
+    "leadership": {
+      "company": {
+        "label": "company",
+        "correct": 1,
+        "wrong": 0,
+        "judged": 1,
+        "unknown": 9,
+        "unknown_by_reason": {
+          "no_evidence": 1,
+          "no_verdict": 7,
+          "referees_disagree": 1
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.20654931437723742,
+          1.0
+        ]
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 1,
+        "wrong": 0,
+        "judged": 1,
+        "unknown": 9,
+        "unknown_by_reason": {
+          "no_evidence": 1,
+          "no_verdict": 7,
+          "not_stated_in_source": 1
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.20654931437723742,
+          1.0
+        ]
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 10,
+        "unknown_by_reason": {
+          "no_evidence": 1,
+          "no_verdict": 7,
+          "not_stated_in_source": 2
+        },
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 1,
+        "wrong": 0,
+        "judged": 1,
+        "unknown": 9,
+        "unknown_by_reason": {
+          "no_evidence": 1,
+          "no_verdict": 7,
+          "referees_disagree": 1
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.20654931437723742,
+          1.0
+        ]
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 2,
+        "wrong": 0,
+        "judged": 2,
+        "unknown": 8,
+        "unknown_by_reason": {
+          "no_evidence": 1,
+          "no_verdict": 7
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.3423802275066531,
+          1.0
+        ]
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 2,
+        "wrong": 0,
+        "judged": 2,
+        "unknown": 8,
+        "unknown_by_reason": {
+          "no_evidence": 1,
+          "no_verdict": 7
+        },
+        "accuracy": 1.0,
+        "interval": [
+          0.3423802275066531,
+          1.0
+        ]
+      }
+    },
+    "pay": {
+      "company": {
+        "label": "company",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      }
+    },
+    "working_practices": {
+      "company": {
+        "label": "company",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "funding_amount": {
+        "label": "amount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "headcount": {
+        "label": "headcount",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "country": {
+        "label": "country",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "signal_direction": {
+        "label": "direction",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      },
+      "pillar": {
+        "label": "event type",
+        "correct": 0,
+        "wrong": 0,
+        "judged": 0,
+        "unknown": 0,
+        "unknown_by_reason": {},
+        "accuracy": null,
+        "interval": null
+      }
+    }
+  },
+  "spend": {
+    "usd": 0.12135,
+    "ceiling_usd": 2.0,
+    "estimated_usd": 1.3066779043280183,
+    "pot": "discretionary"
+  },
+  "referee_stop": "openai/gpt-4o-mini failed 18 of 20 readable row(s); the rest of the sample was not bought",
+  "records": [
+    {
+      "content_hash": "c904bd313a86ce3d7449676e52dab55f",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "evidence_url": "https://web.archive.org/web/20260729061431/https://sifted.eu/articles/etn-tbpn-launch-funding-round-axel-springer",
+      "evidence_chars": 4993,
+      "cost_usd": 0.005821,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "ETN",
+              "why": "The source names the company as ETN throughout, including in the headline and opening paragraphs."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "$1.6m",
+              "why": "The source states 'raised a $1.6m seed round' and the headline mentions '$1.6m raise'."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state a specific number of roles being added. It mentions recent hires and internship applications but no headcount figure."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "GB",
+              "why": "The source states 'London-based founders' and mentions a studio 'near King's Cross', establishing the UK location."
+            },
+            "signal_direction": {
+              "verdict": "wrong",
+              "source_value": "hiring",
+              "why": "The source states 'Recent hires include former Bloomberg chief of staff Alexandra Best' and 'Two internship roles attracted more than 300 applications', indicating active hiring."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "The story is about a funding round ($1.6m seed), which is a corporate event and money-related, fitting company_development."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"ETN\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"$1.6m\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not specify a headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"GB\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"ETN\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"$1.6m\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not specify a headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"GB\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "ETN"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "$1.6m"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "GB"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "60ab65c4b71cadde017980224b439b9d",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "evidence_url": "",
+      "evidence_chars": 0,
+      "cost_usd": 0.0,
+      "referees": {},
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        }
+      },
+      "skipped": "no readable body"
+    },
+    {
+      "content_hash": "264c70f3e936f9e98b472e136cafa3d0",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": false,
+      "evidence_url": "https://www.electronicsweekly.com/news/business/finance/xona-space-raises-170m-series-c-for-pnt-satellite-network-2026-04/",
+      "evidence_chars": 8792,
+      "cost_usd": 0.00648,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Xona Space",
+              "why": "The source names the company as 'Xona Space' throughout, matching the stored value exactly."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "$170 million",
+              "why": "The source states '$170 million of investment in a Series C funding round'. Stored as '$170m', which matches."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state any number of roles or headcount. Empty is correct."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "UK",
+              "why": "The source is from Electronics Weekly (UK publication) and mentions 'UK government' context, but Xona Space is described as 'a startup' with no location stated. The stored value 'GB' assumes UK locati"
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source announces funding with no stated hiring plans. This is neutral per the definition: funding alone is not hiring."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "A Series C funding round is a corporate event and money event, fitting company_development exactly."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Xona Space\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"$170m\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"GB\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Xona Space\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"$170m\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"GB\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Xona Space"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "$170m"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "GB"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "fda3b2a7a2903b3cd6d0654397a48abc",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "evidence_url": "",
+      "evidence_chars": 0,
+      "cost_usd": 0.0,
+      "referees": {},
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        }
+      },
+      "skipped": "no readable body"
+    },
+    {
+      "content_hash": "5c3a290482bd18d64f6d1eb21e5110e1",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "evidence_url": "https://www.startupticker.ch/en/news/l-e-s-s-raises-usd-22-million-series-c-financing",
+      "evidence_chars": 2945,
+      "cost_usd": 0.005253,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "L.E.S.S. SA",
+              "why": "Text names the employer as 'L.E.S.S. SA'. Stored value 'L.E.S.S.' omits 'SA' but is a reasonable abbreviation of the full name stated."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "$22 million",
+              "why": "Text states 'USD 22 million' and '$22 million'. Stored value matches exactly."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "Text does not state any number of roles or headcount. Stored empty value is correct."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Switzerland",
+              "why": "Text states 'L.E.S.S. SA is a Swiss high-tech scale-up' and mentions 'CHF 17 million'. Switzerland is named. Stored value is empty."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "Text announces funding with no stated hiring plans. Funding alone without hiring disclosure is neutral per rules."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "Series C financing is a funding event, which falls under company_development per definition."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"L.E.S.S.\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"$22 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"Switzerland\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"L.E.S.S.\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"$22 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"Switzerland\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "L.E.S.S."
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "$22 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "219d127186829d14f1639c0243a926ef",
+      "region": "Europe",
+      "event_type": "funding",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260812043214/https://www.startupticker.ch/en/news/vaderis-therapeutics-closes-usd-152-million-series-b-financing",
+      "evidence_chars": 4617,
+      "cost_usd": 0.005423,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Vaderis Therapeutics",
+              "why": "The source names the company exactly as stored throughout the text."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "USD 152 million",
+              "why": "The source states 'USD 152 million Series B financing' matching the stored value exactly."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state any number of roles or headcount. Empty is correct."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Switzerland",
+              "why": "The source states 'Basel-based Vaderis Therapeutics' (Basel is in Switzerland). Stored value is empty but should be Switzerland."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source announces funding and clinical trial initiation with no stated hiring plans. Neutral is correct per definitions."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "Series B financing is a corporate funding event, fitting company_development definition exactly."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Vaderis Therapeutics\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"USD 152 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"Basel\",\"why\":\"Basel is in Switzerland.\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Vaderis Therapeutics\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"USD 152 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"Basel\",\"why\":\"Basel is in Switzerland.\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Vaderis Therapeutics"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "USD 152 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "ee60db3f41f3e48b132e377ee1ced94c",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "",
+      "evidence_chars": 0,
+      "cost_usd": 0.0,
+      "referees": {},
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        }
+      },
+      "skipped": "no readable body"
+    },
+    {
+      "content_hash": "85e7adbb0449c211961ced3ab24e703e",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "https://www.eu-startups.com/2026/09/munich-based-furo-raises-e3-44-million-to-make-industrial-battery-storage-economically-viable/",
+      "evidence_chars": 8544,
+      "cost_usd": 0.006438,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Furo",
+              "why": "The source names the company as 'Furo' throughout, including in the headline and opening sentence."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "€3.44 million",
+              "why": "The source states 'closed a €3.44 million ($4 million) funding round' in the opening paragraph."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source mentions 'grow its team' as a goal but states no specific number of roles or headcount."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "DE",
+              "why": "The source describes Furo as 'Munich-based' and Munich is in Germany. The text also references 'German startup' and Germany explicitly."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source announces funding with a stated goal to 'grow its team' but discloses no hiring plans, roles, or headcount numbers. Funding without stated hiring is neutral."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "The announcement is about a funding round closed by the company, which is a corporate event and investment activity, fitting company_development."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"de\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Furo\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€3.44 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not specify a number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"DE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"de\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Furo\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€3.44 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not specify a number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"DE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Furo"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "€3.44 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "DE"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "a60e73fc33db37d8914cfb719d156937",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": false,
+      "evidence_url": "https://web.archive.org/web/20260821081040/https://www.eu-startups.com/2026/08/scotlands-singular-photonics-secures-e1-85-million-to-scale-spad-image-sensors-with-on-chip-computing/",
+      "evidence_chars": 8045,
+      "cost_usd": 0.006313,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Singular Photonics",
+              "why": "The source names the company exactly as 'Singular Photonics' throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "€1.85 million",
+              "why": "The source states '€1.85 million' in the headline and body text."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state a number of roles being added or recruited."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Scotland",
+              "why": "The source states 'Edinburgh-based' and 'Scotland's Singular Photonics'. Scotland is part of the UK but the text specifically names Scotland, not GB."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The announcement describes funding with no stated hiring plans. The text mentions scaling and expanding capacity but names no roles being recruited."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "This is a funding round announcement, which falls under company_development (money and corporate events)."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Singular Photonics\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€1.85 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"GB\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Singular Photonics\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€1.85 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"GB\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Singular Photonics"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "€1.85 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "GB"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "75a770f15ed615efce96b0f77484306f",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "",
+      "evidence_chars": 0,
+      "cost_usd": 0.0,
+      "referees": {},
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        }
+      },
+      "skipped": "no readable body"
+    },
+    {
+      "content_hash": "d05d99023b0596ce1e261b9448c542d4",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260910084349/https://www.frenchweb.fr/implicity-leve-35-millions-deuros-pour-passer-du-tri-des-alertes-a-la-cardiologie-predictive/463361",
+      "evidence_chars": 12000,
+      "cost_usd": 0.007085,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "fr",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Implicity",
+              "why": "The source names the company as 'IMPLICITY' and 'Implicity' throughout. The stored value matches."
+            },
+            "funding_amount": {
+              "verdict": "wrong",
+              "source_value": "35 millions d'euros",
+              "why": "The source states '35 millions d'euros' but the stored value is '35 millions d'euros' with different formatting. The source uses 'millions d'euros' not 'millions d'euros'."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state any number of roles being added, recruited or opened. The empty value is correct."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "France",
+              "why": "The source identifies Implicity as 'la medtech française' (French medtech) and 'la startup parisienne' (Parisian startup), indicating France. The stored value 'FR' is an abbreviation; the source text "
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source announces funding of 35 million euros but discloses no hiring plans. Funding without stated hiring is neutral per the rules."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "The source describes a funding round (35 million euros raised), which is a corporate event and money, fitting company_development exactly."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"fr\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Implicity\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"35 millions d’euros\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"FR\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"fr\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Implicity\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"35 millions d’euros\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"FR\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Implicity"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "35 millions d’euros"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "FR"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "043358ddaeb726c775ca817e18a5a4bb",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260826092226/https://www.frenchweb.fr/deel-quinze-acquisitions-pour-transformer-une-roadmap-produit-en-strategie-industrielle/462962",
+      "evidence_chars": 12000,
+      "cost_usd": 0.006793,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "fr",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "DEEL",
+              "why": "The source names the company as DEEL throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source describes acquisitions and revenue (1.5B ARR) but states no funding amount for DEEL itself."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source mentions headcount acquired (400 from PayGroup, hundreds from Safeguard) but states no total headcount for DEEL."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "FR",
+              "why": "The source text contains no indication DEEL is French. It mentions acquisitions globally but no French origin or location."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source describes acquisitions and business strategy, not hiring, displacement, or compensation changes."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "Fifteen acquisitions are corporate events and money spent; this is company_development per the definition."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"fr\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"DEEL\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No funding amount is mentioned in the text.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No specific headcount is mentioned in the text.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"FR\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"fr\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"DEEL\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No funding amount is mentioned in the text.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No specific headcount is mentioned in the text.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"FR\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "DEEL"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "FR"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "28f1367e0d42b724e002056694375f67",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260821132806/https://www.eu-startups.com/2026/08/stockholms-pixelgen-technologies-secures-e13-26-million-to-advance-spatial-mapping-of-cell-surface-proteins/",
+      "evidence_chars": 8277,
+      "cost_usd": 0.006591,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Pixelgen Technologies",
+              "why": "The source names the company exactly as stored: 'Pixelgen Technologies, a Stockholm-based life sciences company'."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "€13.26 million",
+              "why": "The source states 'closed an oversubscribed €13.26 million ($15.5 million) Series B funding round', matching the stored value exactly."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state a number of roles or headcount. The CEO mentions 'grow our team' but no specific number is given."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "SE",
+              "why": "The source states 'Stockholm's Pixelgen Technologies' and 'Stockholm-based life sciences company'. Stockholm is in Sweden (SE)."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source describes a funding round with no stated hiring plans. The CEO mentions 'grow our team' but this is aspirational, not a hiring announcement."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "The source is about a Series B funding round, which is a corporate funding event. This falls under company_development per the definition."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Pixelgen Technologies\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€13.26 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"SE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Pixelgen Technologies\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€13.26 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"SE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Pixelgen Technologies"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "€13.26 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "SE"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "cbbde648100f3ae4515e0b8aea0da083",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "https://www.eu-startups.com/2026/08/germanys-computomics-secures-e6-3-million-to-help-crop-breeders-stay-ahead-of-heat-and-drought/",
+      "evidence_chars": 7583,
+      "cost_usd": 0.006296,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Computomics",
+              "why": "The source names the employer as 'Computomics' in the headline and opening paragraph."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "€6.3 million",
+              "why": "The source states 'raised €6.3 million in a Series B round' exactly as stored."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state any number of roles or headcount. Empty is correct."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "DE",
+              "why": "The source states 'Germany's Computomics' and 'Tübingen-based', establishing Germany as the country."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source announces funding with no stated hiring plans. Funding alone is neutral per the rules."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "Series B funding round is a corporate event and investment, fitting company_development exactly."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"de\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Computomics\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€6.3 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"DE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"de\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Computomics\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€6.3 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention any specific headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"DE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Computomics"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "€6.3 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "DE"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "5812d685ade5ec906f0de9567c72df42",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "https://www.eu-startups.com/2026/09/facing-5000-new-attacks-weekly-italys-exein-raises-e234-million-for-physical-ai-cybersecurity/",
+      "evidence_chars": 10384,
+      "cost_usd": 0.006398,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Exein",
+              "why": "The source names the company as 'Exein' throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "€234 million",
+              "why": "The source states '€234 million' in both headline and body text."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state a number of roles being added. It mentions plans to 'increase US hiring' but gives no headcount figure."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Italy",
+              "why": "The source states Exein is 'out of Rome', which is in Italy, not 'IT' (which is the country code). The correct country name is Italy."
+            },
+            "signal_direction": {
+              "verdict": "wrong",
+              "source_value": "hiring",
+              "why": "The source states Exein 'plans to increase US hiring' and 'aims to open a new office in the San Francisco Bay Area', indicating hiring activity."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "company_development",
+              "why": "The funding round of €234 million at unicorn valuation is a corporate funding event, fitting company_development."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Exein\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€234 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention a specific number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"IT\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"en\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Exein\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"correct\",\"source_value\":\"€234 million\",\"why\":\"\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The text does not mention a specific number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"IT\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"company_development\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Exein"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "€234 million"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "IT"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "company_development"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "527bab009ba521f565e7e616c98e88f7",
+      "region": "Europe",
+      "event_type": "hiring",
+      "likely_non_english": true,
+      "evidence_url": "",
+      "evidence_chars": 0,
+      "cost_usd": 0.0,
+      "referees": {},
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        }
+      },
+      "skipped": "no readable body"
+    },
+    {
+      "content_hash": "e597f8a5f3856493623be3a5c4115c65",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "",
+      "evidence_chars": 0,
+      "cost_usd": 0.0,
+      "referees": {},
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_evidence"
+        }
+      },
+      "skipped": "no readable body"
+    },
+    {
+      "content_hash": "3b780557207aaec8c79f5fdaadaebab3",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": false,
+      "evidence_url": "https://web.archive.org/web/20260824172406/https://www.irishexaminer.com/business/companies/arid-41899678.html",
+      "evidence_chars": 5271,
+      "cost_usd": 0.005487,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Glanua",
+              "why": "The source names the employer as 'Glanua' in the headline and throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no funding or investment figure."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no number of roles being added, recruited or opened."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Ireland and UK",
+              "why": "The source names both Ireland and the UK. The stored value 'IE' omits the UK, which is explicitly stated in the headline and text."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "This is a leadership appointment (Conor Gilligan as MD). One executive appointment is a planned succession, not displacement, so neutral is correct."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source describes an appointment of a new managing director, which is a leadership change."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": true,
+          "reason": "",
+          "language": "en",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Glanua",
+              "why": ""
+            },
+            "funding_amount": {
+              "verdict": "not_stated",
+              "source_value": "",
+              "why": "The source does not mention any funding amount."
+            },
+            "headcount": {
+              "verdict": "not_stated",
+              "source_value": "",
+              "why": "The source does not state any headcount."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "IE",
+              "why": ""
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": ""
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": ""
+            }
+          }
+        }
+      },
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "Glanua",
+          "source_values": [
+            "Glanua",
+            "Glanua"
+          ],
+          "why": "The source names the employer as 'Glanua' in the headline and throughout."
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "not_stated_in_source",
+          "stored": "",
+          "source_values": [
+            "",
+            ""
+          ],
+          "why": "The source states no funding or investment figure."
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "not_stated_in_source",
+          "stored": "",
+          "source_values": [
+            "",
+            ""
+          ],
+          "why": "The source states no number of roles being added, recruited or opened."
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "referees_disagree",
+          "stored": "IE",
+          "source_values": [
+            "Ireland and UK",
+            "IE"
+          ],
+          "why": "The source names both Ireland and the UK. The stored value 'IE' omits the UK, which is explicitly stated in the headline and text."
+        },
+        "signal_direction": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "neutral",
+          "source_values": [
+            "neutral",
+            "neutral"
+          ],
+          "why": "This is a leadership appointment (Conor Gilligan as MD). One executive appointment is a planned succession, not displacement, so neutral is correct."
+        },
+        "pillar": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "leadership_change",
+          "source_values": [
+            "leadership_change",
+            "leadership_change"
+          ],
+          "why": "The source describes an appointment of a new managing director, which is a leadership change."
+        }
+      },
+      "language": "en"
+    },
+    {
+      "content_hash": "7724307a00cb23791c6e227ef0b36578",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260418192842/https://www.milanlive.it/2026/03/12/furlani-salutera-il-milan-scelto-il-nuovo-amministratore-delegato/",
+      "evidence_chars": 2620,
+      "cost_usd": 0.005144,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "it",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Milan",
+              "why": "The source text names Milan as the employer throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "No funding or investment figure is stated in the source text."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "No number of roles is stated in the source text."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "IT",
+              "why": "The source is in Italian and discusses Milan, an Italian football club. Italy is implied."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The text discusses a possible departure of one executive (Furlani) and speculation about a replacement (Calvelli). One executive leaving or being replaced is a planned succession, which is neutral per"
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The text discusses the departure of Giorgio Furlani (current CEO/AD) and speculation about his replacement, which is a leadership change."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"it\",\"fields\":{\"company\":{\"verdict\":\"wrong\",\"source_value\":\"Milan\",\"why\":\"The source does not name the employer; it refers to Milan as a team, not a company.\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"IT\",\"why\":\"The source text indicates Italy.\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"The source discusses leadersh",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"it\",\"fields\":{\"company\":{\"verdict\":\"wrong\",\"source_value\":\"Milan\",\"why\":\"The source does not name the employer; it refers to Milan as a team, not a company.\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"IT\",\"why\":\"The source text indicates Italy.\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"The source discusses leadersh"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Milan"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "IT"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "9196a85dd6882b962d50877b79fa6b8b",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260819095133/https://techsavvy.media/bilplatform-henter-tidligere-mckinsey-partner-ind-som-ny-cco/",
+      "evidence_chars": 5245,
+      "cost_usd": 0.006164,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "da",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "AutoUncle",
+              "why": "The source names AutoUncle as the employer multiple times throughout the text."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source text contains no funding or investment figure for AutoUncle."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states one role (CCO) but does not state a number of roles being added or total headcount."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "DK",
+              "why": "The source identifies AutoUncle as an Aarhus-based company (Aarhus-virksomheden), and Aarhus is in Denmark."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "This is a leadership appointment (Philipp Lühr becomes CCO). One executive appointment is a planned succession, not displacement, so neutral is correct."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source describes an appointment: Philipp Lühr is hired as new Chief Commercial Officer at AutoUncle."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": true,
+          "reason": "",
+          "language": "da",
+          "fields": {
+            "company": {
+              "verdict": "wrong",
+              "source_value": "AutoUncle",
+              "why": "The source states the company is AutoUncle, but the stored value is incorrect."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not mention any funding amount."
+            },
+            "headcount": {
+              "verdict": "not_stated",
+              "source_value": "",
+              "why": "The source does not provide any information about headcount."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "DK",
+              "why": "The source states the company operates in Denmark."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source describes a leadership change without indicating hiring or displacement."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source discusses a new appointment, which fits the leadership_change pillar."
+            }
+          }
+        }
+      },
+      "parse_failures": [],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "referees_disagree",
+          "stored": "AutoUncle",
+          "source_values": [
+            "AutoUncle",
+            "AutoUncle"
+          ],
+          "why": "The source names AutoUncle as the employer multiple times throughout the text."
+        },
+        "funding_amount": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "",
+          "source_values": [
+            "",
+            ""
+          ],
+          "why": "The source text contains no funding or investment figure for AutoUncle."
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "not_stated_in_source",
+          "stored": "",
+          "source_values": [
+            "",
+            ""
+          ],
+          "why": "The source states one role (CCO) but does not state a number of roles being added or total headcount."
+        },
+        "country": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "DK",
+          "source_values": [
+            "DK",
+            "DK"
+          ],
+          "why": "The source identifies AutoUncle as an Aarhus-based company (Aarhus-virksomheden), and Aarhus is in Denmark."
+        },
+        "signal_direction": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "neutral",
+          "source_values": [
+            "neutral",
+            "neutral"
+          ],
+          "why": "This is a leadership appointment (Philipp Lühr becomes CCO). One executive appointment is a planned succession, not displacement, so neutral is correct."
+        },
+        "pillar": {
+          "outcome": "correct",
+          "reason": "",
+          "stored": "leadership_change",
+          "source_values": [
+            "leadership_change",
+            "leadership_change"
+          ],
+          "why": "The source describes an appointment: Philipp Lühr is hired as new Chief Commercial Officer at AutoUncle."
+        }
+      },
+      "language": "da"
+    },
+    {
+      "content_hash": "aace0b0a8ee0800d573f0ba6f92ca388",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260825225649/https://www.e15.cz/domaci/hejtman-kuba-ma-novou-funkci-ministr-ho-poslal-do-vedeni-budejovickeho-budvaru-1435193",
+      "evidence_chars": 4300,
+      "cost_usd": 0.006097,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "cs",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Budějovický Budvar",
+              "why": "The source names the company exactly as stored."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source contains no funding or investment figure."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no number of roles. One person's appointment is not headcount."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "CZ",
+              "why": "The source is Czech (e15.cz), mentions Jihočeský hejtman, České Budějovice, and Česko."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "One executive appointment to a supervisory board is a planned succession, not hiring, displacement, or comp_shift."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "Martin Kuba was appointed to the supervisory board of Budějovický Budvar by the agriculture minister."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"cs\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Budějovický Budvar\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state a specific number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"CZ\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"cs\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Budějovický Budvar\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state a specific number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"CZ\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Budějovický Budvar"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "CZ"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "75dfd426254dbeb1665266e250ee7836",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260819153533/https://www.ad-hoc-news.de/boerse/news/unternehmensnachrichten/kulicke-and-soffa-raj-talluri-wird-ceo/69965889",
+      "evidence_chars": 4931,
+      "cost_usd": 0.006327,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "de",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Kulicke and Soffa",
+              "why": "The source names the company as 'Kulicke and Soffa' and 'Kulicke & Soffa Industries' throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source contains no funding or investment figure. It reports CEO appointment and financial results, not capital raised."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no number of roles. It announces a CEO appointment, not hiring or displacement."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "US",
+              "why": "The source is in German but Kulicke & Soffa is a US company (ticker KULICKE, salaries in USD). The text does not state a country; Germany is not mentioned."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source announces a CEO appointment and board election. One executive departure (interim CEO returning to CFO role) is a planned succession, not displacement."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source announces Dr. Raj Talluri's appointment as President and CEO, effective 1 September 2026, and his election to the board."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"de\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Kulicke and Soffa\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"DE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"de\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Kulicke and Soffa\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"DE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Kulicke and Soffa"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "DE"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "9317833733414354eaaaa8d29513a286",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://web.archive.org/web/20260218004412/https://www.siljannews.se/arbetsliv/carina-farm-ny-vd-for-nodava/",
+      "evidence_chars": 3047,
+      "cost_usd": 0.005442,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "sv",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Nodava",
+              "why": "The source names the employer as 'Nodava' and 'Nodava AB' throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source text contains no funding or investment figure."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no number of roles. One executive appointment is not a headcount."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "SE",
+              "why": "The text names Swedish municipalities (Mora, Orsa, Älvdalen) and Swedish institutions (Vattenmyndigheten Norra Östersjön), establishing Sweden."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "One executive appointment (Carina Färm as CEO) is a planned succession, not hiring, displacement, or comp_shift."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source announces an appointment: Carina Färm appointed as new CEO, taking office 1 May 2026."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"sv\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Nodava\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"SE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"sv\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Nodava\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"SE\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Nodava"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "SE"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "18a7456743be25768c55713a54fa3216",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://transporte3.com/noticia/23488-acendix-nombra-a-jose-luis-quero-nuevo-ceo/",
+      "evidence_chars": 7712,
+      "cost_usd": 0.006609,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "es",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Acendix",
+              "why": "The source names the employer as 'Acendix' and 'El Grupo Acendix' throughout."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source text contains no funding or investment figures."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no number of roles being added, cut, or affected."
+            },
+            "country": {
+              "verdict": "correct",
+              "source_value": "ES",
+              "why": "The text states 'en España' and references the Spanish market explicitly."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "This is a CEO appointment and leadership change. One executive appointment is neutral, not displacement or hiring."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The announcement is about José Luis Quero's appointment as new CEO and Lluis Pujeu assuming presidency."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"es\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Acendix\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"ES\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"es\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Acendix\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any headcount.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"ES\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Acendix"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "ES"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "e5a39e93db313a570996eb51436cec15",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://www.agendalogistica.cl/gerencia-hanseatic-global-terminals-logistica/rodrigo-galleguillos-sera-el-nuevo-ceo-regional-de-hanseatic-global-terminals/2081480",
+      "evidence_chars": 3897,
+      "cost_usd": 0.00546,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "es",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Hanseatic Global Terminals",
+              "why": "The source names the employer exactly as stored."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source contains no funding or investment figure."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source states no number of roles being added, cut, or affected."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Latin America (multiple countries: United States, Mexico, Costa Rica, Colombia, Ecuador, Chile)",
+              "why": "The appointment is for HGT Latin America, not Spain. The stored value 'ES' is incorrect; the source does not support it."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "This is a leadership appointment (Galleguillos becomes CEO regional). One executive appointment is neutral, not displacement."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source describes an appointment: Rodrigo Galleguillos assumes the role of regional CEO on 15 March."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"es\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Hanseatic Global Terminals\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any specific number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"ES\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"es\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Hanseatic Global Terminals\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not mention any funding amount.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"The source does not state any specific number of roles.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"ES\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Hanseatic Global Terminals"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "ES"
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    },
+    {
+      "content_hash": "015c39907048c2533da56c6cbe36f1a5",
+      "region": "Europe",
+      "event_type": "leadership",
+      "likely_non_english": true,
+      "evidence_url": "https://www.ehandel.se/farska-siffror-fran-krisade-chimi-ny-vd-och-vice-vd-pa-plats",
+      "evidence_chars": 3374,
+      "cost_usd": 0.005599,
+      "referees": {
+        "anthropic/claude-haiku-4.5": {
+          "answered": true,
+          "reason": "",
+          "language": "sv",
+          "fields": {
+            "company": {
+              "verdict": "correct",
+              "source_value": "Chimi",
+              "why": "The source names the company as 'Chimi' throughout, including in the headline and body text."
+            },
+            "funding_amount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state any funding or investment amount. It discusses loans and financial difficulties, not new funding."
+            },
+            "headcount": {
+              "verdict": "correct",
+              "source_value": "",
+              "why": "The source does not state the number of roles or headcount affected by the leadership changes."
+            },
+            "country": {
+              "verdict": "wrong",
+              "source_value": "Sverige",
+              "why": "The source text states 'Sverige' (Sweden) in the dateline and describes Chimi as 'det svenska märket' (the Swedish brand)."
+            },
+            "signal_direction": {
+              "verdict": "correct",
+              "source_value": "neutral",
+              "why": "The source describes leadership appointments (Helena Torkelsson as VD, Simon Freed as vice VD) with no stated hiring or displacement of roles."
+            },
+            "pillar": {
+              "verdict": "correct",
+              "source_value": "leadership_change",
+              "why": "The source focuses on new VD and vice VD appointments and leadership changes in the company."
+            }
+          }
+        },
+        "openai/gpt-4o-mini": {
+          "answered": false,
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"sv\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Chimi\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No funding amount mentioned in the text.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No specific number of roles mentioned in the text.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"Sverige\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}",
+          "language": "",
+          "fields": {}
+        }
+      },
+      "parse_failures": [
+        {
+          "model": "openai/gpt-4o-mini",
+          "reason": "field signal_direction carries no usable verdict; answer: {\"source_language\": \"sv\",\"fields\":{\"company\":{\"verdict\":\"correct\",\"source_value\":\"Chimi\",\"why\":\"\"},\"funding_amount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No funding amount mentioned in the text.\"},\"headcount\":{\"verdict\":\"not_stated\",\"source_value\":\"\",\"why\":\"No specific number of roles mentioned in the text.\"},\"country\":{\"verdict\":\"correct\",\"source_value\":\"Sverige\",\"why\":\"\"},\"signal_direction\":{\"verdict\":\"neutral\",\"source_value\":\"neutral\",\"why\":\"\"},\"pillar\":{\"verdict\":\"correct\",\"source_value\":\"leadership_change\",\"why\":\"\"}}}"
+        }
+      ],
+      "fields": {
+        "company": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "Chimi"
+        },
+        "funding_amount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "headcount": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "country": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": ""
+        },
+        "signal_direction": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "neutral"
+        },
+        "pillar": {
+          "outcome": "unknown",
+          "reason": "no_verdict",
+          "stored": "leadership_change"
+        }
+      },
+      "language": "unknown"
+    }
+  ]
+}

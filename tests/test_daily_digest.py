@@ -193,3 +193,154 @@ class NoEmDashInARenderedEdition(unittest.TestCase):
         # cannot pass this by saying nothing.
         self.assertIn("SIGNALS NAMING THE MOST ROLES", out)
         self.assertIn("WORKFORCE EVENTS", out)
+
+
+class FundingNeverReachesTheRolesSection(unittest.TestCase):
+    """A funding round is not a hiring count, and the reader newsletter said
+    it was.
+
+    THE LIVE INSTANCE. An edition's roles section listed funding rounds that
+    carry no job count at all. `count_meaning` already refuses them a `roles`
+    figure and `render` already gives them their own heading, so the CONTENT
+    was right in the committed code -- and nothing asserted it, which is how a
+    renderer change could put them back without a single test going red. The
+    neighbouring workforce and projection cases each have a regression here;
+    funding did not.
+
+    Driven from fixtures rather than from the database: the assertion is about
+    what a reader is shown, so it must not depend on what happens to be stored.
+    """
+
+    def _edition(self):
+        return edition([
+            row(),                                   # a real 100-role opening
+            row(company="Fundco", headcount=None, headcount_scope=None,
+                signal_direction="neutral", pillar="company_development",
+                headline="Fundco raises $40M Series B",
+                summary="Fundco raised a $40M Series B.",
+                source_url="https://x/fund",
+                funding_amount="40000000"),
+        ])
+
+    def test_a_funding_row_is_not_classified_as_naming_roles(self):
+        ed = self._edition()
+        named = {f.company for f in ed.naming_roles}
+        self.assertIn("Acme", named)
+        self.assertNotIn("Fundco", named)
+
+    def test_a_funding_row_sits_under_its_own_heading(self):
+        ed = self._edition()
+        self.assertIn("Fundco", {f.company for f in ed.funding_leadership})
+
+    def test_the_funding_heading_says_it_carries_no_hiring_count(self):
+        out = dd.render(self._edition())
+        self.assertIn("FUNDING & LEADERSHIP (no hiring count)", out)
+
+    def test_the_funding_amount_never_becomes_a_roles_total(self):
+        """40,000,000 dollars must never be read as 40,000,000 roles."""
+        ed = self._edition()
+        self.assertEqual(ed.current_roles_total, 100)
+        out = dd.render(ed)
+        self.assertNotIn("40,000,000 roles", out)
+
+    def test_a_funding_only_edition_says_none_rather_than_listing_it(self):
+        ed = edition([
+            row(company="Fundco", headcount=None, headcount_scope=None,
+                signal_direction="neutral", pillar="company_development",
+                headline="Fundco raises $40M Series B",
+                summary="Fundco raised a $40M Series B.",
+                funding_amount="40000000"),
+        ])
+        out = dd.render(ed)
+        roles_block = out.split("SIGNALS NAMING THE MOST ROLES", 1)[1]
+        roles_block = roles_block.split("FUNDING", 1)[0]
+        self.assertIn("None this window.", roles_block)
+        self.assertNotIn("Fundco", roles_block)
+
+
+class EveryExplanatorySentenceAppearsOnce(unittest.TestCase):
+    """One email said the same thing to the reader twice.
+
+    The counting-basis sentence appeared twice in a shipped edition. A reader
+    told the basis once is informed; a reader told it twice is being shown a
+    renderer bug, and it costs the edition credibility on exactly the sentence
+    that is meant to buy it.
+
+    This is a SHAPE guard, not a string check of one sentence: it renders an
+    edition that drives every section and asserts that no explanatory line
+    repeats. A new duplicated caption reddens this without anybody having to
+    think of it in advance.
+    """
+
+    def _full_edition(self):
+        return edition([
+            row(),
+            row(company="Planner", headcount=300, headcount_scope="new_roles",
+                headline="Planner plans to hire 300 by 2028",
+                summary="Planner plans to add 300 roles by 2028.",
+                source_url="https://x/plan"),
+            row(company="GM", headcount=4600, headcount_scope="affected",
+                signal_direction="neutral",
+                headline="GM tentative agreement covering 4,600 workers",
+                summary="A labour agreement covering 4,600 existing employees.",
+                source_url="https://x/gm"),
+            row(company="Fundco", headcount=None, headcount_scope=None,
+                signal_direction="neutral", pillar="company_development",
+                headline="Fundco raises $40M Series B",
+                summary="Fundco raised a $40M Series B.",
+                source_url="https://x/fund",
+                funding_amount="40000000"),
+        ], ytd=1000, prev=900)
+
+    @staticmethod
+    def _explanatory_lines(text):
+        """Lines that explain the edition to the reader, rather than report it.
+
+        A row's own lines (indented, or a bare url) are excluded: two rows may
+        legitimately share a lead or a source name. What must not repeat is a
+        caption, a heading or a basis sentence.
+        """
+        out = []
+        for raw in text.splitlines():
+            line = raw.strip()
+            if not line or raw.startswith("  "):
+                continue
+            if line.startswith("http"):
+                continue
+            out.append(line)
+        return out
+
+    def test_no_explanatory_line_is_printed_twice(self):
+        lines = self._explanatory_lines(dd.render(self._full_edition()))
+        seen, repeated = set(), []
+        for line in lines:
+            if line in seen:
+                repeated.append(line)
+            seen.add(line)
+        self.assertEqual(repeated, [],
+                         f"an edition repeated an explanatory line: {repeated}")
+
+    def test_the_counting_basis_is_stated_exactly_once(self):
+        """The specific sentence the live defect duplicated."""
+        out = dd.render(self._full_edition())
+        self.assertEqual(out.count("current openings only"), 1)
+        self.assertEqual(out.count("NOT counted here"), 1)
+
+    def test_the_guard_drives_every_section(self):
+        """An edition that renders nothing must not pass this quietly."""
+        out = dd.render(self._full_edition())
+        for heading in ("SIGNALS NAMING THE MOST ROLES",
+                        "PLANNED / PROJECTED HIRING",
+                        "WORKFORCE EVENTS",
+                        "FUNDING & LEADERSHIP"):
+            self.assertIn(heading, out)
+
+    def test_it_catches_a_duplicated_caption(self):
+        """Proved by MUTATION: a renderer that says the basis twice is red."""
+        out = dd.render(self._full_edition())
+        basis = next(l for l in out.splitlines()
+                     if "current openings only" in l)
+        mutated = out.replace(basis, basis + "\n" + basis, 1)
+        lines = self._explanatory_lines(mutated)
+        self.assertNotEqual(len(lines), len(set(lines)),
+                            "the guard would not notice a duplicated caption")

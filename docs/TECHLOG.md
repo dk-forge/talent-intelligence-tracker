@@ -14,6 +14,73 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-16 - Run 3: the brake worked, the word is read, and funding is STILL UNKNOWN
+
+**What.** Actions run 35099742572, the first run with the closed vocabulary, the gradeable-neutral block and the mid-run brake. The brake fired: `openai/gpt-4o-mini failed 18 of 20 readable row(s); the rest of the sample was not bought`. 26 rows reached (20 readable, 6 unreadable), **$0.1214 spent against a $1.31 estimate**, so the brake saved about $1.19 of the sample. `referee_stop` is recorded and `budget_stop` is absent, as designed; the run exited 2 and reddened, which is a broken referee reaching a human rather than the budget working.
+
+**THE CAUSE IS NOW READ, NOT CORRELATED.** `openai/gpt-4o-mini` writes `"verdict": "neutral"` for `signal_direction`: it echoes the stored VALUE into the verdict slot instead of grading it. All 18 failing rows have stored direction `neutral` and all 18 captured answers carry `"verdict": "neutral"`. The other five fields in the same answers are graded correctly with legal verdicts, so this is one field's vocabulary bleeding into the verdict vocabulary, not a refusal and not a reasoning failure. The prompt change did not stop it and may have made it likelier: telling the referee that "neutral is an ordinary value of signal_direction" puts the word `neutral` in the same paragraph as the verdict words.
+
+**Funding is STILL UNKNOWN, and by the owner's ruling this stops here.** Only 2 of 20 readable rows parsed, both with stored direction `neutral`. No field has a usable denominator from this run. **No fourth run was bought.** The standing numbers remain run 2's (the entry below): company 98.4 percent, amount 97.2, headcount 100, country 95.5, direction 100, event type 98.0, with funding UNKNOWN on all six fields.
+
+**The fix this points at, NOT taken.** The verdict slot needs to be separated from the field's own vocabulary for `signal_direction` alone: the stored value belongs in `source_value`, never in `verdict`. Candidates, in order of how little they change the measurement: rename the answer key for that field, or show a worked example whose stored direction is `neutral` and whose verdict is `correct`, or ask for the verdict before the field name in the JSON. None was applied, because each changes what the measurement asks and the next run must be bought deliberately rather than as a follow-on.
+
+**Run 2's result file was OVERWRITTEN** by run 3: both write `analysis/extraction/result-2026-09-16.json`. Run 2's numbers survive in the entry below and its file survives at commit 9af9efdd. A future run on the same date will do the same thing; the file name carries a date, not a run.
+
+**Spend.** Run 1 $0.8503 + run 2 $0.9345 + run 3 $0.1214 = **$1.9062** of the owner's $20.00 grant; about **$18.1 remains**.
+
+---
+
+
+## 2026-09-16 - A referee that would not grade "neutral": the vocabulary closed, and a brake for the next one
+
+**What.** The 2026-09-16 re-run lost 99 of 167 readable rows to `openai/gpt-4o-mini` writing a word outside `correct|wrong|not_stated` on `signal_direction`, and paid for all of them. 93 of the 99 stored direction `neutral` and all 38 readable funding rows were among them, so funding read UNKNOWN on all six fields. Three changes, by the owner's ruling of the same date (PR #156, merged as a1724e6b):
+
+1. **The prompt, fixed in terms rather than by hinting.** The vocabulary is stated as CLOSED with the consequence named (an answer carrying another word is discarded unread and the row is lost); `not_stated` is declared THE ONLY way to decline, with an explicit instruction never to express doubt by inventing a verdict word or omitting a field, so a refusal arrives as a legal answer the parser accepts; and every stored value is declared gradeable INCLUDING `neutral`, an ordinary value of `signal_direction` beside hiring, displacement and comp_shift, never a reason to decline.
+2. **`parse_answer` UNCHANGED.** All-or-nothing stays, by ruling. A referee answer that cannot be fully read is UNKNOWN, and counting the readable half is the defect that once stored a truncated code-fenced answer as a rejection. The vocabulary check was NOT weakened to admit the invented word; a test asserts it still refuses one.
+3. **`referee_to_stop()`, the mid-run brake.** The preflight catches a referee that cannot answer at all; it cannot catch one that answers a one-line question and then fails the real prompt, which is exactly what happened. After 20 rows with a readable body, a referee failing more than half stops the run rather than buying the rest of the sample. It is recorded as `referee_stop` and kept DISTINCT from `budget_stop`: the budget working exits 0 because a brake doing its job is not a finding, while a broken referee goes through the incomplete path and reds the workflow. An unreadable body never counts against a referee, because nobody was asked about it.
+
+**Cost.** The prompt grew from 14,819 to 15,962 characters, so the run re-prices from $1.25 to **$1.31** (haiku $1.15 + gpt-4o-mini $0.16), ceiling $2.00 unchanged. Runs 1 and 2 spent $1.7848 of the owner's $20.00 grant.
+
+**Run 3 dispatched at 13:06Z** (Actions 35099742572) and **its result was not seen by the session that dispatched it**. If funding is still UNKNOWN after it, that is to be reported plainly and stopped there; the owner ruled out a fourth run.
+
+**Guard.** `tests/test_extraction_benchmark.py` +8 (59): the prompt closes the vocabulary and names the word that cost the run, while `parse_answer` still refuses that word; `neutral` is named an ordinary value beside the other three and never a reason to decline; the one legal decline route is stated and the declining answer it asks for parses and reads as `not_stated_in_source`; the brake holds below its warmup, trips on a referee failing most readable rows, leaves one that mostly answers alone, never counts an unreadable row, and a referee stop is recorded apart from a budget stop and exits 2 rather than 0. Full suite 5,051 passed, 7 skipped, 495 subtests.
+
+---
+
+
+## 2026-09-16 - The extraction benchmark's first real numbers, and a second referee that cannot say "correct" about "neutral"
+
+**What.** Actions run 35093665611 (`extraction-benchmark.yml`, queued through `drain-writers`, on main at a1a9726a plus the drain tick) graded the committed 200-row sample with `anthropic/claude-haiku-4.5` + `openai/gpt-4o-mini`. The preflight passed, 167 bodies were read (33 unreadable, median 4,366 characters), and the run spent **$0.9345** against a $2.00 ceiling and a $1.25 estimate. Result: `analysis/extraction/result-2026-09-16.json`. The run exited 2 (a stratum judged nothing) and the workflow turned that red so a human reads it, which is the designed outcome, not a fault.
+
+**The numbers, overall (denominator is correct + wrong; 95% Wilson).**
+
+| field | judged | correct | wrong | accuracy | interval |
+|---|---|---|---|---|---|
+| company | 62 | 61 | 1 | 98.4% | 91.4 to 99.7 |
+| amount | 36 | 35 | 1 | 97.2% | 85.8 to 99.5 |
+| headcount | 39 | 39 | 0 | 100.0% | 91.0 to 100.0 |
+| country | 44 | 42 | 2 | 95.5% | 84.9 to 98.7 |
+| direction | 63 | 63 | 0 | 100.0% | 94.3 to 100.0 |
+| event type | 49 | 48 | 1 | 98.0% | 89.3 to 99.6 |
+
+Every field has 33 `no_evidence` and 99 `no_verdict` unknowns (below). `not_stated_in_source`: amount 30, headcount 18, country 8. `referees_disagree`: company 6, amount 2, headcount 11, country 16, direction 5, event type 19.
+
+**By region** (accuracy, n judged): US company 100% (8), amount 100% (4), headcount 100% (5), country 100% (9), direction 100% (7), event type 100% (6). Europe company 100% (24), amount 92% (13), headcount 100% (15), country 89% (18), direction 100% (24), event type 94% (18). RoW company 97% (30), amount 100% (19), headcount 100% (19), country 100% (17), direction 100% (32), event type 100% (25). The US cells are too thin for their intervals to say much (n of 4 to 9, lower bounds 51% to 70%).
+
+**By event type:** funding is UNKNOWN on all six fields (0 judged). Hiring is UNKNOWN on amount and country and judged on 1 or 2 rows elsewhere. Leadership company 100% (28), amount 100% (23), headcount 100% (23), country 94% (16), direction 100% (31), event type 100% (31). Pay company 100% (11), amount 100% (3), headcount 100% (3), country 88% (8), direction 100% (9), event type 90% (10). Working practices company 95% (21), amount 90% (10), headcount 100% (12), country 100% (20), direction 100% (21), event type 100% (6).
+
+**What went wrong, and how far it is understood.** `parse_failures_by_model: {"openai/gpt-4o-mini": 99}`, every one `field signal_direction carries no usable verdict`. The answer parsed as JSON and company, amount, headcount and country carried valid verdicts, so on the direction field gpt-4o-mini wrote a word outside `correct|wrong|not_stated`. The word is UNKNOWN: `parse_answer` kept the reason and dropped the answer. What is stored correlates hard: 93 of the 99 rows have a stored direction of `neutral` (38 neutral rows did parse), all 38 readable funding rows failed, and haiku answered all 99 (78 correct, 20 wrong, 1 not_stated on direction). The likely reading is that gpt-4o-mini will not call `neutral` correct or wrong and invents a third word for it, but that is a hypothesis until an answer is read. So the funding stratum's six UNKNOWNs and the 99 `no_verdict` rows are a REFEREE finding, not an extraction finding, and none of them says anything about the extraction of funding rows.
+
+**Language.** Measured where both referees answered: en 26, ar 7, es 7, fr 6, de 3, it 3, ko 3, pt 3, ja 2, sv 2, id 1, nl 1, pl 1, vi 1, disagree 2; unknown 132 (99 parse failures + 33 unreadable). The parse failures skew English (67 of 99 by the draw-time proxy), so the judged rows over-represent non-English bodies (44 of 68 parsed).
+
+**Fix shipped for the next run** (fix/benchmark-keep-answer): a parse failure keeps the first 600 characters of the answer beside its reason, so the next run reads the word instead of correlating around it. NOT shipped, deliberately: a third paid run (priced $1.25, same ceiling), a prompt change for the direction field, or per-field salvage of an answer whose other five fields parsed. Each is a change to what the measurement is, and the salvage question in particular (`parse_answer` is all-or-nothing by design so a truncated answer cannot be counted) needs a decision before the code moves.
+
+**Spend against the owner's $20.00 grant.** Run 1 (dead second referee) $0.8503, run 2 $0.9345, total **$1.7848**; about $18.2 of the grant remains. Both runs filed priced `extraction_benchmark` health rows on the DISCRETIONARY pot; `budget.status_line()` reads catch-up $2.05 of $20.89 after the second.
+
+**This measures and moves nothing.** No model swap follows from it.
+
+---
+
 ## 2026-09-16 - 82 published rows cited an aggregator; the store had never heard of the host
 
 **What.** The extraction benchmark's draw (same day) found 83 current rows whose text names a commercial data provider. Re-classified by who SERVED the document (`frame.sourced_from_an_aggregator`, new), 82 cite an aggregator as their stored source: 79 on one provider's app host, July to September, all surfaced by Google News; 3 on `*.yahoo.com` since July, which the 2026-07-30 correction script was written for and never applied to (it had no workflow). The other 4 of the 83 are primary or named-outlet documents whose text happens to carry a provider's name (two exchange filings by a company named like a provider, one outlet article about a provider, one bylined newsroom on a provider's domain).

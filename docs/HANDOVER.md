@@ -2,6 +2,133 @@
 
 ---
 
+## 2026-09-16 (run 3 READ): the brake worked, the word is read, funding is STILL UNKNOWN, and it stops here
+
+Run 35099742572 fired the new mid-run brake after 20 readable rows:
+`openai/gpt-4o-mini failed 18 of 20`. **$0.1214 spent** against a $1.31
+estimate, so the brake saved about $1.19 rather than paying out the sample.
+
+**THE CAUSE IS NOW READ, NOT CORRELATED.** `openai/gpt-4o-mini` writes `"verdict": "neutral"` for `signal_direction`: it echoes the stored VALUE into the verdict slot instead of grading it. All 18 failing rows have stored direction `neutral` and all 18 captured answers carry `"verdict": "neutral"`. The other five fields in the same answers are graded correctly with legal verdicts, so this is one field's vocabulary bleeding into the verdict vocabulary, not a refusal and not a reasoning failure. The prompt change did not stop it and may have made it likelier: telling the referee that "neutral is an ordinary value of signal_direction" puts the word `neutral` in the same paragraph as the verdict words.
+
+**Funding is STILL UNKNOWN and no fourth run was bought**, per the owner's
+ruling. Only 2 of 20 readable rows parsed. **The standing accuracy numbers are
+run 2's**, in the section below and in the TECHLOG: company 98.4 percent
+(n=62), amount 97.2 (36), headcount 100 (39), country 95.5 (44), direction 100
+(63), event type 98.0 (49), funding UNKNOWN on every field.
+
+**Spend: $0.8503 + $0.9345 + $0.1214 = $1.9062 of the $20.00 grant; about
+$18.1 remains.**
+
+**If a fourth run is ever authorised**, the fix it needs is to stop the stored
+value reaching the verdict slot for `signal_direction` alone: put the value in
+`source_value` only, and either rename that field's answer key, show a worked
+example with stored `neutral` and verdict `correct`, or order the JSON so the
+verdict precedes the field name. Do not weaken the vocabulary check to admit
+`neutral` as a verdict: it would silently count an echo as a grade.
+
+**Also note:** run 3 OVERWROTE run 2's `result-2026-09-16.json`. Run 2's file
+is at commit 9af9efdd. The result filename carries a date, not a run, so two
+runs on one day collide. Worth fixing before the next run.
+
+---
+
+## 2026-09-16 (run 3 dispatched, result NOT seen): vocabulary closed, neutral made gradeable, a mid-run brake added
+
+**Run 3: https://github.com/dk-forge/talent-intelligence-tracker/actions/runs/35099742572**,
+dispatched 13:06Z through `drain-writers`, priced **$1.31** against a $2.00
+ceiling. **This session ended before it finished. Nobody has read its result.**
+Read `analysis/extraction/result-2026-09-16.json` on main (run 3 overwrites the
+run 2 file of the same name; run 2's numbers are preserved in the TECHLOG entry
+of this date).
+
+**What changed for it** (PR #156, merged):
+- The prompt states the verdict vocabulary as CLOSED, names the consequence of
+  a fourth word, says `not_stated` is the only way to decline, and says every
+  stored value is gradeable INCLUDING `neutral`, which is an ordinary value of
+  `signal_direction` beside hiring, displacement and comp_shift.
+- `parse_answer` is UNCHANGED and stays all-or-nothing by owner ruling. A
+  referee answer that cannot be fully read is UNKNOWN; the vocabulary check
+  still refuses a fourth word rather than admitting one.
+- `referee_to_stop()`: after 20 readable rows, a referee failing more than half
+  stops the run instead of buying the rest of the sample. Recorded as
+  `referee_stop`, distinct from `budget_stop` (the budget working exits 0; a
+  broken referee reds the workflow).
+- PR #152 (merged earlier) keeps 600 characters of an unparseable answer, so
+  run 3 records the word the referee writes even if the prompt fix does not
+  land it.
+
+**Spend:** run 1 $0.8503 + run 2 $0.9345 = $1.7848 spent; run 3 priced $1.31,
+so about **$16.9 of the $20.00 grant remains** once it settles. Confirm against
+`budget.status_line()` rather than this arithmetic.
+
+**Three things for whoever reads run 3:**
+1. **If funding is judged**, the six field accuracies and the funding cells are
+   the first complete read of extraction accuracy. **If funding is still
+   UNKNOWN, say so plainly and STOP: the owner ruled no fourth run.** Read the
+   parse failures first; they now carry the answer text.
+2. **The recall page fold is NOT done, deliberately.** Accuracy was not
+   published to `/talent-intelligence-tracker/recall/` while run 3 was in
+   flight, because the figures would have been superseded within the hour and
+   the funding cells said UNKNOWN for a REFEREE defect rather than a property
+   of the tracker. The page publishes what the tracker MISSES (recall); accuracy
+   is a different question and needs its own framing, a plugin version bump and
+   a deploy. Do it from run 3's numbers, and do not put a field on the page
+   whose cell is UNKNOWN.
+3. **A referee stop or a preflight refusal is not a measurement failure.** Both
+   exit before buying the sample; the rows already graded stand.
+
+---
+
+## 2026-09-16 (latest): the benchmark has numbers on 5 of 6 fields; funding is UNKNOWN because the second referee will not grade "neutral"
+
+Run 35093665611: haiku-4.5 + gpt-4o-mini, 167 of 200 bodies read, **$0.9345**
+spent (estimate $1.25, ceiling $2.00). Exit 2, red by design (a stratum judged
+nothing). Result: `analysis/extraction/result-2026-09-16.json`.
+
+**Overall** (correct + wrong is the denominator; 95% Wilson):
+
+| field | judged | accuracy | interval |
+|---|---|---|---|
+| company | 62 | 98.4% | 91.4 to 99.7 |
+| amount | 36 | 97.2% | 85.8 to 99.5 |
+| headcount | 39 | 100.0% | 91.0 to 100.0 |
+| country | 44 | 95.5% | 84.9 to 98.7 |
+| direction | 63 | 100.0% | 94.3 to 100.0 |
+| event type | 49 | 98.0% | 89.3 to 99.6 |
+
+Unknowns per field: 33 `no_evidence`, 99 `no_verdict`, plus `not_stated_in_source`
+(amount 30, headcount 18, country 8) and `referees_disagree` (company 6, amount
+2, headcount 11, country 16, direction 5, event type 19).
+
+**By region** (accuracy, n): US all six fields 100% on n of 4 to 9 (too thin to
+quote; lower bounds 51% to 70%). Europe company 100% (24), amount 92% (13),
+headcount 100% (15), country 89% (18), direction 100% (24), event type 94%
+(18). RoW company 97% (30), amount 100% (19), headcount 100% (19), country
+100% (17), direction 100% (32), event type 100% (25).
+
+**By event type:** **funding UNKNOWN on every field (0 judged)**; hiring UNKNOWN
+on amount and country, 1 to 2 judged elsewhere; leadership 94% to 100% on n of
+16 to 31; pay 88% to 100% on n of 3 to 11; working practices 90% to 100% on n
+of 6 to 21. Full cells in the TECHLOG entry of the same date.
+
+**Why funding is UNKNOWN, and what is not known.** gpt-4o-mini failed to parse
+on 99 of 167 rows, every one `field signal_direction carries no usable
+verdict`. 93 of the 99 have a stored direction of `neutral`; all 38 readable
+funding rows failed; haiku answered all 99. The word gpt-4o-mini wrote is
+UNKNOWN because a parse failure did not keep the answer. This is a referee
+finding and says nothing about how funding rows are extracted.
+
+**Spend against the $20.00 grant:** run 1 $0.85 + run 2 $0.93 = **$1.78**;
+about **$18.2 remains**.
+
+**Open, needs a decision before more is spent:** (a) a third run at $1.25 after
+`fix/benchmark-keep-answer` lands, to read the offending word; (b) whether
+`parse_answer` should salvage the five fields that did parse when one carries
+an invented word (today it is all-or-nothing so a truncated answer cannot be
+counted); (c) whether the direction wording in the prompt needs a line telling
+the referee that `neutral` is a value to be graded correct or wrong like any
+other. None of these was taken unasked.
+
 ## 2026-09-16 (aggregator rows): the classifier was two questions in one, the store had never heard of the host, 23 of 82 re-chased to a named outlet, 59 UNKNOWN, the live door is a decision the owner keeps (branch `fix/aggregator-sourced-rows`, PR open, not merged)
 
 **Decided by two agents, not the owner (his 2026-09-16 ruling): this is the

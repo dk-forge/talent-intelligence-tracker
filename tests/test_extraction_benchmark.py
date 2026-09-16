@@ -200,6 +200,52 @@ def test_the_prompt_shows_the_referee_the_six_values_and_nothing_else():
         assert key in prompt
 
 
+def test_the_prompt_closes_the_verdict_vocabulary_against_a_fourth_word():
+    """99 of 167 rows were lost to a word outside the three (2026-09-16).
+
+    The vocabulary is stated as closed, the invented word that cost that run is
+    named, and the consequence is spelled out. The CHECK is never weakened to
+    admit a fourth word: `parse_answer` still refuses one.
+    """
+    prompt = " ".join(bench.build_prompt({"headline": "H"}, "body").split())
+    for verdict in bench.VERDICTS:
+        assert f'"{verdict}"' in prompt
+    assert "There is no fourth word" in prompt
+    assert "partially_correct" in prompt, "the word that cost the run is not named"
+    verdict, reason = bench.parse_answer(
+        _answer(signal_direction={"verdict": "partially_correct",
+                                  "source_value": "x", "why": "y"}))
+    assert verdict is None and "signal_direction" in reason
+
+
+def test_the_prompt_says_neutral_is_gradeable_and_never_a_reason_to_decline():
+    """93 of the 99 lost rows stored `signal_direction` = neutral."""
+    prompt = bench.build_prompt(
+        {"headline": "H", "signal_direction": "neutral"}, "body")
+    # Collapsed: the prompt is hard-wrapped, so a sentence spans lines.
+    block = " ".join(
+        prompt[prompt.index("EVERY STORED VALUE IS GRADEABLE"):].split())
+    assert '"neutral" is an ordinary value of signal_direction' in block
+    assert "NEVER a reason to decline a verdict" in block
+    # Named beside the vocabulary it belongs to, so it is not read as special.
+    for other in ("hiring", "displacement", "comp_shift"):
+        assert other in block
+
+
+def test_the_prompt_gives_one_legal_way_to_decline():
+    """A refusal must arrive as a verdict, not as an unparseable answer."""
+    prompt = " ".join(bench.build_prompt({"headline": "H"}, "body").split())
+    assert '"not_stated" IS THE ONLY WAY TO DECLINE' in prompt
+    assert "Never express doubt by inventing a verdict word" in prompt
+    # And the declining answer it asks for is one the parser accepts.
+    verdict, reason = bench.parse_answer(
+        _answer(signal_direction={"verdict": "not_stated",
+                                  "source_value": "", "why": "cannot judge"}))
+    assert verdict is not None and reason == ""
+    assert bench.combine(verdict, verdict, "signal_direction") == (
+        "unknown", "not_stated_in_source")
+
+
 # --- parsing: a failure is a failure, never a verdict ----------------------
 
 def _answer(**overrides) -> str:
@@ -352,6 +398,30 @@ def test_a_referee_error_is_recorded_with_its_message_not_only_its_class(monkeyp
     assert {entry["reason"] for entry in record["fields"].values()} == {"no_verdict"}
 
 
+def test_an_unparseable_answer_is_kept_beside_its_reason(monkeypatch):
+    """The word the referee wrote travels with the parse failure.
+
+    On 2026-09-16 the second referee failed 99 of 167 rows on one field and
+    the answers were not kept, so the cause could only be correlated (93 of
+    the 99 had a stored direction of `neutral`), never read.
+    """
+    monkeypatch.setattr(bench, "REFEREES", ("vendor-a/m", "vendor-b/m"))
+    bad = json.loads(_answer())
+    bad["fields"]["signal_direction"]["verdict"] = "partially_correct"
+
+    def call(model, system, user, **kw):
+        return json.dumps(bad) if model == "vendor-b/m" else _answer()
+
+    record = bench.grade_row(ITEM, STORED, start_usd=0.0, ceiling=1.0,
+                             fetch=lambda url, **kw: "x" * 2000,
+                             wayback=lambda url: None, call=call)
+    reason = record["referees"]["vendor-b/m"]["reason"]
+    assert reason.startswith("field signal_direction carries no usable verdict; answer: ")
+    assert "partially_correct" in reason
+    assert record["parse_failures"][0]["reason"] == reason
+    assert len(reason) <= bench.ANSWER_CHARS + 80
+
+
 def test_a_long_upstream_message_is_clipped_not_dropped():
     from pipeline import classify
 
@@ -424,6 +494,104 @@ def test_a_dead_referee_refuses_the_run_before_a_single_row_is_graded(
     assert rc == 1
     assert "vendor-b/m" in err and "OpenRouter 400" in err
     assert not result_path.exists()
+
+
+# --- the mid-run brake --------------------------------------------------------
+
+def _graded(model_answered: dict, chars: int = 2000) -> dict:
+    return {"evidence_chars": chars, "region": "US", "event_type": "funding",
+            "referees": {m: {"answered": a} for m, a in model_answered.items()},
+            "fields": {}, "parse_failures": []}
+
+
+def test_the_brake_holds_until_there_are_enough_readable_rows():
+    """Two failures out of two is not evidence; it is two rows."""
+    records = [_graded({"a/m": True, "b/m": False}) for _ in range(5)]
+    assert bench.referee_to_stop(records) is None
+
+
+def test_the_brake_stops_a_referee_failing_most_readable_rows(monkeypatch):
+    monkeypatch.setattr(bench, "REFEREES", ("a/m", "b/m"))
+    records = [_graded({"a/m": True, "b/m": i % 3 == 0})
+               for i in range(bench.ABORT_AFTER_ROWS)]
+    stop = bench.referee_to_stop(records)
+    assert stop is not None
+    model, failed, readable = stop
+    assert model == "b/m" and readable == bench.ABORT_AFTER_ROWS
+    assert failed > bench.ABORT_RATE * readable
+
+
+def test_the_brake_leaves_a_referee_that_mostly_answers_alone(monkeypatch):
+    monkeypatch.setattr(bench, "REFEREES", ("a/m", "b/m"))
+    records = [_graded({"a/m": True, "b/m": i % 3 != 0})
+               for i in range(bench.ABORT_AFTER_ROWS)]
+    assert bench.referee_to_stop(records) is None
+
+
+def test_an_unreadable_body_is_never_counted_against_a_referee(monkeypatch):
+    """A row nobody was asked about must not trip the brake."""
+    monkeypatch.setattr(bench, "REFEREES", ("a/m", "b/m"))
+    records = [_graded({}, chars=0) for _ in range(40)]
+    assert bench.referee_to_stop(records) is None
+
+
+def test_a_referee_stop_is_recorded_apart_from_a_budget_stop(monkeypatch, tmp_path, capsys):
+    """A broken referee must reach a human; a budget stop must not.
+
+    The budget stop exits 0 because the brake working is not a finding. A
+    referee failing most rows is a defect, so it goes through the incomplete
+    path and reds the workflow.
+    """
+    items = [{"content_hash": f"h{i}", "signal_id": f"s{i}", "region": "US",
+              "event_type": "funding", "likely_non_english": False,
+              "collector": "google_news", "source_url": f"https://x.example.com/{i}",
+              "archive_url": "", "stored": {}}
+             for i in range(bench.ABORT_AFTER_ROWS + 20)]
+    sample = {"drawn_on": "2026-09-16", "seed": "s", "target": len(items), "items": items}
+    sample_path = tmp_path / "sample-2026-09-16.json"
+    sample_path.write_text(json.dumps(sample))
+    result_path = tmp_path / "result-2026-09-16.json"
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "not-a-real-key")
+    monkeypatch.setattr(bench, "estimate", lambda *a, **k: (0.01, []))
+    monkeypatch.setattr(bench, "prices", lambda *a, **k: {})
+    monkeypatch.setattr(bench, "preflight", lambda **k: {})
+    monkeypatch.setattr(bench, "REFEREES", ("a/m", "b/m"))
+
+    class _Conn:
+        def execute(self, *args):
+            class _Cur:
+                def fetchone(self_inner):
+                    return {"headline": "h", "company": "Acme", "funding_amount": "",
+                            "headcount": None, "country": "US",
+                            "signal_direction": "neutral", "pillar": "company_development"}
+            return _Cur()
+
+        def commit(self):
+            pass
+
+    monkeypatch.setattr(bench.schema, "connect", lambda *a, **k: _Conn())
+    graded = []
+
+    def grade(item, row, **kwargs):
+        record = _graded({"a/m": True, "b/m": False})
+        record["content_hash"] = item["content_hash"]
+        record["likely_non_english"] = False
+        record["fields"] = {key: {"outcome": "unknown", "reason": "no_verdict"}
+                            for key in bench.FIELD_KEYS}
+        graded.append(record)
+        return record
+
+    monkeypatch.setattr(bench, "grade_row", grade)
+    rc = bench.main(["--grade", "--sample", str(sample_path),
+                     "--result", str(result_path), "--ceiling", "1.00"])
+    out = capsys.readouterr().out
+    assert "REFEREE STOP" in out
+    assert len(graded) == bench.ABORT_AFTER_ROWS, "the rest of the sample was bought"
+    written = json.loads(result_path.read_text())
+    assert "b/m" in written["referee_stop"]
+    assert "budget_stop" not in written, "a broken referee read as the budget working"
+    assert rc == 2, "a broken referee did not reach a human"
 
 
 # --- the meter -------------------------------------------------------------
