@@ -607,5 +607,36 @@ class TheUnstickGuardRails(_Quiet):
         self.assertEqual(client.reruns, [])
 
 
+class TheLabelItRelieson(_Quiet):
+
+    def test_the_needs_human_label_is_created_before_it_is_applied(self):
+        """None of the three repos had a `needs-human` label when this
+        shipped, and `gh pr edit --add-label` on a label that does not exist
+        FAILS. The escalation would then be a comment and an email with no
+        visible mark on the pull request, which is the half a person scans."""
+        calls = []
+
+        def fake_run(cmd, **kw):
+            calls.append(list(cmd))
+            class P:
+                returncode = 0
+                stdout = ""
+                stderr = ""
+            return P()
+
+        real = mt._run
+        mt._run = fake_run
+        try:
+            mt.GitHubClient("dk-forge/test", Path(".")).add_label(7, "needs-human")
+        finally:
+            mt._run = real
+
+        self.assertEqual(len(calls), 2)
+        self.assertIn("label", calls[0])
+        self.assertIn("create", calls[0])
+        self.assertIn("--force", calls[0])
+        self.assertIn("--add-label", calls[1])
+
+
 if __name__ == "__main__":
     unittest.main()

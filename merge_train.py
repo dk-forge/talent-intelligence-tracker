@@ -737,6 +737,18 @@ class GitHubClient:
         _run(["gh", "pr", "comment", str(number), "-R", self.repo, "--body", body])
 
     def add_label(self, number: int, label: str) -> None:
+        """Label the pull request, creating the label if the repo lacks it.
+
+        None of the three repos had a `needs-human` label when this shipped,
+        and `gh pr edit --add-label` on a label that does not exist FAILS. The
+        escalation would then have been a comment and an email with no visible
+        mark on the pull request itself, which is the half a person actually
+        scans. `--force` makes the create idempotent.
+        """
+        _run(["gh", "label", "create", label, "-R", self.repo, "--force",
+              "--color", "B60205",
+              "--description", "the merge train stopped here; a person is needed"],
+             check=False)
         _run(["gh", "pr", "edit", str(number), "-R", self.repo, "--add-label", label],
              check=False)
 
