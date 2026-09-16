@@ -189,6 +189,25 @@ def test_the_direction_paragraph_is_carried_too():
     assert "A funding round is NOT hiring" in prose
 
 
+def test_the_direction_paragraph_stops_before_unrelated_production_rules():
+    """`direction_rules` used to run to the END of SCHEMA_HINT, past its own
+    paragraph and into the `is_talent_signal` exclusion rules and the
+    read-through style guide -- instructions for the extractor, not the
+    referee. Every one of the benchmark's 99 parse failures on 2026-09-16 was
+    gpt-4o-mini producing an unusable verdict for exactly this field, the one
+    whose rule text carried instructions unrelated to answering
+    correct/wrong/not_stated.
+    """
+    prose = bench.direction_rules()
+    assert "is_talent_signal" not in prose
+    assert "weak read-through is worse than none" not in prose
+
+
+def test_the_prompt_does_not_carry_unrelated_production_instructions():
+    prompt = bench.build_prompt({"headline": "H", "company": "Acme"}, "body text")
+    assert "is_talent_signal" not in prompt
+
+
 def test_the_prompt_shows_the_referee_the_six_values_and_nothing_else():
     row = {"headline": "H", "company": "Acme", "funding_amount": "$5M",
            "headcount": None, "country": "FR", "signal_direction": "hiring",

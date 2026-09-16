@@ -197,10 +197,20 @@ def direction_rules(schema_hint: str | None = None) -> str:
     vocabulary and not a definition: the definition is the paragraph below the
     JSON, and a referee that never sees it will mark every funding round
     "hiring", which is the exact mistake the paragraph was written to stop.
+
+    Stops before the NEXT topic in `SCHEMA_HINT` (the `is_talent_signal`
+    exclusion rules and the read-through style guide), which are instructions
+    for the extractor and not part of what "correct" means for this field. A
+    referee handed those alongside the verdict schema it must answer in
+    (`"verdict": "correct"|"wrong"|"not_stated"`) has every reason to echo the
+    wrong vocabulary back.
     """
     text = classify.SCHEMA_HINT if schema_hint is None else schema_hint
     start = text.find("signal_direction is what the SOURCE STATES")
-    return text[start:].strip() if start != -1 else ""
+    if start == -1:
+        return ""
+    end = text.find("\n\nSet is_talent_signal false", start)
+    return text[start:end if end != -1 else None].strip()
 
 
 PROMPT = """You are one of two independent referees auditing a talent-market tracker's
