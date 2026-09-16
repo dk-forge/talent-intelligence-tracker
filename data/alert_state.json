@@ -25,6 +25,11 @@
       "last": 1788716370,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "extraction-benchmark:main:8b663f6538c039df": {
+      "first": 1789556570,
+      "last": 1789556570,
+      "subject": "CI RED: extraction-benchmark: an UNKNOWN is not a pass and not a failure."
+    },
     "money-basis-check:main:dedcf2329403bf13": {
       "first": 1789474116,
       "last": 1789474116,
@@ -41,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-16T10:28:32+00:00",
+  "updated_at": "2026-09-16T11:02:56+00:00",
   "version": 1
 }
