@@ -14,6 +14,23 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-16 - A referee that would not grade "neutral": the vocabulary closed, and a brake for the next one
+
+**What.** The 2026-09-16 re-run lost 99 of 167 readable rows to `openai/gpt-4o-mini` writing a word outside `correct|wrong|not_stated` on `signal_direction`, and paid for all of them. 93 of the 99 stored direction `neutral` and all 38 readable funding rows were among them, so funding read UNKNOWN on all six fields. Three changes, by the owner's ruling of the same date (PR #156, merged as a1724e6b):
+
+1. **The prompt, fixed in terms rather than by hinting.** The vocabulary is stated as CLOSED with the consequence named (an answer carrying another word is discarded unread and the row is lost); `not_stated` is declared THE ONLY way to decline, with an explicit instruction never to express doubt by inventing a verdict word or omitting a field, so a refusal arrives as a legal answer the parser accepts; and every stored value is declared gradeable INCLUDING `neutral`, an ordinary value of `signal_direction` beside hiring, displacement and comp_shift, never a reason to decline.
+2. **`parse_answer` UNCHANGED.** All-or-nothing stays, by ruling. A referee answer that cannot be fully read is UNKNOWN, and counting the readable half is the defect that once stored a truncated code-fenced answer as a rejection. The vocabulary check was NOT weakened to admit the invented word; a test asserts it still refuses one.
+3. **`referee_to_stop()`, the mid-run brake.** The preflight catches a referee that cannot answer at all; it cannot catch one that answers a one-line question and then fails the real prompt, which is exactly what happened. After 20 rows with a readable body, a referee failing more than half stops the run rather than buying the rest of the sample. It is recorded as `referee_stop` and kept DISTINCT from `budget_stop`: the budget working exits 0 because a brake doing its job is not a finding, while a broken referee goes through the incomplete path and reds the workflow. An unreadable body never counts against a referee, because nobody was asked about it.
+
+**Cost.** The prompt grew from 14,819 to 15,962 characters, so the run re-prices from $1.25 to **$1.31** (haiku $1.15 + gpt-4o-mini $0.16), ceiling $2.00 unchanged. Runs 1 and 2 spent $1.7848 of the owner's $20.00 grant.
+
+**Run 3 dispatched at 13:06Z** (Actions 35099742572) and **its result was not seen by the session that dispatched it**. If funding is still UNKNOWN after it, that is to be reported plainly and stopped there; the owner ruled out a fourth run.
+
+**Guard.** `tests/test_extraction_benchmark.py` +8 (59): the prompt closes the vocabulary and names the word that cost the run, while `parse_answer` still refuses that word; `neutral` is named an ordinary value beside the other three and never a reason to decline; the one legal decline route is stated and the declining answer it asks for parses and reads as `not_stated_in_source`; the brake holds below its warmup, trips on a referee failing most readable rows, leaves one that mostly answers alone, never counts an unreadable row, and a referee stop is recorded apart from a budget stop and exits 2 rather than 0. Full suite 5,051 passed, 7 skipped, 495 subtests.
+
+---
+
+
 ## 2026-09-16 - The extraction benchmark's first real numbers, and a second referee that cannot say "correct" about "neutral"
 
 **What.** Actions run 35093665611 (`extraction-benchmark.yml`, queued through `drain-writers`, on main at a1a9726a plus the drain tick) graded the committed 200-row sample with `anthropic/claude-haiku-4.5` + `openai/gpt-4o-mini`. The preflight passed, 167 bodies were read (33 unreadable, median 4,366 characters), and the run spent **$0.9345** against a $2.00 ceiling and a $1.25 estimate. Result: `analysis/extraction/result-2026-09-16.json`. The run exited 2 (a stratum judged nothing) and the workflow turned that red so a human reads it, which is the designed outcome, not a fault.
