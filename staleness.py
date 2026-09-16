@@ -224,6 +224,13 @@ MAX_AGE_HOURS = {
     # pace, not an outage. Its first run (2026-09-14) filed this id and wore
     # the 336h default nobody chose.
     "adjudicate_rows": 2400,
+    # extraction_benchmark is DISPATCH-ONLY for the same reason and on the
+    # same number: extraction-benchmark.yml has no cron and must not gain
+    # one, it spends. Its health row exists so the referee spend is in the
+    # ledger, not to promise a cadence -- a benchmark is re-run when
+    # somebody has a reason to re-measure, and silence between runs is
+    # that decision rather than an outage.
+    "extraction_benchmark": 2400,
     # The two recall families, recall.yml, Mondays 08:00 UTC. Both file a health
     # row from measure_recall.py on every run, one per family
     # (analysis/recall/family.py owns which is which). Weekly cadence plus a day
