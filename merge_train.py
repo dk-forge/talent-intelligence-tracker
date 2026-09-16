@@ -322,7 +322,13 @@ def judge(pr: dict,
                             if check_state(c) == "failing"}))
     pending = tuple(sorted({str(c.get("name")) for c in checks
                             if check_state(c) == "pending"}))
-    counted = len({str(c.get("name")) for c in checks})
+    # CHECK RUNS, NOT DISTINCT NAMES. Two jobs can legitimately share a name
+    # -- both trackers run a `compare` job out of two different workflows --
+    # and de-duplicating by name made the talent tracker's real total of 3
+    # read as 2, which is under its own measured floor. A floor nothing can
+    # ever reach is a train that never merges, and it would have looked like
+    # "CI has not started" forever.
+    counted = len(checks)
 
     if failing:
         return Verdict(SKIP_RED, f"{len(failing)} failing check(s)",

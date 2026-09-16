@@ -27,6 +27,7 @@ The mutations that were run, and what failed:
   `failure` made re-runnable                      -> test_a_failing_assertion_is_never_re_run
   the mechanical-allowlist path rule deleted      -> test_it_refuses_a_path_outside_the_mechanical_allowlist
   glob patterns stop matching in path_matches     -> test_a_glob_forbidden_pattern_is_honoured
+  the floor counts distinct names again           -> test_two_checks_that_share_a_name_count_as_two
 
 No test here opens a socket or shells out to git or gh: the client is a fake.
 """
@@ -245,6 +246,17 @@ class TheGreenTest(_Quiet):
                              check("fixture: b"), check("fixture: c")],
                       cfg(), last_deploy_at=NOW, now=NOW)
         self.assertEqual(v2.state, mt.WAIT)
+
+    def test_two_checks_that_share_a_name_count_as_two(self):
+        """MEASURED, and it bit this file before it shipped. Both trackers run
+        a job called `compare` out of two different workflows. Counting
+        DISTINCT NAMES made the talent tracker's real total of 3 read as 2,
+        under its own measured floor, so nothing could ever have merged there
+        and it would have looked like "CI has not started" forever."""
+        checks = [check("compare"), check("compare"), check("pytest")]
+        v = mt.judge(pr(), checks, cfg(min_checks=3), last_deploy_at=NOW, now=NOW)
+        self.assertEqual(v.counted, 3)
+        self.assertEqual(v.state, mt.READY)
 
     def test_a_pending_check_waits(self):
         v = mt.judge(pr(), green(3) + [check("slow", conclusion="", status="in_progress")],
