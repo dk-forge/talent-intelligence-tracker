@@ -14,6 +14,23 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-16 - Run 3: the brake worked, the word is read, and funding is STILL UNKNOWN
+
+**What.** Actions run 35099742572, the first run with the closed vocabulary, the gradeable-neutral block and the mid-run brake. The brake fired: `openai/gpt-4o-mini failed 18 of 20 readable row(s); the rest of the sample was not bought`. 26 rows reached (20 readable, 6 unreadable), **$0.1214 spent against a $1.31 estimate**, so the brake saved about $1.19 of the sample. `referee_stop` is recorded and `budget_stop` is absent, as designed; the run exited 2 and reddened, which is a broken referee reaching a human rather than the budget working.
+
+**THE CAUSE IS NOW READ, NOT CORRELATED.** `openai/gpt-4o-mini` writes `"verdict": "neutral"` for `signal_direction`: it echoes the stored VALUE into the verdict slot instead of grading it. All 18 failing rows have stored direction `neutral` and all 18 captured answers carry `"verdict": "neutral"`. The other five fields in the same answers are graded correctly with legal verdicts, so this is one field's vocabulary bleeding into the verdict vocabulary, not a refusal and not a reasoning failure. The prompt change did not stop it and may have made it likelier: telling the referee that "neutral is an ordinary value of signal_direction" puts the word `neutral` in the same paragraph as the verdict words.
+
+**Funding is STILL UNKNOWN, and by the owner's ruling this stops here.** Only 2 of 20 readable rows parsed, both with stored direction `neutral`. No field has a usable denominator from this run. **No fourth run was bought.** The standing numbers remain run 2's (the entry below): company 98.4 percent, amount 97.2, headcount 100, country 95.5, direction 100, event type 98.0, with funding UNKNOWN on all six fields.
+
+**The fix this points at, NOT taken.** The verdict slot needs to be separated from the field's own vocabulary for `signal_direction` alone: the stored value belongs in `source_value`, never in `verdict`. Candidates, in order of how little they change the measurement: rename the answer key for that field, or show a worked example whose stored direction is `neutral` and whose verdict is `correct`, or ask for the verdict before the field name in the JSON. None was applied, because each changes what the measurement asks and the next run must be bought deliberately rather than as a follow-on.
+
+**Run 2's result file was OVERWRITTEN** by run 3: both write `analysis/extraction/result-2026-09-16.json`. Run 2's numbers survive in the entry below and its file survives at commit 9af9efdd. A future run on the same date will do the same thing; the file name carries a date, not a run.
+
+**Spend.** Run 1 $0.8503 + run 2 $0.9345 + run 3 $0.1214 = **$1.9062** of the owner's $20.00 grant; about **$18.1 remains**.
+
+---
+
+
 ## 2026-09-16 - A referee that would not grade "neutral": the vocabulary closed, and a brake for the next one
 
 **What.** The 2026-09-16 re-run lost 99 of 167 readable rows to `openai/gpt-4o-mini` writing a word outside `correct|wrong|not_stated` on `signal_direction`, and paid for all of them. 93 of the 99 stored direction `neutral` and all 38 readable funding rows were among them, so funding read UNKNOWN on all six fields. Three changes, by the owner's ruling of the same date (PR #156, merged as a1724e6b):
