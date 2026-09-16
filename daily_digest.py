@@ -193,6 +193,11 @@ class Edition:
     planned: list[Featured] = field(default_factory=list)
     workforce: list[Featured] = field(default_factory=list)
     funding_leadership: list[Featured] = field(default_factory=list)
+    #: Everything count_meaning classifies as OTHER: a row with no headcount
+    #: that is neither funding nor a leadership move (a bare site opening, an
+    #: RTO policy). It has a home BECAUSE it is a real sixth class -- see the
+    #: bucket loop for what its absence did.
+    other: list[Featured] = field(default_factory=list)
 
     @property
     def confirmed_count(self) -> int:
@@ -211,6 +216,18 @@ class Edition:
         return (self.prev_ytd is not None
                 and (self.ytd_total - self.prev_ytd) > len(self.featured))
 
+    @property
+    def sectioned(self) -> list[Featured]:
+        """Every featured row, in whichever bucket it landed.
+
+        The edition's headline counts `featured`. This is what the reader is
+        actually shown. They must be the same rows, and `test_digest_sections`
+        holds that: a row counted in a headline and printed nowhere is a
+        number the reader cannot check against anything.
+        """
+        return (self.naming_roles + self.planned + self.workforce
+                + self.funding_leadership + self.other)
+
 
 def build_edition(rows, since, until, as_of, ytd_total, prev_ytd=None) -> Edition:
     featured = [_featured(r) for r in rows]
@@ -226,6 +243,18 @@ def build_edition(rows, since, until, as_of, ytd_total, prev_ytd=None) -> Editio
             ed.workforce.append(f)
         elif t == cm.FUNDING_OR_LEADERSHIP:
             ed.funding_leadership.append(f)
+        else:
+            # THE BIN THAT WAS A TRAPDOOR. count_meaning has SIX types and
+            # this loop had five branches, so every `other` row fell out of
+            # the edition entirely: counted in the headline ("adds N
+            # signals"), named in no breakdown, printed in no section. On the
+            # committed database that is 1,545 of 35,789 current rows.
+            #
+            # An `else` rather than a sixth `elif cm.OTHER`, deliberately: a
+            # seventh type added later lands in a section a reader can see,
+            # instead of silently going missing again. Being visible in the
+            # wrong bucket is a bug somebody reports; being invisible is not.
+            ed.other.append(f)
     ed.naming_roles.sort(key=lambda f: f.meaning.roles or 0, reverse=True)
     ed.planned.sort(key=_headcount, reverse=True)
     ed.workforce.sort(key=_headcount, reverse=True)
@@ -266,6 +295,12 @@ def what_changed(ed: Edition) -> str:
         parts.append(f"{len(ed.workforce)} workforce events")
     if ed.funding_leadership:
         parts.append(f"{len(ed.funding_leadership)} funding/leadership")
+    # NAMED, SO THE BREAKDOWN SUMS TO THE FIGURE IN FRONT OF IT. While `other`
+    # had no bucket these rows were in the "adds N" and in none of the parts,
+    # so the parenthesis quietly failed to account for up to 4% of the
+    # edition and nothing said a word about the shortfall.
+    if ed.other:
+        parts.append(f"{len(ed.other)} other")
     breakdown = ", ".join(parts) if parts else "none carrying a hiring figure"
     lead = ""
     if ed.naming_roles:
@@ -324,6 +359,17 @@ def render(ed: Edition) -> str:
     if ed.funding_leadership:
         L.append("FUNDING & LEADERSHIP (no hiring count)")
         for f in ed.funding_leadership[:8]:
+            L.extend(_render_item(f))
+        L.append("")
+
+    # THE SIXTH SECTION, FOR THE SIXTH TYPE. The heading says what these rows
+    # are -- no headcount, and not funding or leadership either -- rather than
+    # borrowing a heading that would make a claim about them. That is the same
+    # rule the four headings above follow, and the reason this section exists
+    # at all is that the rows were previously shown under no heading anywhere.
+    if ed.other:
+        L.append("OTHER SIGNALS (no hiring count)")
+        for f in ed.other[:8]:
             L.extend(_render_item(f))
         L.append("")
 

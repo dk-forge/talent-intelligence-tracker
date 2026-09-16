@@ -148,6 +148,60 @@ def _is_job_board(collector: str, source_name: str) -> bool:
     return bool(re.search(r"\bjob board\b", source_name or "", re.IGNORECASE))
 
 
+# --- "Does this row state money?", read from the tracker's OWN vocabulary ---
+#
+# THE DEFECT. This question was answered by ONE raw text column,
+# `funding_amount`, and the store has five fields that carry a row's money or
+# deal identity: the normalised `funding_amount_usd` that the dashboard and
+# every /query consumer actually read, the `money_basis` verdict that
+# pipeline/money_raised.py writes and correct_money_basis.py repairs,
+# `funding_stage`, and `deal_type`. A round whose amount was normalised into
+# `funding_amount_usd` while the raw column stayed empty answered "no money
+# here" and fell through to OTHER -- the bin for a row that is neither funding
+# nor a leadership move.
+#
+# MEASURED on the committed database, 35,789 current rows: 1,545 classify as
+# OTHER and 258 of those carry one of these fields. They are funding and deal
+# rows wearing the label for "none of the above", and daily_digest.py then
+# dropped every one of them on the floor (see its own bucket loop).
+#
+# ONE DEFINITION, NOT FIVE READINGS. Every caller asking "does this row state
+# money?" asks here, so a sixth field joins the tuple rather than a sixth
+# `or` joining some caller's condition.
+#
+# TYPE SAFETY IS NOT INCIDENTAL HERE. The old line was
+# `(g("funding_amount") or "").strip()`, which raises AttributeError the moment
+# that column arrives as a number instead of a string -- and
+# `funding_amount_usd` IS a number. No current stored row triggers it, so this
+# is a guard and not a repair, and it is written as one: a value is inspected
+# by what it IS, never by assuming it is text.
+_MONEY_FIELDS = ("funding_amount", "funding_amount_usd", "funding_stage",
+                 "deal_type", "money_basis")
+
+
+def _states_money(g) -> bool:
+    """True when the row's own stored fields establish a money or deal identity.
+
+    A zero amount is NOT money stated: the tracker's rule throughout is that
+    absence of a figure and a measured zero are different things, and nothing
+    here may turn the first into the second.
+    """
+    for key in _MONEY_FIELDS:
+        value = g(key)
+        if value is None:
+            continue
+        if isinstance(value, bool):
+            # A bool is not an amount and not a basis. Excluded before the
+            # numeric branch, which would otherwise read True as a figure.
+            continue
+        if isinstance(value, (int, float)):
+            if value:
+                return True
+        elif str(value).strip():
+            return True
+    return False
+
+
 @dataclass(frozen=True)
 class CountMeaning:
     """The verdict on one signal's headcount.
@@ -205,7 +259,7 @@ def classify(row) -> CountMeaning:
     confidence = (g("confidence") or "").strip().lower()
     collector = g("collector") or ""
     source_name = g("source_name") or ""
-    funding = (g("funding_amount") or "").strip()
+    funding = _states_money(g)
 
     primary = confidence == "verified"
     first_party = _is_first_party(collector, source_name, primary)
