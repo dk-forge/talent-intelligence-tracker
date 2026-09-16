@@ -74,7 +74,7 @@ concurrency:
 
 jobs:
   correct:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # The judgement is local and free; the budget is for /enrich's batches
     # against a shared host and its retry pauses, not for the work.
     timeout-minutes: 30

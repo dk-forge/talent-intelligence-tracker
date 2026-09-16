@@ -64,7 +64,7 @@ permissions:
 
 jobs:
   collect:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # SIZED FROM MEASUREMENT, 2026-08-13: median 20.0 min, max 101.5 over the
     # last 44 successful runs. Highly variable, and deliberately sized for the
     # tail rather than the middle: everything since 2026-08-03 sits between 12

@@ -100,6 +100,40 @@ c=sqlite3.connect('file:data/talent_intel.db?mode=ro',uri=True); c.row_factory=s
 print([dict(r)['content_hash'] for r in c.execute('select * from signals where is_current=1') if frame.cites_a_provider(dict(r))])"
 ```
 
+## 2026-09-13: every workflow that touches the host now runs on the Contabo VPS (branch `ci/host-jobs-run-on-the-vps`, PR open, not merged)
+
+ChemiCloud's Imunify360 challenges every datacenter address, so from a
+GitHub-hosted runner a live call gets HTTP 403 or the "One moment, please"
+interstitial on a 2xx, and a job that reads that as an answer exits green
+having done nothing. The owner whitelisted one fixed address, the Contabo VPS
+(173.249.57.163), and registered it as the self-hosted runner
+`atr-runner-talent-intelligence-tracker` (labels `self-hosted, Linux, X64,
+contabo`; Ubuntu 24.04, Python 3.12, Node 22, lftp, php-cli).
+
+34 workflows moved to `runs-on: [self-hosted, linux, contabo]`: every
+`talent-collect` writer (collect, collect-press, collect-structured, the
+backfills, the corrections, enrich, place-unplaced, recall, retract,
+reverse-cityless-hq, tripwire, benchmark-diff), `deploy-plugin`,
+`deploy-robots`, `host-watch`, `health-digest`, `money-basis-check`,
+`landmarks`, `indeed-index` and `contrast-audit`. Stayed on `ubuntu-latest`
+because they never touch the host: `tests` (hourly, zero host requests since
+PR #138), `card-contract`, `style-standard`, `ci-alert`, `ci-noise-report`,
+`self-heal`, `drain-writers` and `schedule-link-hygiene` (GitHub API only;
+they dispatch writers, the writers do the host work), `backup-check`,
+`archive-sources` and `link-check` (Wayback and source URLs, committed DB),
+`ab-models`, `gate-classifier` (trains on the committed DB; carries
+`WP_SITE_URL` it does not read).
+
+One runner serialises the queue, which is a feature: the bunched cron
+firings were part of what overloaded the shared host. `timeout-minutes`
+counts from job start, and no moved workflow has `cancel-in-progress: true`.
+The deploy's three per-run `apt-get install lftp` are now `command -v`
+guarded and `setup-php` is skipped on the self-hosted box (php-cli 8.3 is
+there). Two things the VPS lacks: `contrast-audit` needs a Chrome binary,
+and `deploy-plugin`'s tests-are-green gate needs the `gh` CLI. `host-watch`
+now probes from the whitelisted address, so it reports the origin's health,
+not what a datacenter reader sees. Unproven until the runner takes one
+scheduled job: `gh run list --workflow=collect.yml -L 1 --json runnerName`.
 ## 2026-09-14: a deterministic contradiction audit over every published money row; 2 stale verdicts and 11 wrong figures found, both corrections queued through the machinery (branch `fix/money-basis-contradiction-audit`)
 
 `correct_money_basis.py --check` was one question: is any figure unjudged?

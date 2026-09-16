@@ -60,7 +60,7 @@ concurrency:
 
 jobs:
   correct:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # The document pass re-reads every live sec_edgar filing at SEC's request
     # delay — roughly 3,800 documents at 0.15s plus network, so tens of minutes.
     # Kept at the same slice ceiling as the backfills so this cannot become the

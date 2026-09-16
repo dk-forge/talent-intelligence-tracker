@@ -63,7 +63,7 @@ env:
 
 jobs:
   backfill:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     # WHICH POT THIS SPENDS FROM (budget.py). Catch-up work: dispatched by
     # hand, never on a schedule, so it draws on the DISCRETIONARY pot and
     # cannot touch the committed one the scheduled collectors run on. In

@@ -43,7 +43,7 @@ concurrency:
 
 jobs:
   reverse:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
