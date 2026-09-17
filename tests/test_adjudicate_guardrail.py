@@ -426,3 +426,104 @@ def test_a_disagree_spec_still_applies_nothing(tmp_path, monkeypatch):
     import adjudicate_guardrail as ag
     monkeypatch.setattr(ag, "apply_decision", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not apply")))
     assert ag.apply_from_spec(None, _owner_spec(tmp_path, status="disagree"), apply=True) == 3
+
+
+# --- an owner ruling on a finding that is already closed ---------------------
+# The ledger state and the row are two different facts. `rejected` withholds a
+# row from FUTURE publication and says nothing about one that went out first.
+# Ominimo (published 2026-07-29, rejected 2026-09-15) and Sapien (published
+# 2026-09-09, rejected 2026-09-15) were both live, both carrying a VALUATION
+# inside the published company-raise total, and every spec written for them was
+# turned away with "already rejected" without changing a number.
+
+def test_an_owner_ruled_edit_still_reaches_a_rejected_findings_row(tmp_path, monkeypatch):
+    import adjudicate_guardrail as ag
+    seen = {}
+    monkeypatch.setattr(ag, "load_finding",
+                        lambda conn, key: {"finding": {"state": "rejected"}, "key": key})
+    def fake_apply(conn, item, action, correction, note, who, apply, push=None):
+        seen.update(action=action, correction=correction, who=who)
+        return 1
+    monkeypatch.setattr(ag, "apply_decision", fake_apply)
+    spec = _owner_spec(tmp_path, action="edit",
+                       correction={"corrected_amount": None})
+    assert ag.apply_from_spec(None, spec, apply=True) == 0
+    assert seen["action"] == "edit", (
+        "a closed finding leaves the row uncorrected; the edit is the only "
+        "thing that takes the figure out of the published total")
+    assert seen["correction"] == {"corrected_amount": None}
+
+
+def test_a_closed_finding_still_refuses_accept_and_reject(tmp_path, monkeypatch):
+    """Re-answering a closed finding is the double answer the guard exists for.
+
+    Only an EDIT is let through, because it revises the row rather than
+    re-deciding the ledger.
+    """
+    import adjudicate_guardrail as ag
+    monkeypatch.setattr(ag, "load_finding",
+                        lambda conn, key: {"finding": {"state": "rejected"}, "key": key})
+    monkeypatch.setattr(ag, "apply_decision",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not apply")))
+    for action in ("accept", "reject"):
+        assert ag.apply_from_spec(None, _owner_spec(tmp_path, action=action), apply=True) == 0
+
+
+def test_a_two_referee_spec_on_a_closed_finding_is_still_refused(tmp_path, monkeypatch):
+    """Only an OWNER ruling may reopen this door, never an agreement."""
+    import adjudicate_guardrail as ag
+    import json
+    monkeypatch.setattr(ag, "load_finding",
+                        lambda conn, key: {"finding": {"state": "rejected"}, "key": key})
+    monkeypatch.setattr(ag, "apply_decision",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not apply")))
+    path = tmp_path / "agreed.json"
+    path.write_text(json.dumps({"key": "amount/abc", "status": "agree-dry-run",
+                                "action": "edit", "correction": {}}), encoding="utf-8")
+    assert ag.apply_from_spec(None, path, apply=True) == 0
+
+
+# --- clearing a figure, as opposed to replacing one --------------------------
+
+class _FakeSignal:
+    money_basis = None
+    deal_type = None
+
+
+def _amount_passed_to_corrected_signal(correction):
+    """What _edited_signal hands to corrected_signal for a $1.6bn row."""
+    import adjudicate_guardrail as ag
+    import correct_funding_amount
+    captured = {}
+
+    def stub(row, parsed):
+        captured["amount"] = parsed
+        return _FakeSignal()
+
+    orig = correct_funding_amount.corrected_signal
+    correct_funding_amount.corrected_signal = stub
+    try:
+        ag._edited_signal({"content_hash": HASH,
+                           "funding_amount_usd": 1_600_000_000}, correction)
+    finally:
+        correct_funding_amount.corrected_signal = orig
+    return captured["amount"]
+
+
+def test_an_explicit_null_amount_clears_the_figure():
+    """`corrected_amount: null` means "there is no figure for this event".
+
+    The only way to say that about a row whose stored number is a VALUATION
+    and whose raise was never disclosed. No money_basis value says it: the
+    vocabulary offers acquisition, ipo, bond_issue, public_offering,
+    project_finance and the four money kinds, none of which means "this is
+    what the company is worth".
+    """
+    assert _amount_passed_to_corrected_signal({"corrected_amount": None}) is None, (
+        "an explicit null must clear the figure, not fall back to the stored one")
+
+
+def test_an_absent_amount_leaves_the_stored_figure_alone():
+    """Absent means "this ruling does not touch the figure"."""
+    assert _amount_passed_to_corrected_signal(
+        {"corrected_basis": "project_finance"}) == 1_600_000_000

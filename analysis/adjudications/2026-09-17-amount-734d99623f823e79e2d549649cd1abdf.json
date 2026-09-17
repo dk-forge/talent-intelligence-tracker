@@ -1,0 +1,40 @@
+{
+    "key": "amount/734d99623f823e79e2d549649cd1abdf",
+    "label": "Ominimo $1,600,000,000",
+    "status": "owner-ruled",
+    "referees": [
+        "anthropic/claude-sonnet-4.5",
+        "openai/gpt-4o"
+    ],
+    "row": {
+        "company": "Ominimo",
+        "headline": "1st Serbian unicorn! Ominimo Hits $1.6B Valuation after EBRD supported Series B",
+        "summary": "Serbian Ominimo has officially reached a $1.6 billion valuation following its Series B investment round, which included participation from the investment arm of the European Bank for Reconstruction and Development (EBRD).",
+        "funding_amount": "$1.6B",
+        "funding_amount_usd": 1600000000,
+        "funding_stage": "series_b",
+        "deal_type": null,
+        "money_basis": "company_raise",
+        "source_url": "https://www.therecursive.com/1st-serbian-unicorn-ominimo-1-6b-valuation-ebrd-series-b/",
+        "source_name": "The Recursive",
+        "published_date": "2026-07-27",
+        "collector": "national_press",
+        "city": null,
+        "region": null,
+        "state": null,
+        "country": "RS",
+        "hq_city": null,
+        "hq_country": null,
+        "published_at": "2026-07-29 21:47:33"
+    },
+    "evidence_url": "https://www.therecursive.com/1st-serbian-unicorn-ominimo-1-6b-valuation-ebrd-series-b/",
+    "action": "edit",
+    "correction": {
+        "corrected_amount": null
+    },
+    "written_at": "2026-09-17T17:25:00+00:00",
+    "ruled_by": "two independent agent reviewers under the owner's standing delegation of 2026-09-16",
+    "ruling": "\"1st Serbian unicorn! Ominimo Hits $1.6B Valuation after EBRD supported Series B\" / \"Ominimo is not disclosing the Series B amount at the moment\"",
+    "reasoning": "The headline and summary both attribute the $1.6B to the VALUATION reached after the Series B, not to the round. The reviewers read the article body, which states the Series B amount is not being disclosed. So the row carries a figure for what the company is worth and no figure for what it raised. No money_basis value expresses that: the vocabulary offers acquisition, ipo, bond_issue, public_offering, project_finance and the four money kinds, and a valuation is none of them. The figure is therefore cleared rather than re-based, which takes it out of the company-raise total and leaves the row truthful about the round it reports.",
+    "note": "The guardrail finding was already state='rejected' (reviewed 2026-09-15, \"stored amount is a valuation, project cost, purchase price or revenue figure\"), which withholds the row from future publication but does not correct the row that already went out. This spec corrects the row."
+}

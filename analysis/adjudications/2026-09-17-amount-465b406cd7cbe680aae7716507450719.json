@@ -1,0 +1,40 @@
+{
+    "key": "amount/465b406cd7cbe680aae7716507450719",
+    "label": "Sapien $180,000,000",
+    "status": "owner-ruled",
+    "referees": [
+        "anthropic/claude-sonnet-4.5",
+        "openai/gpt-4o"
+    ],
+    "row": {
+        "company": "Sapien",
+        "headline": "Exclusive: AI startup Sapien raises at $180M valuation to help companies find what’s really driving profit",
+        "summary": "AI startup Sapien has raised funding at a $180M valuation to assist companies in identifying key profit drivers.",
+        "funding_amount": "$180M",
+        "funding_amount_usd": 180000000,
+        "funding_stage": null,
+        "deal_type": null,
+        "money_basis": "company_raise",
+        "source_url": "https://fortune.com/2026/09/08/exclusive-ai-startup-sapien-raises-180m-valuation-companies-find-really-driving-profit-cfo/",
+        "source_name": "fortune.com",
+        "published_date": "2026-09-08",
+        "collector": "google_news",
+        "city": null,
+        "region": null,
+        "state": null,
+        "country": null,
+        "hq_city": null,
+        "hq_country": null,
+        "published_at": "2026-09-09 00:05:04"
+    },
+    "evidence_url": "https://fortune.com/2026/09/08/exclusive-ai-startup-sapien-raises-180m-valuation-companies-find-really-driving-profit-cfo/",
+    "action": "edit",
+    "correction": {
+        "corrected_amount": null
+    },
+    "written_at": "2026-09-17T17:25:00+00:00",
+    "ruled_by": "two independent agent reviewers under the owner's standing delegation of 2026-09-16",
+    "ruling": "\"Exclusive: AI startup Sapien raises at $180M valuation to help companies find what’s really driving profit\" / \"Sapien has raised a new funding round ... at a $180 million valuation\"",
+    "reasoning": "\"raises AT $180M valuation\" is the valuation, not the amount raised. The summary repeats it as a valuation and neither headline nor summary states the round size anywhere. Same shape as Ominimo and the same remedy: the figure is cleared, because no money_basis value means \"this is what the company is worth\" and leaving it stored as company_raise keeps a valuation inside a published raise total.",
+    "note": "The guardrail finding was already state='rejected' (reviewed 2026-09-15, \"stored amount is a valuation, project cost, purchase price or revenue figure\"), which withholds the row from future publication but does not correct the row that already went out. This spec corrects the row."
+}
