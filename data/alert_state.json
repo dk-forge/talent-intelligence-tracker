@@ -45,17 +45,12 @@
       "last": 1789474116,
       "subject": "CI RED: money-basis check: VERDICT: FAIL"
     },
-    "self-heal:main:546478a37ca6511e": {
-      "first": 1789667404,
-      "last": 1789667404,
-      "subject": "CI RED: Self-heal: Action failed with error: Claude execution failed: result is_error:true"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-17T17:50:06+00:00",
+  "updated_at": "2026-09-17T22:10:40+00:00",
   "version": 1
 }
