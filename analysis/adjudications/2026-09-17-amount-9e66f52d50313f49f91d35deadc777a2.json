@@ -1,7 +1,7 @@
 {
  "key": "amount/9e66f52d50313f49f91d35deadc777a2",
  "label": "Hub Power Company (Hubco) $150,000,000",
- "status": "disagree",
+ "status": "owner-ruled",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
@@ -54,7 +54,11 @@
  },
  "evidence_url": "https://www.techjuice.pk/150m-byd-ev-assembly-plant-launch-in-sindh-delayed-again/",
  "evidence_chars": 5237,
- "action": "keep",
- "correction": null,
- "written_at": "2026-09-17T15:01:54+00:00"
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "project_finance"
+ },
+ "written_at": "2026-09-17T15:01:54+00:00",
+ "ruled_by": "two independent agent reviewers under the owner's standing delegation of 2026-09-16",
+ "ruling": "\"The management reports a massive $150 million total investment. This includes $90 million in project financing.\""
 }

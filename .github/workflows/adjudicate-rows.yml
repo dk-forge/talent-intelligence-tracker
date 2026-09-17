@@ -25,6 +25,16 @@ name: adjudicate-rows
 #     -f inputs_json='{"rows":"<hash>,<hash>","place_rows":"<hash>","reason":"why","dry_run":"false"}' \
 #     -f reason='why'
 #
+# `from_spec` (comma-separated analysis/adjudications/*.json paths) RE-APPLIES
+# an already-agreed or an owner-ruled spec through `adjudicate_guardrail.py
+# --from-spec`. It calls no referee and needs no OPENROUTER_API_KEY: an
+# owner-ruled spec was decided by a human after the referees disagreed, not by
+# asking them again. Queue it the same way:
+#
+#   gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
+#     -f inputs_json='{"from_spec":"analysis/adjudications/<a>.json,analysis/adjudications/<b>.json","dry_run":"false","reason":"why"}' \
+#     -f reason='why'
+#
 # PRICE BEFORE, RECORD AFTER. Measured 2026-09-12: $0.016 to $0.030 per row for
 # the pair of referees. The ceiling input bounds one run; the month's switch
 # (TIT_PAID_READS) is read before every request regardless.
@@ -32,6 +42,10 @@ name: adjudicate-rows
 on:
   workflow_dispatch:
     inputs:
+      from_spec:
+        description: 'Comma-separated analysis/adjudications/*.json paths: re-apply an already-agreed or owner-ruled spec, no referee is asked'
+        type: string
+        default: ''
       rows:
         description: 'content_hash list, comma separated: money rows (amount/<hash>)'
         type: string
@@ -93,6 +107,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          FROM_SPEC: ${{ inputs.from_spec }}
           ROWS: ${{ inputs.rows }}
           PLACE_ROWS: ${{ inputs.place_rows }}
           REASON: ${{ inputs.reason }}
@@ -103,6 +118,8 @@ jobs:
           # --apply only when asked for by name; the input defaults to true, so
           # a dispatch that says nothing is a dry run.
           if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS+=(--apply); fi
+          IFS=',' read -ra S <<< "${FROM_SPEC}"
+          for p in "${S[@]}"; do p="${p// /}"; [ -n "$p" ] && ARGS+=(--from-spec "$p"); done
           IFS=',' read -ra R <<< "${ROWS}"
           for h in "${R[@]}"; do h="${h// /}"; [ -n "$h" ] && ARGS+=(--row "$h"); done
           IFS=',' read -ra P <<< "${PLACE_ROWS}"

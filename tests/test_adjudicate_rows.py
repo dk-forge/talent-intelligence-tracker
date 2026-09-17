@@ -321,3 +321,70 @@ def test_the_workflow_is_a_writer_the_drainer_knows_and_red_on_a_disagreement():
     assert "rc == '3'" in text and "exit 1" in text, "a disagreement must red the run once"
     assert "TIT_RUN_KIND: discretionary" in text
     assert "--health" in text, "the spend must reach the committed cost ledger"
+
+
+def test_from_spec_is_declared_and_re_applies_without_a_referee():
+    """A from_spec dispatch re-applies an already-agreed or owner-ruled spec
+    through `adjudicate_guardrail.py --from-spec`, calling no referee. It must
+    be a DECLARED input: writer_queue reads inputs straight off the workflow
+    YAML, so a session queuing from_spec through drain-writers must not be
+    refused at the door, and the existing rows/place_rows behaviour must be
+    unchanged."""
+    from pathlib import Path
+
+    import yaml
+
+    import writer_queue
+
+    root = Path(__file__).resolve().parents[1]
+    text = (root / ".github/workflows/adjudicate-rows.yml").read_text()
+    parsed = yaml.safe_load(text)
+    inputs = (parsed.get("on") or parsed.get(True))["workflow_dispatch"]["inputs"]
+    assert "from_spec" in inputs
+    assert inputs["from_spec"]["default"] == ""
+    # the existing rows/place_rows inputs are unchanged
+    assert inputs["rows"]["default"] == "" and inputs["place_rows"]["default"] == ""
+
+    declared, required = writer_queue.workflow_dispatch_inputs("adjudicate-rows.yml")
+    assert {"from_spec", "rows", "place_rows", "reason", "dry_run", "ceiling"} <= declared
+    assert not required, "from_spec, like every other input here, is optional"
+
+    ticket = writer_queue.enqueue(
+        writer_queue.empty_queue(), "adjudicate-rows.yml",
+        inputs={"from_spec": "analysis/adjudications/a.json,analysis/adjudications/b.json",
+                "dry_run": "false", "reason": "owner-ruled via two-agent delegation"},
+        reason="apply owner-ruled specs")
+    assert ticket["inputs"]["from_spec"] == "analysis/adjudications/a.json,analysis/adjudications/b.json"
+    assert ticket["state"] == "queued", "a from_spec ticket must not be refused at the door"
+
+    with pytest.raises(ValueError, match="does not declare"):
+        writer_queue.enqueue(writer_queue.empty_queue(), "adjudicate-rows.yml",
+                             inputs={"from_speck": "typo.json"})
+
+    assert "FROM_SPEC:" in text and "inputs.from_spec" in text
+    assert '--from-spec "$p"' in text
+    assert 'read -ra S <<< "${FROM_SPEC}"' in text
+
+
+def test_apply_from_spec_re_applies_an_owner_ruled_spec_with_no_call(conn, tmp_path):
+    """The two owner-ruled Hubco/FNC specs (analysis/adjudications/2026-09-17-
+    amount-*.json) are read the same way: `apply_from_spec` never touches
+    `classify._call`, so the workflow path (`--from-spec ... --apply`, no
+    OPENROUTER_API_KEY) is exactly this."""
+    adj.open_session_finding(conn, guardrails.AMOUNT, MONEY_HASH, "owner-ruled: project finance, not a raise")
+    spec_dir = tmp_path / "specs"
+    spec_dir.mkdir()
+    spec_path = spec_dir / "owner-ruled.json"
+    spec_path.write_text(json.dumps({
+        "key": f"amount/{MONEY_HASH}",
+        "status": "owner-ruled",
+        "action": "edit",
+        "correction": {"corrected_basis": "project_finance"},
+        "ruled_by": "two independent agent reviewers under the owner's standing delegation",
+        "ruling": "a considered plant investment, not money raised",
+    }))
+    rc = adj.apply_from_spec(conn, spec_path, apply=True, push=lambda row, usd: {})
+    assert rc == 0
+    row = _current(conn, MONEY_HASH)
+    assert row["money_basis"] == "project_finance"
+    assert row["funding_amount_usd"] == 59_000_000, "the stored amount is kept, only the basis moves"
