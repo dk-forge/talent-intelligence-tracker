@@ -853,6 +853,19 @@ def latest(pattern: str, directory: Path | None = None) -> Path | None:
     return found[-1] if found else None
 
 
+def default_result_filename(now: "_dt.datetime | None" = None) -> str:
+    """result-<date>-<time>.json, unique per run rather than per day.
+
+    Two runs on one day used to both write result-<date>.json, so the
+    second silently overwrote the first (run 3 on 2026-09-16 overwrote run
+    2; run 2 survives only at commit 9af9efdd). The time component is
+    zero-padded and colon-free (filesystem-safe) and sorts the same as ISO
+    8601, so `latest()`'s lexicographic sort still finds the newest file.
+    """
+    now = now or _dt.datetime.now(_dt.timezone.utc)
+    return f"result-{now.strftime('%Y-%m-%d-%H%M%S')}.json"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1004,7 +1017,7 @@ def main(argv=None) -> int:
             summary["referee_stop"] = stopped
         summary["records"] = records
         result_path = Path(args.result) if args.result else (
-            OUT_DIR / f"result-{_dt.date.today().isoformat()}.json")
+            OUT_DIR / default_result_filename())
         result_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
         print()
         print(render(summary))
