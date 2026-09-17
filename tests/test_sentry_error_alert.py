@@ -288,6 +288,35 @@ class TheRequestGoesToTheRegionAndOrgThatActuallyExist(unittest.TestCase):
             built["url"])
         self.assertEqual(built["auth"], "Bearer tok")
 
+    def test_query_uses_age_filter_not_is_new(self):
+        """"is:new" is not a valid Sentry search token - Sentry's issues API
+        rejects it with a plain HTTP 400, confirmed by dispatching the real
+        workflow against the real project. "age:-1h" is the real filter for
+        "first seen within the last hour"; pin the shape so it can't
+        silently regress back to "is:new"."""
+        built = {}
+
+        class _Resp:
+            def read(self):
+                return b"[]"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        def fake_urlopen(req, timeout=30):
+            built["url"] = req.full_url
+            return _Resp()
+
+        with mock.patch.object(sea.urllib.request, "urlopen", fake_urlopen):
+            sea.fetch_new_issues("tok")
+
+        self.assertIn("age%3A-1h", built["url"])
+        self.assertNotIn("is%3Anew", built["url"])
+        self.assertNotIn("is:new", built["url"])
+
     def test_the_base_stays_overridable_for_a_region_move(self):
         self.assertIn("SENTRY_API_BASE", Path(sea.__file__).read_text())
 
