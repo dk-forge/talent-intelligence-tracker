@@ -20,6 +20,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-national-press:main:33ba370b46a55dc5": {
+      "first": 1789609645,
+      "last": 1789609645,
+      "subject": "CI RED: collect national press: requests.exceptions.ChunkedEncodingError: Response ended prematurely"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1789604644,
       "last": 1789604644,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-17T00:24:10+00:00",
+  "updated_at": "2026-09-17T01:47:26+00:00",
   "version": 1
 }
