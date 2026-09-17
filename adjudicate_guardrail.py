@@ -588,8 +588,19 @@ def deciding_note(key: str, action: str, verdicts: dict, correction: dict | None
 # --------------------------------------------------------------------------
 
 def _edited_signal(row: dict, correction: dict):
-    amount = correction.get("corrected_amount")
-    if amount is None:
+    # ABSENT and EXPLICIT NULL are different answers. `corrected_amount`
+    # missing means "this ruling does not touch the figure", and the stored
+    # one stands. `corrected_amount: null` means "there is no figure for this
+    # event", which is the only way to say so about a row whose stored number
+    # is a VALUATION and whose raise was never disclosed. Ominimo
+    # ("not disclosing the Series B amount at the moment", $1.6bn valuation)
+    # and Sapien ($180m valuation) are both that shape, and no `money_basis`
+    # value says it: the vocabulary offers acquisition, ipo, bond_issue,
+    # public_offering, project_finance and the four money kinds, none of which
+    # means "the number on this row is what the company is WORTH".
+    if "corrected_amount" in correction:
+        amount = correction["corrected_amount"]
+    else:
         amount = row.get("funding_amount_usd")
     signal = correct_funding_amount.corrected_signal(row, amount)
     basis = correction.get("corrected_basis")
@@ -825,9 +836,29 @@ def apply_from_spec(conn, path: Path, *, apply: bool, push=None) -> int:
     if item is None:
         print(f"{spec['key']}: no such finding")
         return 1
-    if item["finding"].get("state") != "open":
-        print(f"{spec['key']}: already {item['finding'].get('state')}")
+    state = item["finding"].get("state")
+    if state != "open" and not (spec.get("status") == "owner-ruled"
+                                and spec.get("action") == "edit"):
+        print(f"{spec['key']}: already {state}")
         return 0
+    if state != "open":
+        # THE LEDGER IS CLOSED, THE ROW IS STILL WRONG, AND THOSE ARE TWO
+        # DIFFERENT FACTS. `rejected` withholds a row from FUTURE publication
+        # (guardrails: "an accepted finding releases its row, a rejected one
+        # withholds it for good"), and says nothing about a row that went out
+        # BEFORE the rejection. Ominimo was published 2026-07-29 and rejected
+        # 2026-09-15; Sapien published 2026-09-09, rejected 2026-09-15. Both
+        # are live, both carry a valuation inside the company-raise total, and
+        # the early return below sent every spec written for them away with
+        # "already rejected" and changed nothing.
+        #
+        # Narrow on purpose: only an owner-ruled EDIT, which carries a named
+        # ruler and a quoted ruling, and which revises the row rather than
+        # re-answering the finding. accept and reject still refuse, because
+        # re-answering a closed finding IS the double-answer this guard was
+        # written to stop.
+        print(f"{spec['key']}: finding is {state}; applying the owner-ruled "
+              f"edit to the row, which the ledger state does not correct")
     note = spec.get("note") or spec.get("ruling") or ""
     act = apply_place if spec["key"].startswith(PLACE + "/") else apply_decision
     changed = act(conn, item, spec["action"], spec.get("correction"),
