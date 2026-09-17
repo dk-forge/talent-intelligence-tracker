@@ -1,0 +1,36 @@
+{
+ "key": "amount/24351a64d835a6d01ddc4fe727ab88b2",
+ "label": "Brandeis University $10,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": {
+  "company": "Brandeis University",
+  "headline": "Robert Kraft funds $10M campus project as Brandeis marks record fundraising year",
+  "summary": "Robert Kraft is donating $10 million to Brandeis University to convert a vacant administration building into a new 28,000-square-foot center for Jewish life.",
+  "funding_amount": "$10 million",
+  "funding_amount_usd": 10000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.bizjournals.com/boston/news/2026/09/10/robert-kraft-center-campus.html",
+  "source_name": "Boston Business Journal",
+  "published_date": "2026-09-10",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": "US",
+  "published_at": "2026-09-14 01:14:06"
+ },
+ "why": "no evidence page could be read",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "action": "keep",
+ "written_at": "2026-09-17T15:02:07+00:00"
+}

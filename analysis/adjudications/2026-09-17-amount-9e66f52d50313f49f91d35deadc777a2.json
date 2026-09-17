@@ -1,0 +1,60 @@
+{
+ "key": "amount/9e66f52d50313f49f91d35deadc777a2",
+ "label": "Hub Power Company (Hubco) $150,000,000",
+ "status": "disagree",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 150000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states \"The management reports a massive $150 million total investment. This includes $90 million in project financing.\" The $150M is explicitly described as total investment for the BYD EV assembly plant project, with $90M specifically identified as project financing. This is a project finance facility for building an industrial asset (assembly plant), not new venture capital arriving at Hubco. The basis should be project_finance, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": null,
+   "corrected_basis": "project_finance",
+   "confidence": 100,
+   "reasoning": "The source states 'The management reports a massive $150 million total investment. This includes $90 million in project financing.' This indicates the $150 million is a project cost, not a company raise. The basis should be 'project_finance' as it includes project financing."
+  }
+ },
+ "row": {
+  "company": "Hub Power Company (Hubco)",
+  "headline": "$150M BYD EV Assembly Plant Launch in Sindh Delayed Again",
+  "summary": "Hub Power Company (Hubco) has officially pushed back the launch of its BYD EV assembly plant in Gharo, Sindh, aiming to bring the plant online in the second half of 2026.",
+  "funding_amount": "$150M",
+  "funding_amount_usd": 150000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.techjuice.pk/150m-byd-ev-assembly-plant-launch-in-sindh-delayed-again/",
+  "source_name": "TechJuice",
+  "published_date": "2026-09-06",
+  "collector": "national_press",
+  "city": null,
+  "region": "Asia",
+  "state": null,
+  "country": "PK",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-07 01:26:33"
+ },
+ "cost_usd": 0.016985,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.01038,
+  "openai/gpt-4o": 0.006605
+ },
+ "evidence_url": "https://www.techjuice.pk/150m-byd-ev-assembly-plant-launch-in-sindh-delayed-again/",
+ "evidence_chars": 5237,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-09-17T15:01:54+00:00"
+}
