@@ -1,0 +1,64 @@
+name: Sentry test event
+
+# Manual-only. Sends ONE deliberate test exception through sentry_init.py to
+# prove the SDK wiring actually reaches the real Sentry project end to end —
+# something no offline unit test can show, because the whole point is a real
+# network call to a real DSN. Never scheduled: there is no reason for this to
+# run unattended, and a scheduled version would just be manufactured noise in
+# the Sentry project.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  send-test-event:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install sentry-sdk only
+        run: pip install --require-hashes -r requirements.lock
+
+      - name: Raise and capture a deliberate test exception
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import sys
+
+          if not os.environ.get("SENTRY_DSN", "").strip():
+              print("SENTRY_DSN is not set; nothing to prove here.")
+              sys.exit(1)
+
+          from sentry_init import init_sentry
+
+          if not init_sentry(component="sentry-test-event"):
+              print("init_sentry() reported it did not initialise.")
+              sys.exit(1)
+
+          import sentry_sdk
+
+          try:
+              raise RuntimeError(
+                  "Talent Intelligence Tracker: deliberate test event from "
+                  "sentry-test-event.yml (workflow_dispatch)"
+              )
+          except RuntimeError:
+              event_id = sentry_sdk.capture_exception()
+              print(f"Captured test event: {event_id}")
+
+          # Actions runners are short-lived; make sure the event is sent
+          # before the process exits rather than relying on SDK shutdown.
+          sentry_sdk.flush(timeout=10)
+          print("Flushed.")
+          PY

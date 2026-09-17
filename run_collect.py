@@ -18,6 +18,9 @@ from datetime import date
 
 import run_deadline
 import source_registry as registry
+from sentry_init import init_sentry
+
+init_sentry(component="run_collect")
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         czechia_ares, denmark_cvr, edinet_japan,
                         estonia_ariregister, gdelt,
