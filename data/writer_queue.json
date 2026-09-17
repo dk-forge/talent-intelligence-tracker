@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-17T14:21:05Z",
-  "last_tick": "2026-09-17T14:21:05Z",
+  "last_tick": "2026-09-17T14:38:04Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -234,6 +234,11 @@
           "at": "2026-09-17T14:21:05Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-09-17T14:38:04Z",
+          "detail": "run 35232977392",
+          "event": "bound"
         }
       ],
       "id": "20260917T133432Z-archive-sources",
@@ -244,7 +249,7 @@
       "reason": "scheduled link hygiene (20 */8 * * *)",
       "requested_at": "2026-09-17T13:34:32Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "35232977392",
       "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
@@ -269,6 +274,28 @@
       "run_id": null,
       "state": "queued",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-17T14:38:00Z",
+          "detail": "2026-09-17: two independent reviewers agreed TikTok row b1435535 (M) is TikTok's own outbound project investment in Vietnam, not a raise; money_raised.basis() already says outbound_investment.",
+          "event": "queued"
+        }
+      ],
+      "id": "20260917T143800Z-correct-money-basis",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "2026-09-17: two independent reviewers agreed TikTok row b1435535 (M) is TikTok's own outbound project investment in Vietnam, not a raise; money_raised.basis() already says outbound_investment.",
+      "requested_at": "2026-09-17T14:38:00Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "correct-money-basis.yml"
     },
     {
       "attempts": 0,
