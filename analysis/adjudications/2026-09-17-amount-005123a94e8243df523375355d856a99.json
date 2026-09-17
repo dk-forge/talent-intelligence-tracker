@@ -1,7 +1,7 @@
 {
  "key": "amount/005123a94e8243df523375355d856a99",
  "label": "Fábricas Nacionales de Cerveza $14,000,000",
- "status": "disagree",
+ "status": "owner-ruled",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
@@ -54,7 +54,11 @@
  },
  "evidence_url": "https://web.archive.org/web/20260820083347/https://www.elobservador.com.uy/economia-y-empresas/fabricas-nacionales-cerveza-cierra-la-fabrica-minas-n6054473",
  "evidence_chars": 6831,
- "action": "keep",
- "correction": null,
- "written_at": "2026-09-17T15:02:06+00:00"
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "project_finance"
+ },
+ "written_at": "2026-09-17T15:02:06+00:00",
+ "ruled_by": "two independent agent reviewers under the owner's standing delegation of 2026-09-16",
+ "ruling": "\"FNC transmitio la posibilidad de avanzar con una inversion de US$14 millones para concentrar la produccion\" - a considered plant investment, not money raised."
 }
