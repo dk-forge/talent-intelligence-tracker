@@ -1,5 +1,11 @@
 {
-  "open": {},
-  "updated_at": "2026-09-15T16:18:24+00:00",
+  "open": {
+    "sentry-issue:9db60c909721ca13:open": {
+      "first": 1789615796,
+      "last": 1789615796,
+      "subject": "NEW ERROR: RuntimeError: Talent Intelligence Tracker: deliberate test event from sentry-test-event.yml (workflow_dispatch)"
+    }
+  },
+  "updated_at": "2026-09-17T03:29:58+00:00",
   "version": 1
 }
