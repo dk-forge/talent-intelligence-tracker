@@ -72,6 +72,14 @@ jobs:
       - name: Check Sentry for new errors
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          # THE REGION IS PART OF THE ADDRESS. A Sentry org answers only on
+          # its own region host - sentry.io does not proxy to it, it 404s.
+          # Blank here means the code default (de.sentry.io), which is where
+          # this org lives; set the variables only for a real region, org or
+          # project move, so that is a variable change and not a code change.
+          SENTRY_API_BASE: ${{ vars.SENTRY_API_BASE }}
+          SENTRY_ORG_SLUG: ${{ vars.SENTRY_ORG_SLUG }}
+          SENTRY_PROJECT_SLUG: ${{ vars.SENTRY_PROJECT_SLUG }}
           # A separate key, a separate $3.00/month cap, shared across three
           # repositories. Used for nothing but the one summary call in
           # sentry_error_alert.summarize() - never for anything spend.py

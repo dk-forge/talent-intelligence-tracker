@@ -11,7 +11,9 @@ to a temporary file and never touches git.
 
 from __future__ import annotations
 
+import contextlib
 import datetime
+import io
 import json
 import os
 import sys
@@ -242,6 +244,83 @@ class TheGateIsMeteredAroundExactlyOneRequest(unittest.TestCase):
         sea.summarize("email me at dak@dakotta.com", api_key="k",
                      spend_path=self.spend_path, call=capture)
         self.assertNotIn("dak@dakotta.com", seen_text["text"])
+
+
+class TheRequestGoesToTheRegionAndOrgThatActuallyExist(unittest.TestCase):
+    """The 404 that made this job fail every hour for days was not a bug in
+    any branch below - the request never reached an org. A Sentry
+    organization answers only on its own region host, and this one is
+    `dakotta-labs` on `de.sentry.io`. Both are pinned here because a wrong
+    value produces a working process that reports nothing: `run()` catches
+    the HTTPError, prints "could not read Sentry", exits 1, and no issue is
+    ever seen. Change these only alongside a real org or region move."""
+
+    def test_api_base_is_the_orgs_own_region(self):
+        self.assertEqual(sea.SENTRY_API, "https://de.sentry.io/api/0")
+
+    def test_default_org_is_the_one_that_exists(self):
+        self.assertEqual(sea.DEFAULT_ORG, "dakotta-labs")
+
+    def test_fetch_builds_the_region_scoped_project_issues_url(self):
+        built = {}
+
+        class _Resp:
+            def read(self):
+                return b"[]"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        def fake_urlopen(req, timeout=30):
+            built["url"] = req.full_url
+            built["auth"] = req.get_header("Authorization")
+            return _Resp()
+
+        with mock.patch.object(sea.urllib.request, "urlopen", fake_urlopen):
+            self.assertEqual(sea.fetch_new_issues("tok"), [])
+
+        self.assertTrue(
+            built["url"].startswith(
+                "https://de.sentry.io/api/0/projects/dakotta-labs/"),
+            built["url"])
+        self.assertEqual(built["auth"], "Bearer tok")
+
+    def test_the_base_stays_overridable_for_a_region_move(self):
+        self.assertIn("SENTRY_API_BASE", Path(sea.__file__).read_text())
+
+    def test_an_empty_repo_variable_falls_back_to_the_default(self):
+        """An unset GitHub repository variable arrives as "", not absent.
+        `.get(name, default)` would hand that empty string straight through
+        and build a URL with no host in it."""
+        src = Path(sea.__file__).read_text()
+        self.assertNotIn('os.environ.get("SENTRY_API_BASE", ', src)
+        self.assertNotIn('os.environ.get("SENTRY_ORG_SLUG", ', src)
+        self.assertNotIn('"SENTRY_PROJECT_SLUG", ', src)
+
+    def test_a_404_names_the_address_that_answered_it(self):
+        """A 404 is UNKNOWN, never "nothing is throwing". It also must not
+        read as a bug in the code below it, which is what a bare
+        "HTTP Error 404: Not Found" did for days."""
+
+        def fetch_404(token, *, org=None, project=None):
+            raise sea.urllib.error.HTTPError(
+                "https://de.sentry.io/api/0/projects/o/p/issues/",
+                404, "Not Found", {}, None)
+
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = sea.run(sentry_token="tok", openrouter_ops_key="",
+                           fetch=fetch_404)
+        out = buf.getvalue()
+
+        self.assertEqual(code, 1)
+        self.assertIn("UNKNOWN, not a pass", out)
+        self.assertIn("de.sentry.io", out)
+        self.assertIn("dakotta-labs", out)
+        self.assertIn("SENTRY_PROJECT_SLUG", out)
 
 
 if __name__ == "__main__":
