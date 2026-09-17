@@ -250,6 +250,28 @@
     },
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-17T14:25:30Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260917T142530Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-09-17T14:25:30Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-09-08T13:24:27Z",
       "history": [
         {
