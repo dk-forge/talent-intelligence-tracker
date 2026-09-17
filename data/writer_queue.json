@@ -224,73 +224,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-17T15:27:26Z",
-      "history": [
-        {
-          "at": "2026-09-17T15:27:23Z",
-          "detail": "apply Hubco and FNC rulings",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T15:27:26Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260917T152723Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-9e66f52d50313f49f91d35deadc777a2.json,analysis/adjudications/2026-09-17-amount-005123a94e8243df523375355d856a99.json",
-        "reason": "owner-ruled via two-agent delegation"
-      },
-      "priority": 0,
-      "reason": "apply Hubco and FNC rulings",
-      "requested_at": "2026-09-17T15:27:23Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-09T13:30:33Z",
-      "history": [
-        {
-          "at": "2026-09-09T09:56:59Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-09T13:30:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-09T13:36:15Z",
-          "detail": "run 34357522950",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-09T13:36:15Z",
-          "detail": "run 34357522950",
-          "event": "landed"
-        }
-      ],
-      "id": "20260909T095659Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-09T13:36:15Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-09T09:56:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34357522950",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-09T13:36:15Z",
       "history": [
         {
@@ -2536,6 +2469,46 @@
       "requested_by": "dakotta-labs",
       "run_id": "35237491684",
       "state": "failed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-17T15:27:26Z",
+      "history": [
+        {
+          "at": "2026-09-17T15:27:23Z",
+          "detail": "apply Hubco and FNC rulings",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-17T15:27:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-17T15:28:29Z",
+          "detail": "run 35240363669",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-17T15:28:29Z",
+          "detail": "run 35240363669",
+          "event": "landed"
+        }
+      ],
+      "id": "20260917T152723Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-9e66f52d50313f49f91d35deadc777a2.json,analysis/adjudications/2026-09-17-amount-005123a94e8243df523375355d856a99.json",
+        "reason": "owner-ruled via two-agent delegation"
+      },
+      "landed_at": "2026-09-17T15:28:29Z",
+      "priority": 0,
+      "reason": "apply Hubco and FNC rulings",
+      "requested_at": "2026-09-17T15:27:23Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35240363669",
+      "state": "landed",
       "workflow": "adjudicate-rows.yml"
     }
   ],
