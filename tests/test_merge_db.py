@@ -487,3 +487,93 @@ def test_a_missing_database_fails_loudly(tmp_path):
     let the workflow commit an unmerged file and call it a success."""
     with pytest.raises(SystemExit):
         merge_db.merge(tmp_path / "does-not-exist.db", tmp_path / "into.db")
+
+
+def test_a_rejudged_money_basis_survives_the_merge(two_writers):
+    """The one that was really broken, measured 2026-09-17 on run 35235976943.
+
+    correct_money_basis.py --apply does not append a revision; it UPDATEs
+    money_basis in place. The commit step then resets to origin/main and
+    merges, and _merge_signals skips every (content_hash, revision) the
+    destination already holds - so the corrected verdict was copied aside and
+    silently dropped. The run pushed d5cd2336 and went green, and TikTok
+    b1435535c98d555c08dccdbc05663b13 still stood at 'company_raise' inside
+    that very commit while basis() said 'outbound_investment'.
+
+    Its $980M outbound investment in Vietnam therefore stayed inside the
+    published company-raise total, and `--check` went on reporting it as a
+    stale verdict. Because the workflow is idempotent, every re-queue lost the
+    write again in exactly the same way: three other rows were in the same
+    state at the same time.
+    """
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    conn = schema.connect(theirs)
+    conn.execute("UPDATE signals SET money_basis = 'company_raise' "
+                 " WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    conn = schema.connect(ours)
+    conn.execute("UPDATE signals SET money_basis = 'outbound_investment' "
+                 " WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    report = merge_db.merge(ours, theirs)
+
+    conn = schema.connect(theirs)
+    assert conn.execute(
+        "SELECT money_basis FROM signals WHERE content_hash = ?", (chash,)
+    ).fetchone()[0] == "outbound_investment", (
+        "a re-judged basis must survive the merge; otherwise the figure stays "
+        "in a published total that the definition already excludes")
+    conn.close()
+    assert report["signals_rejudged"] == 1, report
+
+
+def test_the_merge_does_not_invent_a_basis_where_we_hold_none(two_writers):
+    """A NULL on our side must not erase a verdict the destination holds.
+
+    The correction pass writes a basis for every row it judges and never
+    writes NULL, so `ours` holding NULL means "this run did not judge it",
+    not "this row has no basis".
+    """
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+
+    conn = schema.connect(theirs)
+    conn.execute("UPDATE signals SET money_basis = 'public_offering' "
+                 " WHERE content_hash = ?", (chash,))
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = schema.connect(theirs)
+    assert conn.execute(
+        "SELECT money_basis FROM signals WHERE content_hash = ?", (chash,)
+    ).fetchone()[0] == "public_offering", (
+        "our NULL means unjudged, so it must not overwrite a stored verdict")
+
+
+def test_rejudging_the_same_basis_twice_reports_no_change(two_writers):
+    """Idempotent, so a re-queue is free rather than a phantom data change."""
+    ours, theirs = two_writers
+    chash = validate.content_hash(
+        "shared co", "company_development", "2026-07-01",
+        "Shared Co raises a round")
+    for target in (ours, theirs):
+        conn = schema.connect(target)
+        conn.execute("UPDATE signals SET money_basis = 'company_raise' "
+                     " WHERE content_hash = ?", (chash,))
+        conn.commit()
+        conn.close()
+
+    report = merge_db.merge(ours, theirs)
+    assert report["signals_rejudged"] == 0, report

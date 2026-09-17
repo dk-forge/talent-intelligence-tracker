@@ -140,7 +140,8 @@ def _merge_signals(ours: sqlite3.Connection, into: sqlite3.Connection) -> dict[s
 
     return {"inserted": inserted,
             "withdrawn": _reconcile_is_current(ours, into),
-            "published": _carry_publications(ours, into)}
+            "published": _carry_publications(ours, into),
+            "rejudged": _carry_money_basis(ours, into)}
 
 
 def _carry_publications(ours: sqlite3.Connection, into: sqlite3.Connection) -> int:
@@ -181,6 +182,50 @@ def _carry_publications(ours: sqlite3.Connection, into: sqlite3.Connection) -> i
         " WHERE content_hash = ? AND revision = ? "
         "   AND (published_at IS NULL OR published_at > ?)",
         [(r["published_at"], r["content_hash"], r["revision"], r["published_at"])
+         for r in rows])
+    return cursor.rowcount
+
+
+def _carry_money_basis(ours: sqlite3.Connection, into: sqlite3.Connection) -> int:
+    """A re-judged money_basis is an in-place UPDATE, so it needs carrying too.
+
+    Same shape as _carry_publications, and the same defect it was written for.
+    correct_money_basis.py --apply does not append a revision; it UPDATEs
+    money_basis on the revision that is already there. The insert loop above
+    skips every (content_hash, revision) the destination already holds, so the
+    corrected verdict was copied aside, discarded by `git reset --hard
+    origin/main`, and never re-applied. The commit step pushed, the run went
+    green, and the value never moved.
+
+    Measured on run 35235976943 (2026-09-17): correct-money-basis ran with
+    --enrich and reported success, pushing d5cd2336, yet TikTok
+    b1435535c98d555c08dccdbc05663b13 still stood at money_basis
+    'company_raise' in that very commit, with basis() returning
+    'outbound_investment'. Its $980M outbound investment in Vietnam stayed in
+    the published company-raise total, and `--check` kept reporting it as a
+    stale verdict. The workflow is idempotent, so every re-queue lost the
+    write again identically. Three other rows were in the same state: Nvidia
+    (project_finance) and Alibaba twice (public_offering).
+
+    OURS WINS, unlike published_at. money_basis is derived: it is
+    money_raised.basis() applied to deal_type, company, headline and summary,
+    which do not change within a revision. So the two sides cannot hold two
+    legitimate answers for one revision, and the side that just recomputed is
+    the one to believe. Restricted to the same (content_hash, revision), so a
+    newer revision's own verdict is never touched; and a NULL on our side
+    cannot erase a value, because the correction pass writes a basis for every
+    row it judges and never writes NULL.
+    """
+    rows = list(ours.execute(
+        "SELECT content_hash, revision, money_basis FROM signals "
+        " WHERE money_basis IS NOT NULL"))
+    if not rows:
+        return 0
+    cursor = into.executemany(
+        "UPDATE signals SET money_basis = ? "
+        " WHERE content_hash = ? AND revision = ? "
+        "   AND (money_basis IS NULL OR money_basis <> ?)",
+        [(r["money_basis"], r["content_hash"], r["revision"], r["money_basis"])
          for r in rows])
     return cursor.rowcount
 
@@ -330,6 +375,7 @@ def merge(ours_path: Path, into_path: Path) -> dict[str, int]:
                 "signals_inserted": signals["inserted"],
                 "signals_withdrawn": signals["withdrawn"],
                 "signals_published": signals["published"],
+                "signals_rejudged": signals["rejudged"],
                 "seen_urls_added": _merge_cache(
                     ours, into, "seen_urls",
                     newer_column="first_seen", newer_wins=False),
