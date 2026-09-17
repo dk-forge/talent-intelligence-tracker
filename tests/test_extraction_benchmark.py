@@ -857,3 +857,52 @@ def test_the_committed_sample_carries_no_provider_name():
     path = bench.latest("sample-*.json")
     assert path
     assert not provider_names.contains(path.read_text())
+
+
+def test_default_result_filename_is_unique_per_run_not_per_day():
+    """result-<date>.json overwrote itself when two runs landed the same
+    day (run 3 on 2026-09-16 overwrote run 2). The filename now carries the
+    time too, so two runs on one day produce two distinct files."""
+    import datetime as _dt
+
+    first = bench.default_result_filename(
+        now=_dt.datetime(2026, 9, 16, 14, 0, 0, tzinfo=_dt.timezone.utc))
+    second = bench.default_result_filename(
+        now=_dt.datetime(2026, 9, 16, 22, 0, 0, tzinfo=_dt.timezone.utc))
+    assert first != second
+    assert first.startswith("result-2026-09-16")
+    assert second.startswith("result-2026-09-16")
+
+
+def test_two_runs_on_one_day_write_two_files_not_one(tmp_path, monkeypatch):
+    """The regression itself: writing two runs' filenames into the same
+    directory must produce two files, never one overwriting the other."""
+    import datetime as _dt
+
+    monkeypatch.setattr(bench, "OUT_DIR", tmp_path)
+    run_one = tmp_path / bench.default_result_filename(
+        now=_dt.datetime(2026, 9, 16, 9, 0, 0, tzinfo=_dt.timezone.utc))
+    run_two = tmp_path / bench.default_result_filename(
+        now=_dt.datetime(2026, 9, 16, 20, 0, 0, tzinfo=_dt.timezone.utc))
+    run_one.write_text('{"run": 1}')
+    run_two.write_text('{"run": 2}')
+
+    files = sorted(tmp_path.glob("result-2026-09-16*.json"))
+    assert len(files) == 2
+    assert json.loads(run_one.read_text())["run"] == 1
+    assert json.loads(run_two.read_text())["run"] == 2
+
+
+def test_latest_still_finds_the_newest_timestamped_result(tmp_path, monkeypatch):
+    """`latest()` is the reader every report/status path uses for "the
+    latest result" - it must keep working with the new, time-qualified
+    filenames (it sorts lexicographically, and the new format is still
+    chronologically sortable as a string)."""
+    monkeypatch.setattr(bench, "OUT_DIR", tmp_path)
+    (tmp_path / "result-2026-09-15-235900.json").write_text('{"run": "old"}')
+    (tmp_path / "result-2026-09-16-090000.json").write_text('{"run": "morning"}')
+    (tmp_path / "result-2026-09-16-200000.json").write_text('{"run": "evening"}')
+
+    newest = bench.latest("result-*.json")
+    assert newest is not None
+    assert json.loads(newest.read_text())["run"] == "evening"
