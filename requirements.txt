@@ -1,4 +1,5 @@
 requests>=2.31.0
+sentry-sdk>=2.0.0
 
 # Test-only, but it belongs here rather than in a note nobody reads.
 # Three test modules parse the workflow YAML to assert things the code cannot
