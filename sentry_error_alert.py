@@ -104,13 +104,25 @@ DEFAULT_STATE_PATH = ROOT / "data" / "sentry_alert_state.json"
 #: pot, on a different key, for a different project's share of it.
 DEFAULT_SPEND_PATH = ROOT / "data" / "sentry_ops_spend.json"
 
-SENTRY_API = "https://sentry.io/api/0"
+#: THE REGION IS PART OF THE ADDRESS, NOT A DETAIL. A Sentry organization
+#: lives in exactly one data region and its API answers only on that
+#: region's host; `sentry.io/api/0` does not proxy to it, it 404s. This org
+#: is in the EU region, so the base is `de.sentry.io`. Reading it from the
+#: environment keeps a region move a variable change rather than a code
+#: change - but the DEFAULT must be the real one, because a wrong default
+#: here is an alerter that reports nothing and says only "404".
+#: `.get(name) or default`, never `.get(name, default)`: an unset GitHub
+#: repository variable arrives as the EMPTY STRING, not as absent, and an
+#: empty base builds "/projects/..." and fails in a way that looks like
+#: anything but a config default.
+SENTRY_API = (os.environ.get("SENTRY_API_BASE")
+              or "https://de.sentry.io/api/0")
 #: The org/project this job reads. Not secrets - they are the public slugs
 #: Sentry issue URLs are built from - so they are overridable env/CLI rather
 #: than repository secrets.
-DEFAULT_ORG = os.environ.get("SENTRY_ORG_SLUG", "dk-forge")
-DEFAULT_PROJECT = os.environ.get(
-    "SENTRY_PROJECT_SLUG", "talent-intelligence-tracker")
+DEFAULT_ORG = os.environ.get("SENTRY_ORG_SLUG") or "dakotta-labs"
+DEFAULT_PROJECT = (os.environ.get("SENTRY_PROJECT_SLUG")
+                   or "talent-intelligence-tracker")
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_SUMMARY_MODEL = "google/gemini-2.5-flash-lite"
@@ -418,6 +430,22 @@ def run(*, sentry_token: str, openrouter_ops_key: str,
 
     try:
         issues = fetch(sentry_token, org=org, project=project)
+    except urllib.error.HTTPError as exc:
+        # A 404 here is never "no errors". It means the request did not
+        # reach an org/project at all - a wrong region host, a wrong slug,
+        # or a project that was never created - and the old bare
+        # "HTTP Error 404: Not Found" sent three people reading tracebacks
+        # in code that had not run. Say which address answered that way.
+        if exc.code == 404:
+            print(f"sentry-error-check: UNKNOWN, not a pass - no such "
+                  f"org/project at this region: "
+                  f"{SENTRY_API}/projects/{org or DEFAULT_ORG}/"
+                  f"{project or DEFAULT_PROJECT}/. Check SENTRY_API_BASE, "
+                  f"SENTRY_ORG_SLUG and SENTRY_PROJECT_SLUG.")
+        else:
+            print(f"sentry-error-check: could not read Sentry "
+                  f"(HTTP {exc.code}: {exc.reason})")
+        return 1
     except Exception as exc:  # noqa: BLE001
         print(f"sentry-error-check: could not read Sentry "
               f"({type(exc).__name__}: {exc})")
