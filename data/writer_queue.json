@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-17T14:21:05Z",
-  "last_tick": "2026-09-17T14:38:24Z",
+  "last_dispatch": "2026-09-17T14:47:43Z",
+  "last_tick": "2026-09-17T14:47:43Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -223,38 +223,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-17T14:21:05Z",
-      "history": [
-        {
-          "at": "2026-09-17T13:34:32Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T14:21:05Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-17T14:38:04Z",
-          "detail": "run 35232977392",
-          "event": "bound"
-        }
-      ],
-      "id": "20260917T133432Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-17T13:34:32Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35232977392",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
@@ -277,12 +245,17 @@
     },
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-17T14:47:43Z",
       "history": [
         {
           "at": "2026-09-17T14:38:00Z",
           "detail": "2026-09-17: two independent reviewers agreed TikTok row b1435535 (M) is TikTok's own outbound project investment in Vietnam, not a raise; money_raised.basis() already says outbound_investment.",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-17T14:47:43Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260917T143800Z-correct-money-basis",
@@ -294,7 +267,7 @@
       "requested_at": "2026-09-17T14:38:00Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-money-basis.yml"
     },
     {
@@ -321,44 +294,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-08T13:24:27Z",
-      "history": [
-        {
-          "at": "2026-09-08T12:55:02Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-08T13:24:27Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-08T13:51:00Z",
-          "detail": "run 34231780518",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-08T13:51:00Z",
-          "detail": "run 34231780518",
-          "event": "landed"
-        }
-      ],
-      "id": "20260908T125502Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-08T13:51:00Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-08T12:55:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34231780518",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2606,6 +2541,44 @@
       "run_id": "35232726693",
       "state": "landed",
       "workflow": "tripwire.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-17T14:21:05Z",
+      "history": [
+        {
+          "at": "2026-09-17T13:34:32Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-17T14:21:05Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-17T14:38:04Z",
+          "detail": "run 35232977392",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-17T14:47:43Z",
+          "detail": "run 35232977392",
+          "event": "landed"
+        }
+      ],
+      "id": "20260917T133432Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-17T14:47:43Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-17T13:34:32Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35232977392",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
