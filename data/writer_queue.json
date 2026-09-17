@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-17T17:40:59Z",
-  "last_tick": "2026-09-17T17:40:59Z",
+  "last_dispatch": "2026-09-17T22:08:11Z",
+  "last_tick": "2026-09-17T22:08:11Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -211,7 +211,7 @@
     }
   ],
   "red_marks": {
-    "ticket:20260912T104321Z-collect-structured": "2026-09-16T19:26:59Z",
+    "ticket:20260912T104321Z-collect-structured": "2026-09-17T22:08:11Z",
     "ticket:20260914T200025Z-adjudicate-rows": "2026-09-17T00:24:04Z",
     "ticket:20260914T213245Z-adjudicate-rows": "2026-09-17T00:24:04Z",
     "ticket:20260915T000708Z-adjudicate-rows": "2026-09-17T01:47:22Z",
@@ -225,12 +225,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-17T22:08:11Z",
       "history": [
         {
           "at": "2026-09-17T19:45:21Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-17T22:08:11Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260917T194521Z-archive-sources",
@@ -242,7 +247,7 @@
       "requested_at": "2026-09-17T19:45:21Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
     {
