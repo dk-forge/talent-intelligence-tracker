@@ -222,9 +222,13 @@ def fetch_new_issues(token: str, *, org: str | None = None,
     """
     org = org or DEFAULT_ORG
     project = project or DEFAULT_PROJECT
+    # "is:new" is not a valid Sentry search token - "new" is a SORT value,
+    # not a filter, and Sentry's issues API rejects "is:new" in `query` with
+    # a plain HTTP 400 (confirmed against the real project). "age:-1h" is
+    # the actual filter for "first seen within the last hour", which is what
+    # this function means by NEW; `sort=new` (still valid) orders the result.
     query = urllib.parse.urlencode({
-        "query": "is:unresolved is:new",
-        "statsPeriod": "1h",
+        "query": "is:unresolved age:-1h",
         "sort": "new",
         "limit": "25",
     })
