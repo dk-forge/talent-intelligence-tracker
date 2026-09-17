@@ -219,75 +219,10 @@
     "ticket:20260916T103157Z-extraction-benchmark": "2026-09-17T14:18:48Z",
     "ticket:20260916T120324Z-extraction-benchmark": "2026-09-17T14:18:48Z",
     "ticket:20260916T130541Z-extraction-benchmark": "2026-09-17T14:18:48Z",
-    "ticket:20260917T143821Z-adjudicate-rows": "2026-09-17T15:02:36Z"
+    "ticket:20260917T143821Z-adjudicate-rows": "2026-09-17T15:02:36Z",
+    "ticket:20260917T174055Z-adjudicate-rows": "2026-09-17T17:41:51Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-17T17:40:59Z",
-      "history": [
-        {
-          "at": "2026-09-17T17:40:55Z",
-          "detail": "owner-ruled edits under the standing delegation of 2026-09-16: Ominimo $1.6B and Sapien $180M are valuations, not raises, so the figures are cleared",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T17:40:59Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260917T174055Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json"
-      },
-      "priority": 0,
-      "reason": "owner-ruled edits under the standing delegation of 2026-09-16: Ominimo $1.6B and Sapien $180M are valuations, not raises, so the figures are cleared",
-      "requested_at": "2026-09-17T17:40:55Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-09T13:36:15Z",
-      "history": [
-        {
-          "at": "2026-09-09T13:00:11Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-09T13:36:15Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-09T13:44:52Z",
-          "detail": "run 34358137697",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-09T14:03:18Z",
-          "detail": "run 34358137697",
-          "event": "landed"
-        }
-      ],
-      "id": "20260909T130011Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-09T14:03:18Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-09T13:00:11Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34358137697",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-09T14:03:18Z",
@@ -2537,6 +2472,44 @@
       "requested_by": "dakotta-labs",
       "run_id": "35240363669",
       "state": "landed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-17T17:40:59Z",
+      "history": [
+        {
+          "at": "2026-09-17T17:40:55Z",
+          "detail": "owner-ruled edits under the standing delegation of 2026-09-16: Ominimo $1.6B and Sapien $180M are valuations, not raises, so the figures are cleared",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-17T17:40:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-17T17:41:51Z",
+          "detail": "run 35254218498",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-17T17:41:51Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260917T174055Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json"
+      },
+      "priority": 0,
+      "reason": "owner-ruled edits under the standing delegation of 2026-09-16: Ominimo $1.6B and Sapien $180M are valuations, not raises, so the figures are cleared",
+      "requested_at": "2026-09-17T17:40:55Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35254218498",
+      "state": "failed",
       "workflow": "adjudicate-rows.yml"
     }
   ],
