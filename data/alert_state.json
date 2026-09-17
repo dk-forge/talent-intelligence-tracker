@@ -45,6 +45,11 @@
       "last": 1789474116,
       "subject": "CI RED: money-basis check: VERDICT: FAIL"
     },
+    "sentry-error-check:main:5644a196f3c6d530": {
+      "first": 1789615164,
+      "last": 1789615164,
+      "subject": "CI RED: sentry-error-check: sentry-error-check: could not read Sentry (HTTP 400: Bad Request)"
+    },
     "sentry-error-check:main:c4d9172e71c083a5": {
       "first": 1789510534,
       "last": 1789510534,
@@ -56,6 +61,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-17T01:47:26+00:00",
+  "updated_at": "2026-09-17T03:19:25+00:00",
   "version": 1
 }
