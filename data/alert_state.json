@@ -20,6 +20,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-national-press:main:2f62771bbc494fc6": {
+      "first": 1789695325,
+      "last": 1789695325,
+      "subject": "CI RED: collect national press: urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='openrouter.ai', port=443): Read timed out. (read timeout=30)"
+    },
     "collect-national-press:main:33ba370b46a55dc5": {
       "first": 1789609645,
       "last": 1789609645,
@@ -56,6 +61,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-18T00:13:25+00:00",
+  "updated_at": "2026-09-18T01:35:26+00:00",
   "version": 1
 }
