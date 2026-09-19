@@ -1,5 +1,5 @@
 {
-  "_committed_at": "2026-09-19T13:31:48+00:00",
+  "_committed_at": "2026-09-19T21:25:49+00:00",
   "announced": false,
   "consecutive_failures": 0,
   "history": [
@@ -59,9 +59,9 @@
       "state": "up"
     }
   ],
-  "last_detail": "HTTP 200 in 1100ms",
-  "last_ok_at": "2026-09-19T13:31:48+00:00",
-  "last_probe_at": "2026-09-19T13:31:48+00:00",
+  "last_detail": "HTTP 200 in 1014ms",
+  "last_ok_at": "2026-09-19T21:25:49+00:00",
+  "last_probe_at": "2026-09-19T21:25:49+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -73,9 +73,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1094 in 146ms",
-      "last_ok_at": "2026-09-19T13:31:48+00:00",
-      "last_probe_at": "2026-09-19T13:31:48+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1094 in 137ms",
+      "last_ok_at": "2026-09-19T21:25:49+00:00",
+      "last_probe_at": "2026-09-19T21:25:49+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     },
@@ -89,9 +89,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1094 in 119ms",
-      "last_ok_at": "2026-09-19T13:31:48+00:00",
-      "last_probe_at": "2026-09-19T13:31:48+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1094 in 172ms",
+      "last_ok_at": "2026-09-19T21:25:49+00:00",
+      "last_probe_at": "2026-09-19T21:25:49+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     }
