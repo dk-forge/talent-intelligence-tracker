@@ -1,10 +1,5 @@
 {
   "open": {
-    "adjudicate-rows:main:a658de065e959fed": {
-      "first": 1789666911,
-      "last": 1789666911,
-      "subject": "CI RED: adjudicate-rows: amount/465b406cd7cbe680aae7716507450719: finding is rejected; applying the owner-ruled edit to the row, which the ledger state does not correct"
-    },
     "backfill-gdelt-2026:main:50bce181f01d6d18": {
       "first": 1788722284,
       "last": 1788722284,
@@ -76,6 +71,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-20T18:26:56+00:00",
+  "updated_at": "2026-09-20T19:14:24+00:00",
   "version": 1
 }
