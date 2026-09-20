@@ -596,11 +596,27 @@ def backfill_funding_usd(conn: sqlite3.Connection) -> int:
     is present, so a second run is a no-op. Rows whose string will not parse
     (non-USD currencies, 'undisclosed') stay NULL and are re-examined each run,
     which is cheap and means a parser improvement picks them up automatically.
+
+    RESTRICTED TO revision = 1, and that restriction is load-bearing. A NULL
+    funding_amount_usd on any later revision is not an oversight to fill in —
+    it is what `adjudicate_guardrail._edited_signal` writes on purpose for a
+    row whose stored figure turned out to be a VALUATION rather than a raise
+    (Ominimo $1.6B, Sapien $180M, both ruled 2026-09-17): `funding_amount` is
+    left exactly as the source wrote it because the text is correct, and
+    without this guard the parser re-derived a number from that same text on
+    the very next `schema.connect()` and put the valuation straight back into
+    the total the edit had just removed it from — which is exactly what
+    happened to both rows when PR #169 first tried to apply the ruling. Every
+    write path that revises a row on purpose (store.revise,
+    correct_funding_amount.py, this adjudicator) bumps `revision`, so gating on
+    it here is the one place this backfill can tell "never looked at" from
+    "looked at and cleared".
     """
     rows = conn.execute(
         """SELECT row_id, funding_amount FROM signals
             WHERE funding_amount IS NOT NULL AND funding_amount != ''
-              AND funding_amount_usd IS NULL"""
+              AND funding_amount_usd IS NULL
+              AND revision = 1"""
     ).fetchall()
 
     updates = []
