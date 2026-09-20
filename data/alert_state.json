@@ -30,6 +30,11 @@
       "last": 1789609645,
       "subject": "CI RED: collect national press: requests.exceptions.ChunkedEncodingError: Response ended prematurely"
     },
+    "collect-national-press:main:cefa6cfcc0ee7846": {
+      "first": 1789867009,
+      "last": 1789867009,
+      "subject": "CI RED: collect national press: requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
     "collect-structured:main:5557a57358d8df84": {
       "first": 1789722059,
       "last": 1789722059,
@@ -71,6 +76,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-19T13:34:13+00:00",
+  "updated_at": "2026-09-20T01:16:50+00:00",
   "version": 1
 }
