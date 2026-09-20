@@ -211,7 +211,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260912T104321Z-collect-structured": "2026-09-20T00:07:50Z",
     "ticket:20260914T200025Z-adjudicate-rows": "2026-09-20T02:51:37Z",
     "ticket:20260914T213245Z-adjudicate-rows": "2026-09-20T02:51:37Z",
     "ticket:20260915T000708Z-adjudicate-rows": "2026-09-20T07:47:23Z",
@@ -226,73 +225,6 @@
     "ticket:20260920T134028Z-enrich": "2026-09-20T13:53:36Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-20T19:13:31Z",
-      "history": [
-        {
-          "at": "2026-09-20T19:13:28Z",
-          "detail": "apply Ominimo and Sapien rulings",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-20T19:13:31Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260920T191328Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
-        "reason": "owner-ruled via two-agent delegation, valuations not raises"
-      },
-      "priority": 0,
-      "reason": "apply Ominimo and Sapien rulings",
-      "requested_at": "2026-09-20T19:13:28Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-12T10:48:55Z",
-      "history": [
-        {
-          "at": "2026-09-12T10:43:21Z",
-          "detail": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-12T10:48:55Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-12T10:50:09Z",
-          "detail": "run 34689433274",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-12T10:50:09Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260912T104321Z-collect-structured",
-      "inputs": {
-        "dry_run": "true",
-        "source": "denmark_cvr"
-      },
-      "priority": 0,
-      "reason": "first real CVR run (dry run, owner armed the secrets 2026-09-12)",
-      "requested_at": "2026-09-12T10:43:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34689433274",
-      "state": "failed",
-      "workflow": "collect-structured.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-12T12:41:12Z",
@@ -2540,6 +2472,46 @@
       "run_id": "35523156514",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-20T19:13:31Z",
+      "history": [
+        {
+          "at": "2026-09-20T19:13:28Z",
+          "detail": "apply Ominimo and Sapien rulings",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-20T19:13:31Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-20T19:14:31Z",
+          "detail": "run 35531602857",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-20T19:14:31Z",
+          "detail": "run 35531602857",
+          "event": "landed"
+        }
+      ],
+      "id": "20260920T191328Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
+        "reason": "owner-ruled via two-agent delegation, valuations not raises"
+      },
+      "landed_at": "2026-09-20T19:14:31Z",
+      "priority": 0,
+      "reason": "apply Ominimo and Sapien rulings",
+      "requested_at": "2026-09-20T19:13:28Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35531602857",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
