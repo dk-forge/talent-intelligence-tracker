@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-20T19:13:31Z",
-  "last_tick": "2026-09-20T19:13:31Z",
+  "last_dispatch": "2026-09-20T19:44:34Z",
+  "last_tick": "2026-09-20T19:44:34Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -225,6 +225,33 @@
     "ticket:20260920T134028Z-enrich": "2026-09-20T13:53:36Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-20T19:44:34Z",
+      "history": [
+        {
+          "at": "2026-09-20T19:44:30Z",
+          "detail": "re-measure after 39f59be8 (worked example fixing the gpt-4o-mini neutral-verdict confusion that lost 18/200 rows on 2026-09-16); confirm the referee's pass rate actually improves",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-20T19:44:34Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260920T194430Z-extraction-benchmark",
+      "inputs": {
+        "ceiling": "2.00"
+      },
+      "priority": 0,
+      "reason": "re-measure after 39f59be8 (worked example fixing the gpt-4o-mini neutral-verdict confusion that lost 18/200 rows on 2026-09-16); confirm the referee's pass rate actually improves",
+      "requested_at": "2026-09-20T19:44:30Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "extraction-benchmark.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-12T12:41:12Z",
