@@ -2,6 +2,26 @@
 
 ---
 
+## 2026-09-20: Ominimo and Sapien valuation ruling — the first apply attempt silently reverted, root cause fixed
+
+PR #169's 2026-09-17 apply run reported both `amount/734d99...` and
+`amount/465b406...` as APPLIED, but the pushed database still carried
+`funding_amount_usd` unchanged for both. Cause: `schema.backfill_funding_usd()`
+runs on every `schema.connect()` and re-derives `funding_amount_usd` from the
+still-present `funding_amount` text whenever the USD column is NULL — it
+cannot tell "never parsed" from "deliberately cleared", so the very next
+`connect()` after the edit put the valuation straight back into the total the
+edit had just removed it from. Fixed by restricting the backfill to
+`revision = 1` (pipeline/schema.py) — a later revision is always a deliberate
+correction, never an oversight to fill in. Also fixed a `SharedNoteRefused`
+that made the 2026-09-17 run's Sapien half raise uncaught: both spec files'
+`note` field was identical text, refused as a duplicate note against a
+different finding; each now names its own row and quotes its own source
+sentence. Re-verified end to end (apply, then a fresh `connect()` to replay
+the backfill) that both rows now stay cleared.
+
+---
+
 ## 2026-09-16 (run 3 READ): the brake worked, the word is read, funding is STILL UNKNOWN, and it stops here
 
 Run 35099742572 fired the new mid-run brake after 20 readable rows:
