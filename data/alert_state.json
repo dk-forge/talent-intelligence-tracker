@@ -20,6 +20,11 @@
       "last": 1789695325,
       "subject": "CI RED: collect national press: urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='openrouter.ai', port=443): Read timed out. (read timeout=30)"
     },
+    "collect-national-press:main:2f6cec9dcaddf534": {
+      "first": 1789947497,
+      "last": 1789947497,
+      "subject": "CI RED: collect national press: requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
     "collect-national-press:main:33ba370b46a55dc5": {
       "first": 1789609645,
       "last": 1789609645,
@@ -71,6 +76,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-20T19:14:24+00:00",
+  "updated_at": "2026-09-20T23:38:18+00:00",
   "version": 1
 }
