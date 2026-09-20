@@ -222,79 +222,10 @@
     "ticket:20260917T174055Z-adjudicate-rows": "2026-09-19T20:53:30Z",
     "ticket:20260918T134725Z-enrich": "2026-09-20T16:07:52Z",
     "ticket:20260919T132209Z-enrich": "2026-09-20T13:32:41Z",
-    "ticket:20260920T134028Z-enrich": "2026-09-20T13:53:36Z"
+    "ticket:20260920T134028Z-enrich": "2026-09-20T13:53:36Z",
+    "ticket:20260920T194430Z-extraction-benchmark": "2026-09-20T19:52:23Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-20T19:44:34Z",
-      "history": [
-        {
-          "at": "2026-09-20T19:44:30Z",
-          "detail": "re-measure after 39f59be8 (worked example fixing the gpt-4o-mini neutral-verdict confusion that lost 18/200 rows on 2026-09-16); confirm the referee's pass rate actually improves",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-20T19:44:34Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-20T19:47:36Z",
-          "detail": "run 35533292670",
-          "event": "bound"
-        }
-      ],
-      "id": "20260920T194430Z-extraction-benchmark",
-      "inputs": {
-        "ceiling": "2.00"
-      },
-      "priority": 0,
-      "reason": "re-measure after 39f59be8 (worked example fixing the gpt-4o-mini neutral-verdict confusion that lost 18/200 rows on 2026-09-16); confirm the referee's pass rate actually improves",
-      "requested_at": "2026-09-20T19:44:30Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35533292670",
-      "state": "dispatched",
-      "workflow": "extraction-benchmark.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-12T12:41:12Z",
-      "history": [
-        {
-          "at": "2026-09-12T12:13:21Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-12T12:41:12Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-12T13:08:16Z",
-          "detail": "run 34694353869",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-12T13:08:16Z",
-          "detail": "run 34694353869",
-          "event": "landed"
-        }
-      ],
-      "id": "20260912T121321Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-12T13:08:16Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-12T12:13:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34694353869",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-12T13:08:16Z",
@@ -2544,6 +2475,43 @@
       "run_id": "35531602857",
       "state": "landed",
       "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-20T19:44:34Z",
+      "history": [
+        {
+          "at": "2026-09-20T19:44:30Z",
+          "detail": "re-measure after 39f59be8 (worked example fixing the gpt-4o-mini neutral-verdict confusion that lost 18/200 rows on 2026-09-16); confirm the referee's pass rate actually improves",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-20T19:44:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-20T19:47:36Z",
+          "detail": "run 35533292670",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-20T19:52:23Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260920T194430Z-extraction-benchmark",
+      "inputs": {
+        "ceiling": "2.00"
+      },
+      "priority": 0,
+      "reason": "re-measure after 39f59be8 (worked example fixing the gpt-4o-mini neutral-verdict confusion that lost 18/200 rows on 2026-09-16); confirm the referee's pass rate actually improves",
+      "requested_at": "2026-09-20T19:44:30Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35533292670",
+      "state": "failed",
+      "workflow": "extraction-benchmark.yml"
     }
   ],
   "version": 1
