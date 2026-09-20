@@ -74,6 +74,10 @@ class Signal:
     # overwrite it with the correction note in store.revise. Deliberately not
     # in publish.FIELDS.
     notes: str | None = None
+    # A correction REMOVED the dollar figure above, so its NULL is an answer
+    # and schema.backfill_funding_usd must leave it alone. Bookkeeping, not a
+    # fact about the story, and deliberately not in publish.FIELDS.
+    funding_amount_usd_cleared: int = 0
 
 
 # A figure the model returns must appear in the source text. Matches 1,200 /

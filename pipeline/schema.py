@@ -89,6 +89,13 @@ CREATE TABLE IF NOT EXISTS signals (
     -- exchange rate) and for anything that will not parse.
     funding_amount_usd INTEGER,
 
+    -- Whether the NULL above is an ANSWER rather than an absence: set only by
+    -- a correction that deliberately REMOVED a figure, because the stored
+    -- number turned out to be a valuation or another company's money while
+    -- funding_amount still quotes the source correctly. backfill_funding_usd
+    -- reads it and nothing else does.
+    funding_amount_usd_cleared INTEGER,
+
     -- The round's name. A $30M seed and a $30M Series D are different talent
     -- events; without the stage the only sortable thing about funding is size.
     funding_stage     TEXT,
@@ -505,6 +512,7 @@ MIGRATIONS = (
     # classify. funding_amount_usd is the exception and is re-derived below
     # from the string we already hold.
     ("signals", "funding_amount_usd", "INTEGER"),
+    ("signals", "funding_amount_usd_cleared", "INTEGER"),
     ("signals", "funding_stage", "TEXT"),
     ("signals", "effective_date", "TEXT"),
     ("signals", "ticker", "TEXT"),
@@ -585,6 +593,42 @@ def _migrate(conn: sqlite3.Connection) -> list[str]:
     return applied
 
 
+def mark_clears_that_predate_the_column(conn: sqlite3.Connection) -> int:
+    """Carry #170's implicit protection onto the rows that already rely on it.
+
+    Between #170 and this change, a deliberate clear was protected by being at
+    `revision > 1`. Swapping that gate for an explicit mark would un-protect
+    every row already cleared under it — Ominimo and Sapien among them — and
+    the next connect() would undo the ruling a second time. So the implicit
+    fact is written down once, before the mark becomes the only guard.
+
+    A row at revision > 1 whose string PARSES and whose figure is NULL can only
+    have been cleared on purpose: this pass runs on every connect(), so any
+    such row would already be holding the parsed number otherwise. A row whose
+    string does not parse is left unmarked, because nobody cleared it and it is
+    still waiting on a wider vocabulary.
+
+    Runs once in effect: after it, those rows carry the mark and no longer
+    match. Deliberately NOT restricted to is_current, so a superseded revision
+    reads the same way.
+    """
+    rows = conn.execute(
+        """SELECT row_id, funding_amount FROM signals
+            WHERE funding_amount IS NOT NULL AND funding_amount != ''
+              AND funding_amount_usd IS NULL
+              AND revision > 1
+              AND funding_amount_usd_cleared IS NULL"""
+    ).fetchall()
+
+    marked = [(row["row_id"],) for row in rows
+              if vocab.parse_funding_usd(row["funding_amount"]) is not None]
+    if marked:
+        conn.executemany(
+            "UPDATE signals SET funding_amount_usd_cleared = 1 WHERE row_id = ?",
+            marked)
+    return len(marked)
+
+
 def backfill_funding_usd(conn: sqlite3.Connection) -> int:
     """Fill funding_amount_usd from the funding_amount string already stored.
 
@@ -597,26 +641,39 @@ def backfill_funding_usd(conn: sqlite3.Connection) -> int:
     (non-USD currencies, 'undisclosed') stay NULL and are re-examined each run,
     which is cheap and means a parser improvement picks them up automatically.
 
-    RESTRICTED TO revision = 1, and that restriction is load-bearing. A NULL
-    funding_amount_usd on any later revision is not an oversight to fill in —
-    it is what `adjudicate_guardrail._edited_signal` writes on purpose for a
-    row whose stored figure turned out to be a VALUATION rather than a raise
-    (Ominimo $1.6B, Sapien $180M, both ruled 2026-09-17): `funding_amount` is
-    left exactly as the source wrote it because the text is correct, and
-    without this guard the parser re-derived a number from that same text on
-    the very next `schema.connect()` and put the valuation straight back into
-    the total the edit had just removed it from — which is exactly what
-    happened to both rows when PR #169 first tried to apply the ruling. Every
-    write path that revises a row on purpose (store.revise,
-    correct_funding_amount.py, this adjudicator) bumps `revision`, so gating on
-    it here is the one place this backfill can tell "never looked at" from
-    "looked at and cleared".
+    A DELIBERATELY CLEARED FIGURE IS NOT A MISSING ONE. A NULL
+    funding_amount_usd can be an ANSWER: it is what
+    `adjudicate_guardrail._edited_signal` writes on purpose for a row whose
+    stored figure turned out to be a VALUATION rather than a raise (Ominimo
+    $1.6B, Sapien $180M, both ruled 2026-09-17). `funding_amount` is left
+    exactly as the source wrote it, because the text is correct — so the
+    string still parses, and without a guard this pass re-derived a number
+    from it on the very next `schema.connect()` and put the valuation straight
+    back into the total the edit had just removed it from. That is what
+    happened to both rows when PR #169 first tried to apply the ruling.
+
+    #170 guarded it with `revision = 1`, which fixed those two rows. It also
+    froze every OTHER revised row out of this pass for good, and the paragraph
+    above is the promise that breaks: measured on the committed database, five
+    current rows at revision > 1 hold a string this parser cannot read yet and
+    were never cleared by anybody — `500 millones`, `25 millioner kroner`,
+    `10,5 mio. kr.`, `US$ 544 mi`, `$1`. They are precisely the rows a widened
+    vocabulary is supposed to pick up automatically, and a row does not stop
+    being one by having had its city corrected. The frozen set grows with
+    every correction the tracker makes.
+
+    So the clear says so BY NAME, in funding_amount_usd_cleared, which is the
+    fact `revision > 1` was standing in for. It is the same asymmetry
+    push_amount documents on the site side: a present value is written, an
+    absent one is ignored, and erasing has to be ASKED FOR. Do not answer a
+    reappearing figure by deleting the funding_amount string instead — that is
+    the source's own words and the only evidence of what the row reported.
     """
     rows = conn.execute(
         """SELECT row_id, funding_amount FROM signals
             WHERE funding_amount IS NOT NULL AND funding_amount != ''
               AND funding_amount_usd IS NULL
-              AND revision = 1"""
+              AND COALESCE(funding_amount_usd_cleared, 0) = 0"""
     ).fetchall()
 
     updates = []
@@ -924,6 +981,7 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     # and a locked or read-only database must not take them down over a column
     # that is allowed to be NULL.
     try:
+        mark_clears_that_predate_the_column(conn)
         backfill_funding_usd(conn)
         backfill_materiality(conn)
     except sqlite3.OperationalError:

@@ -228,6 +228,13 @@ def corrected_signal(row: dict, parsed) -> validate.Signal:
     """
     signal = validate.Signal(**{name: row[name] for name in _FIELDS})
     setattr(signal, COLUMN, parsed)
+    # SAY SO WHEN THE FIGURE IS REMOVED, or it comes back. The row keeps
+    # funding_amount (the source's own words), so the string may still parse,
+    # and schema.backfill_funding_usd re-derives the number from it on the next
+    # connect() unless the clear is marked as deliberate. Re-deriving a real
+    # figure clears the mark again: a row that HAS a number is not a row whose
+    # number was taken away.
+    signal.funding_amount_usd_cleared = 1 if parsed is None else 0
 
     rehashed = validate.content_hash(
         signal.company_key, signal.pillar, signal.published_date,
