@@ -251,6 +251,20 @@ def test_the_prompt_says_neutral_is_gradeable_and_never_a_reason_to_decline():
         assert other in block
 
 
+def test_the_prompt_gives_a_worked_example_for_the_neutral_confusion():
+    """18 of 200 rows on 2026-09-16 were lost to openai/gpt-4o-mini writing
+    {"verdict": "neutral", "source_value": "neutral"} for signal_direction —
+    the exact mistake the prose above already warns against, still made after
+    that warning was already live. A worked JSON example names both the right
+    and the wrong shape next to each other, which prose alone had not fixed.
+    """
+    prompt = " ".join(bench.build_prompt(
+        {"headline": "H", "signal_direction": "neutral"}, "body").split())
+    assert '{"verdict": "correct", "source_value": "neutral", "why": "..."}' in prompt
+    assert '{"verdict": "neutral", ...}' in prompt
+    assert "never a value \"verdict\" can BE" in prompt
+
+
 def test_the_prompt_gives_one_legal_way_to_decline():
     """A refusal must arrive as a verdict, not as an unparseable answer."""
     prompt = " ".join(bench.build_prompt({"headline": "H"}, "body").split())

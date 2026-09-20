@@ -255,6 +255,14 @@ or is empty, or looks like a default, is NEVER a reason to decline a verdict
 or to reach for a word outside the three. The same holds for every other
 field.
 
+A WORKED EXAMPLE, because this is the field almost every lost row comes from:
+if signal_direction is stored as "neutral" and the source text describes a
+funding round with no stated hiring plans, the answer for that field is
+{{"verdict": "correct", "source_value": "neutral", "why": "..."}} — the verdict
+is "correct", never "neutral". Writing {{"verdict": "neutral", ...}} is the
+exact mistake that has cost this benchmark rows every run it has made:
+"neutral" is a value signal_direction can HOLD, never a value "verdict" can BE.
+
 THE STORED RECORD:
 {row}
 
