@@ -380,6 +380,166 @@ def test_a_cleared_row_is_not_refilled_by_the_connect_time_backfill(conn, tmp_pa
     assert live(conn, signal.signal_id)["funding_amount_usd"] is None
 
 
+def test_a_clear_survives_the_backfill_even_when_the_string_still_parses(conn):
+    """The case the test above cannot reach, and the one that actually bit.
+
+    Its clear survives because `25 millioner kroner` is a string the parser
+    REFUSES, so the backfill and the correction agree by construction -- its
+    own docstring says so. That is one of the two reasons a figure is cleared,
+    and it is the harmless one.
+
+    The other is a string that parses perfectly and states the WRONG QUANTITY.
+    Ominimo's row read "$1.6B" because the article says the company reached a
+    $1.6 billion VALUATION while stating the Series B amount is not disclosed.
+    The adjudication appended a revision carrying NULL and the next connect()
+    re-parsed "$1.6B" straight back into it, for a correction that changed
+    nothing: rev 2 byte for byte identical to rev 1. #170 fixed those two rows
+    and shipped no test; this is it.
+    """
+    signal = stored_as(conn, usd=1_600_000_000, amount="$1.6B")
+    row = live(conn, signal.signal_id)
+    assert vocab.parse_funding_usd(row["funding_amount"]) == 1_600_000_000, (
+        "this test is pointless unless the string really does still parse")
+
+    store.revise(conn, row["signal_id"], correct.corrected_signal(row, None),
+                 "the stored figure is a valuation, not the round")
+    conn.commit()
+    assert live(conn, signal.signal_id)["funding_amount_usd"] is None
+
+    assert schema.backfill_funding_usd(conn) == 0
+    conn.commit()
+    assert live(conn, signal.signal_id)["funding_amount_usd"] is None, (
+        "the backfill re-derived a figure a correction deliberately removed")
+
+
+def test_a_revised_row_nobody_cleared_is_still_picked_up_by_a_wider_vocabulary(conn):
+    """What `revision = 1` cost, and the reason the mark is explicit.
+
+    The docstring promises that a row whose string will not parse is
+    "re-examined each run", so "a parser improvement picks them up
+    automatically". Gating on revision makes that false for every revised row:
+    measured on the committed database, five current rows at revision > 1 hold
+    a string this parser cannot read yet and were never cleared by anybody --
+    `500 millones`, `25 millioner kroner`, `10,5 mio. kr.`, `US$ 544 mi`,
+    `$1`. A row does not stop waiting on a wider vocabulary by having had its
+    city corrected, and the frozen set grows with every correction the tracker
+    makes.
+
+    Here the row is revised for an unrelated reason while its figure stays
+    NULL and unread, and then the parser learns the currency.
+    """
+    signal = stored_as(conn, usd=None, amount="500 millones")
+    row = live(conn, signal.signal_id)
+    assert vocab.parse_funding_usd(row["funding_amount"]) is None
+
+    revised = correct.corrected_signal(row, None)
+    revised.city = "Madrid"
+    store.revise(conn, row["signal_id"], revised, "city corrected")
+    conn.commit()
+    assert live(conn, signal.signal_id)["revision"] > 1
+
+    # The vocabulary widens and the string now reads.
+    conn.execute("UPDATE signals SET funding_amount = ? WHERE signal_id = ? "
+                 "  AND is_current = 1", ("USD 500 millones", signal.signal_id))
+    conn.execute("UPDATE signals SET funding_amount_usd_cleared = NULL "
+                 " WHERE signal_id = ? AND is_current = 1", (signal.signal_id,))
+    conn.commit()
+
+    assert schema.backfill_funding_usd(conn) == 1, (
+        "a revised row that nobody cleared is frozen out of the backfill")
+
+
+def test_a_clear_made_before_the_mark_existed_is_not_undone_by_it(conn):
+    """The migration hazard in swapping #170's gate for this one.
+
+    Between #170 and this change a deliberate clear was protected by sitting at
+    revision > 1. Rows cleared under that rule carry no mark, so making the
+    mark the only guard would un-protect them and the next connect() would undo
+    the ruling a second time -- on Ominimo and Sapien specifically, whose rows
+    are in exactly this state on main right now.
+    """
+    signal = stored_as(conn, usd=1_600_000_000, amount="$1.6B")
+    row = live(conn, signal.signal_id)
+    store.revise(conn, row["signal_id"], correct.corrected_signal(row, None),
+                 "cleared under the revision gate")
+    # As those rows look on main: cleared, revised, and unmarked.
+    conn.execute("UPDATE signals SET funding_amount_usd_cleared = NULL "
+                 " WHERE signal_id = ?", (signal.signal_id,))
+    conn.commit()
+
+    assert schema.mark_clears_that_predate_the_column(conn) == 1
+    conn.commit()
+    assert schema.backfill_funding_usd(conn) == 0
+    conn.commit()
+    assert live(conn, signal.signal_id)["funding_amount_usd"] is None
+
+
+def test_reopening_the_database_does_not_undo_a_pre_mark_clear(conn, tmp_path):
+    """The hazard is at connect() time, so the guard has to be too.
+
+    Calling the migration by hand proves it works; it does not prove anything
+    runs it. schema.connect() is the door every collector, every ops tool and
+    every correction job opens, and it is where the backfill undid the ruling
+    in the first place -- so the proof has to be a real reopen of a real file
+    holding a real row in the pre-mark state.
+    """
+    signal = stored_as(conn, usd=1_600_000_000, amount="$1.6B")
+    row = live(conn, signal.signal_id)
+    store.revise(conn, row["signal_id"], correct.corrected_signal(row, None),
+                 "cleared under the revision gate")
+    conn.execute("UPDATE signals SET funding_amount_usd_cleared = NULL "
+                 " WHERE signal_id = ?", (signal.signal_id,))
+    conn.commit()
+    conn.close()
+
+    reopened = schema.connect(tmp_path / "test.db")
+    current = dict(reopened.execute(
+        "SELECT * FROM signals WHERE signal_id = ? AND is_current = 1",
+        (signal.signal_id,)).fetchone())
+    assert current["funding_amount_usd"] is None, (
+        "reopening the database put the valuation back")
+    assert current["funding_amount_usd_cleared"] == 1
+
+
+def test_the_migration_leaves_an_unreadable_string_unmarked(conn):
+    """It must convert the clears and ONLY the clears. A revised row whose
+    string does not parse was never cleared by anybody -- this pass runs on
+    every connect(), so a parseable row would already hold its number -- and
+    marking it would freeze it exactly the way the revision gate did."""
+    signal = stored_as(conn, usd=None, amount="10,5 mio. kr.")
+    row = live(conn, signal.signal_id)
+    revised = correct.corrected_signal(row, None)
+    revised.city = "Copenhagen"
+    store.revise(conn, row["signal_id"], revised, "city corrected")
+    conn.execute("UPDATE signals SET funding_amount_usd_cleared = NULL "
+                 " WHERE signal_id = ?", (signal.signal_id,))
+    conn.commit()
+
+    assert schema.mark_clears_that_predate_the_column(conn) == 0
+    assert live(conn, signal.signal_id)["funding_amount_usd_cleared"] is None
+
+
+def test_a_re_derived_figure_is_not_marked_as_cleared(conn):
+    """The mark is about THIS revision, not the row's past. A row that was
+    cleared and later gets a real figure back must not keep a flag saying its
+    number was taken away, or the next genuine backfill would skip it
+    forever."""
+    signal = stored_as(conn, usd=25, amount="25 millioner kroner")
+    row = live(conn, signal.signal_id)
+
+    store.revise(conn, row["signal_id"], correct.corrected_signal(row, None), "cleared")
+    conn.commit()
+    assert live(conn, signal.signal_id)["funding_amount_usd_cleared"] == 1
+
+    row = live(conn, signal.signal_id)
+    store.revise(conn, row["signal_id"],
+                 correct.corrected_signal(row, 25_000_000), "figure restored")
+    conn.commit()
+    restored = live(conn, signal.signal_id)
+    assert restored["funding_amount_usd"] == 25_000_000
+    assert restored["funding_amount_usd_cleared"] == 0
+
+
 def test_the_backfill_cannot_do_this_job_which_is_why_this_exists(conn):
     """It touches only rows where the figure is MISSING, so every one of the
     twelve — each holding a wrong figure rather than none — is invisible to it.
