@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T11:50:14Z",
-  "last_tick": "2026-09-21T11:50:14Z",
+  "last_dispatch": "2026-09-21T11:58:44Z",
+  "last_tick": "2026-09-21T11:58:44Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -230,6 +230,35 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-21T11:40:08Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:58:44Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:58:41Z",
+          "detail": "",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:58:44Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T115841Z-adjudicate-rows",
+      "inputs": {
+        "accept_keys": "amount/7a788f5c7491918c805221920e4d98f1",
+        "dry_run": "false",
+        "note": "Two independent referee agents with web access both ruled ACCEPT on 2026-09-21: 40bn is primary capital raised by OpenAI, announced 2025-03-31, fully funded per CNBC and Reuters 2025-12-30. The model referee path returned UNKNOWN only because the JS-rendered source strips to 769 chars. Watch for a separate December 2025 completion row double counting as company_raise."
+      },
+      "priority": 0,
+      "reason": "",
+      "requested_at": "2026-09-21T11:58:41Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T16:36:26Z",
