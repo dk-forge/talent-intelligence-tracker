@@ -211,7 +211,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260914T200025Z-adjudicate-rows": "2026-09-21T02:54:31Z",
     "ticket:20260914T213245Z-adjudicate-rows": "2026-09-21T02:54:31Z",
     "ticket:20260915T000708Z-adjudicate-rows": "2026-09-21T07:54:02Z",
     "ticket:20260915T004512Z-adjudicate-rows": "2026-09-21T07:54:02Z",
@@ -230,81 +229,6 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-21T11:40:08Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T13:25:47Z",
-      "history": [
-        {
-          "at": "2026-09-21T13:25:44Z",
-          "detail": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T13:25:47Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T13:26:21Z",
-          "detail": "run 35605556049",
-          "event": "bound"
-        }
-      ],
-      "id": "20260921T132544Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-24351a64d835a6d01ddc4fe727ab88b2.json",
-        "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise"
-      },
-      "priority": 0,
-      "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
-      "requested_at": "2026-09-21T13:25:44Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35605556049",
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-14T21:32:17Z",
-      "history": [
-        {
-          "at": "2026-09-14T21:02:56Z",
-          "detail": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-14T21:32:17Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-14T21:32:48Z",
-          "detail": "run 34899363050",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-14T21:33:28Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260914T200025Z-adjudicate-rows",
-      "inputs": {
-        "ceiling": "0.50",
-        "dry_run": "false",
-        "place_rows": "87bb9cda8eca01f81ee96cb858d75016",
-        "reason": "owner brief 2026-09-13: five live rows whose money basis or location contradict their source",
-        "rows": "bf62d6d6e841a4cad7bd96eb2db9f490,23344cfec1156a226e3bc355bae49768,b1435535c98d555c08dccdbc05663b13,cdb69e97e35490b8a3cee478d6c1b438"
-      },
-      "priority": 0,
-      "reason": "adjudicate five live rows through the two referees (owner brief 2026-09-13, $10 one-time approval)",
-      "requested_at": "2026-09-14T20:00:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34899363050",
-      "state": "failed",
-      "workflow": "adjudicate-rows.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T20:34:50Z",
@@ -2562,6 +2486,46 @@
       "requested_at": "2026-09-21T11:58:41Z",
       "requested_by": "dakotta-labs",
       "run_id": "35596919416",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T13:25:47Z",
+      "history": [
+        {
+          "at": "2026-09-21T13:25:44Z",
+          "detail": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T13:25:47Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T13:26:21Z",
+          "detail": "run 35605556049",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T13:26:46Z",
+          "detail": "run 35605556049",
+          "event": "landed"
+        }
+      ],
+      "id": "20260921T132544Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-24351a64d835a6d01ddc4fe727ab88b2.json",
+        "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise"
+      },
+      "landed_at": "2026-09-21T13:26:46Z",
+      "priority": 0,
+      "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
+      "requested_at": "2026-09-21T13:25:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35605556049",
       "state": "landed",
       "workflow": "adjudicate-rows.yml"
     }
