@@ -80,6 +80,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
+from merge_train_holds import lift_stale_holds
+
 
 # --------------------------------------------------------------------------
 # Vocabulary
@@ -589,7 +591,8 @@ def unstick_attempts(comments: Iterable[dict] | None, head_sha: str) -> tuple[in
         if UNSTICK_MARKER not in body:
             continue
         per_pr += 1
-        if head_sha and f"sha={head_sha}" in body:
+        # An escalation names the head too, but it is not an ATTEMPT.
+        if head_sha and f"sha={head_sha}" in body and "action=needs-human" not in body:
             per_sha += 1
     return per_sha, per_pr
 
@@ -891,6 +894,10 @@ def run(client: GitHubClient, cfg: Config, *, dry_run: bool = True,
         rep.say(rep.action)
         return rep
 
+    # A `needs-human` the train itself placed on an EARLIER head is lifted
+    # here, before anything is judged. Any doubt keeps the hold.
+    lift_stale_holds(client, cfg, prs, rep.say, dry_run=dry_run)
+
     pinned = read_order_file(order_text)
     if pinned:
         rep.say(f"pinned order: {', '.join(str(n) for n in pinned)}")
@@ -1052,7 +1059,7 @@ def _try_unstick(client: GitHubClient, cfg: Config, pr: dict, v: Verdict,
             _escalate(client, cfg, number, rep,
                       f"the unstick cap is reached ({per_sha} on this head SHA, "
                       f"{per_pr} on this pull request). Stopping permanently.",
-                      dry_run=dry_run)
+                      head=head, dry_run=dry_run)
         return False
 
     if v.state == SKIP_RED:
@@ -1061,7 +1068,7 @@ def _try_unstick(client: GitHubClient, cfg: Config, pr: dict, v: Verdict,
         rerunnable, human = classify_failures(kept, cfg)
         if human:
             _escalate(client, cfg, number, rep,
-                      "a human is needed: " + "; ".join(human), dry_run=dry_run)
+                      "a human is needed: " + "; ".join(human), head=head, dry_run=dry_run)
             return False
         if not rerunnable:
             rep.say(f"  #{number} has nothing infrastructure-shaped to re-run")
@@ -1125,7 +1132,7 @@ def _try_rebase(client: GitHubClient, cfg: Config, pr: dict, rep: Report, *,
             _escalate(client, cfg, number, rep,
                       "the rebase conflicts outside the mechanical set "
                       f"({', '.join(escalate) or 'nothing resolvable'}); left "
-                      "untouched for a human.", dry_run=dry_run)
+                      "untouched for a human.", head=head, dry_run=dry_run)
             return False
         for path, how in plan.items():
             _resolve_mechanical(root, path, how)
@@ -1137,7 +1144,7 @@ def _try_rebase(client: GitHubClient, cfg: Config, pr: dict, rep: Report, *,
             _run(["git", "rebase", "--abort"], cwd=root, check=False)
             _escalate(client, cfg, number, rep,
                       "the rebase did not complete after the mechanical "
-                      "resolution; left untouched for a human.", dry_run=dry_run)
+                      "resolution; left untouched for a human.", head=head, dry_run=dry_run)
             return False
 
     after_files = set(_changed_files(root, "origin/main", "HEAD"))
@@ -1148,7 +1155,7 @@ def _try_rebase(client: GitHubClient, cfg: Config, pr: dict, rep: Report, *,
         _run(["git", "rebase", "--abort"], cwd=root, check=False)
         _escalate(client, cfg, number, rep,
                   f"the rebase would change files this pull request never "
-                  f"touched: {', '.join(stray[:5])}", dry_run=dry_run)
+                  f"touched: {', '.join(stray[:5])}", head=head, dry_run=dry_run)
         return False
 
     touched = sorted(resolved) or new_paths
@@ -1161,7 +1168,7 @@ def _try_rebase(client: GitHubClient, cfg: Config, pr: dict, rep: Report, *,
         _run(["git", "rebase", "--abort"], cwd=root, check=False)
         _escalate(client, cfg, number, rep,
                   "the patch it would have pushed has a shape it must never "
-                  "push: " + "; ".join(refusals), dry_run=dry_run)
+                  "push: " + "; ".join(refusals), head=head, dry_run=dry_run)
         return False
 
     note = (f"{UNSTICK_MARKER} sha={head} action=rebase -->\n"
@@ -1190,7 +1197,7 @@ def _try_rebase(client: GitHubClient, cfg: Config, pr: dict, rep: Report, *,
                   "it can rebase this cleanly, but no MERGE_TRAIN_PUSH_TOKEN is "
                   "configured. A push made with the default Actions token does "
                   "not start workflows, so the rebased head would carry no "
-                  "checks at all. Left for a human.", dry_run=False)
+                  "checks at all. Left for a human.", head=head, dry_run=False)
         _run(["git", "rebase", "--abort"], cwd=root, check=False)
         return False
 
@@ -1233,8 +1240,10 @@ def _resolve_mechanical(root: Path, path: str, how: str) -> None:
 
 
 def _escalate(client: GitHubClient, cfg: Config, number: int, rep: Report,
-              why: str, *, dry_run: bool) -> None:
-    body = (f"{UNSTICK_MARKER} sha=escalated action=needs-human -->\n"
+              why: str, *, head: str, dry_run: bool) -> None:
+    # THE REAL HEAD SHA, never a placeholder: `merge_train_holds` lifts this
+    # hold only once the head it was recorded against is gone.
+    body = (f"{UNSTICK_MARKER} sha={head or 'escalated'} action=needs-human -->\n"
             f"The merge train stopped here and is not going to try again "
             f"automatically.\n\n{why}")
     if dry_run:
