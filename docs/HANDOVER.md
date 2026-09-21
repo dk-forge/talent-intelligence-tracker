@@ -30,19 +30,36 @@ main exited non-zero after publishing.
 2. **`amount/7a788f5c7491918c805221920e4d98f1` OpenAI $40bn**: open, held
    back (never published), 224h against a 192h HELD window. Source is
    OpenAI's own `openai.com/index/march-funding-updates/`, $40B at a $300B
-   post-money valuation — the well-documented March 2025 round. Flagged only
-   because the auto-accept corroboration count (2 independent OUTLETS) does
-   not count the company's own primary announcement. Put to the two-referee
-   adjudicator; **end state: accepted** on agreement (or, if the referees
-   disagree, an owner-ruled spec is the fallback — see the run this lands
-   from below).
+   post-money valuation — the well-documented March 2025 round. Tried the
+   two-referee adjudicator twice (`--row`): both times the evidence pipeline
+   returned UNKNOWN. Both the live page and its Wayback copy
+   (`web.archive.org/web/20260908024047/...`) strip down to 769 characters of
+   readable text after stripping HTML, under the 800-character
+   `EVIDENCE_MIN_CHARS` floor — the page's real content is client-rendered and
+   the static HTML is mostly boilerplate. **End state: still `open`, UNKNOWN,
+   left there.** This is not a data question a session can settle by reading
+   the number off the row: the pipeline could not confirm the source says what
+   the row claims, and inventing that confirmation would be the wrong kind of
+   fix. Needs a human with a browser (or a corroborating outlet with enough
+   text) to actually read the announcement, or a second attempt with an
+   evidence fetcher that can render JS. Left as the one remaining overdue
+   finding; the next collect/enrich run will still be red for this reason
+   alone, correctly.
 3. **`vehicle_name/0e83122d231fc2ffaa1f9310f3be247b` Digital Realty $80M**:
    open, held back, 225h against the 192h HELD window. Flagged by the
    vehicle-name check's `realty\b` pattern (aimed at single-property SPVs),
    but Digital Realty is the real, publicly traded data-center operator
    (NYSE: DLR) — a false positive on the name pattern, and the row's own
    `money_basis` is already `outbound_investment` (never summed as a raise).
-   Put to the same adjudicator; **end state: accepted**.
+   Tried routing it through the two-referee `--key vehicle_name/...` path
+   (PR #172): confirmed live that this asks the WRONG question — the referee
+   prompt only ever asks about a funding figure, never "is this issuer name
+   really a vehicle" — and got a genuine disagreement between the two
+   referees on a question that was never the actual one (spec:
+   `analysis/adjudications/2026-09-21-amount-0e83122d...json`, discarded, not
+   applied). PR #173 added a direct `accept_keys`/`reject_keys` door to
+   `adjudicate-rows.yml` for exactly this class of finding ($0, no referee).
+   **End state: `accepted`**, applied through it, 2026-09-21.
 
 **Brandeis (`24351a64d835a6d01ddc4fe727ab88b2`, $10M campus gift) is NOT one
 of the four** — its finding is not past grace. It remains the philanthropic-
