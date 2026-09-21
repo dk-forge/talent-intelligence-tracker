@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T11:35:34Z",
-  "last_tick": "2026-09-21T11:36:06Z",
+  "last_dispatch": "2026-09-21T11:37:11Z",
+  "last_tick": "2026-09-21T11:37:11Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -228,6 +228,35 @@
     "ticket:20260921T112552Z-adjudicate-rows": "2026-09-21T11:26:58Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:37:11Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:37:07Z",
+          "detail": "dry run: OpenAI $40bn only",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:37:11Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T113707Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "true",
+        "reason": "OpenAI $40bn, primary source openai.com, held 224h past 192h HELD window (session 2026-09-21)",
+        "rows": "7a788f5c7491918c805221920e4d98f1"
+      },
+      "priority": 0,
+      "reason": "dry run: OpenAI $40bn only",
+      "requested_at": "2026-09-21T11:37:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T14:59:44Z",
