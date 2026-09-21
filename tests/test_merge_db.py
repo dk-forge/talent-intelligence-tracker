@@ -303,6 +303,69 @@ def test_a_humans_acceptance_beats_a_later_automatic_write(two_writers):
     assert row[1] == "checked the filing"
 
 
+def test_a_genuinely_newer_review_beats_an_older_one_on_the_same_finding(two_writers):
+    """Ominimo and Sapien, reproduced. Rejected 2026-09-15, then an owner-ruled
+    edit revises the row and calls guardrails.review() to flip the SAME finding
+    to accepted on 2026-09-17 -- and that push goes through this merge like
+    every other. "Reviewed beats unreviewed" must not become "the FIRST
+    reviewed side always wins", or a legitimate later re-review (the
+    closed-finding edit path in adjudicate_guardrail.apply_from_spec) can never
+    reach the committed ledger: the destination already carries a non-null
+    reviewed_at from the old rejection, so a naive "destination reviewed ->
+    keep the destination" rule discards the newer accepted state on every
+    single push, forever.
+    """
+    ours, theirs = two_writers
+
+    conn = schema.connect(theirs)
+    _finding(conn, "ominimo", state="rejected",
+             reviewed_at="2026-09-15T00:36:00", last_seen="2026-09-15T00:36:00")
+    conn.commit()
+    conn.close()
+
+    conn = schema.connect(ours)
+    _finding(conn, "ominimo", state="accepted",
+             reviewed_at="2026-09-17T17:25:00", last_seen="2026-09-17T17:25:00")
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = schema.connect(theirs)
+    row = conn.execute(
+        "SELECT state, reviewed_at FROM publish_guardrails "
+        " WHERE subject = 'ominimo'").fetchone()
+    assert row[0] == "accepted", (
+        "a genuinely newer review must reach the committed ledger, not just "
+        "the run's own local copy of the database")
+    assert row[1] == "2026-09-17T17:25:00"
+
+
+def test_an_older_review_pushed_late_still_loses_to_the_newer_one(two_writers):
+    """The mirror of the test above: order of arrival at the merge must not
+    matter, only which decision is actually newer by its own timestamp."""
+    ours, theirs = two_writers
+
+    conn = schema.connect(theirs)
+    _finding(conn, "sapien", state="accepted",
+             reviewed_at="2026-09-17T17:25:00", last_seen="2026-09-17T17:25:00")
+    conn.commit()
+    conn.close()
+
+    conn = schema.connect(ours)
+    _finding(conn, "sapien", state="rejected",
+             reviewed_at="2026-09-15T00:37:00", last_seen="2026-09-15T00:37:00")
+    conn.commit()
+    conn.close()
+
+    merge_db.merge(ours, theirs)
+
+    conn = schema.connect(theirs)
+    assert conn.execute(
+        "SELECT state FROM publish_guardrails WHERE subject = 'sapien'"
+    ).fetchone()[0] == "accepted"
+
+
 def test_an_unreviewed_disagreement_resolves_to_open(two_writers):
     """This table decides whether a figure goes out, so a merge it cannot
     resolve has to fail loud rather than quietly clear the queue."""

@@ -2,6 +2,89 @@
 
 ---
 
+## 2026-09-21: the four overdue guardrail findings that reddened every data job since 2026-09-20 evening
+
+`guardrails.py` was printing 4 findings past their grace window, and every
+collect / collect-press / collect-structured / enrich / drain-writers run on
+main exited non-zero after publishing.
+
+**All four, and their end states:**
+
+1. **`amount/734d99623f823e79e2d549649cd1abdf` Ominimo $1.6bn** and
+   **`amount/465b406cd7cbe680aae7716507450719` Sapien $180M**: rejected
+   2026-09-15 as valuations (not raises), already live, past the 72h LIVE
+   grace window (158h). The row-level fix (PR #169, 2026-09-20) already
+   cleared `funding_amount_usd` for both and made it stick past
+   `schema.backfill_funding_usd()`. What was still wrong was the LEDGER: the
+   guardrail finding stayed `state='rejected'` because the 2026-09-17 apply
+   run never got as far as `guardrails.review()` for either row (the
+   now-fixed `SharedNoteRefused` on identical notes killed the batch before
+   it reached the state write). Re-ran `adjudicate_guardrail.apply_from_spec`
+   against the live database with the existing owner-ruled specs
+   (`analysis/adjudications/2026-09-17-amount-*.json`) and confirmed both
+   findings move to `accepted` — the code path that does this (PR #169's
+   closed-finding edit branch in `apply_decision`/`apply_from_spec`) was
+   already correct, it had simply never been re-run since the note fix
+   landed. **End state: `accepted`.** Amounts stay cleared; rows stay
+   published as real, undisclosed-amount funding events.
+2. **`amount/7a788f5c7491918c805221920e4d98f1` OpenAI $40bn**: open, held
+   back (never published), 224h against a 192h HELD window. Source is
+   OpenAI's own `openai.com/index/march-funding-updates/`, $40B at a $300B
+   post-money valuation — the well-documented March 2025 round. Flagged only
+   because the auto-accept corroboration count (2 independent OUTLETS) does
+   not count the company's own primary announcement. Put to the two-referee
+   adjudicator; **end state: accepted** on agreement (or, if the referees
+   disagree, an owner-ruled spec is the fallback — see the run this lands
+   from below).
+3. **`vehicle_name/0e83122d231fc2ffaa1f9310f3be247b` Digital Realty $80M**:
+   open, held back, 225h against the 192h HELD window. Flagged by the
+   vehicle-name check's `realty\b` pattern (aimed at single-property SPVs),
+   but Digital Realty is the real, publicly traded data-center operator
+   (NYSE: DLR) — a false positive on the name pattern, and the row's own
+   `money_basis` is already `outbound_investment` (never summed as a raise).
+   Put to the same adjudicator; **end state: accepted**.
+
+**Brandeis (`24351a64d835a6d01ddc4fe727ab88b2`, $10M campus gift) is NOT one
+of the four** — its finding is not past grace. It remains the philanthropic-
+gift UNKNOWN named in the 2026-09-14 entry below: no `money_basis` value
+means "a gift", so the conservative move if it were ever touched is an
+owner-ruled spec clearing the amount on that ground, never inventing a basis
+by analogy. Left untouched here.
+
+**Code, and where the real bug actually was.** `apply_decision`'s edit branch
+(PR #169) already flips `rejected` to `accepted` correctly on a single
+connection — confirmed by re-running it directly against a copy of the live
+database. That is why the first re-apply attempt (2026-09-20, `run
+35531602857`, "both APPLIED") looked like it worked and still left the ledger
+`rejected` on main: `apply_decision` runs on a run's LOCAL copy, but the
+commit step then resets to `origin/main` and calls `merge_db._merge_guardrails`
+before the push, and THAT is where the newer state was thrown away.
+`_merge_guardrails` read "the destination already has a non-null
+`reviewed_at`" as "keep the destination forever" — right the first time a
+finding is decided, and wrong the second: the destination's `reviewed_at` was
+the OLD 2026-09-15 rejection, so every push since kept `rejected` and dropped
+the newer `accepted` state, silently, run after run. Fixed in `merge_db.py`
+to compare `reviewed_at` timestamps: a side only wins a review against a side
+with none, or an OLDER one. "Reviewed beats unreviewed" is unchanged
+(`test_a_humans_acceptance_beats_a_later_automatic_write` still passes); what
+changes is that a genuinely newer decision can now reach the committed
+ledger.
+
+Two regression tests, both mutation-proven (reverting the fix reds the new
+tests alone, nothing else): `tests/test_merge_db.py::
+test_a_genuinely_newer_review_beats_an_older_one_on_the_same_finding` and its
+mirror for arrival order, plus `tests/test_adjudicate_guardrail.py::
+test_a_closed_finding_edit_accepts_the_finding_and_clears_the_grace_clock`
+for the single-connection half of the path (no mocks, real `schema`/
+`guardrails`).
+
+**Applied through the queue, never locally:** the two `from_spec` re-applies
+and the two-referee `--row` adjudication for OpenAI and Digital Realty both
+went through `drain-writers.yml -f enqueue=adjudicate-rows.yml`, dry run
+first. See the PR and run links in this session's report.
+
+---
+
 ## 2026-09-20: Ominimo and Sapien valuation ruling — the first apply attempt silently reverted, root cause fixed
 
 PR #169's 2026-09-17 apply run reported both `amount/734d99...` and
