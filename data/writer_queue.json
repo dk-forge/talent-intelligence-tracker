@@ -225,76 +225,10 @@
     "ticket:20260920T134028Z-enrich": "2026-09-20T13:53:36Z",
     "ticket:20260920T194430Z-extraction-benchmark": "2026-09-20T19:52:23Z",
     "ticket:20260921T094832Z-enrich": "2026-09-21T09:56:41Z",
-    "ticket:20260921T112552Z-adjudicate-rows": "2026-09-21T11:26:58Z"
+    "ticket:20260921T112552Z-adjudicate-rows": "2026-09-21T11:26:58Z",
+    "ticket:20260921T113707Z-adjudicate-rows": "2026-09-21T11:38:05Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T11:37:11Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:37:07Z",
-          "detail": "dry run: OpenAI $40bn only",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:37:11Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260921T113707Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "true",
-        "reason": "OpenAI $40bn, primary source openai.com, held 224h past 192h HELD window (session 2026-09-21)",
-        "rows": "7a788f5c7491918c805221920e4d98f1"
-      },
-      "priority": 0,
-      "reason": "dry run: OpenAI $40bn only",
-      "requested_at": "2026-09-21T11:37:07Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-14T14:59:44Z",
-      "history": [
-        {
-          "at": "2026-09-14T10:50:16Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-14T14:59:44Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-14T15:06:17Z",
-          "detail": "run 34859237827",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-14T15:06:17Z",
-          "detail": "run 34859237827",
-          "event": "landed"
-        }
-      ],
-      "id": "20260914T105016Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-14T15:06:17Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-14T10:50:16Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34859237827",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T15:06:17Z",
@@ -2549,6 +2483,45 @@
       "requested_by": "dakotta-labs",
       "run_id": "35594880713",
       "state": "landed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:37:11Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:37:07Z",
+          "detail": "dry run: OpenAI $40bn only",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:37:11Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T11:38:05Z",
+          "detail": "run 35595026026",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T11:38:05Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260921T113707Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "true",
+        "reason": "OpenAI $40bn, primary source openai.com, held 224h past 192h HELD window (session 2026-09-21)",
+        "rows": "7a788f5c7491918c805221920e4d98f1"
+      },
+      "priority": 0,
+      "reason": "dry run: OpenAI $40bn only",
+      "requested_at": "2026-09-21T11:37:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35595026026",
+      "state": "failed",
       "workflow": "adjudicate-rows.yml"
     }
   ],
