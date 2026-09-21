@@ -54,6 +54,10 @@ on:
         description: 'content_hash list, comma separated: location rows (place/<hash>)'
         type: string
         default: ''
+      keys:
+        description: 'check/subject list, comma separated: an EXISTING open finding of any check (e.g. vehicle_name/<hash>). --row/--place-row only ever open amount or place; this is the door for the other checks (period_totals, date_span, vehicle_name) the CLI already supports through --key but this workflow never exposed.'
+        type: string
+        default: ''
       reason:
         description: 'Why the session raised them (written to the ledger)'
         type: string
@@ -110,6 +114,7 @@ jobs:
           FROM_SPEC: ${{ inputs.from_spec }}
           ROWS: ${{ inputs.rows }}
           PLACE_ROWS: ${{ inputs.place_rows }}
+          KEYS: ${{ inputs.keys }}
           REASON: ${{ inputs.reason }}
           CEILING: ${{ inputs.ceiling }}
         run: |
@@ -124,6 +129,8 @@ jobs:
           for h in "${R[@]}"; do h="${h// /}"; [ -n "$h" ] && ARGS+=(--row "$h"); done
           IFS=',' read -ra P <<< "${PLACE_ROWS}"
           for h in "${P[@]}"; do h="${h// /}"; [ -n "$h" ] && ARGS+=(--place-row "$h"); done
+          IFS=',' read -ra K <<< "${KEYS}"
+          for k in "${K[@]}"; do k="${k// /}"; [ -n "$k" ] && ARGS+=(--key "$k"); done
           # Exit 3 is "a human decides" (UNKNOWN or disagreement). The specs
           # are committed first, below, and the last step turns 3 into a red run.
           RC=0
