@@ -1,0 +1,558 @@
+{
+ "ran_at": "2026-09-21T15:39:53+02:00",
+ "ran_on": "2026-09-21",
+ "plan": {
+  "cycle": 528,
+  "planned_on": "2026-09-21",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-09-14 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "NZ",
+    "name": "New Zealand",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "OM",
+    "name": "Oman",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "PE",
+    "name": "Peru",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "US",
+    "name": "United States",
+    "tier": "weak",
+    "measured": {
+     "total": 34,
+     "held": 16,
+     "held_pct": 47.1
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "NZ",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "OM",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "PE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "US",
+   "tier": "weak",
+   "measured": {
+    "total": 34,
+    "held": 16,
+    "held_pct": 47.1
+   }
+  }
+ ],
+ "counts": {
+  "leads": 17,
+  "held": 8,
+  "missing": 9,
+  "unusable": 0,
+  "usable": 17
+ },
+ "by_country": {
+  "US": {
+   "leads": 6,
+   "held": 2,
+   "missing": 4,
+   "unusable": 0
+  },
+  "CA": {
+   "leads": 2,
+   "held": 0,
+   "missing": 2,
+   "unusable": 0
+  },
+  "AU": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "NZ": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  },
+  "OM": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  },
+  "PE": {
+   "leads": 3,
+   "held": 3,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0227,
+  "queries": 4,
+  "usd_per_query": 0.0057,
+  "usd_per_lead": 0.0013,
+  "usd_per_candidate_miss": 0.0025,
+  "lifetime_usd": 0.3628,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:NZ",
+   "leads": 4,
+   "usd": 0.00563,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 292,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:OM",
+   "leads": 2,
+   "usd": 0.00548,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 143,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:PE",
+   "leads": 5,
+   "usd": 0.00571,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 376,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:US",
+   "leads": 6,
+   "usd": 0.00587,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 540,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "NZ",
+   "dimension_tier": "zero",
+   "claimed_company": "Ritchies Transport",
+   "claimed_country": "NZ",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-10",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Kiwicoaches",
+   "claimed_url": "https://www.kiwicoaches.co.nz/blog/ritchies-ceo-michele-kernahan-steps-down-scott-thorne",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NZ",
+   "dimension_tier": "zero",
+   "claimed_company": "Trade Me",
+   "claimed_country": "NZ",
+   "claimed_city": "Auckland",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-19",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "eCommerce News",
+   "claimed_url": "https://ecommercenews.co.nz/story/trade-me-appoints-kul-singh-kargil-as-chief-executive",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3f557379718884e24b35d5bf259039cb",
+    "company": "Trade Me",
+    "pillar": "leadership_change",
+    "country": null,
+    "published_date": "2026-08-19",
+    "source_url": "https://www.mpamag.com/nz/specialty/residential/trade-me-names-new-ceo-as-skoe-steps-down-after-seven-years/586600"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NZ",
+   "dimension_tier": "zero",
+   "claimed_company": "Calocurb",
+   "claimed_country": "NZ",
+   "claimed_city": "Auckland",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-08",
+   "claimed_amount": "$27.0M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Signalbase",
+   "claimed_url": "https://www.trysignalbase.com/news/funding/calocurb-raises-27m-series-a-for-weight-loss-bioceutical",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "9c49310f86c515fc0e85cf39add30eea",
+    "company": "Calocurb",
+    "pillar": "company_development",
+    "country": "NZ",
+    "published_date": "2026-09-08",
+    "source_url": "https://www.nzherald.co.nz/business/calocurb-triples-revenue-raises-27m-as-it-piggybacks-on-the-glp-1-boom/premium/WLIIZYFKSFH5VFX7QNAKTAO2OM/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NZ",
+   "dimension_tier": "zero",
+   "claimed_company": "Kinetic",
+   "claimed_country": "AU",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-18",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Management",
+   "claimed_url": "https://management.co.nz/key-appointments",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "OM",
+   "dimension_tier": "zero",
+   "claimed_company": "Oman Air",
+   "claimed_country": "OM",
+   "claimed_city": "Muscat",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-20",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Times of Oman",
+   "claimed_url": "https://timesofoman.com/article/175860-oman-air-and-salam-air-announce-new-ceos",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "ad0c638d825ca01a9991654f0f305165",
+    "company": "Oman Air",
+    "pillar": "leadership_change",
+    "country": "OM",
+    "published_date": "2026-08-20",
+    "source_url": "https://timesofoman.com//article/175860-oman-air-and-salam-air-announce-new-ceos"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "OM",
+   "dimension_tier": "zero",
+   "claimed_company": "Salam Air",
+   "claimed_country": "OM",
+   "claimed_city": "Muscat",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-20",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Times of Oman",
+   "claimed_url": "https://timesofoman.com/article/175860-oman-air-and-salam-air-announce-new-ceos",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PE",
+   "dimension_tier": "zero",
+   "claimed_company": "Revolut Peru",
+   "claimed_country": "PE",
+   "claimed_city": "Lima",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-16",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Fintech News America",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "4d7d0340f9e005012bf5ea68194ace15",
+    "company": "Revolut",
+    "pillar": "leadership_change",
+    "country": "ES",
+    "published_date": "2026-08-18",
+    "source_url": "https://www.lacronicabadajoz.com/economia/2026/08/18/revolut-oficializa-nombramiento-santiago-perez-133446295.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PE",
+   "dimension_tier": "zero",
+   "claimed_company": "Element 29 Resources",
+   "claimed_country": "CA",
+   "claimed_city": "Vancouver",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-10",
+   "claimed_amount": "$12.0 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Newsfile",
+   "claimed_url": "https://www.newsfilecorp.com/release/309069/Element-29-Closes-12.0-Million-Private-Placement-with-Continued-Participation-from-Strategic-Investors",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PE",
+   "dimension_tier": "zero",
+   "claimed_company": "Magnar",
+   "claimed_country": "PE",
+   "claimed_city": "Lima",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-09",
+   "claimed_amount": "$8M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "The SaaS News",
+   "claimed_url": "https://www.thesaasnews.com/news/magnar-raises-8m-series-a",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "b08a0be4e8300c6b474ae70766d115ce",
+    "company": "Magnar",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-08",
+    "source_url": "https://latamlist.com/magnar-raises-8m-series-a/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PE",
+   "dimension_tier": "zero",
+   "claimed_company": "Tesoro Minerals",
+   "claimed_country": "CA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-19",
+   "claimed_amount": "C$1 million",
+   "claimed_stage": "",
+   "claimed_outlet": "ADERS Peru",
+   "claimed_url": "https://aders-peru.org/tesoro-minerals-scales-up-private-placement-as-investor-appetite-grows-for-peruvian-exploration-assets/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PE",
+   "dimension_tier": "zero",
+   "claimed_company": "Plenti",
+   "claimed_country": "PE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-07",
+   "claimed_amount": "$3M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Dealflow Latam",
+   "claimed_url": "https://dealflowlatam.substack.com/p/dealflow-latam-98-felix-raises-200m",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "668d63ba4af42e62c15d2536337c2640",
+    "company": "Plenti",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-03",
+    "source_url": "https://pulse2.com/plenti-raises-3-million-seed-round-led-by-tether-to-expand-digital-dollar-platform-across-latin-america/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Hang Ten Systems",
+   "claimed_country": "US",
+   "claimed_city": "Menlo Park",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-16",
+   "claimed_amount": "$53 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Business Wire",
+   "claimed_url": "https://www.businesswire.com/news/home/20260916745417/en/Hang-Ten-Systems-Raises-Additional-$53-Million-Led-by-Xora-a-Temasek-Backed-Fund-Bringing-Total-Funding-to-$85-Million",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "World Acceptance Corporation",
+   "claimed_country": "US",
+   "claimed_city": "Greenville",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Business Wire",
+   "claimed_url": "https://www.businesswire.com/newsroom/industry/professional-services/small-business",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "9043f3a6eae2675fa7451fa118f2d16b",
+    "company": "World",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-07-24",
+    "source_url": "https://observatorioblockchain.com/ia/world-el-proyecto-de-sam-altman-capta-525-millones/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "LUMIQ",
+   "claimed_country": "US",
+   "claimed_city": "New York",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-09",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.prnewswire.com/news-releases/lumiq-appoints-rohit-nagpal-as-global-president--ceo-americas-to-build-its-north-america-business-302873668.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Hivemind Digital Group",
+   "claimed_country": "US",
+   "claimed_city": "New York",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-25",
+   "claimed_amount": "$17 million",
+   "claimed_stage": "",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.prnewswire.com/news-releases/hivemind-digital-group-announces-17-million-strategic-funding-round-led-by-mg-investments-302858649.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "AuraGxP",
+   "claimed_country": "US",
+   "claimed_city": "Boston",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-19",
+   "claimed_amount": "",
+   "claimed_stage": "seed",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.prnewswire.com/news-releases/auragxp-expands-executive-leadership-and-secures-initial-funding-302855577.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "weak",
+   "claimed_company": "Higgsfield",
+   "claimed_country": "US",
+   "claimed_city": "San Francisco",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-17",
+   "claimed_amount": "$400 million",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.prnewswire.com/news-releases/higgsfield-raises-400-million-series-b-financing-at-5-4-billion-valuation-with-annualized-revenue-reaching-700-million-302852430.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "4819d4ffd896d6bfaf266c1e4c748c20",
+    "company": "Higgsfield",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-17",
+    "source_url": "https://www.prnewswire.com/news-releases/higgsfield-raises-400-million-series-b-financing-at-5-4-billion-valuation-with-annualized-revenue-reaching-700-million-302852430.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}
