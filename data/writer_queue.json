@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T11:37:11Z",
-  "last_tick": "2026-09-21T11:37:11Z",
+  "last_dispatch": "2026-09-21T11:39:19Z",
+  "last_tick": "2026-09-21T11:39:19Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -229,6 +229,35 @@
     "ticket:20260921T113707Z-adjudicate-rows": "2026-09-21T11:38:05Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:39:19Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:39:15Z",
+          "detail": "retry dry run: OpenAI $40bn evidence fetch",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:39:19Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T113915Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "true",
+        "reason": "retry: evidence fetch (openai.com 403, wayback snapshot exists at 20260908024047) may have hit a transient archive.org rate limit last attempt",
+        "rows": "7a788f5c7491918c805221920e4d98f1"
+      },
+      "priority": 0,
+      "reason": "retry dry run: OpenAI $40bn evidence fetch",
+      "requested_at": "2026-09-21T11:39:15Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T15:06:17Z",
