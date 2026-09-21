@@ -46,6 +46,19 @@ agree on, applied through `correct_city_country.reissue`, the door the
 gazetteer correction already uses. In a dry run the findings opened by the run
 are removed again at the end, so a dry run leaves the ledger as it found it.
 
+AN OWNER-RULED SPEC CAN ALSO RESHAPE A ROW, and nothing else can. Beyond
+`corrected_amount`, `corrected_basis`, `corrected_city` and `corrected_country`
+its `correction` may carry `corrected_company`, `corrected_headcount`,
+`corrected_amount_text` (the source's own wording of the figure),
+`corrected_summary` and `corrected_talent_readthrough`; and its action may be
+`split`, with `"rows": [{...}, {...}]`, one correction per resulting row. The
+first entry becomes revision N+1 of the original signal; every further entry is
+a NEW row copied from the original and then overridden, with its own
+content_hash from `validate.content_hash`. A renamed employer moves the
+fingerprint, so a live row is withdrawn on the site first and the replacements
+are published, the order `correct_company_key.reissue` uses. See
+"Reshaping a row" below.
+
 Every run writes analysis/adjudications/<date>-<check>-<subject>.json with
 both verdicts verbatim, the spend, and the outcome.
 
@@ -57,6 +70,7 @@ UNKNOWN or the referees disagreed (spec written, nothing applied for it);
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import datetime as _dt
 import html as _html
 import json
@@ -74,7 +88,9 @@ import requests  # noqa: E402
 import archive_sources  # noqa: E402
 import correct_city_country  # noqa: E402
 import correct_funding_amount  # noqa: E402
-from pipeline import classify, guardrails, money_raised, schema, store, validate, vocab  # noqa: E402
+import retract  # noqa: E402
+from pipeline import (classify, dedupe, guardrails, money_raised, publish, schema,  # noqa: E402
+                      store, validate, vocab)
 
 REFEREES = (
     os.environ.get("ADJ_REFEREE_A", "anthropic/claude-sonnet-4.5"),
@@ -107,6 +123,24 @@ SPEC_DIR = REPO / "analysis" / "adjudications"
 ACTIONS = ("accept", "reject", "edit")
 BASIS_VOCAB = (money_raised.COMPANY_RAISE,) + tuple(sorted(money_raised.EXCLUDING_DEAL_TYPES))
 WHO = f"two-model adjudication ({REFEREES[0]} + {REFEREES[1]})"
+
+#: WHAT ONLY AN OWNER-RULED SPEC MAY DO. The two referees are asked one narrow
+#: question (is this figure, or this place, what the source states?) and their
+#: whole answer vocabulary is ACTIONS plus an amount, a basis, a city and a
+#: country. Renaming the employer, changing a headcount, rewriting the source's
+#: amount wording or cutting one row into several is a judgement about what the
+#: STORY is, which nobody asks them and no prompt here describes. `split` is
+#: deliberately NOT in ACTIONS: parse_verdict and auto_adjudicate both read that
+#: tuple, so a referee that answers "split" has given no usable verdict.
+SPLIT = "split"
+OWNER_ONLY_ACTIONS = (SPLIT,)
+OWNER_ONLY_FIELDS = ("corrected_company", "corrected_headcount", "corrected_amount_text",
+                     "corrected_summary", "corrected_talent_readthrough")
+#: The start of the provenance note on every row a reshape writes. It carries
+#: the spec key, and it is how a second application of the same spec knows the
+#: first one happened: the finding's subject is the ORIGINAL content_hash, and
+#: once the row is reshaped no current row carries that hash any more.
+RESHAPE_MARK = "reshaped by owner-ruled spec"
 
 #: The second question the referees can be asked: where the row is. Not one of
 #: guardrails.CHECKS, on purpose: a `place` finding must never hold a row back
@@ -623,6 +657,8 @@ def apply_decision(conn, item: dict, action: str, correction: dict | None,
     the finding is accepted so the corrected row is what publishes.
     """
     key = item["key"]
+    # Before the dry-run return, so a dry run refuses what an apply would.
+    refuse_owner_only(key, action, correction)
     if not apply:
         print(f"  dry run: would {action} {key}")
         return 0
@@ -679,6 +715,7 @@ def apply_place(conn, item: dict, action: str, correction: dict | None,
     through guardrails.review; edit goes through correct_city_country.reissue
     (the site first, then a revision) and then accepts the finding."""
     key = item["key"]
+    refuse_owner_only(key, action, correction)
     if not apply:
         print(f"  dry run: would {action} {key}")
         return 0
@@ -703,6 +740,290 @@ def apply_place(conn, item: dict, action: str, correction: dict | None,
     else:
         state = "accepted" if action == "accept" else "rejected"
     return guardrails.review(conn, key, state, note, who)
+
+
+# --------------------------------------------------------------------------
+# Reshaping a row: a rename, a headcount, the amount wording, a split.
+# Owner-ruled specs only.
+# --------------------------------------------------------------------------
+
+class OwnerOnly(RuntimeError):
+    """An action or a field only an owner-ruled spec may carry reached the
+    two-referee door. Never a verdict: nothing is written."""
+
+
+class ReshapeRefused(RuntimeError):
+    """The reshape cannot be applied as written. Raised BEFORE the site is
+    touched and before any local write, so a refusal changes nothing."""
+
+
+def owner_only_parts(action: str, correction: dict | None) -> list[str]:
+    """Which parts of (action, correction) are reserved to an owner ruling."""
+    parts = [action] if action in OWNER_ONLY_ACTIONS else []
+    parts += [f for f in OWNER_ONLY_FIELDS if f in (correction or {})]
+    return parts
+
+
+def refuse_owner_only(key: str, action: str, correction: dict | None) -> None:
+    """The guard on the automatic path. `apply_decision` and `apply_place` are
+    what two agreeing referees reach, and neither may rename or split."""
+    parts = owner_only_parts(action, correction)
+    if parts:
+        raise OwnerOnly(
+            f"{key}: {', '.join(parts)} may only come from an owner-ruled spec. "
+            f"Two referees are never asked what the employer is called, how many "
+            f"jobs a story states or whether one row is really two.")
+
+
+_SIGNAL_FIELDS = tuple(f.name for f in dataclasses.fields(validate.Signal))
+
+
+def reshaped_signal(row: dict, fix: dict):
+    """The stored row with one entry's corrections applied, as a Signal.
+
+    Everything the entry does not name is carried across untouched. The
+    fingerprint is RECOMPUTED with `validate.content_hash`, the one hashing
+    function in this repo, because `company_key` is its first input: a renamed
+    employer is a different fingerprint and a copy would leave the row
+    disagreeing with itself (correct_company_key.corrected_signal, same reason).
+    """
+    signal = validate.Signal(**{name: row[name] for name in _SIGNAL_FIELDS})
+    if fix.get("corrected_company"):
+        signal.company = str(fix["corrected_company"]).strip()
+        signal.company_key = vocab.company_key(signal.company, industry=signal.industry)
+    if "corrected_headcount" in fix:
+        head = fix["corrected_headcount"]
+        signal.headcount = None if head is None else int(head)
+    if "corrected_amount_text" in fix:
+        signal.funding_amount = fix["corrected_amount_text"] or None
+    if "corrected_amount" in fix:
+        amount = fix["corrected_amount"]
+        signal.funding_amount_usd = None if amount is None else int(amount)
+    elif fix.get("corrected_amount_text"):
+        signal.funding_amount_usd = vocab.parse_funding_usd(fix["corrected_amount_text"])
+    if fix.get("corrected_amount_text") and signal.funding_amount_usd is not None:
+        # The wording and the integer are two statements of one figure. A spec
+        # whose two halves disagree is a typo, and the backfill would later
+        # "repair" whichever half it reads, silently.
+        parsed = vocab.parse_funding_usd(fix["corrected_amount_text"])
+        if parsed is not None and parsed != signal.funding_amount_usd:
+            raise ReshapeRefused(
+                f"corrected_amount_text {fix['corrected_amount_text']!r} reads as "
+                f"{parsed:,} but corrected_amount says {signal.funding_amount_usd:,}")
+    signal.funding_amount_usd_cleared = 1 if (
+        signal.funding_amount and signal.funding_amount_usd is None) else 0
+    basis = fix.get("corrected_basis")
+    if basis:
+        if basis not in BASIS_VOCAB:
+            raise ReshapeRefused(f"corrected_basis {basis!r} is not in the vocabulary")
+        signal.money_basis = basis
+        if basis in money_raised.EXCLUDING_DEAL_TYPES:
+            signal.deal_type = signal.deal_type or basis
+    if fix.get("corrected_country"):
+        for name, value in place_fix(row, fix).items():
+            setattr(signal, name, value)
+    if fix.get("corrected_summary"):
+        signal.summary = fix["corrected_summary"]
+    if fix.get("corrected_talent_readthrough"):
+        signal.talent_readthrough = fix["corrected_talent_readthrough"]
+    signal.content_hash = validate.content_hash(
+        signal.company_key, signal.pillar, signal.published_date,
+        signal.headline, signal.source_name)
+    return signal
+
+
+def reshape_mark(spec_key: str, part: int, of: int) -> str:
+    return f"{RESHAPE_MARK} {spec_key} part {part}/{of}"
+
+
+def reshaped_rows(conn, spec_key: str) -> list[dict]:
+    """Current rows an earlier application of this spec wrote. The idempotency
+    guard: the finding's subject stops naming a current row the moment the
+    reshape lands, so the rows themselves have to say which spec made them."""
+    return [dict(r) for r in conn.execute(
+        "SELECT * FROM signals WHERE is_current = 1 AND notes LIKE ? ORDER BY row_id",
+        (f"{RESHAPE_MARK} {spec_key} part %",))]
+
+
+def plan_reshape(conn, row: dict, entries: list[dict]) -> list:
+    """Every resulting Signal, checked against everything that would undo it.
+
+    Refuses, before anything is touched:
+      * two entries that land on one fingerprint (they would be one row);
+      * a fingerprint this database has EVER held (`dedupe.exact_duplicate`
+        ignores is_current on purpose, and the site refuses a known hash at any
+        revision, so the replacement would be withdrawn and never return);
+      * an entry the write path's own fuzzy layer would call a duplicate of
+        another live row, because the site's near-duplicate guard (same
+        employer, pillar and direction inside 14 days) would refuse it too and
+        publish() cannot name which row that happened to;
+      * a LIVE row whose first entry keeps the original fingerprint: the site
+        has no door that changes a company, a headcount or the amount wording
+        in place, and withdraw-and-republish under an unchanged hash comes back
+        'retracted'.
+    """
+    if not entries:
+        raise ReshapeRefused("a reshape needs at least one resulting row")
+    signals = [reshaped_signal(row, fix or {}) for fix in entries]
+    for extra in signals[1:]:
+        # A new row is its own signal, named the way build_signal names one.
+        extra.signal_id = extra.content_hash
+    hashes = [s.content_hash for s in signals]
+    if len(set(hashes)) != len(hashes):
+        raise ReshapeRefused("two resulting rows share one content_hash; they are one row")
+    if len({s.company_key for s in signals}) != len(signals):
+        # Same employer, pillar and date: the fuzzy layer here and the site's
+        # near-duplicate guard would both fold the second into the first.
+        raise ReshapeRefused("two resulting rows share one company_key; dedup would "
+                             "collapse them back into one")
+    if hashes[0] == row["content_hash"]:
+        if row.get("published_at"):
+            raise ReshapeRefused(
+                "the first resulting row keeps the original content_hash and the row is "
+                "LIVE: the site cannot change these fields in place, and a republish "
+                "under a hash it has already seen comes back 'retracted'")
+        check = signals[1:]
+    else:
+        check = signals
+    for signal in check:
+        known = dedupe.exact_duplicate(conn, signal.content_hash)
+        if known:
+            raise ReshapeRefused(
+                f"{signal.company}: content_hash {signal.content_hash} is already held "
+                f"({known}); the replacement would never reach the site")
+        if signal.company_key != row["company_key"]:
+            near = dedupe.fuzzy_duplicate(conn, signal)
+            if near:
+                raise ReshapeRefused(
+                    f"{signal.company}: the write path calls this a duplicate of signal "
+                    f"{near}, which is already live. Correct that row instead.")
+    return signals
+
+
+def _describe_reshape(row: dict, signals: list) -> None:
+    print(f"  from  {row['company']!r}  {row.get('funding_amount')!r} "
+          f"(${int(row.get('funding_amount_usd') or 0):,})  headcount {row.get('headcount')}  "
+          f"hash {row['content_hash']}")
+    for n, s in enumerate(signals, 1):
+        kind = "revision of the original" if n == 1 else "NEW row"
+        print(f"  to {n}  {s.company!r} [{s.company_key}]  {s.funding_amount!r} "
+              f"(${int(s.funding_amount_usd or 0):,})  headcount {s.headcount}  "
+              f"basis {s.money_basis}  hash {s.content_hash}  ({kind})")
+
+
+def _send_pending(conn) -> dict:
+    """publish() sends every unpublished current row, which is what
+    correct_company_key.main does after its own withdrawals, for the same
+    reason: a row withdrawn and not replaced is the one outcome worse than
+    either."""
+    return publish.publish(conn)
+
+
+def apply_reshape(conn, spec: dict, *, who: str, apply: bool,
+                  withdraw=None, send=None) -> int:
+    """Apply an owner-ruled rename, headcount or amount-wording edit, or a split.
+
+    THE ORDER, and why. (1) Plan and refuse, touching nothing. (2) Withdraw the
+    live row on the site, because a replacement published beside its
+    predecessor puts one story on the page twice. (3) ONE local transaction:
+    the first entry through `store.revise` (the original survives at
+    is_current = 0, which is also what stops a re-collect of the same article
+    from re-storing the merged row: `dedupe.exact_duplicate` answers
+    'retracted' for a hash held at any revision), every further entry through
+    `store.store`, the same door a collector uses. (4) Accept the finding.
+    (5) Publish. A run killed between (2) and (3) retries both, and /retract on
+    a withdrawn record reports zero rows rather than failing. A run killed
+    after (3) is recognised by `reshaped_rows` and only finishes (4) and (5).
+
+    Returns 0 done or nothing to do, 1 a hard failure, 3 refused.
+    """
+    key = spec["key"]
+    check, _, subject = key.partition("/")
+    if spec.get("status") != "owner-ruled":
+        # Checked again here, not only by the caller: this function is the one
+        # that can rename and split, so it does not trust how it was reached.
+        raise OwnerOnly(f"{key}: only an owner-ruled spec may reshape a row")
+    entries = spec.get("rows") if spec.get("action") == SPLIT else [spec.get("correction") or {}]
+    if not isinstance(entries, list) or not all(isinstance(e, dict) for e in entries or []):
+        print(f"{key}: a split needs \"rows\": [{{...}}, {{...}}]; nothing to apply")
+        return 3
+    if spec.get("action") == SPLIT and len(entries) < 2:
+        print(f"{key}: a split into fewer than two rows is an edit; nothing applied")
+        return 3
+    finding = conn.execute(
+        "SELECT * FROM publish_guardrails WHERE check_name = ? AND subject = ?",
+        (check, subject)).fetchone()
+    if finding is None:
+        print(f"{key}: no such finding")
+        return 1
+    note = spec.get("note") or spec.get("ruling") or ""
+    done = reshaped_rows(conn, key)
+    row = conn.execute("SELECT * FROM signals WHERE content_hash = ? AND is_current = 1",
+                       (subject,)).fetchone()
+    row = dict(row) if row is not None else None
+    if row is not None and (row.get("notes") or "").startswith(f"{RESHAPE_MARK} {key} part "):
+        # An edit that keeps the fingerprint leaves the subject current. The
+        # mark on it says this spec already wrote it.
+        row = None
+
+    if row is None and not done:
+        print(f"{key}: no current row carries this content_hash and no row records "
+              f"this spec. Nothing to reshape.")
+        return 1
+
+    if row is not None:
+        try:
+            signals = plan_reshape(conn, row, entries)
+        except ReshapeRefused as exc:
+            print(f"{key}: REFUSED, nothing touched: {exc}")
+            return 3
+        print(f"{key}: {spec['action']} into {len(signals)} row(s)")
+        _describe_reshape(row, signals)
+        if not apply:
+            print(f"  dry run: nothing withdrawn, nothing written")
+            return 0
+        moved = signals[0].content_hash != row["content_hash"]
+        if row.get("published_at") and moved:
+            (withdraw or retract.retract_remote)(
+                row["signal_id"],
+                f"republished corrected under an owner ruling: {note[:300]}")
+        total = len(signals)
+        try:
+            store.revise(conn, row["signal_id"], signals[0],
+                         f"{reshape_mark(key, 1, total)}: {who}: {note[:400]}")
+            for part, extra in enumerate(signals[1:], 2):
+                extra.notes = f"{reshape_mark(key, part, total)}: {who}: {note[:400]}"
+                extra.as_of = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+                outcome = store.store(conn, extra)
+                if outcome != "stored":
+                    raise ReshapeRefused(f"{extra.company}: the write path answered {outcome!r}")
+        except Exception:
+            conn.rollback()
+            raise
+        conn.commit()
+    else:
+        print(f"{key}: already reshaped by this spec ({len(done)} current row(s) carry "
+              f"its mark); nothing rewritten")
+        if not apply:
+            return 0
+
+    changed = 0
+    if finding["state"] != "accepted":
+        changed = guardrails.review(conn, key, "accepted", note, who)
+    pending = [r for r in reshaped_rows(conn, key) if not r.get("published_at")]
+    failed = False
+    if pending:
+        try:
+            result = (send or _send_pending)(conn)
+            failed = bool(result.get("errors"))
+            print(f"  published: sent {result.get('sent')}, stored {result.get('stored')}, "
+                  f"duplicate {result.get('duplicate')}, errors {len(result.get('errors') or [])}")
+        except (publish.PublishError, requests.RequestException) as exc:
+            failed = True
+            print(f"  PUBLISH FAILED ({exc}). The rows are stored and unpublished; the "
+                  f"next publish leg sends them.", file=sys.stderr)
+    print(f"{key}: {spec['action']} APPLIED ({changed} ledger row(s))")
+    return 1 if failed else 0
 
 
 # --------------------------------------------------------------------------
@@ -812,7 +1133,8 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
     return 0
 
 
-def apply_from_spec(conn, path: Path, *, apply: bool, push=None) -> int:
+def apply_from_spec(conn, path: Path, *, apply: bool, push=None,
+                    withdraw=None, send=None) -> int:
     """Re-apply an agreed spec without calling a model. For a checkout that
     holds the spec but not the ledger write (a merge, a second machine)."""
     spec = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -832,6 +1154,19 @@ def apply_from_spec(conn, path: Path, *, apply: bool, push=None) -> int:
     else:
         print(f"{path}: status {spec.get('status')!r} is not an agreement; nothing to apply")
         return 3
+    reserved = owner_only_parts(spec.get("action") or "", spec.get("correction"))
+    if reserved or spec.get("rows"):
+        if spec.get("status") != "owner-ruled":
+            # The spec directory is also where the automatic run writes. A
+            # two-referee spec that somehow carries a rename or a split is
+            # refused here, whatever wrote it.
+            print(f"{path}: {', '.join(reserved) or 'rows'} may only come from an "
+                  f"owner-ruled spec; nothing to apply")
+            return 3
+        # Not "after referee disagreement": a reshape is ruled on a question
+        # the referees were never asked, so the ledger must not imply they were.
+        return apply_reshape(conn, spec, who=f"owner ruling ({spec['ruled_by']})",
+                             apply=apply, withdraw=withdraw, send=send)
     item = load_finding(conn, spec["key"])
     if item is None:
         print(f"{spec['key']}: no such finding")

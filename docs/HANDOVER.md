@@ -2,6 +2,28 @@
 
 ---
 
+## 2026-09-21: an owner ruling can rename, recount or split a row
+
+`adjudicate_guardrail.py --from-spec` now applies an owner-ruled spec whose
+`correction` carries `corrected_company`, `corrected_headcount`,
+`corrected_amount_text`, `corrected_summary` or `corrected_talent_readthrough`,
+and a new `"action": "split"` with `"rows": [...]`. The two-referee path can
+produce none of these (tested, mutation-proved). A rename moves the
+content_hash, so a live row is withdrawn on the site, revised locally, and the
+replacements are published in the same run. Re-applying a spec changes nothing.
+Queue it exactly like any other spec (`drain-writers.yml`
+`enqueue=adjudicate-rows.yml`, `from_spec=`). First use:
+`analysis/adjudications/2026-09-21-amount-23344cfec1156a226e3bc355bae49768.json`
+splits "Elite Metal Finishing and Machine Sciences $40M" into Elite Metal
+Finishing ($10 million, 170 jobs) and Machine Sciences Corporation (about $32
+million, 70 jobs), both `outbound_investment`, neither in the raise total.
+
+**Ceiling:** a LIVE row whose correction does not move the hash (a headcount or
+amount wording alone) is refused, because the site has no in-place door for
+those fields. Details: TECHLOG, same date.
+
+---
+
 ## 2026-09-21: a daily main-green check
 
 `main_green.py` + `.github/workflows/main-green-check.yml` (08:47 UTC daily,
