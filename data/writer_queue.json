@@ -211,7 +211,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260914T213245Z-adjudicate-rows": "2026-09-21T02:54:31Z",
     "ticket:20260915T000708Z-adjudicate-rows": "2026-09-21T07:54:02Z",
     "ticket:20260915T004512Z-adjudicate-rows": "2026-09-21T07:54:02Z",
     "ticket:20260916T103157Z-extraction-benchmark": "2026-09-21T18:29:49Z",
@@ -229,75 +228,6 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-21T11:40:08Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T20:16:15Z",
-      "history": [
-        {
-          "at": "2026-09-21T20:16:10Z",
-          "detail": "",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T20:16:15Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260921T201610Z-adjudicate-rows",
-      "inputs": {
-        "accept_keys": "amount/b1435535c98d555c08dccdbc05663b13",
-        "dry_run": "false",
-        "note": "Four reviews in total. Two model referees and two web reviewers all reject 196M (a registered 20 percent equity share, not paid-in money) and all agree the 980M text is what the licence states (VND 25.85 trillion registered capital, Tokgistic Pte Ltd, certificate 2026-09-07). The live row is already money_basis outbound_investment, excluded from the raise total, and the repo keeps the figure on outbound_investment rows (it clears it only for project_finance). One web reviewer would clear the numeric amount; recorded as a dissent, no total depends on it. Follow-up noted: the row talent_readthrough says TikTok has secured 980M, which overstates a registered plan."
-      },
-      "priority": 0,
-      "reason": "",
-      "requested_at": "2026-09-21T20:16:10Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-14T21:35:44Z",
-      "history": [
-        {
-          "at": "2026-09-14T21:32:45Z",
-          "detail": "money figure contradictions",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-14T21:35:44Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-14T21:36:54Z",
-          "detail": "run 34899697295",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-14T21:36:54Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260914T213245Z-adjudicate-rows",
-      "inputs": {
-        "ceiling": "0.60",
-        "dry_run": "false",
-        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure (2026-09-14 audit)",
-        "rows": "734d99623f823e79e2d549649cd1abdf,864e76c30a8fe3e5fb6d1f3568a19aea,005123a94e8243df523375355d856a99,8b7db65e5a281d5096ef871d61547edf,5fa33d0d7c2afdd2c002f6bf68e88d73,bcd70c7d3ab3055f36a81ae0fbccbf55,708bfb3aa94f010ce13aafc2f223b2f0,ea91a78b1a8a8c052f4b4aa5b4e92b37,9e66f52d50313f49f91d35deadc777a2,465b406cd7cbe680aae7716507450719,24351a64d835a6d01ddc4fe727ab88b2"
-      },
-      "priority": 0,
-      "reason": "money figure contradictions",
-      "requested_at": "2026-09-14T21:32:45Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34899697295",
-      "state": "failed",
-      "workflow": "adjudicate-rows.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-15T00:30:11Z",
@@ -2558,6 +2488,46 @@
       "run_id": "35627287476",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T20:16:15Z",
+      "history": [
+        {
+          "at": "2026-09-21T20:16:10Z",
+          "detail": "",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T20:16:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T20:17:16Z",
+          "detail": "run 35650024418",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T20:17:16Z",
+          "detail": "run 35650024418",
+          "event": "landed"
+        }
+      ],
+      "id": "20260921T201610Z-adjudicate-rows",
+      "inputs": {
+        "accept_keys": "amount/b1435535c98d555c08dccdbc05663b13",
+        "dry_run": "false",
+        "note": "Four reviews in total. Two model referees and two web reviewers all reject 196M (a registered 20 percent equity share, not paid-in money) and all agree the 980M text is what the licence states (VND 25.85 trillion registered capital, Tokgistic Pte Ltd, certificate 2026-09-07). The live row is already money_basis outbound_investment, excluded from the raise total, and the repo keeps the figure on outbound_investment rows (it clears it only for project_finance). One web reviewer would clear the numeric amount; recorded as a dissent, no total depends on it. Follow-up noted: the row talent_readthrough says TikTok has secured 980M, which overstates a registered plan."
+      },
+      "landed_at": "2026-09-21T20:17:16Z",
+      "priority": 0,
+      "reason": "",
+      "requested_at": "2026-09-21T20:16:10Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35650024418",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
