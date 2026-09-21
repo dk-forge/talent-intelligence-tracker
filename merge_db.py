@@ -59,6 +59,29 @@ What merges, and on what key:
                      'open' wins: this table decides whether a figure goes out,
                      so its merge conflicts resolve loud.
 
+                     BETWEEN TWO REVIEWED SIDES, THE NEWER reviewed_at WINS, not
+                     the mere presence of one. Until 2026-09-21 "reviewed beats
+                     unreviewed" was written as "if the destination is reviewed
+                     at all, keep it", which is right the first time a finding
+                     is decided and wrong the second: Ominimo and Sapien were
+                     REJECTED 2026-09-15, then an owner-ruled edit (2026-09-17)
+                     revised the row and called guardrails.review() to flip them
+                     to ACCEPTED in the same local connection - and every one of
+                     those pushes went through this merge, which saw the
+                     destination already had a non-null reviewed_at (the old
+                     rejection) and kept it, discarding the newer accepted state
+                     on every single push. The finding stayed 'rejected' on main
+                     for four days while the row it was about had already been
+                     corrected, and `guardrails.quarantine()` kept counting it
+                     ALREADY LIVE and REJECTED past its 72h grace window,
+                     reddening every data job. A decision does not have to be
+                     the FIRST one to be real; a later one made deliberately
+                     (an owner-ruled edit reaching a closed finding, by design
+                     in adjudicate_guardrail.apply_from_spec) has to be able to
+                     reach the committed ledger. "Reviewed beats unreviewed"
+                     still holds - a bare `None` reviewed_at never wins against
+                     any real one, in either direction.
+
 TWO FILES, ONE MERGE. Since the 100 MiB split the database is
 `talent_intel.db` plus `talent_intel_cache.db`, and seen_urls, source_links and
 employer_identity live in the second one. Nothing below changed for it: both
@@ -319,6 +342,11 @@ def _merge_guardrails(ours: sqlite3.Connection, into: sqlite3.Connection) -> int
     if not shared:
         return 0
     placeholders = ", ".join("?" for _ in shared)
+    # A side "wins a review" only against a side that has none, or an older
+    # one. `newer` is that comparison, shared by every reviewed_* column so
+    # the four never disagree about which side decided last.
+    newer = (f"excluded.reviewed_at IS NOT NULL AND "
+             f"({table}.reviewed_at IS NULL OR excluded.reviewed_at > {table}.reviewed_at)")
     sql = (
         f"INSERT INTO {table} ({', '.join(shared)}) VALUES ({placeholders}) "
         f"ON CONFLICT(check_name, subject) DO UPDATE SET "
@@ -328,13 +356,16 @@ def _merge_guardrails(ours: sqlite3.Connection, into: sqlite3.Connection) -> int
         f"  last_seen = MAX({table}.last_seen, excluded.last_seen), "
         f"  seen = MAX({table}.seen, excluded.seen), "
         f"  state = CASE "
+        f"    WHEN {newer} THEN excluded.state "
         f"    WHEN {table}.reviewed_at IS NOT NULL THEN {table}.state "
-        f"    WHEN excluded.reviewed_at IS NOT NULL THEN excluded.state "
         f"    WHEN {table}.state = 'open' OR excluded.state = 'open' THEN 'open' "
         f"    ELSE excluded.state END, "
-        f"  reviewed_at = COALESCE({table}.reviewed_at, excluded.reviewed_at), "
-        f"  reviewed_by = COALESCE({table}.reviewed_by, excluded.reviewed_by), "
-        f"  review_note = COALESCE({table}.review_note, excluded.review_note)")
+        f"  reviewed_at = CASE WHEN {newer} THEN excluded.reviewed_at "
+        f"                     ELSE {table}.reviewed_at END, "
+        f"  reviewed_by = CASE WHEN {newer} THEN excluded.reviewed_by "
+        f"                     ELSE {table}.reviewed_by END, "
+        f"  review_note = CASE WHEN {newer} THEN excluded.review_note "
+        f"                     ELSE {table}.review_note END")
     before = into.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
     into.executemany(sql, [tuple(r[c] for c in shared)
                            for r in ours.execute(f"SELECT * FROM {table}")])
