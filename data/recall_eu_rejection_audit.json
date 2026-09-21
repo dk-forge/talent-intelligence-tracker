@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-14T14:59:07+00:00",
- "measured_on": "2026-09-14",
+ "generated_at": "2026-09-21T17:06:48+02:00",
+ "measured_on": "2026-09-21",
  "goldset_version": "2026-08-eu-v1",
  "gold_events": 46,
  "misses": 22,
@@ -9,6 +9,7 @@
  "feeds_swept": 652,
  "gold_countries_on_the_backstop_route": [],
  "first_run": {
+  "adjudicate_rows": "2026-09-14",
   "archive_sources": "2026-07-29",
   "ats_boards": "2026-07-28",
   "bse_india": "2026-07-30",
@@ -16,6 +17,7 @@
   "czechia_ares": "2026-07-31",
   "edinet_japan": "2026-07-30",
   "estonia_ariregister": "2026-08-01",
+  "extraction_benchmark": "2026-09-16",
   "gdelt": "2026-07-27",
   "google_news": "2026-07-27",
   "link_check": "2026-07-29",
@@ -237,7 +239,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 39,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -256,7 +258,7 @@
    "domain": "teleborsa.it",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 3,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -332,7 +334,7 @@
    "domain": "teleborsa.it",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 3,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -351,7 +353,7 @@
    "domain": "mamstartup.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 19,
+   "urls_fetched_from_this_domain": 31,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -370,7 +372,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 96,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -389,7 +391,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 96,
+   "urls_fetched_from_this_domain": 118,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -617,7 +619,7 @@
    "domain": "bankier.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 67,
+   "urls_fetched_from_this_domain": 75,
    "live_routes": [
     "gdelt",
     "google_news",

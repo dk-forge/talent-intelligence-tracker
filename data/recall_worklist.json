@@ -1,21 +1,21 @@
 {
- "generated_at": "2026-09-14T14:56:12+00:00",
- "measured_on": "2026-09-14",
+ "generated_at": "2026-09-21T17:03:01+02:00",
+ "measured_on": "2026-09-21",
  "goldset_version": "2026-07-v2",
  "overall": {
   "total": 169,
   "found": 14,
-  "found_partial": 31,
-  "missed": 124,
-  "held": 45,
-  "held_pct": 26.6,
+  "found_partial": 32,
+  "missed": 123,
+  "held": 46,
+  "held_pct": 27.2,
   "clean_pct": 8.3,
   "held_interval": {
-   "pct": 26.6,
-   "low_pct": 20.5,
-   "high_pct": 33.8,
-   "width_pct": 13.2,
-   "successes": 45,
+   "pct": 27.2,
+   "low_pct": 21.1,
+   "high_pct": 34.4,
+   "width_pct": 13.3,
+   "successes": 46,
    "total": 169
   }
  },
@@ -366,12 +366,6 @@
  ],
  "weak_countries": [
   {
-   "key": "US",
-   "total": 34,
-   "held": 16,
-   "held_pct": 47.1
-  },
-  {
    "key": "AU",
    "total": 4,
    "held": 1,
@@ -412,8 +406,8 @@
   {
    "key": "trade_press",
    "total": 96,
-   "held": 25,
-   "held_pct": 26.0
+   "held": 26,
+   "held_pct": 27.1
   },
   {
    "key": "national_news",
@@ -455,10 +449,9 @@
   }
  ],
  "field_defects": {
-  "country_missing": 21,
-  "amount_missing": 8,
-  "country_wrong": 5,
-  "amount_mismatch": 1
+  "country_missing": 22,
+  "amount_missing": 9,
+  "country_wrong": 5
  },
  "missed_examples": [
   {
@@ -782,10 +775,10 @@
    "event_date": "2026-07-17"
   }
  ],
- "missed_total": 124,
+ "missed_total": 123,
  "next_goldset": {
   "due": true,
-  "reason": "the current set covers a window that closed 48 days ago, so it no longer describes what we reach today",
+  "reason": "the current set covers a window that closed 55 days ago, so it no longer describes what we reach today",
   "suggested_window": {
    "start": "2026-08-01",
    "end": "2026-08-31"
