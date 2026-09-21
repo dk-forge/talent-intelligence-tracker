@@ -35,6 +35,13 @@ name: adjudicate-rows
 #     -f inputs_json='{"from_spec":"analysis/adjudications/<a>.json,analysis/adjudications/<b>.json","dry_run":"false","reason":"why"}' \
 #     -f reason='why'
 #
+# An OWNER-RULED spec may also rename an employer, change a headcount or the
+# amount wording, or `"action": "split"` one row into several (TECHLOG
+# 2026-09-21). A rename moves the content_hash, so the live row is withdrawn
+# through /retract and the replacements are published in this same step, which
+# is why it holds WP_SITE_URL and WP_API_KEY. A two-referee spec carrying any of
+# that is refused.
+#
 # PRICE BEFORE, RECORD AFTER. Measured 2026-09-12: $0.016 to $0.030 per row for
 # the pair of referees. The ceiling input bounds one run; the month's switch
 # (TIT_PAID_READS) is read before every request regardless.

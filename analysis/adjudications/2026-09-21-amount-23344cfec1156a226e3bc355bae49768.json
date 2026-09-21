@@ -1,0 +1,56 @@
+{
+ "key": "amount/23344cfec1156a226e3bc355bae49768",
+ "label": "Elite Metal Finishing and Machine Sciences $40,000,000",
+ "status": "owner-ruled",
+ "referees": [],
+ "row": {
+  "company": "Elite Metal Finishing and Machine Sciences",
+  "headline": "Aerospace, defense suppliers plan to invest $40M, create 240-plus jobs in Cedar Park",
+  "summary": "Elite Metal Finishing and Machine Sciences will invest $40 million into a Cedar Park industrial facility, bringing 240 jobs to the Austin-area aerospace hub.",
+  "funding_amount": "$40 million",
+  "funding_amount_usd": 40000000,
+  "funding_stage": null,
+  "deal_type": "outbound_investment",
+  "money_basis": "outbound_investment",
+  "source_url": "https://www.bizjournals.com/austin/news/2026/09/11/cedar-park-aerospace-defense-elite-metal-machine.html",
+  "source_name": "Austin Business Journal",
+  "published_date": "2026-09-11",
+  "collector": "national_press",
+  "city": null,
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-12 01:45:52"
+ },
+ "evidence_url": "https://communityimpact.com/austin/cedar-park-far-northwest-austin/government/2026/09/11/cedar-park-slated-for-2-new-aerospace-and-military-manufacturing-companies/",
+ "evidence_urls": [
+  "communityimpact.com: cedar-park-slated-for-2-new-aerospace-and-military-manufacturing-companies",
+  "connectcre.com: cedar-park-offers-incentive-packages-to-two-manufacturers"
+ ],
+ "action": "split",
+ "rows": [
+  {
+   "corrected_company": "Elite Metal Finishing",
+   "corrected_amount_text": "$10 million",
+   "corrected_amount": 10000000,
+   "corrected_headcount": 170,
+   "corrected_summary": "Elite Metal Finishing will invest $10 million in a Cedar Park, Texas facility and create 170 jobs under an incentive agreement the city approved on 2026-09-10. It is one of two unaffiliated aerospace and defense suppliers the same story covers.",
+   "corrected_talent_readthrough": "Elite Metal Finishing is investing $10 million in a Cedar Park manufacturing facility and adding 170 aerospace and defense jobs there, giving recruiters a concrete manufacturing headcount target in the Austin aerospace hub."
+  },
+  {
+   "corrected_company": "Machine Sciences Corporation",
+   "corrected_amount_text": "about $32 million",
+   "corrected_amount": 32000000,
+   "corrected_headcount": 70,
+   "corrected_summary": "Machine Sciences Corporation will invest about $32 million in a Cedar Park, Texas facility and create 70 jobs under an incentive agreement the city approved on 2026-09-10. It is one of two unaffiliated aerospace and defense suppliers the same story covers.",
+   "corrected_talent_readthrough": "Machine Sciences Corporation is investing about $32 million in a Cedar Park manufacturing facility and adding 70 aerospace and defense jobs there, a second, separate manufacturing headcount target in the Austin aerospace hub."
+  }
+ ],
+ "written_at": "2026-09-21T22:30:00+00:00",
+ "ruled_by": "two independent agent reviewers under the owner's standing delegation of 2026-09-16",
+ "ruling": "The row merges TWO unaffiliated companies that signed separate incentive agreements with Cedar Park, Texas on 2026-09-10 (story 2026-09-11): Elite Metal Finishing, $10 million and 170 jobs, and Machine Sciences Corporation, about $32 million and 70 jobs. Sources: communityimpact.com \"cedar-park-slated-for-2-new-aerospace-and-military-manufacturing-companies\" and connectcre.com \"cedar-park-offers-incentive-packages-to-two-manufacturers\".",
+ "reasoning": "Two reviewers with web access read both outlets independently on 2026-09-21 and returned the same correction. The headline's $40M and 240-plus jobs are the outlet's sum across two employers, and no employer called \"Elite Metal Finishing and Machine Sciences\" exists. Both resulting rows keep money_basis and deal_type outbound_investment (the employer is the one paying, so neither figure is in the raise total), site_event opened, country US, and the original source URL and date.",
+ "note": "Elite Metal / Machine Sciences: one merged row split into the two employers the story covers, by two-reviewer ruling of 2026-09-21. Elite Metal Finishing $10 million, 170 jobs; Machine Sciences Corporation about $32 million, 70 jobs; both outbound_investment and outside the raise total."
+}

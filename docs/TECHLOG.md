@@ -14,6 +14,93 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-21 - An owner ruling can rename an employer, change a headcount, or split one row into two
+
+**Guard:** `tests/test_adjudicate_reshape.py` (32 tests, offline: the site is
+two stubs, the referees a stub `call`, the database a tmp_path).
+
+The adjudication machinery could change an amount, a money basis or a place.
+One open finding needed none of those: `amount/23344cfe...`, "Elite Metal
+Finishing and Machine Sciences $40,000,000". Two independent reviewers with web
+access agreed on 2026-09-21 that the row merges TWO unaffiliated companies that
+signed separate incentive agreements with Cedar Park, Texas on 2026-09-10:
+Elite Metal Finishing ($10 million, 170 jobs) and Machine Sciences Corporation
+(about $32 million, 70 jobs). The $40M and the 240 are the outlet's own sum.
+No spec could say that, so the finding sat open.
+
+**What an owner-ruled spec can now carry** (`adjudicate_guardrail.py`,
+"Reshaping a row"). In `correction`, beside the four existing fields:
+`corrected_company`, `corrected_headcount`, `corrected_amount_text` (the
+source's wording; the integer is parsed from it when `corrected_amount` is
+absent, and a spec whose two halves disagree is refused), `corrected_summary`,
+`corrected_talent_readthrough`. And a new action, `"action": "split"` with
+`"rows": [{...}, {...}]`, one correction per resulting row. Entry 1 becomes
+revision N+1 of the original signal through `store.revise` (same `signal_id`,
+`supersedes_row_id` set, the original kept at `is_current = 0`). Each further
+entry is a NEW row through `store.store`, copied from the original and then
+overridden, `signal_id` equal to its own hash the way `build_signal` names one.
+Every fingerprint comes from `validate.content_hash`; `company_key` from
+`vocab.company_key`. Each row's `notes` starts
+`reshaped by owner-ruled spec <key> part i/n`.
+
+**Why a rename is a withdraw-and-republish, never an in-place edit.**
+`company_key` is the first input to `content_hash`, so a renamed employer is a
+new fingerprint, and the site refuses a hash it has seen at any revision. The
+order is the one `correct_company_key.reissue` uses: plan and refuse (nothing
+touched), `/retract` the live row by `signal_id`, ONE local transaction for
+every resulting row, accept the finding, `publish()`. The old merged row is
+therefore replaced on the site, not left beside the two.
+
+**Idempotent, and interruptible.** The finding's subject is the ORIGINAL hash,
+which no current row carries once the reshape lands, so the rows themselves say
+which spec wrote them (`reshaped_rows`). A second application writes nothing,
+withdraws nothing and does not move `reviewed_at`. A run killed after the local
+write is recognised the same way and only finishes the ledger and the send.
+
+**Only an owner ruling.** `split` is deliberately NOT in `ACTIONS`, the tuple
+`parse_verdict` and `auto_adjudicate` read, so a referee answering "split" has
+given no verdict. `decide()` builds its correction from amount and basis only,
+so a rename smuggled into an `edit` answer goes nowhere. `apply_decision` and
+`apply_place` call `refuse_owner_only` before the dry-run return;
+`apply_from_spec` refuses a two-referee spec carrying any of it (exit 3);
+`apply_reshape` checks the status again itself.
+
+**Refused before the site is touched:** two entries landing on one hash or one
+`company_key` (dedup would fold them back into one), a hash the database has
+ever held, an entry `dedupe.fuzzy_duplicate` calls a copy of another live row
+(the site's 14 day near-duplicate guard would refuse it and `publish()` cannot
+name which row), a split into fewer than two rows, and a LIVE row whose first
+entry keeps the original hash. That last one is an honest ceiling: the site has
+no door that changes a company, a headcount or the amount wording in place
+(`/enrich` and `/correct` allow neither), so a live headcount-only fix still
+needs a plugin change. A never-published row takes it as a plain revision.
+
+**Through the rest of the pipeline**, reproduced against a copy of
+`data/talent_intel.db` before and after, as #172 did:
+`schema.backfill_funding_usd()` touches neither row (both hold a figure, and
+the superseded $40M stays as history); `merge_db` inserts both new
+`(content_hash, revision)` pairs into an untouched main, remaps
+`supersedes_row_id`, clears the original's `is_current` and carries the
+accepted finding; on the next collect the same article extracted the merged way
+comes back `retracted` (`dedupe.exact_duplicate` ignores `is_current` on
+purpose) and its URL is in `seen_urls`, while each half, from this outlet or a
+second one, comes back `duplicate`. The shared `source_url` is not a dedup key
+anywhere. Both rows stay `outbound_investment`, `money_raised.basis()` agrees
+on the rewritten summaries, and the company-raise total is unchanged to the
+dollar (1,223,450,221,768 before and after).
+
+Mutation-proved: `reshaped_rows` made to find nothing (5 red), the mark on a
+hash-keeping edit ignored (1 red), `refuse_owner_only` removed from
+`apply_decision` (1 red), the status check removed from `apply_from_spec`
+(5 red), the self-check removed from `apply_reshape` (1 red). All restored.
+
+**Not covered:** a different outlet that merges the two employers again under a
+different headline produces a third hash and would store as a new row. Nothing
+here can know two names in one string are two companies; that is what the
+session-raised finding exists for.
+
+---
+
 ## 2026-09-21 - A daily, independent "is main green?", where no run reads UNKNOWN
 
 **Guard:** `tests/test_main_green.py` (PASS, FAIL, every UNKNOWN branch, the
