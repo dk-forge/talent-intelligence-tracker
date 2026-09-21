@@ -228,6 +228,28 @@
   "tickets": [
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-21T05:36:18Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260921T053618Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-09-21T05:36:18Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-09-12T18:46:16Z",
       "history": [
         {
