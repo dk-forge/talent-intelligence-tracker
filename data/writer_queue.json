@@ -229,72 +229,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-21T11:17:18Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:17:14Z",
-          "detail": "apply for real: dry run above showed both would edit cleanly",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:17:18Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260921T111714Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
-        "reason": "re-apply owner-ruled edits so publish_guardrails reaches accepted (session 2026-09-21)"
-      },
-      "priority": 0,
-      "reason": "apply for real: dry run above showed both would edit cleanly",
-      "requested_at": "2026-09-21T11:17:14Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-13T14:11:09Z",
-      "history": [
-        {
-          "at": "2026-09-13T13:52:29Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-13T14:11:09Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-13T14:12:43Z",
-          "detail": "run 34761928141",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-13T14:12:43Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260913T135229Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-13T13:52:29Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34761928141",
-      "state": "failed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-13T20:10:58Z",
       "history": [
         {
@@ -2541,6 +2475,46 @@
       "requested_at": "2026-09-21T11:16:02Z",
       "requested_by": "dakotta-labs",
       "run_id": "35593156715",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:17:18Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:17:14Z",
+          "detail": "apply for real: dry run above showed both would edit cleanly",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:17:18Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T11:18:17Z",
+          "detail": "run 35593261635",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T11:18:17Z",
+          "detail": "run 35593261635",
+          "event": "landed"
+        }
+      ],
+      "id": "20260921T111714Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
+        "reason": "re-apply owner-ruled edits so publish_guardrails reaches accepted (session 2026-09-21)"
+      },
+      "landed_at": "2026-09-21T11:18:17Z",
+      "priority": 0,
+      "reason": "apply for real: dry run above showed both would edit cleanly",
+      "requested_at": "2026-09-21T11:17:14Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35593261635",
       "state": "landed",
       "workflow": "adjudicate-rows.yml"
     }
