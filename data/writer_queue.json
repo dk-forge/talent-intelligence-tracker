@@ -229,73 +229,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-21T11:16:06Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:16:02Z",
-          "detail": "dry run before applying the Ominimo/Sapien re-apply for real",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:16:06Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260921T111602Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "true",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
-        "reason": "re-apply owner-ruled edits: the ledger never reached accepted after the 2026-09-17 SharedNoteRefused killed the batch (session 2026-09-21)"
-      },
-      "priority": 0,
-      "reason": "dry run before applying the Ominimo/Sapien re-apply for real",
-      "requested_at": "2026-09-21T11:16:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-13T13:44:36Z",
-      "history": [
-        {
-          "at": "2026-09-13T13:20:45Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-13T13:44:36Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-13T14:11:09Z",
-          "detail": "run 34760688339",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-13T14:11:09Z",
-          "detail": "run 34760688339",
-          "event": "landed"
-        }
-      ],
-      "id": "20260913T132045Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-13T14:11:09Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-13T13:20:45Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34760688339",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-13T14:11:09Z",
       "history": [
         {
@@ -2541,6 +2474,46 @@
       "run_id": "35585583858",
       "state": "failed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:16:06Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:16:02Z",
+          "detail": "dry run before applying the Ominimo/Sapien re-apply for real",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:16:06Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T11:16:56Z",
+          "detail": "run 35593156715",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T11:16:56Z",
+          "detail": "run 35593156715",
+          "event": "landed"
+        }
+      ],
+      "id": "20260921T111602Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "true",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
+        "reason": "re-apply owner-ruled edits: the ledger never reached accepted after the 2026-09-17 SharedNoteRefused killed the batch (session 2026-09-21)"
+      },
+      "landed_at": "2026-09-21T11:16:56Z",
+      "priority": 0,
+      "reason": "dry run before applying the Ominimo/Sapien re-apply for real",
+      "requested_at": "2026-09-21T11:16:02Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35593156715",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
