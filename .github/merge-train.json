@@ -9,6 +9,13 @@
   ],
   "deploy_workflow": "deploy-plugin.yml",
   "deploy_window_minutes": 60,
+  "_post_merge": "The train merges with the default Actions token, and a push made with that token starts no on-push workflow. After every run the train reconciles main: it dispatches each workflow below when main's head carries no run of it, leaving alone a head under push_grace_minutes old that the train did not make. Each must declare workflow_dispatch. deploy_workflow must NEVER appear here: a plugin deploy stays a deliberate act, and merge_train.py refuses a config that lists it.",
+  "post_merge_workflows": [
+    "tests.yml",
+    "card-contract.yml",
+    "style-standard.yml"
+  ],
+  "push_grace_minutes": 10,
   "hold_labels": [
     "hold",
     "needs-human",

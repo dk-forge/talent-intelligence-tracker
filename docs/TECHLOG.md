@@ -14,6 +14,35 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-21 - The merge train starts main's tests, because a token merge cannot
+
+**Guard:** `tests/test_merge_train_sync_main.py` (the reconcile, the 10 minute
+grace, the dry run, the loud exit, the mocked `gh` calls, and the shipped
+wiring, including that the plugin deploy can never be listed).
+
+The train merges with `secrets.MERGE_TRAIN_TOKEN || github.token`, and the
+secret does not exist. GitHub starts no `on: push` workflow for a push made
+with the default Actions token, so after a train merge `tests.yml`,
+`card-contract.yml` and `style-standard.yml` never ran on main. Main's colour
+was UNKNOWN and read as "no failures". The sibling tracker closed the same gap
+in its pull request #394; this is the tests half of that change.
+
+`merge_train.sync_main()` runs at the end of every tick, merge or no merge, as
+a reconcile: for each workflow in `post_merge_workflows`
+(`.github/merge-train.json`) it asks whether main's head carries a run, and
+dispatches the workflow on main when it does not. A head under
+`push_grace_minutes` (10) old that the train did not make is left alone, since
+a person's push starts its own runs a moment later. A dry run prints
+`WOULD DISPATCH`. An unreadable run list is UNKNOWN, never zero runs. A failed
+dispatch prints `::error::` and the run exits non-zero AFTER the merge, which
+stands; the next tick reconciles again. Still one pull request per run.
+
+The deploy half was deliberately NOT ported. `deploy-plugin.yml` is
+dispatch-only with `dry_run` defaulting to true, and a plugin deploy stays a
+deliberate act, never twice within an hour. `Config.from_dict` refuses a config
+that lists `deploy_workflow` under `post_merge_workflows`.
+
+
 ## 2026-09-16 - A scheduled merge train, so a green queue stops waiting for a session
 
 **Guard:** `tests/test_merge_train.py` (53 assertions, every guard
