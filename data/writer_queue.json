@@ -230,78 +230,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-21T20:47:23Z",
-      "history": [
-        {
-          "at": "2026-09-21T20:47:19Z",
-          "detail": "two-reviewer ruling: split Elite Metal / Machine Sciences",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T20:47:23Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T20:47:57Z",
-          "detail": "run 35653261833",
-          "event": "bound"
-        }
-      ],
-      "id": "20260921T204719Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-21-amount-23344cfec1156a226e3bc355bae49768.json",
-        "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences"
-      },
-      "priority": 0,
-      "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences",
-      "requested_at": "2026-09-21T20:47:19Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35653261833",
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-15T00:30:11Z",
-      "history": [
-        {
-          "at": "2026-09-15T00:06:47Z",
-          "detail": "stale money_basis verdicts (2026-09-14 audit), rerun after the maintenance window",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-15T00:30:11Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-15T00:35:25Z",
-          "detail": "run 34913450121",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-15T00:35:25Z",
-          "detail": "run 34913450121",
-          "event": "landed"
-        }
-      ],
-      "id": "20260915T000647Z-correct-money-basis",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-15T00:35:25Z",
-      "priority": 0,
-      "reason": "stale money_basis verdicts (2026-09-14 audit), rerun after the maintenance window",
-      "requested_at": "2026-09-15T00:06:47Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34913450121",
-      "state": "landed",
-      "workflow": "correct-money-basis.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-15T00:35:25Z",
       "history": [
         {
@@ -2560,6 +2488,46 @@
       "requested_at": "2026-09-21T20:16:10Z",
       "requested_by": "dakotta-labs",
       "run_id": "35650024418",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T20:47:23Z",
+      "history": [
+        {
+          "at": "2026-09-21T20:47:19Z",
+          "detail": "two-reviewer ruling: split Elite Metal / Machine Sciences",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T20:47:23Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T20:47:57Z",
+          "detail": "run 35653261833",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T20:48:38Z",
+          "detail": "run 35653261833",
+          "event": "landed"
+        }
+      ],
+      "id": "20260921T204719Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-21-amount-23344cfec1156a226e3bc355bae49768.json",
+        "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences"
+      },
+      "landed_at": "2026-09-21T20:48:38Z",
+      "priority": 0,
+      "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences",
+      "requested_at": "2026-09-21T20:47:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35653261833",
       "state": "landed",
       "workflow": "adjudicate-rows.yml"
     }
