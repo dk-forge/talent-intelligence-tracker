@@ -1,0 +1,36 @@
+{
+ "key": "amount/7a788f5c7491918c805221920e4d98f1",
+ "label": "OpenAI $40,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": {
+  "company": "OpenAI",
+  "headline": "New funding to build towards AGI",
+  "summary": "OpenAI announces $40B in new funding at a $300B post-money valuation to advance AI research and scale compute infrastructure.",
+  "funding_amount": "$40B",
+  "funding_amount_usd": 40000000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://openai.com/index/march-funding-updates/",
+  "source_name": "openai.com",
+  "published_date": "2025-03-31",
+  "collector": "primary_chase",
+  "city": null,
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "why": "no evidence page could be read",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "action": "keep",
+ "written_at": "2026-09-21T11:37:36+00:00"
+}
