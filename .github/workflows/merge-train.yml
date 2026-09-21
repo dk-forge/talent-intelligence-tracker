@@ -82,7 +82,11 @@ jobs:
           #
           # Same expression as the run step below, so the preflight exercises
           # the credential the train will actually use.
-          GH_TOKEN: ${{ secrets.MERGE_TRAIN_TOKEN || github.token }}
+          # The built-in token, on purpose. The train READS check runs, and the check-runs
+          # API refuses every fine-grained personal access token (HTTP 403, 2026-09-21:
+          # the owner added MERGE_TRAIN_TOKEN and every train run died on its first read).
+          # MERGE_TRAIN_TOKEN is used ONLY to push a mechanical conflict fix, below.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           python3 --version
@@ -109,7 +113,7 @@ jobs:
 
       - name: Run the merge train
         env:
-          GH_TOKEN: ${{ secrets.MERGE_TRAIN_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
           # Only set when a real token exists. Without it the train REFUSES to
           # push a rebase, because a push made with the default Actions token
           # does not start workflows, so the rebased head would carry no checks
