@@ -14,6 +14,10 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-21 - The owner's new MERGE_TRAIN_TOKEN stopped the merge train: the check-runs API refuses fine-grained tokens
+
+The owner added a fine-grained personal access token as `MERGE_TRAIN_TOKEN` at 22:03 UTC so the train could push mechanical conflict fixes. The workflow used that secret for every call, and the train's first read is `commits/<sha>/check-runs`, which answers a fine-grained token with HTTP 403 "Resource not accessible by personal access token" whatever permissions it holds. Found on the sandbox by a dry run dispatched to prove the token worked; the same line was here. Fix: the train reads and merges with the built-in token again, and `MERGE_TRAIN_TOKEN` is used only as `MERGE_TRAIN_PUSH_TOKEN`, to push a conflict fix. Nothing for the owner to redo.
+
 ## 2026-09-21 - An owner ruling can rename an employer, change a headcount, or split one row into two
 
 **Guard:** `tests/test_adjudicate_reshape.py` (32 tests, offline: the site is
