@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-09-21: a daily main-green check
+
+`main_green.py` + `.github/workflows/main-green-check.yml` (08:47 UTC daily,
+and on dispatch) read the Actions API and report PASS / FAIL / UNKNOWN for
+`tests.yml`, `style-standard.yml` and `card-contract.yml` on main. No run is
+UNKNOWN, never green. Anything but all PASS is a red run (so `ci-alert.yml`
+mails it) and one running issue titled "Main is not green", which closes
+itself on the next all-PASS run. Detail in TECHLOG, same date.
+
+---
+
 ## 2026-09-21: the four overdue guardrail findings that reddened every data job since 2026-09-20 evening
 
 `guardrails.py` was printing 4 findings past their grace window, and every
