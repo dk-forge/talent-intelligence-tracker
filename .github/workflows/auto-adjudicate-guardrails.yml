@@ -1,0 +1,152 @@
+name: auto-adjudicate-guardrails
+
+# The owner's rule, on a clock: a guardrail finding goes to the two referees
+# FIRST, an agreement is applied, and only a disagreement reaches him. From
+# 2026-09-17 to 2026-09-21 that rule was applied by hand while four findings
+# sat past their grace window and every data job was red (PRs #169 to #175).
+#
+# WHAT THIS IS NOT. It is not a database writer. It opens the product database
+# read-only, holds no `talent-collect` lock, and never commits the database.
+# The referees are asked in the adjudicator's own dry mode, so an agreement is
+# a spec file with status `agree-dry-run`. That spec is committed, and its
+# apply is QUEUED:
+#
+#   drain-writers.yml enqueue=adjudicate-rows.yml inputs_json={"from_spec":...}
+#
+# which asks no referee, holds the lock, and merges through merge_db.py like
+# every other write here.
+#
+# WHAT REACHES A HUMAN. One issue, "Guardrail findings that need a ruling",
+# found by a hidden marker, updated in place, closed when empty: every
+# disagreement, every UNKNOWN (no evidence over the 800 character floor), every
+# finding of a check the referee prompt has no vocabulary for (vehicle_name,
+# period_totals, date_span: NEVER auto-accepted), and every rejected row that
+# is still live and needs retract.py.
+#
+# SPEND. Two ceilings of its own on top of the month's switch: $0.25 a run and
+# $3.00 a calendar month (the committed auto_adjudicate_state.json). A
+# binding ceiling is UNDECIDED, never a verdict and never a red run. A referee
+# answer that does not parse is counted apart and is never a "no".
+#
+# EXIT. 0 when it could not decide. Non-zero only for a real fault: the
+# database unreadable, the queue refusing a ticket, the issue unwritable.
+#
+# A MANUAL DISPATCH IS A DRY RUN unless it says otherwise, and a dry run calls
+# no paid model and fetches no page: it prints WOULD ASK. The schedule is live.
+
+on:
+  schedule:
+    # Every six hours, at a minute nothing else here uses.
+    - cron: '7 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Print what would happen. No referee call, no fetch, no spec, no queue ticket, no issue edit'
+        type: boolean
+        default: true
+      run_cap:
+        description: 'Spend ceiling for this run, USD'
+        type: string
+        default: '0.25'
+      month_cap:
+        description: 'Spend ceiling for the calendar month, USD'
+        type: string
+        default: '3.00'
+
+permissions:
+  contents: write   # the spec files and the spend state, never the database
+  actions: write    # queue the apply through drain-writers.yml
+  issues: write     # the one ruling issue
+
+# No TIT_RUN_KIND on purpose: budget.py classes a workflow by structure, and one
+# with a live cron is stay-current work (tests/test_budget_allocator.py). Its
+# own two ceilings above are what keep it small inside that pot.
+
+concurrency:
+  # Its own group. It writes no data, so it must not wait on, or evict from,
+  # the writers' single pending slot.
+  group: auto-adjudicate-guardrails
+  cancel-in-progress: false
+
+jobs:
+  adjudicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      # Degrade, never halt: a spent month turns every referee call into a
+      # budget stop, which is UNDECIDED and applies nothing.
+      - name: Spend guard (degrade, never halt)
+        if: ${{ github.event_name == 'schedule' || inputs.dry_run == false }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
+      - name: Dry run (no paid call, no fetch, no write)
+        if: ${{ github.event_name != 'schedule' && inputs.dry_run != false }}
+        env:
+          RUN_CAP: ${{ inputs.run_cap }}
+          MONTH_CAP: ${{ inputs.month_cap }}
+        run: python auto_adjudicate.py --run-cap "${RUN_CAP:-0.25}" --month-cap "${MONTH_CAP:-3.00}"
+
+      - name: Ask the two referees
+        id: ask
+        if: ${{ github.event_name == 'schedule' || inputs.dry_run == false }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          RUN_CAP: ${{ inputs.run_cap }}
+          MONTH_CAP: ${{ inputs.month_cap }}
+        run: |
+          python auto_adjudicate.py --live \
+            --run-cap "${RUN_CAP:-0.25}" --month-cap "${MONTH_CAP:-3.00}" \
+            --plan-out "$RUNNER_TEMP/plan.json"
+
+      # The spec must be on main BEFORE its apply is queued: the queued run
+      # checks main out and reads the file. Specs and the spend state only.
+      - name: Commit the specs and the spend state
+        if: ${{ steps.ask.outcome == 'success' }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          mkdir -p "$RUNNER_TEMP/keep/specs"
+          cp analysis/adjudications/*.json "$RUNNER_TEMP/keep/specs/" 2>/dev/null || true
+          cp data/auto_adjudicate_state.json "$RUNNER_TEMP/keep/state.json"
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p analysis/adjudications
+            cp "$RUNNER_TEMP"/keep/specs/*.json analysis/adjudications/ 2>/dev/null || true
+            cp "$RUNNER_TEMP/keep/state.json" data/auto_adjudicate_state.json
+            git add analysis/adjudications data/auto_adjudicate_state.json
+            if git diff --staged --quiet; then
+              echo "Nothing to commit."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "auto-adjudicate: referee specs and spend state $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push origin HEAD:main; then
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt); replaying onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" != "1" ]; then
+            echo "::error::could not push the specs after 5 attempts; nothing was queued"
+            exit 1
+          fi
+
+      - name: Queue the agreed applies, then sync the ruling issue
+        if: ${{ steps.ask.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: python auto_adjudicate.py --act "$RUNNER_TEMP/plan.json"

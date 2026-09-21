@@ -72,6 +72,64 @@ count, so an escalation does not spend an unstick attempt.
 Mutation-proved: with the "escalated THIS head" return deleted, two tests fail;
 restored, all 15 pass. No existing test changed. No plugin file touched.
 
+## 2026-09-21 - Guardrail findings go to the two referees on a clock, not when a session remembers
+
+**Guard:** `tests/test_auto_adjudicate.py` (33 tests, every model, fetch and
+`gh` call stubbed). The "disagreement applies nothing" guard is mutation
+proven: dropping the outcome test in `enqueue_agreed`, treating DISAGREE as
+AGREE in `_ask`, and reading a `disagree` spec as an agreement each red
+`test_disagreement_applies_nothing_and_lands_in_the_issue` or
+`test_an_item_that_is_not_an_agreement_is_never_enqueued_even_if_flagged`, and
+nothing else. A fourth mutation that reads a truncated `"rej` as a verdict
+reds the three parse failure tests.
+
+From 2026-09-17 to 2026-09-21 four findings sat past their grace window and
+every collect and enrich run was red until a session cleared them by hand
+(pull requests #169 to #175). The owner's rule (two referees first, act on
+agreement, only disagreements reach him) was being applied by hand.
+
+`auto-adjudicate-guardrails.yml` runs `auto_adjudicate.py` every six hours
+(`7 */6 * * *`); a manual dispatch is a dry run unless it says otherwise.
+
+- **Which findings.** `guardrails.quarantine`, the same function
+  `pipeline/publish.py` calls, imported and pinned by identity. Overdue is its
+  verdict; "due" is `age_hours > grace_hours - 24`, read off the fields it
+  attaches. Every OPEN `amount` or `place` ledger row is listed too with
+  `clock: none`, because a session-raised finding fires no check and would
+  otherwise sit open with nobody told.
+- **The referees.** `adjudicate_guardrail.adjudicate`, unchanged, always with
+  `apply=False`. Same prompt, evidence floor, agreement rule and spec files.
+  `anthropic/claude-sonnet-4.5` and `openai/gpt-4o`. No DeepSeek.
+- **The write.** None in this job. It opens the database read-only and holds
+  no lock. An agreement is an `agree-dry-run` spec, committed, then queued as
+  `drain-writers.yml enqueue=adjudicate-rows.yml from_spec=...`, once: the
+  state file records the ticket and a second is not cut for 24 hours.
+- **What reaches a human.** One issue, "Guardrail findings that need a
+  ruling", found by a hidden marker, updated in place, reopened or closed as
+  the list fills and empties. DISAGREE, UNKNOWN (no evidence over the 800
+  character floor), every `vehicle_name` / `period_totals` / `date_span`
+  finding (never asked, never auto-accepted), and a rejected row that is
+  still live and needs `retract.py`.
+- **A parse failure is not a "no".** The adjudicator already returns None for
+  an answer that does not parse; this job counts each referee answer apart
+  (verdict, parse failure, low confidence, no answer, budget stop), prints the
+  tally in the run summary, retries an UNDECIDED key on a later tick, and
+  lists it for a human after three paid asks.
+- **Spend.** Through `classify._call` behind `adjudicate_guardrail._gate`,
+  one gate read per attempt, plus two ceilings of its own: $0.25 a run and
+  $3.00 a calendar month, the month held in the committed
+  `data/auto_adjudicate_state.json`. A binding ceiling is UNDECIDED and exits
+  0. An unreadable state file is a fault, never "nothing spent". It carries no
+  `TIT_RUN_KIND`: `budget.py` classes a scheduled workflow as stay-current.
+- **Exit.** 0 when it could not decide. 1 when the database or the ledger
+  table cannot be read, the queue refuses the ticket, or the issue cannot be
+  written.
+
+A spec with status `disagree`, or `unknown` with a written `why`, is final for
+this job: it is listed, never paid for again. That is why the three findings
+open on the day this shipped (TikTok, Brandeis, Elite Metal) cost nothing.
+
+
 ## 2026-09-21 - The merge train starts main's tests, because a token merge cannot
 
 **Guard:** `tests/test_merge_train_sync_main.py` (the reconcile, the 10 minute

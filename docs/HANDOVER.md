@@ -13,6 +13,25 @@ itself on the next all-PASS run. Detail in TECHLOG, same date.
 
 ---
 
+## 2026-09-21: guardrail findings are put to the two referees automatically
+
+`auto-adjudicate-guardrails.yml` (every six hours, `auto_adjudicate.py`) does
+what the entry below did by hand. It never writes the database: an agreement
+is committed as an `agree-dry-run` spec and applied through
+`drain-writers.yml enqueue=adjudicate-rows.yml from_spec=`. Everything it
+cannot settle is one line in the issue "Guardrail findings that need a
+ruling" (label `guardrail-ruling`), which closes itself when empty. Caps:
+$0.25 a run, $3.00 a calendar month, state in
+`data/auto_adjudicate_state.json`. A manual dispatch is a dry run and calls no
+model. Details: TECHLOG 2026-09-21.
+
+**Waiting on the owner the day it shipped:** TikTok $980M (the referees both
+say edit to `project_finance` and differ on $196M contributed against $980M
+registered), Brandeis $10M and Elite Metal $40M (no evidence page could be
+read). All three are session-raised, on no grace clock, and redden nothing.
+
+---
+
 ## 2026-09-21: the four overdue guardrail findings that reddened every data job since 2026-09-20 evening
 
 `guardrails.py` was printing 4 findings past their grace window, and every
