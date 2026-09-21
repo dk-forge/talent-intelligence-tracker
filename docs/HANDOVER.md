@@ -51,17 +51,32 @@ means "a gift", so the conservative move if it were ever touched is an
 owner-ruled spec clearing the amount on that ground, never inventing a basis
 by analogy. Left untouched here.
 
-**Code:** no production change was needed — the closed-finding edit path PR
-#169 added already flips `rejected` to `accepted` in the same pass as the row
-revision, proven by re-running it end to end above. What was missing was
-regression coverage: `tests/test_adjudicate_guardrail.py::
+**Code, and where the real bug actually was.** `apply_decision`'s edit branch
+(PR #169) already flips `rejected` to `accepted` correctly on a single
+connection — confirmed by re-running it directly against a copy of the live
+database. That is why the first re-apply attempt (2026-09-20, `run
+35531602857`, "both APPLIED") looked like it worked and still left the ledger
+`rejected` on main: `apply_decision` runs on a run's LOCAL copy, but the
+commit step then resets to `origin/main` and calls `merge_db._merge_guardrails`
+before the push, and THAT is where the newer state was thrown away.
+`_merge_guardrails` read "the destination already has a non-null
+`reviewed_at`" as "keep the destination forever" — right the first time a
+finding is decided, and wrong the second: the destination's `reviewed_at` was
+the OLD 2026-09-15 rejection, so every push since kept `rejected` and dropped
+the newer `accepted` state, silently, run after run. Fixed in `merge_db.py`
+to compare `reviewed_at` timestamps: a side only wins a review against a side
+with none, or an OLDER one. "Reviewed beats unreviewed" is unchanged
+(`test_a_humans_acceptance_beats_a_later_automatic_write` still passes); what
+changes is that a genuinely newer decision can now reach the committed
+ledger.
+
+Two regression tests, both mutation-proven (reverting the fix reds the new
+tests alone, nothing else): `tests/test_merge_db.py::
+test_a_genuinely_newer_review_beats_an_older_one_on_the_same_finding` and its
+mirror for arrival order, plus `tests/test_adjudicate_guardrail.py::
 test_a_closed_finding_edit_accepts_the_finding_and_clears_the_grace_clock`
-reproduces today's exact shape (rejected finding, live row, stale
-`first_seen`) with the real `schema`/`guardrails` machinery, no mocks, and
-asserts the finding is `accepted` and no longer appears in
-`guardrails.quarantine()`'s `overdue`/`live`/`held` buckets afterward.
-Mutation-proven: reverting the state-transition line in `apply_decision`
-reds this test alone.
+for the single-connection half of the path (no mocks, real `schema`/
+`guardrails`).
 
 **Applied through the queue, never locally:** the two `from_spec` re-applies
 and the two-referee `--row` adjudication for OpenAI and Digital Realty both
