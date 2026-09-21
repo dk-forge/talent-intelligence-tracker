@@ -38,6 +38,24 @@ name: adjudicate-rows
 # PRICE BEFORE, RECORD AFTER. Measured 2026-09-12: $0.016 to $0.030 per row for
 # the pair of referees. The ceiling input bounds one run; the month's switch
 # (TIT_PAID_READS) is read before every request regardless.
+#
+# `accept_keys` / `reject_keys` (comma-separated check/subject, e.g.
+# `vehicle_name/<hash>`) answer an OPEN finding directly through
+# `guardrails.py --accept`/`--reject`, calling no referee and spending
+# nothing. This is NOT a shortcut around the two-referee rule for `amount` and
+# `place` findings raised by a session (`--row`/`--place-row`/`--key` above
+# stay the only door there, per the owner's 2026-09-16 "two agents before the
+# owner" ruling). It exists because `adjudicate_guardrail.py`'s prompt only
+# ever asks a funding-FIGURE question (PROMPT/RULES) or a PLACE question
+# (PLACE_PROMPT) -- there is no vocabulary for "is this issuer name really a
+# vehicle", so putting a `vehicle_name` (or `period_totals`/`date_span`)
+# finding through `--key` asks the referees the wrong question and their
+# answer means nothing. `--note` is required and is exactly what
+# `guardrails.py --accept --note` records. Queue it the same way:
+#
+#   gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
+#     -f inputs_json='{"accept_keys":"vehicle_name/<hash>","note":"why","dry_run":"false"}' \
+#     -f reason='why'
 
 on:
   workflow_dispatch:
@@ -56,6 +74,18 @@ on:
         default: ''
       keys:
         description: 'check/subject list, comma separated: an EXISTING open finding of any check (e.g. vehicle_name/<hash>). --row/--place-row only ever open amount or place; this is the door for the other checks (period_totals, date_span, vehicle_name) the CLI already supports through --key but this workflow never exposed.'
+        type: string
+        default: ''
+      accept_keys:
+        description: 'check/subject list, comma separated: answer directly (no referee, $0) through guardrails.py --accept. Requires note. Use only for a check the two-referee prompt cannot ask about (vehicle_name, period_totals, date_span) -- amount and place stay two-referee, per the owner ruling.'
+        type: string
+        default: ''
+      reject_keys:
+        description: 'check/subject list, comma separated: answer directly (no referee, $0) through guardrails.py --reject. Requires note.'
+        type: string
+        default: ''
+      note:
+        description: 'Required with accept_keys or reject_keys: why, in the reviewer''s own words'
         type: string
         default: ''
       reason:
@@ -105,8 +135,35 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python spend.py --degrade
 
+      - name: Answer directly (no referee), only for accept_keys/reject_keys
+        id: direct
+        if: ${{ inputs.accept_keys != '' || inputs.reject_keys != '' }}
+        env:
+          ACCEPT_KEYS: ${{ inputs.accept_keys }}
+          REJECT_KEYS: ${{ inputs.reject_keys }}
+          NOTE: ${{ inputs.note }}
+          REASON: ${{ inputs.reason }}
+        run: |
+          set -o pipefail
+          if [ -z "$NOTE" ]; then
+            echo "::error::accept_keys/reject_keys need note: why, in the reviewer's own words"
+            exit 1
+          fi
+          WHO="session ${REASON:-adjudicate-rows.yml}, $(date -u +%Y-%m-%d)"
+          ARGS=(--note "$NOTE" --who "$WHO")
+          IFS=',' read -ra A <<< "${ACCEPT_KEYS}"
+          for k in "${A[@]}"; do k="${k// /}"; [ -n "$k" ] && ARGS+=(--accept "$k"); done
+          IFS=',' read -ra J <<< "${REJECT_KEYS}"
+          for k in "${J[@]}"; do k="${k// /}"; [ -n "$k" ] && ARGS+=(--reject "$k"); done
+          if [ "${{ inputs.dry_run }}" = "false" ]; then
+            python guardrails.py "${ARGS[@]}"
+          else
+            echo "dry run: would run  python guardrails.py ${ARGS[*]}"
+          fi
+
       - name: Adjudicate
         id: adjudicate
+        if: ${{ inputs.rows != '' || inputs.place_rows != '' || inputs.keys != '' || inputs.from_spec != '' }}
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
