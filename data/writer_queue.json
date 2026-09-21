@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T11:25:57Z",
-  "last_tick": "2026-09-21T11:25:57Z",
+  "last_dispatch": "2026-09-21T11:35:34Z",
+  "last_tick": "2026-09-21T11:35:34Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -228,6 +228,35 @@
     "ticket:20260921T112552Z-adjudicate-rows": "2026-09-21T11:26:58Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:35:34Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:35:31Z",
+          "detail": "apply Ominimo/Sapien accept, now that the merge bug is fixed",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:35:34Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T113531Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
+        "reason": "re-apply now that merge_db._merge_guardrails compares reviewed_at instead of just checking non-null (PR #172), session 2026-09-21"
+      },
+      "priority": 0,
+      "reason": "apply Ominimo/Sapien accept, now that the merge bug is fixed",
+      "requested_at": "2026-09-21T11:35:31Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T05:14:56Z",
