@@ -454,6 +454,77 @@ def test_an_owner_ruled_edit_still_reaches_a_rejected_findings_row(tmp_path, mon
     assert seen["correction"] == {"corrected_amount": None}
 
 
+def test_a_closed_finding_edit_accepts_the_finding_and_clears_the_grace_clock(tmp_path):
+    """End to end, no mocks: this is today's live state, reproduced.
+
+    Ominimo and Sapien were REJECTED on 2026-09-15, already LIVE, and an
+    owner-ruled edit spec cleared their amount on 2026-09-17 -- but the
+    ledger kept saying `rejected`, so `guardrails.quarantine()` kept counting
+    both as "ALREADY LIVE and REJECTED" past the 72h grace window every run
+    after 2026-09-20, on a row whose figure had already been corrected. The
+    fix is that an owner-ruled EDIT applied to a closed finding must flip the
+    ledger to `accepted` in the same pass that revises the row -- otherwise a
+    correction can land on the row and never reach the guardrail that is
+    still counting it.
+    """
+    import adjudicate_guardrail as ag
+
+    conn = schema.connect(tmp_path / "adj2.db")
+    old_hash = HASH
+    _row(conn, content_hash=old_hash, funding_amount="$1.6 billion",
+         funding_amount_usd=1_600_000_000, published_at="2026-07-29 21:47:33")
+    long_ago = "2026-09-15T00:36:00+00:00"        # 6+ days before "now"
+    conn.execute(
+        "INSERT INTO publish_guardrails (check_name, subject, label, detail, "
+        "  value, state, first_seen, last_seen, reviewed_at, reviewed_by, "
+        "  review_note, seen) "
+        "VALUES ('amount', ?, 'Ominimo $1,600,000,000', 'a valuation, not a raise', "
+        "  1600000000, 'rejected', ?, ?, ?, 'two referees', "
+        "  'both referees say reject: valuation, not a raise', 1)",
+        (old_hash, long_ago, long_ago, long_ago))
+    conn.commit()
+
+    # Confirmed live and overdue before the fix is applied: the same shape
+    # `guardrails.py` prints for Ominimo and Sapien today.
+    before = guardrails.quarantine(conn, write=False)
+    assert any(r["subject"] == old_hash for r in before["overdue"]), (
+        "setup did not reproduce the live state: a rejected, already-live "
+        "finding must start out overdue")
+
+    spec = tmp_path / "spec.json"
+    spec.write_text(json.dumps({
+        "key": KEY, "label": "Ominimo $1,600,000,000", "status": "owner-ruled",
+        "action": "edit", "correction": {"corrected_amount": None},
+        "ruled_by": "two independent agent reviewers, 2026-09-16 delegation",
+        "ruling": "the stored figure is a post-round valuation, not the raise",
+        "note": "Ominimo: valuation, not a raise; source discloses no amount.",
+    }), encoding="utf-8")
+
+    pushed = {}
+    def stub_push(row, amount):
+        pushed["amount"] = amount
+        return True
+
+    rc = ag.apply_from_spec(conn, spec, apply=True, push=stub_push)
+    assert rc == 0
+    assert pushed == {"amount": None}, "a published row's correction must reach the site"
+
+    finding = conn.execute(
+        "SELECT state FROM publish_guardrails WHERE check_name='amount' AND subject=?",
+        (old_hash,)).fetchone()
+    assert finding["state"] == "accepted", (
+        "an owner-ruled edit on a closed finding must move it to accepted, "
+        "in the same pass as the row revision, or the guardrail keeps "
+        "counting a corrected row as an unanswered rejection")
+
+    after = guardrails.quarantine(conn, write=False)
+    assert not any(r["subject"] == old_hash for r in after["overdue"]), (
+        "the finding is answered now; it must never redden a run again")
+    assert not any(r["subject"] == old_hash for r in after["live"])
+    assert not any(r["subject"] == old_hash for r in after["held"])
+    conn.close()
+
+
 def test_a_closed_finding_still_refuses_accept_and_reject(tmp_path, monkeypatch):
     """Re-answering a closed finding is the double answer the guard exists for.
 
