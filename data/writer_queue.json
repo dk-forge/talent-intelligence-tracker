@@ -224,76 +224,10 @@
     "ticket:20260919T132209Z-enrich": "2026-09-20T13:32:41Z",
     "ticket:20260920T134028Z-enrich": "2026-09-20T13:53:36Z",
     "ticket:20260920T194430Z-extraction-benchmark": "2026-09-20T19:52:23Z",
-    "ticket:20260921T094832Z-enrich": "2026-09-21T09:56:41Z"
+    "ticket:20260921T094832Z-enrich": "2026-09-21T09:56:41Z",
+    "ticket:20260921T112552Z-adjudicate-rows": "2026-09-21T11:26:58Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T11:25:57Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:25:52Z",
-          "detail": "dry run: price and read the two referees before applying",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:25:57Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260921T112552Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "true",
-        "reason": "two overdue held findings (OpenAI $40bn primary source, Digital Realty $80M vehicle-name false positive), session 2026-09-21",
-        "rows": "7a788f5c7491918c805221920e4d98f1,0e83122d231fc2ffaa1f9310f3be247b"
-      },
-      "priority": 0,
-      "reason": "dry run: price and read the two referees before applying",
-      "requested_at": "2026-09-21T11:25:52Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-13T20:10:58Z",
-      "history": [
-        {
-          "at": "2026-09-13T18:50:06Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-13T20:10:58Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-13T20:37:52Z",
-          "detail": "run 34779971418",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-13T20:37:52Z",
-          "detail": "run 34779971418",
-          "event": "landed"
-        }
-      ],
-      "id": "20260913T185006Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-13T20:37:52Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-13T18:50:06Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34779971418",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T05:14:56Z",
@@ -2545,6 +2479,45 @@
       "requested_by": "dakotta-labs",
       "run_id": "35593261635",
       "state": "landed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:25:57Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:25:52Z",
+          "detail": "dry run: price and read the two referees before applying",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:25:57Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T11:26:58Z",
+          "detail": "run 35594021888",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T11:26:58Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20260921T112552Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "true",
+        "reason": "two overdue held findings (OpenAI $40bn primary source, Digital Realty $80M vehicle-name false positive), session 2026-09-21",
+        "rows": "7a788f5c7491918c805221920e4d98f1,0e83122d231fc2ffaa1f9310f3be247b"
+      },
+      "priority": 0,
+      "reason": "dry run: price and read the two referees before applying",
+      "requested_at": "2026-09-21T11:25:52Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35594021888",
+      "state": "failed",
       "workflow": "adjudicate-rows.yml"
     }
   ],
