@@ -14,6 +14,35 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-21 - A `needs-human` the train placed on an old head was never lifted
+
+**Guard:** `tests/test_merge_train_holds.py` (`test_the_trains_hold_on_THIS_head_stays`
+is the core one, and `TheWriterRecordsTheRealHead` pins the writer).
+
+`needs-human` is a hold label, so the train skips any pull request carrying it.
+The train adds it when it escalates and nothing ever removed it. In the sandbox
+repo on 2026-09-21 a pull request was labelled for a red check, fixed with a
+new commit, and would have been skipped forever with every gate green. A held
+pull request raises no red and no alert. This train had the same shape.
+
+`merge_train_holds.py` (a port of the sandbox module, same semantics) runs
+before anything is judged. It removes `needs-human` only when a train marker
+comment exists, no marker names the current head SHA, and every legacy
+`sha=escalated` marker is older than the head commit's committer date. One
+"hold lifted" comment, deduped by the new head SHA. Anything unreadable keeps
+the hold. A `needs-human` with no train marker was set by a person and is never
+removed. `hold`, `do-not-merge` and `blocked` are never removed. A dry run
+prints and writes nothing. Lifting is not merging: the pull request is judged
+from scratch.
+
+`_escalate` now records the real head SHA instead of `sha=escalated`, so the
+comparison is exact and the dated path only serves old markers.
+`unstick_attempts` leaves `action=needs-human` markers out of its per-SHA
+count, so an escalation does not spend an unstick attempt.
+
+Mutation-proved: with the "escalated THIS head" return deleted, two tests fail;
+restored, all 15 pass. No existing test changed. No plugin file touched.
+
 ## 2026-09-21 - The merge train starts main's tests, because a token merge cannot
 
 **Guard:** `tests/test_merge_train_sync_main.py` (the reconcile, the 10 minute
