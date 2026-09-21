@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T11:58:44Z",
-  "last_tick": "2026-09-21T11:58:44Z",
+  "last_dispatch": "2026-09-21T13:25:47Z",
+  "last_tick": "2026-09-21T13:25:47Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -230,6 +230,35 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-21T11:40:08Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T13:25:47Z",
+      "history": [
+        {
+          "at": "2026-09-21T13:25:44Z",
+          "detail": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T13:25:47Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T132544Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-17-amount-24351a64d835a6d01ddc4fe727ab88b2.json",
+        "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise"
+      },
+      "priority": 0,
+      "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
+      "requested_at": "2026-09-21T13:25:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T21:32:17Z",
