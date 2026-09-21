@@ -14,6 +14,35 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-21 - A daily, independent "is main green?", where no run reads UNKNOWN
+
+**Guard:** `tests/test_main_green.py` (PASS, FAIL, every UNKNOWN branch, the
+single running issue and its auto-close; `gh` is mocked, no connection opens).
+
+The entry below made the train start main's tests after a token merge. That
+fixes the cause, and leaves the train vouching for itself. `ci-alert.yml`
+reacts to a run that exists and went red; a workflow that never starts has no
+run, so a main with no colour read as quiet.
+
+`main_green.py` runs daily at 08:47 UTC from `main-green-check.yml` (and on
+dispatch), stdlib only, through `gh api` with the workflow token
+(`actions: read`, `contents: read`, `issues: write`). For `tests.yml`,
+`style-standard.yml` and `card-contract.yml` it reports PASS, FAIL or UNKNOWN.
+UNKNOWN is no run on main, no completed run with a verdict (cancelled and
+skipped are looked past), a newest green run older than 3 days while main's
+head has no run and is past a 2 hour grace, or a read that failed or came back
+empty. `deploy-plugin.yml` is not listed: it is dispatch-only and defaults to a
+dry run, so its green says nothing about main. Data jobs are not listed: they
+have their own health rows and guardrails.
+
+Exit 0 only on all PASS (1 = FAIL, 3 = UNKNOWN), so `ci-alert.yml` mails it
+like any red run. It keeps ONE issue, "Main is not green", found by a hidden
+marker, rewritten only when the set of failing or unknown workflows changes,
+closed by the next all-PASS run. The newest run is chosen by date, not by
+listing order: one live read during the build put a six day old run first.
+
+Mutation-proved once: `if not runs` in `judge` made to return PASS, three tests
+red, guard restored.
 ## 2026-09-21 - A `needs-human` the train placed on an old head was never lifted
 
 **Guard:** `tests/test_merge_train_holds.py` (`test_the_trains_hold_on_THIS_head_stays`

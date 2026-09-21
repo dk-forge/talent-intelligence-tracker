@@ -1,0 +1,42 @@
+name: main-green-check
+
+# Once a day, from outside the merge train: what is main's ACTUAL state?
+#
+# On 2026-09-21 we found that merges made by the train (the default Actions
+# token) never started an on-push workflow, so main's colour was unknown for a
+# day and nobody was told. The train now dispatches the follow-up jobs itself,
+# which is the train vouching for the train. This reads the Actions API and
+# answers PASS / FAIL / UNKNOWN per workflow. Absence of a run is UNKNOWN,
+# never green, and anything but all PASS is a red run here, which
+# ci-alert.yml mails like any other red workflow. It also keeps ONE running
+# issue ("Main is not green"), rewritten only when the set of failing or
+# unknown workflows changes and closed by the next all-PASS run.
+#
+# Stdlib only: nothing is installed, so there is no lock to honour.
+
+on:
+  schedule:
+    - cron: '47 8 * * *'   # 08:47 UTC daily, after the 07:17 and 07:23 gates
+  workflow_dispatch:
+
+concurrency:
+  group: main-green-check
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Is main verifiably green
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read main's state from the Actions API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 main_green.py
