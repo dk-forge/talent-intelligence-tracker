@@ -232,74 +232,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-21T11:50:14Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:50:09Z",
-          "detail": "accept Digital Realty vehicle_name finding directly, no referee (wrong question for this check)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:50:14Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260921T115009Z-adjudicate-rows",
-      "inputs": {
-        "accept_keys": "vehicle_name/0e83122d231fc2ffaa1f9310f3be247b",
-        "dry_run": "false",
-        "note": "false positive on the realty SPV name pattern: Digital Realty is the real, publicly traded data-center operator (NYSE: DLR); the row own money_basis is already outbound_investment and is never summed as a raise. Session finding, 2026-09-21.",
-        "reason": "close the last of the four overdue guardrail findings"
-      },
-      "priority": 0,
-      "reason": "accept Digital Realty vehicle_name finding directly, no referee (wrong question for this check)",
-      "requested_at": "2026-09-21T11:50:09Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-14T15:07:45Z",
-      "history": [
-        {
-          "at": "2026-09-14T15:04:32Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-14T15:07:45Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-14T15:34:07Z",
-          "detail": "run 34860128352",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-14T15:34:07Z",
-          "detail": "run 34860128352",
-          "event": "landed"
-        }
-      ],
-      "id": "20260914T150432Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-14T15:34:07Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-14T15:04:32Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "34860128352",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-14T16:36:26Z",
       "history": [
         {
@@ -2554,6 +2486,47 @@
       "requested_by": "dakotta-labs",
       "run_id": "35595216138",
       "state": "failed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T11:50:14Z",
+      "history": [
+        {
+          "at": "2026-09-21T11:50:09Z",
+          "detail": "accept Digital Realty vehicle_name finding directly, no referee (wrong question for this check)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T11:50:14Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-21T11:51:05Z",
+          "detail": "run 35596183465",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-21T11:51:05Z",
+          "detail": "run 35596183465",
+          "event": "landed"
+        }
+      ],
+      "id": "20260921T115009Z-adjudicate-rows",
+      "inputs": {
+        "accept_keys": "vehicle_name/0e83122d231fc2ffaa1f9310f3be247b",
+        "dry_run": "false",
+        "note": "false positive on the realty SPV name pattern: Digital Realty is the real, publicly traded data-center operator (NYSE: DLR); the row own money_basis is already outbound_investment and is never summed as a raise. Session finding, 2026-09-21.",
+        "reason": "close the last of the four overdue guardrail findings"
+      },
+      "landed_at": "2026-09-21T11:51:05Z",
+      "priority": 0,
+      "reason": "accept Digital Realty vehicle_name finding directly, no referee (wrong question for this check)",
+      "requested_at": "2026-09-21T11:50:09Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35596183465",
+      "state": "landed",
       "workflow": "adjudicate-rows.yml"
     }
   ],
