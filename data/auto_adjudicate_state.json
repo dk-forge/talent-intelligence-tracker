@@ -1,0 +1,18 @@
+{
+ "keys": {},
+ "last_run": {
+  "at": "2026-09-21T18:26:29+00:00",
+  "referee_answers": {
+   "budget_stop": 0,
+   "low_confidence": 0,
+   "no_answer": 0,
+   "parse_failure": 0,
+   "verdict": 0
+  },
+  "spent_usd": 0.0
+ },
+ "months": {
+  "2026-09": 0.0
+ },
+ "version": 1
+}
