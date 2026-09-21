@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T16:42:07Z",
-  "last_tick": "2026-09-21T17:06:38Z",
+  "last_dispatch": "2026-09-21T20:16:15Z",
+  "last_tick": "2026-09-21T20:16:15Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -229,6 +229,35 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-21T11:40:08Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T20:16:15Z",
+      "history": [
+        {
+          "at": "2026-09-21T20:16:10Z",
+          "detail": "",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T20:16:15Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T201610Z-adjudicate-rows",
+      "inputs": {
+        "accept_keys": "amount/b1435535c98d555c08dccdbc05663b13",
+        "dry_run": "false",
+        "note": "Four reviews in total. Two model referees and two web reviewers all reject 196M (a registered 20 percent equity share, not paid-in money) and all agree the 980M text is what the licence states (VND 25.85 trillion registered capital, Tokgistic Pte Ltd, certificate 2026-09-07). The live row is already money_basis outbound_investment, excluded from the raise total, and the repo keeps the figure on outbound_investment rows (it clears it only for project_finance). One web reviewer would clear the numeric amount; recorded as a dissent, no total depends on it. Follow-up noted: the row talent_readthrough says TikTok has secured 980M, which overstates a registered plan."
+      },
+      "priority": 0,
+      "reason": "",
+      "requested_at": "2026-09-21T20:16:10Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-14T21:35:44Z",
