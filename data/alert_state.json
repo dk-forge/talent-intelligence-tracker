@@ -15,26 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-national-press:main:2f62771bbc494fc6": {
-      "first": 1789695325,
-      "last": 1789695325,
-      "subject": "CI RED: collect national press: urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='openrouter.ai', port=443): Read timed out. (read timeout=30)"
-    },
-    "collect-national-press:main:2f6cec9dcaddf534": {
-      "first": 1789947497,
-      "last": 1789947497,
-      "subject": "CI RED: collect national press: requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
-    },
-    "collect-national-press:main:33ba370b46a55dc5": {
-      "first": 1789609645,
-      "last": 1789609645,
-      "subject": "CI RED: collect national press: requests.exceptions.ChunkedEncodingError: Response ended prematurely"
-    },
-    "collect-national-press:main:cefa6cfcc0ee7846": {
-      "first": 1789867009,
-      "last": 1789867009,
-      "subject": "CI RED: collect national press: requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
     "collect-structured:main:5557a57358d8df84": {
       "first": 1789722059,
       "last": 1789722059,
@@ -76,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-21T11:51:01+00:00",
+  "updated_at": "2026-09-21T23:54:54+00:00",
   "version": 1
 }
