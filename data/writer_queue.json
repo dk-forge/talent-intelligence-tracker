@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-21T20:16:15Z",
-  "last_tick": "2026-09-21T20:16:15Z",
+  "last_dispatch": "2026-09-21T20:47:23Z",
+  "last_tick": "2026-09-21T20:47:23Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -228,6 +228,35 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-21T11:40:08Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-21T20:47:23Z",
+      "history": [
+        {
+          "at": "2026-09-21T20:47:19Z",
+          "detail": "two-reviewer ruling: split Elite Metal / Machine Sciences",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-21T20:47:23Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260921T204719Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-09-21-amount-23344cfec1156a226e3bc355bae49768.json",
+        "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences"
+      },
+      "priority": 0,
+      "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences",
+      "requested_at": "2026-09-21T20:47:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-15T00:30:11Z",
