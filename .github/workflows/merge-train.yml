@@ -52,6 +52,8 @@ permissions:
   contents: write        # squash merge, and push a mechanical rebase
   pull-requests: write   # merge, comment, label
   actions: write         # re-run ONE completed infrastructure-shaped job
+                         # and dispatch main's tests after a token merge,
+                         # which starts no on-push workflow (never the deploy)
   issues: write          # the needs-human label lives on the issue side
 
 jobs:
