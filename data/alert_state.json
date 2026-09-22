@@ -30,11 +30,6 @@
       "last": 1789928815,
       "subject": "STILL FAILING: CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
-    "enrich:main:cd0f1a58933504d7": {
-      "first": 1789740604,
-      "last": 1789740604,
-      "subject": "CI RED: enrich: pipeline.publish.PublishError: 2 guardrail finding(s) have been open longer than their grace window (oldest 88h). 36044 clean row(s) WERE published; the flagged one"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -46,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-22T09:26:29+00:00",
+  "updated_at": "2026-09-22T09:53:38+00:00",
   "version": 1
 }
