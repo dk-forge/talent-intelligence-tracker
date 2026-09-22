@@ -1209,16 +1209,31 @@ def _call(model: str, system: str, user: str, *, timeout: int,
     # The sibling paid for this same lesson with transient 5xx from its host.
     resp = None
     for attempt in range(RETRIES):
-        resp = requests.post(
-            OPENROUTER_URL,
-            headers={
-                "Authorization": f"Bearer {_api_key()}",
-                "Content-Type": "application/json",
-                "User-Agent": USER_AGENT,
-            },
-            json=body,
-            timeout=timeout,
-        )
+        try:
+            resp = requests.post(
+                OPENROUTER_URL,
+                headers={
+                    "Authorization": f"Bearer {_api_key()}",
+                    "Content-Type": "application/json",
+                    "User-Agent": USER_AGENT,
+                },
+                json=body,
+                timeout=timeout,
+            )
+        except requests.exceptions.RequestException as exc:
+            # No response at all — a dropped connection, a timeout, a DNS
+            # blip — is exactly as transient as a 503 and must be retried the
+            # same way, or it crashes the whole collect step instead of
+            # deferring one candidate. A RemoteDisconnected mid-run did
+            # exactly that to google_news on 2026-09-22: raised raw, it
+            # escaped every typed handler run_collect knows, so the whole
+            # source came down instead of losing one story to DEFER.
+            if attempt == RETRIES - 1:
+                raise Throttled(
+                    f"OpenRouter unreachable after {RETRIES} attempts: {exc}"
+                ) from exc
+            time.sleep(min(BACKOFF_SECONDS * (2 ** attempt), MAX_BACKOFF_SECONDS))
+            continue
         if resp.status_code not in TRANSIENT_STATUS or attempt == RETRIES - 1:
             break
         # Honour Retry-After when the provider sends one, else back off.
