@@ -45,17 +45,12 @@
       "last": 1789556570,
       "subject": "CI RED: extraction-benchmark: an UNKNOWN is not a pass and not a failure."
     },
-    "money-basis-check:main:dedcf2329403bf13": {
-      "first": 1789474116,
-      "last": 1789474116,
-      "subject": "CI RED: money-basis check: VERDICT: FAIL"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-21T23:54:54+00:00",
+  "updated_at": "2026-09-22T06:59:04+00:00",
   "version": 1
 }
