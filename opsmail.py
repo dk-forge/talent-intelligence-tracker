@@ -81,7 +81,20 @@ UA = "TalentIntelligenceTracker/1.0 (+https://asktherecruiter.com)"
 #: newsletter. Overridable so the sending domain can change without a code
 #: change, because the verified domain is a property of the Resend account.
 DEFAULT_FROM = "Talent Intelligence Tracker Ops <ops@asktherecruiter.com>"
-DEFAULT_TO = "info@asktherecruiter.com"
+#: THE FALLBACK IS AN OPERATIONS MAILBOX, NOT THE CUSTOMER ADDRESS
+#: (2026-09-22). This read `info@asktherecruiter.com`, which is the address
+#: CUSTOMERS write to. The repo variable `OPS_MAIL_TO` was set to the
+#: error mailbox on 2026-09-09 and NOT ONE of the eight alerting workflows
+#: passed it into the environment, so `_to()` fell through to this constant
+#: every single time and thirteen days of CI alerts, RECOVERED notices and
+#: digests landed in the inbox meant for buyers. Nothing failed; the mail
+#: arrived, at the wrong address, looking fine.
+#:
+#: The workflows now pass the variable, and this fallback is an operations
+#: mailbox too, so the NEXT job that forgets is merely explicit-vs-default
+#: rather than a customer-facing leak. A default that is wrong only when
+#: something else is missing is a default that will be wrong.
+DEFAULT_TO = "errornotifications-production@asktherecruiter.com"
 
 #: Prefix on every operational subject. `tit_api_alert()` stamped
 #: `[Talent Intelligence Tracker] ` and the owner's filters key off it, so it is
