@@ -1,11 +1,5 @@
 {
-  "open": {
-    "sentry-issue:fb7d5ccb230e16a6:open": {
-      "first": 1790115918,
-      "last": 1790115918,
-      "subject": "NEW ERROR: ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    }
-  },
-  "updated_at": "2026-09-22T22:25:19+00:00",
+  "open": {},
+  "updated_at": "2026-09-22T23:24:16+00:00",
   "version": 1
 }
