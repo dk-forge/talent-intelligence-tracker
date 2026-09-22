@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-22T08:52:04Z",
-  "last_tick": "2026-09-22T09:09:00Z",
+  "last_tick": "2026-09-22T09:12:36Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -208,6 +208,15 @@
       "resolved_note": "Owner decided not to replay: the displaced 2026-08-29 14:33 press dispatch was superseded by the green 17:39 dispatch and the 01:10 schedule, both of which collected the same catalogue after the plugin reached 1.87.1. Nothing to re-run; the record was what was stuck. (by dakotta-labs)",
       "run_id": "33257935038",
       "workflow": "collect national press"
+    },
+    {
+      "created_at": "2026-09-22T09:10:13Z",
+      "detail": "scheduled run displaced from the pending slot; it carries no inputs and the next cron covers the same ground",
+      "noticed_at": "2026-09-22T09:12:36Z",
+      "resolved": "2026-09-22T09:12:36Z",
+      "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
+      "run_id": "35708851476",
+      "workflow": "collect-structured"
     }
   ],
   "red_marks": {
