@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-structured:main:5557a57358d8df84": {
-      "first": 1789722059,
-      "last": 1789722059,
-      "subject": "CI RED: collect-structured: [guardrail] 2 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
-    },
     "collect:main:471e7ce8c5895ce1": {
       "first": 1789690404,
       "last": 1789690404,
@@ -51,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-22T06:59:04+00:00",
+  "updated_at": "2026-09-22T09:26:29+00:00",
   "version": 1
 }
