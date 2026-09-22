@@ -500,3 +500,64 @@ class TestEveryOperationalWorkflowNamesItsRecipient:
         text = wf.read_text(encoding="utf-8")
         assert "secrets.RESEND_API_KEY" in text
         assert "OPS_MAIL_TO: ${{ vars.OPS_MAIL_TO }}" not in text
+
+
+# ── The fallback recipient (2026-09-22) ────────────────────────────────────
+#
+# `recipient()` reads OPS_MAIL_TO and falls back to `DEFAULT_TO`. That constant was
+# `info@asktherecruiter.com`, the address CUSTOMERS write to, so any job that
+# forgot the environment variable mailed its alarms into the buyers' inbox and
+# nothing failed. Seven workflows were missing it until #141 on 2026-09-14,
+# and the symptom was invisible: the mail arrived, at the wrong address,
+# looking fine.
+#
+# The workflows are fixed. These pin the SECOND line of defence, because the
+# next workflow to forget should be merely explicit-vs-default rather than a
+# customer-facing leak.
+
+
+class TestTheFallbackRecipientIsNotTheCustomerInbox:
+    def test_default_to_is_an_operations_mailbox(self) -> None:
+        import opsmail
+
+        assert "errornotifications" in opsmail.DEFAULT_TO, (
+            "DEFAULT_TO must be an operations mailbox. A job that forgets "
+            "OPS_MAIL_TO falls through to it, and that must not reach buyers."
+        )
+
+    def test_no_reader_facing_address_is_the_fallback(self) -> None:
+        """Named explicitly, so re-introducing any of them fails here."""
+        import opsmail
+
+        for reader_address in (
+            "info@asktherecruiter.com",
+            "support@asktherecruiter.com",
+            "newsletter@asktherecruiter.com",
+        ):
+            assert opsmail.DEFAULT_TO != reader_address, (
+                f"{reader_address} is an address a CUSTOMER writes to or "
+                "reads from. Operational alarms filed beside customer mail "
+                "are alarms nobody acts on."
+            )
+
+    def test_the_env_var_still_wins_when_set(self, monkeypatch) -> None:
+        """The fallback is a safety net, not the mechanism."""
+        import opsmail
+
+        monkeypatch.setenv("OPS_MAIL_TO", "someone-else@example.com")
+        assert opsmail.recipient() == "someone-else@example.com"
+
+    def test_an_empty_env_var_falls_back_rather_than_mailing_nowhere(
+        self, monkeypatch
+    ) -> None:
+        """A variable set to "" is the shape a missing repo variable takes.
+
+        `${{ vars.OPS_MAIL_TO }}` expands to an EMPTY STRING when the
+        variable does not exist, not to nothing at all, so the workflow still
+        sets the name. Falling back here is what stops that becoming an
+        unroutable send.
+        """
+        import opsmail
+
+        monkeypatch.setenv("OPS_MAIL_TO", "   ")
+        assert opsmail.recipient() == opsmail.DEFAULT_TO
