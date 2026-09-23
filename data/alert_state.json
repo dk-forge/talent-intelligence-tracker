@@ -30,6 +30,11 @@
       "last": 1789690404,
       "subject": "CI RED: collect: [guardrail] 2 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
     },
+    "collect:main:d4b1d2147ab73da1": {
+      "first": 1790201510,
+      "last": 1790201510,
+      "subject": "CI RED: collect: no error line could be extracted from the log"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1789604644,
       "last": 1789604644,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-23T14:24:16+00:00",
+  "updated_at": "2026-09-23T22:11:51+00:00",
   "version": 1
 }
