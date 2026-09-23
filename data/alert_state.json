@@ -50,12 +50,17 @@
       "last": 1789556570,
       "subject": "CI RED: extraction-benchmark: an UNKNOWN is not a pass and not a failure."
     },
+    "self-heal:main:546478a37ca6511e": {
+      "first": 1790201655,
+      "last": 1790201655,
+      "subject": "CI RED: Self-heal: Action failed with error: Claude execution failed: result is_error:true"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-23T22:11:51+00:00",
+  "updated_at": "2026-09-23T22:14:16+00:00",
   "version": 1
 }
