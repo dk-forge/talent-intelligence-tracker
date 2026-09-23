@@ -229,7 +229,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260916T103157Z-extraction-benchmark": "2026-09-22T18:31:12Z",
     "ticket:20260916T120324Z-extraction-benchmark": "2026-09-22T18:31:12Z",
     "ticket:20260916T130541Z-extraction-benchmark": "2026-09-22T18:31:12Z",
     "ticket:20260917T143821Z-adjudicate-rows": "2026-09-22T18:31:12Z",
@@ -240,75 +239,6 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-23T12:12:30Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-23T16:43:32Z",
-      "history": [
-        {
-          "at": "2026-09-23T16:33:31Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-23T16:43:32Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-23T16:51:25Z",
-          "detail": "run 35890736268",
-          "event": "bound"
-        }
-      ],
-      "id": "20260923T163331Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-23T16:33:31Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35890736268",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-16T10:37:09Z",
-      "history": [
-        {
-          "at": "2026-09-16T10:31:57Z",
-          "detail": "measure extraction accuracy against the bodies (owner grant, est $1.43)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-16T10:37:09Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-16T11:02:50Z",
-          "detail": "run 35085956345",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-16T11:02:50Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260916T103157Z-extraction-benchmark",
-      "inputs": {
-        "ceiling": "2.00"
-      },
-      "priority": 0,
-      "reason": "measure extraction accuracy against the bodies (owner grant, est $1.43)",
-      "requested_at": "2026-09-16T10:31:57Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35085956345",
-      "state": "failed",
-      "workflow": "extraction-benchmark.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-16T12:03:28Z",
@@ -2569,6 +2499,44 @@
       "run_id": "35845320080",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-23T16:43:32Z",
+      "history": [
+        {
+          "at": "2026-09-23T16:33:31Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-23T16:43:32Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-23T16:51:25Z",
+          "detail": "run 35890736268",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-23T17:10:04Z",
+          "detail": "run 35890736268",
+          "event": "landed"
+        }
+      ],
+      "id": "20260923T163331Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-23T17:10:04Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-23T16:33:31Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "35890736268",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
