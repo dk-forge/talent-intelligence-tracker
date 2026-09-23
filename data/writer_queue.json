@@ -229,9 +229,9 @@
     }
   ],
   "red_marks": {
-    "ticket:20260916T120324Z-extraction-benchmark": "2026-09-22T18:31:12Z",
-    "ticket:20260916T130541Z-extraction-benchmark": "2026-09-22T18:31:12Z",
-    "ticket:20260917T143821Z-adjudicate-rows": "2026-09-22T18:31:12Z",
+    "ticket:20260916T120324Z-extraction-benchmark": "2026-09-23T18:49:48Z",
+    "ticket:20260916T130541Z-extraction-benchmark": "2026-09-23T18:49:48Z",
+    "ticket:20260917T143821Z-adjudicate-rows": "2026-09-23T18:49:48Z",
     "ticket:20260917T174055Z-adjudicate-rows": "2026-09-22T21:07:03Z",
     "ticket:20260920T194430Z-extraction-benchmark": "2026-09-22T20:23:59Z",
     "ticket:20260921T112552Z-adjudicate-rows": "2026-09-23T11:35:27Z",
