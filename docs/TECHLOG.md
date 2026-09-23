@@ -14,6 +14,33 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-23 - Rendered contrast audit is broken on the self-hosted runner: no Chrome/Chromium installed
+
+**Open. Needs the owner; nothing here can fix it.**
+
+`contrast-audit.yml` run 45 (13:08 UTC) failed at its own "Confirm a browser
+exists" guard step: `which google-chrome || which google-chrome-stable ||
+which chromium-browser` found none of the three on `atr-runner-talent-
+intelligence-tracker` (the Contabo VPS runner), so `google-chrome --version ||
+google-chrome-stable --version` also failed and the job exited 1 before
+`contrast_audit.py` ever ran. Runs 41 through 44 (2026-09-19 through
+2026-09-22) all passed on the same runner, so a browser was present as
+recently as yesterday and is gone now — most likely a runner-image reset or
+an unattended package removal, not a code or workflow regression.
+
+While this stays red, the live contrast guard this repo depends on (see
+CLAUDE.md "THE REPOSITORY IS THE BACKUP" section on `contrast_audit.py`) is
+not running, so a text-contrast regression on the live site would currently
+go uncaught until a human reinstalls the browser and a run goes green again.
+
+**Fix:** on the runner (`vmi3574635` per the job log), install a Chrome or
+Chromium binary the workflow's `which` check recognizes, then re-run
+`contrast-audit.yml` (workflow_dispatch) to confirm green. No PR needed —
+this is runner state, not repo state.
+
+Found during the 2026-09-23 ~14:00 UTC hourly ops check
+(dk-forge/asktherecruiter-sandbox#1067).
+
 ## 2026-09-21 - The owner's new MERGE_TRAIN_TOKEN stopped the merge train: the check-runs API refuses fine-grained tokens
 
 The owner added a fine-grained personal access token as `MERGE_TRAIN_TOKEN` at 22:03 UTC so the train could push mechanical conflict fixes. The workflow used that secret for every call, and the train's first read is `commits/<sha>/check-runs`, which answers a fine-grained token with HTTP 403 "Resource not accessible by personal access token" whatever permissions it holds. Found on the sandbox by a dry run dispatched to prove the token worked; the same line was here. Fix: the train reads and merges with the built-in token again, and `MERGE_TRAIN_TOKEN` is used only as `MERGE_TRAIN_PUSH_TOKEN`, to push a conflict fix. Nothing for the owner to redo.
