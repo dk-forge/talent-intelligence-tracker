@@ -1,0 +1,546 @@
+{
+ "ran_at": "2026-09-24T09:30:56+02:00",
+ "ran_on": "2026-09-24",
+ "plan": {
+  "cycle": 534,
+  "planned_on": "2026-09-24",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-09-21 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "SG",
+    "name": "Singapore",
+    "tier": "zero",
+    "measured": {
+     "total": 2,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "CL",
+    "name": "Chile",
+    "tier": "zero",
+    "measured": {
+     "total": 2,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "CN",
+    "name": "China",
+    "tier": "zero",
+    "measured": {
+     "total": 2,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "US",
+    "name": "United States",
+    "tier": "covered",
+    "measured": {
+     "total": 34,
+     "held": 17,
+     "held_pct": 50.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "SG",
+   "tier": "zero",
+   "measured": {
+    "total": 2,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "CL",
+   "tier": "zero",
+   "measured": {
+    "total": 2,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "CN",
+   "tier": "zero",
+   "measured": {
+    "total": 2,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "US",
+   "tier": "covered",
+   "measured": {
+    "total": 34,
+    "held": 17,
+    "held_pct": 50.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 17,
+  "held": 8,
+  "missing": 9,
+  "unusable": 0,
+  "usable": 17
+ },
+ "by_country": {
+  "US": {
+   "leads": 6,
+   "held": 1,
+   "missing": 5,
+   "unusable": 0
+  },
+  "CN": {
+   "leads": 5,
+   "held": 3,
+   "missing": 2,
+   "unusable": 0
+  },
+  "SG": {
+   "leads": 5,
+   "held": 3,
+   "missing": 2,
+   "unusable": 0
+  },
+  "CL": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0227,
+  "queries": 4,
+  "usd_per_query": 0.0057,
+  "usd_per_lead": 0.0013,
+  "usd_per_candidate_miss": 0.0025,
+  "lifetime_usd": 0.3855,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:SG",
+   "leads": 6,
+   "usd": 0.00577,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 439,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:CL",
+   "leads": 1,
+   "usd": 0.00541,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 74,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:CN",
+   "leads": 5,
+   "usd": 0.00568,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 347,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:US",
+   "leads": 6,
+   "usd": 0.00583,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 498,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "SG",
+   "dimension_tier": "zero",
+   "claimed_company": "dtcpay",
+   "claimed_country": "SG",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-18",
+   "claimed_amount": "$25M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Asia Business Outlook",
+   "claimed_url": "https://www.asiabusinessoutlook.com/news/sbi-group-joins-singapore-fintech-dtcpay-in-25m-series-a-round-nwid-12474.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "19c72804cf648f79705222baf94c63ca",
+    "company": "dtcpay",
+    "pillar": "company_development",
+    "country": "SG",
+    "published_date": "2026-09-18",
+    "source_url": "https://e27.co/sbi-joins-dtcpays-us25m-round-to-bridge-japan-sea-stablecoin-corridors-20260918/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SG",
+   "dimension_tier": "zero",
+   "claimed_company": "Hivebotics",
+   "claimed_country": "SG",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-08",
+   "claimed_amount": "$6M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "The Business Times",
+   "claimed_url": "https://www.businesstimes.com.sg/keywords/startup-funding",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "64b4eb4062d7d990099af2023c5595f2",
+    "company": "Hivebotics",
+    "pillar": "company_development",
+    "country": "SG",
+    "published_date": "2026-09-04",
+    "source_url": "https://technode.global/2026/09/04/singapores-hivebotics-raises-6m-led-by-vertex-to-scale-restroom-cleaning-robots/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SG",
+   "dimension_tier": "zero",
+   "claimed_company": "Nexstrom",
+   "claimed_country": "SG",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-23",
+   "claimed_amount": "$12M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "DealStreetAsia",
+   "claimed_url": "https://www.dealstreetasia.com/stories/nexstrom-seed-round-495888",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "6ecd94fd3e99812375fbe50509ff3cc6",
+    "company": "Nexstrom",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-22",
+    "source_url": "https://www.prnewswire.com/news-releases/nexstrom-raises-12-million-seed-round-to-commercialize-the-first-12-inch-single-crystal-2d-semiconductor-platform-302885862.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SG",
+   "dimension_tier": "zero",
+   "claimed_company": "Hang Ten Systems",
+   "claimed_country": "SG",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-17",
+   "claimed_amount": "$53M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "DealStreetAsia",
+   "claimed_url": "https://www.dealstreetasia.com/stories/temasek-xora-funding-hang-ten-495406",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SG",
+   "dimension_tier": "zero",
+   "claimed_company": "Prakash Kamdar / Prerna Mehrotra",
+   "claimed_country": "SG",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-22",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Marketing Interactive",
+   "claimed_url": "https://www.marketing-interactive.com/prakash-kamdar-exits-dentsu-after-15-years-prerna-mehrotra-to-step-up",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CL",
+   "dimension_tier": "zero",
+   "claimed_company": "Magnar",
+   "claimed_country": "CL",
+   "claimed_city": "Santiago",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-08",
+   "claimed_amount": "$8M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "LatamList",
+   "claimed_url": "https://latamlist.com/magnar-raises-8m-series-a/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "b08a0be4e8300c6b474ae70766d115ce",
+    "company": "Magnar",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-08",
+    "source_url": "https://latamlist.com/magnar-raises-8m-series-a/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "XPENG",
+   "claimed_country": "CN",
+   "claimed_city": "Guangzhou",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-24",
+   "claimed_amount": "$900M",
+   "claimed_stage": "",
+   "claimed_outlet": "Reuters",
+   "claimed_url": "https://www.reuters.com/business/retail-consumer/xpeng-says-its-robotics-business-raised-over-900-million-first-funding-round-2026-08-24/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "df88c5c97f207e8c85cd24476eb627c2",
+    "company": "Xpeng",
+    "pillar": "company_development",
+    "country": "CN",
+    "published_date": "2026-08-24",
+    "source_url": "https://www.reuters.com/business/retail-consumer/xpeng-says-its-robotics-business-raised-over-900-million-first-funding-round-2026-08-24/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "Sharpa",
+   "claimed_country": "CN",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-31",
+   "claimed_amount": "$670M",
+   "claimed_stage": "",
+   "claimed_outlet": "DealStreetAsia",
+   "claimed_url": "https://www.dealstreetasia.com/stories/ai-robotics-startup-sharpa-funding-493670",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "SpaceSail",
+   "claimed_country": "CN",
+   "claimed_city": "Shanghai",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-19",
+   "claimed_amount": "RMB 7bn",
+   "claimed_stage": "",
+   "claimed_outlet": "Caixin Global",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "7f76d7a3129707dbe080678468994260",
+    "company": "SpaceSail",
+    "pillar": "company_development",
+    "country": "CN",
+    "published_date": "2026-08-20",
+    "source_url": "https://www.scmp.com/tech/article/3364654/armed-funding-boost-spacesail-accelerates-chinas-push-rival-elon-musks-starlink?utm_source=rss_feed"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "Li Auto",
+   "claimed_country": "CN",
+   "claimed_city": "Beijing",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "CNEVPost",
+   "claimed_url": "https://cnevpost.com/2026/09/21/li-auto-chip-unit-pursue-first-funding-round/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "DeepSeek",
+   "claimed_country": "CN",
+   "claimed_city": "Hangzhou",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-22",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Reuters",
+   "claimed_url": "https://www.reuters.com/technology/deepseek/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "6c5e81e49ddbb8567db0a79f9f4f813e",
+    "company": "DeepSeek",
+    "pillar": "how_we_work",
+    "country": "CN",
+    "published_date": "2026-08-12",
+    "source_url": "https://technode.com/2026/08/12/deepseek-expands-hiring-for-ai-data-center-infrastructure/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Duke Robotics Corp.",
+   "claimed_country": "US",
+   "claimed_city": "Fort Lauderdale",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-17",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "GlobeNewswire",
+   "claimed_url": "https://www.globenewswire.com/news-release/2026/09/17/3045678/0/en/Duke-Robotics-Corp-Announces-Appointment-of-Avi-Levin-as-Chief-Financial-Officer.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "6b7b0b8eee110ea4279881082ce08a9c",
+    "company": "Duke Robotics",
+    "pillar": "leadership_change",
+    "country": "IL",
+    "published_date": "2026-09-08",
+    "source_url": "https://www.israeldefense.co.il/node/70642"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Claritev",
+   "claimed_country": "US",
+   "claimed_city": "McLean",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-18",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "BioBuzz",
+   "claimed_url": "https://biobuzz.io/news/biohealth-capital-region-regional-life-sciences-roundup-september-18-2026/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Heron Power",
+   "claimed_country": "US",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-10",
+   "claimed_amount": "$60 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Energy-Storage.news",
+   "claimed_url": "https://www.energy-storage.news/us-energy-storage-companies-secure-financing-and-launch-compliance-services-amid-regulatory-shifts/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "NeoVolta",
+   "claimed_country": "US",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-10",
+   "claimed_amount": "$20 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Energy-Storage.news",
+   "claimed_url": "https://www.energy-storage.news/us-energy-storage-companies-secure-financing-and-launch-compliance-services-amid-regulatory-shifts/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "LUMIQ",
+   "claimed_country": "US",
+   "claimed_city": "Dallas",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "FF News",
+   "claimed_url": "https://ffnews.com/news/lumiq-appoints-rohit-nagpal-as-global-president-ceo-americas-to-build-its-north--48cbc7f4",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Fortitude Mining Holdings",
+   "claimed_country": "US",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/former-hut-8-ceo-jaime-leverton-to-lead-zcash-miner-fortitude-ahead-of-nasdaq-debut_39fae5",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
