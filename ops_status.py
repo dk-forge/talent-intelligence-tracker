@@ -698,7 +698,31 @@ def _report_health(conn) -> list[str]:
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
     problems.extend(_zero_store_streaks(conn))
+    problems.extend(_never_ran(conn))
     return problems
+
+
+def _never_ran(conn) -> list[str]:
+    """A source a live cron runs that has NO health row at all.
+
+    The loop above can only judge rows that exist, so a collector that never
+    ran was invisible: singapore_acra (7th of the month) had no row ever and
+    nothing said so (coverage audit 2026-09-24). The configured list is read
+    from the workflow crons by collection_schedule.py, not kept by hand.
+    """
+    import collection_schedule
+
+    out = []
+    try:
+        names = collection_schedule.never_ran(conn)
+    except (OSError, sqlite3.Error) as exc:
+        return [f"could not enumerate configured sources: {exc}"]
+    for name in names:
+        msg = (f"{name} is scheduled but has never recorded a run — it is "
+               f"missing, not quiet (catch-up: collection_schedule.py --plan)")
+        print(f"    NEVER    {msg}")
+        out.append(msg)
+    return out
 
 
 def _zero_store_streaks(conn) -> list[str]:

@@ -1,0 +1,77 @@
+name: catch-up
+
+# Self-heal for the scheduled collectors (coverage audit 2026-09-24). Runs OFF
+# the box, so it works when the box does not. Daily:
+#
+#   1. Any weekly/monthly structured source whose slot was missed (last run
+#      older than its cadence + 1 day, or NEVER run) gets a writer-queue
+#      ticket for collect-structured.yml. A ticket, never a direct dispatch:
+#      a direct dispatch into the single writer lock can displace the run
+#      already pending (writer_queue.py). drain-writers dispatches it when the
+#      lock is free, and the collector's own pick-runner moves it to
+#      ubuntu-latest if the box is still down. EDINET (09-22) and DART (09-23)
+#      would have run the next morning instead of the next week.
+#   2. One self-closing issue per configured source whose last 3 runs stored
+#      0 rows: opened once (one email), edited in place, closed on recovery.
+#
+# The source list is read from the workflow crons by collection_schedule.py,
+# so a source added to a collector's schedule is covered with no edit here.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # commit the ticket to data/writer_queue.json
+  issues: write     # the per-source zero-store issues
+
+concurrency:
+  group: catch-up
+  cancel-in-progress: false
+
+jobs:
+  catch-up:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Report what never ran
+        run: python collection_schedule.py --never-ran --plan
+
+      - name: Queue the missed slots
+        run: |
+          set -euo pipefail
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python collection_schedule.py --enqueue
+            git add data/writer_queue.json
+            if git diff --staged --quiet; then
+              echo "Nothing missed, or already queued."
+              exit 0
+            fi
+            git commit -q -m "queue: catch-up $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Ticket(s) committed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) - re-deriving on current main."
+            sleep $((attempt * 5))
+          done
+          echo "::error::could not commit the catch-up tickets after 5 attempts"
+          exit 1
+
+      - name: Sync the zero-store issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python collection_schedule.py --issues --repo "${{ github.repository }}"

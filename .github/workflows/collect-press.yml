@@ -76,8 +76,35 @@ permissions:
   contents: write
 
 jobs:
+  # Where to run (coverage audit 2026-09-24): the self-hosted box while its
+  # heartbeat is fresh, ubuntu-latest when it is not. See runner_pick.py. This
+  # job never touches the box, so it can still decide when the box is gone.
+  # Force either way with the repository variable TIT_RUNNER=hosted|self-hosted.
+  pick-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      labels: ${{ steps.pick.outputs.labels }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: runner_pick.py
+          sparse-checkout-cone-mode: false
+      - name: Pick the runner
+        id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TIT_RUNNER: ${{ vars.TIT_RUNNER }}
+        run: python3 runner_pick.py
+
   collect-press:
-    runs-on: [self-hosted, linux, contabo]
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.labels) }}
+    outputs:
+      guardrail_overdue: ${{ steps.collect.outputs.guardrail_overdue }}
     # SIZED FROM MEASUREMENT, 2026-08-13: median 19.1 min, max 66.2 over the
     # last 24 successful runs. Same shape as collect.yml — a tight recent band
     # (13.8 to 24.3 since 2026-08-02) over an older tail at 56.7, 60.4 and 66.2
@@ -107,16 +134,30 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python spend.py --degrade
 
+      # Exit 4 = "clean rows published, only an overdue guardrail finding is
+      # left" (run_collect.GUARDRAIL_OVERDUE_EXIT). Success here; the
+      # guardrail-overdue job below goes red on the marker instead. Same
+      # treatment collect.yml got in #185 (coverage audit 2026-09-24: the
+      # press run was red 09-17..22 largely for this reason alone).
       - name: Collect
+        id: collect
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
+          export TIT_GUARDRAIL_MARKER="$RUNNER_TEMP/guardrail_overdue"
+          rm -f "$TIT_GUARDRAIL_MARKER"
+          rc=0
           python run_collect.py \
             --source national_press \
             ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
-            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }}
+            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }} || rc=$?
+          if [ -f "$TIT_GUARDRAIL_MARKER" ]; then
+            echo "guardrail_overdue=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::[guardrail] finding(s) past their grace window - reported by the guardrail-overdue job, not by this one."
+          fi
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 4 ]; then exit "$rc"; fi
 
       # The per-feed ledger, printed into the run log as well as committed. A
       # publisher that went dark three weeks ago is invisible in an aggregate
@@ -199,4 +240,17 @@ jobs:
 
           echo "::error::Could not push the database after 5 attempts. \
           This run's records exist only on the runner and are lost."
+          exit 1
+
+  # The guardrail escalation on its own line, as in collect.yml (#185): an
+  # overdue guardrail finding must not turn the collection red, or a real
+  # collection failure hides behind it (google_news, 2026-09-17..21).
+  guardrail-overdue:
+    needs: collect-press
+    if: ${{ always() && needs.collect-press.outputs.guardrail_overdue == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "::error::[guardrail] finding(s) are past their grace window. The collection itself is reported by the collect-press job. Answer them: python3 guardrails.py"
           exit 1

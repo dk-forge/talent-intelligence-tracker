@@ -702,8 +702,27 @@ def test_the_committed_classifier_is_not_silently_all_uncertain(monkeypatch):
     if not ledgers:
         pytest.skip("no committed label ledger to route")
     path = os.path.join(root, "data", "gate_labels", ledgers[-1])
+    # The most recent 400 lines PER COLLECTOR, not the last 400 of the file.
+    # The ledger is appended one run at a time, so its tail is whatever single
+    # run merged last. On 2026-09-24 that was one google_news run of 505 lines,
+    # 82% of them gate-YES (they already passed the keyword prefilter), which
+    # this skip-irrelevant model rightly leaves UNCERTAIN; the same check read
+    # 26 confident routes an hour earlier, when national_press was the tail.
+    # A guard that flips with merge order is measuring the order, not the
+    # model. The floor is unchanged: at least one confident route, over real
+    # recent candidates from every collector that writes labels.
     with open(path, encoding="utf-8") as fh:
-        sample = fh.readlines()[-400:]
+        lines = fh.readlines()
+    per_collector: dict = {}
+    for raw in reversed(lines):
+        try:
+            who = json.loads(raw).get("collector") or ""
+        except ValueError:
+            continue
+        bucket = per_collector.setdefault(who, [])
+        if len(bucket) < 400:
+            bucket.append(raw)
+    sample = [raw for bucket in per_collector.values() for raw in bucket]
 
     routed = {gate_classifier.RELEVANT: 0, gate_classifier.UNCERTAIN: 0,
               gate_classifier.IRRELEVANT: 0}

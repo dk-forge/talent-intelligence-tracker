@@ -436,10 +436,70 @@ def recency_window_days(locales_per_run: int, runs_per_day: int) -> int:
 SEGMENT_SWEEP_BUDGET_DAYS = 7
 
 
+def pillar_queries(lang: str) -> list[str]:
+    """One OR group per thin-pillar intent, in the edition's own language.
+
+    Built from pipeline/pillar_vocab.py, the list the free prefilter also
+    compiles, so every phrase fetched is a phrase the gate keeps (coverage
+    audit 2026-09-24: work mode and pay had no query in any non-English pack).
+    """
+    from pipeline import pillar_vocab
+
+    pack = pillar_vocab.PILLAR_VOCAB.get(lang, pillar_vocab.PILLAR_VOCAB["en"])
+    return ["(" + " OR ".join(f'"{p}"' for p in pack[intent]) + ")"
+            for intent in pillar_vocab.INTENTS]
+
+
 def google_news_queries(lang: str, *, window_days: int = 7) -> list[str]:
-    """Phrases for one edition. English is the fallback and the anchor."""
-    phrases = GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"])
+    """Phrases for one edition. English is the fallback and the anchor.
+
+    The three core intents plus the five thin-pillar groups. The extra groups
+    are RSS fetches, which are free; what costs money is the classifier, and
+    that is bounded per run by classify.READTHROUGH_CAP and
+    run_collect.DEFAULT_CANDIDATE_CAP regardless of how many queries ran. So
+    the pillars compete for the same read budget rather than adding to it.
+    """
+    phrases = list(GOOGLE_NEWS_VOCAB.get(lang, GOOGLE_NEWS_VOCAB["en"]))
+    phrases += pillar_queries(lang)
     return [f"{p} when:{window_days}d" for p in phrases]
+
+
+# --- English-speaking markets, by name, off the en-US anchor ----------------
+#
+# The seventeen English non-US EDITIONS were withdrawn on 2026-08-01 and the
+# measurement above is why: `gl=` with an English query selects a language,
+# not a place. That left GB, IE, IN, AU, SG, ZA, NG, KE and PH with no
+# locale-biased Google News query at all (coverage audit 2026-09-24). The
+# answer the measurement points to is the backstop's shape, not the edition:
+# lead with the COUNTRY NAME, which is what keeps the answer about the
+# country, and ask the thin pillars, which the wired national_press feeds read
+# only incidentally. Asked of the en-US anchor, so no edition comes back.
+#
+# A rotation, not a sweep: ENGLISH_MARKETS_PER_RUN markets a run, so all
+# eleven come round inside four days at one run a day, and the window covers
+# the gap. Each is ONE query: +3 RSS fetches a run, zero added read budget.
+ENGLISH_MARKETS = (
+    ("GB", "UK"), ("IE", "Ireland"), ("IN", "India"), ("AU", "Australia"),
+    ("SG", "Singapore"), ("ZA", "South Africa"), ("NG", "Nigeria"),
+    ("KE", "Kenya"), ("PH", "Philippines"), ("NZ", "New Zealand"),
+    ("CA", "Canada"),
+)
+ENGLISH_MARKETS_PER_RUN = 3
+ENGLISH_MARKET_WINDOW_DAYS = 7
+
+
+def english_market_queries(*, day_of_year: int) -> list[str]:
+    """This run's slice of the English-market rotation."""
+    from pipeline import pillar_vocab
+
+    en = pillar_vocab.PILLAR_VOCAB["en"]
+    terms = [p for intent in pillar_vocab.INTENTS for p in en[intent][:2]]
+    intents = " OR ".join(f'"{t}"' for t in terms)
+    n = len(ENGLISH_MARKETS)
+    start = (day_of_year * ENGLISH_MARKETS_PER_RUN) % n
+    picked = [ENGLISH_MARKETS[(start + i) % n] for i in range(ENGLISH_MARKETS_PER_RUN)]
+    return [f'"{name}" ({intents}) when:{ENGLISH_MARKET_WINDOW_DAYS}d'
+            for _code, name in picked]
 
 
 # --- US private-company executive appointments, off the press-release wires -
@@ -772,6 +832,9 @@ GOOGLE_NEWS_QUERIES = (
     '("acquires" OR "to acquire") ("startup" OR "company") when:2d',
     '("pay rise" OR "raises minimum salary" OR "retention bonus")',
     '("return to office" OR "remote work policy") ("employees" OR "staff")',
+    # The five thin-pillar groups (pipeline/pillar_vocab.py), windowed like
+    # the funding line above so the anchor reads this week and not history.
+    *(q + " when:3d" for q in pillar_queries("en")),
 )
 
 

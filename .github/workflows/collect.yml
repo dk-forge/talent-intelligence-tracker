@@ -63,8 +63,33 @@ permissions:
   contents: write
 
 jobs:
+  # Where to run (coverage audit 2026-09-24): the self-hosted box while its
+  # heartbeat is fresh, ubuntu-latest when it is not. See runner_pick.py. This
+  # job never touches the box, so it can still decide when the box is gone.
+  # Force either way with the repository variable TIT_RUNNER=hosted|self-hosted.
+  pick-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      labels: ${{ steps.pick.outputs.labels }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: runner_pick.py
+          sparse-checkout-cone-mode: false
+      - name: Pick the runner
+        id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TIT_RUNNER: ${{ vars.TIT_RUNNER }}
+        run: python3 runner_pick.py
+
   collect:
-    runs-on: [self-hosted, linux, contabo]
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.labels) }}
     outputs:
       guardrail_overdue: ${{ steps.collect.outputs.guardrail_overdue }}
     # SIZED FROM MEASUREMENT, 2026-08-13: median 20.0 min, max 101.5 over the
