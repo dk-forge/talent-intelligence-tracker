@@ -1293,6 +1293,87 @@ def _geography_terms() -> tuple[re.Pattern, re.Pattern]:
 _GEO_LONG, _GEO_SHORT = _geography_terms()
 
 
+# --- The thin pillars, read off the same list the queries are built from ----
+#
+# pipeline/pillar_vocab.py is the one vocabulary for work mode, pay & benefits,
+# M&A, hiring freezes and expansions. source_registry builds the Google News
+# queries from it and this gate compiles the SAME phrases, so a query can never
+# fetch a story the gate then throws away for free-but-uselessly (the
+# 2026-07-27 funding incident). Latin-script phrases are word-bounded; CJK,
+# Hangul, Thai and Arabic-script phrases are matched as substrings because \b
+# does not fire between two word characters of those scripts (see the CJK note
+# on _EMPLOYMENT_TERMS).
+from pipeline import pillar_vocab as _pillar_vocab  # noqa: E402
+
+
+def _is_spaced_script(phrase: str) -> bool:
+    return all(ord(ch) < 0x0590 or ch.isspace() for ch in phrase)
+
+
+_PILLAR_SPACED = tuple(p for p in _pillar_vocab.all_phrases() if _is_spaced_script(p))
+_PILLAR_OTHER = tuple(p for p in _pillar_vocab.all_phrases() if not _is_spaced_script(p))
+_PILLAR = re.compile(
+    r"(?:\b(?:" + "|".join(re.escape(p) for p in _PILLAR_SPACED) + r")(?!\w))"
+    + (r"|(?:" + "|".join(re.escape(p) for p in _PILLAR_OTHER) + r")" if _PILLAR_OTHER else ""),
+    re.I | re.UNICODE,
+)
+
+
+def pillar_term(text: str) -> str | None:
+    """The thin-pillar phrase in `text`, or None."""
+    hit = _PILLAR.search(text or "")
+    return hit.group(0) if hit else None
+
+
+# --- Job-ad aggregators: not news, never worth a paid read ------------------
+#
+# The 2026-09-22 log shows alwadifa-club.com and dimajadid.com recruitment-ad
+# boards reaching the classifier off the bare Arabic "توظيف" query, and the
+# Vietnamese / Indonesian hiring verbs pull the same shape. A job advert says
+# nothing about an employer's plans that ats_boards does not already read from
+# the employer's own board. The host is known BEFORE resolution (the RSS
+# <source url>), so this costs nothing and runs ahead of every paid stage.
+# Exact host or subdomain only: "notindeed.com.example.org" is not indeed.com.
+JOB_AD_DOMAINS = frozenset({
+    "alwadifa-club.com", "dimajadid.com", "emploi-public.ma", "rekrute.com",
+    "indeed.com", "naukri.com", "glassdoor.com", "monster.com", "ziprecruiter.com",
+    "careerbuilder.com", "simplyhired.com", "reed.co.uk", "totaljobs.com",
+    "jobstreet.com", "jobsdb.com", "bayt.com", "wuzzuf.net", "kariyer.net",
+    "vietnamworks.com", "topcv.vn", "loker.id", "jobstreet.co.id",
+    "sarkariresult.com", "freejobalert.com", "infojobs.net", "stepstone.de",
+    "pracuj.pl", "jobteaser.com", "hellowork.com",
+})
+
+
+def job_ad_domain(url) -> str | None:
+    """The blocked job-ad host `url` belongs to, or None."""
+    if not url:
+        return None
+    from urllib.parse import urlsplit
+    host = (urlsplit(str(url)).hostname or "").lower().rstrip(".")
+    labels = host.split(".")
+    for i in range(len(labels) - 1):
+        cand = ".".join(labels[i:])
+        if cand in JOB_AD_DOMAINS:
+            return cand
+    # Country subdomains of indeed/glassdoor ("in.indeed.com") are covered by
+    # the suffix walk above; country TLD variants ("indeed.co.uk") are not, so
+    # they are matched on the registrable label.
+    if len(labels) >= 3 and labels[-3] in {"indeed", "glassdoor", "monster", "jobstreet"} \
+            and len(labels[-1]) == 2:
+        return host
+    return None
+
+
+def job_ad_item(item: dict) -> str | None:
+    """Whether a collected item comes from a job-ad aggregator, by any URL it carries."""
+    for key in ("source_url", "url", "discovery_url"):
+        hit = job_ad_domain(item.get(key))
+        if hit:
+            return hit
+    return None
+
+
 def has_covered_geography(text: str) -> bool:
     return bool(_GEO_LONG.search(text) or _GEO_SHORT.search(text))
 
@@ -1311,6 +1392,7 @@ def passes(text: str) -> tuple[bool, str]:
     if not (_EMPLOYMENT.search(text)
             or site_event_term(text)
             or _WORK_POLICY.search(text)
+            or _PILLAR.search(text)
             or _CJK.search(text)):
         return False, "no employment, site or work-policy term"
 

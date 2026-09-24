@@ -176,6 +176,21 @@ RUNS_PER_DAY = 2
 SEGMENTS_PER_RUN = 4
 
 
+def free_gate(item: dict, *, skip_prefilter: bool = False) -> tuple[bool, str]:
+    """The zero-cost gate every news candidate passes before any paid stage.
+
+    Job-ad aggregators first (their host is known before resolution, and a job
+    advert is never a signal), then the keyword prefilter. A primary or
+    derived source skips both: its population is not news prose.
+    """
+    if skip_prefilter:
+        return True, ""
+    blocked = prefilter.job_ad_item(item)
+    if blocked:
+        return False, f"job-ad aggregator ({blocked})"
+    return prefilter.passes(item.get("raw_text", ""))
+
+
 def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     """Layer 1 broad sweep + a rotating slice of the segment matrix, plus the
     standalone euphemism queries that must never be AND-ed with the base
@@ -189,7 +204,11 @@ def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     if source == "google_news":
         # Precise phrases plus `when:` recency. The old broad sweep returned
         # political job-creation stories with no employer in them.
-        return list(registry.GOOGLE_NEWS_QUERIES)
+        # Plus this run's slice of the English-market rotation (GB, IE, IN,
+        # AU, SG, ZA, NG, KE, PH, NZ, CA), asked of the en-US anchor.
+        return (list(registry.GOOGLE_NEWS_QUERIES)
+                + registry.english_market_queries(
+                    day_of_year=date.today().timetuple().tm_yday))
     if source in ("tripwire_chase", "benchmark_chase", "primary_chase"):
         # These three have no search vocabulary: the tripwire's work list, the
         # benchmark diff and the primary-chase URL list ARE the population.
@@ -611,7 +630,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
 
     kept, filtered = [], 0
     for item in items:
-        ok, reason = (True, "") if skip_prefilter else prefilter.passes(item.get("raw_text", ""))
+        ok, reason = free_gate(item, skip_prefilter=skip_prefilter)
         if ok:
             kept.append(item)
         else:
