@@ -2344,6 +2344,8 @@ SCALE_WORDS_BY_LANGUAGE = {
                 "m": _MILLION, "mm": _MILLION, "mn": _MILLION,
                 "million": _MILLION, "millions": _MILLION,
                 "b": _MILLIARD, "bn": _MILLIARD,
+                # Reuters-style wire abbreviations ("$3.8 bln", "$250 mln").
+                "bln": _MILLIARD, "mln": _MILLION,
                 "billion": _MILLIARD, "billions": _MILLIARD,
                 "t": _TRILLION, "tn": _TRILLION, "trillion": _TRILLION},
     "Estonian": {"miljon": _MILLION, "miljonit": _MILLION,
