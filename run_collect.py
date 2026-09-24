@@ -621,6 +621,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # The cap is a MONEY cap. A derived source spends nothing, and applying it
     # would have thrown away five sixths of a year of exec-comp filings for a
     # cost that does not exist. An explicit --limit still applies.
+    resolve_note = ""
     cap = limit or (None if derive else DEFAULT_CANDIDATE_CAP)
     if cap and len(kept) > cap:
         print(f"[{collector}] capping {len(kept)} candidates to {cap}, "
@@ -632,6 +633,16 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # leads: a homepage is not a receipt.
     if not offline and source == "google_news":
         kept = [google_news.resolve_source_url(item) for item in kept]
+        # Resolution fails SILENTLY per item (the homepage stays), so a total
+        # failure used to surface only as "every candidate rejected". Say it.
+        unresolved = google_news.unresolved_count(kept)
+        if kept and unresolved:
+            resolve_note = (f"UNRESOLVED: {unresolved}/{len(kept)} Google News "
+                            f"links kept a homepage"
+                            + (f" ({google_news.STATS['consent_wall']} consent wall)"
+                               if google_news.STATS["consent_wall"] else "")
+                            + " | ")
+            print(f"[{collector}] {resolve_note.rstrip(' |')}")
 
     # Cost lever 2: one story, one read. Six outlets rewriting the same round
     # survive URL and title dedup as six candidates; cluster them on the
@@ -1229,6 +1240,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     markers = ""
     if deadline_stopped:
         markers += f"DEADLINE: {deadline_stopped} unread | "
+    markers += resolve_note
     if throttled_slots:
         markers += f"THROTTLED: {throttled_slots} | "
 
@@ -1404,8 +1416,24 @@ def main() -> int:
                run_index=args.run_index, limit=args.limit, source=args.source)
 
     if args.publish and not args.dry_run:
-        code = max(code, _publish())
+        pub = _publish()
+        if pub == GUARDRAIL_OVERDUE_EXIT:
+            # Never let the guardrail code mask a collection failure, and never
+            # let a collection failure swallow the guardrail: the marker file
+            # carries the guardrail to collect.yml whatever the exit code.
+            marker = os.environ.get("TIT_GUARDRAIL_MARKER")
+            if marker:
+                with open(marker, "w") as fh:
+                    fh.write("overdue\n")
+            code = code or GUARDRAIL_OVERDUE_EXIT
+        else:
+            code = max(code, pub)
     return code
+
+
+#: Exit code for "published fine, but a guardrail finding is past its grace
+#: window". collect.yml maps it to the separate `guardrail-overdue` job.
+GUARDRAIL_OVERDUE_EXIT = 4
 
 
 def _publish() -> int:
@@ -1426,6 +1454,14 @@ def _publish() -> int:
 
         result = publish.publish(conn)
     except publish.PublishError as exc:
+        if getattr(exc, "overdue_only", False):
+            # Clean rows already went out; only the escalation is left. Its
+            # own code, so the workflow can go red on it in a separate job
+            # and a collection failure is never hidden behind it (or it
+            # behind one).
+            print(f"\nGUARDRAIL OVERDUE (clean rows were published): {exc}",
+                  file=sys.stderr)
+            return GUARDRAIL_OVERDUE_EXIT
         print(f"\nPUBLISH FAILED: {exc}", file=sys.stderr)
         return 1
 

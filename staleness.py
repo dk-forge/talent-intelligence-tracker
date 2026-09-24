@@ -287,3 +287,31 @@ DEFAULT_MAX_AGE_HOURS = 336
 def max_age_hours(collector: str) -> int:
     """The leash for one collector, by its own schedule."""
     return MAX_AGE_HOURS.get(collector, DEFAULT_MAX_AGE_HOURS)
+
+
+# The collectors whose silence is an outage rather than a calendar. The SEC
+# pair is left out on purpose: SEC publishes nothing at the weekend, so two
+# zero-store days in a row is its normal shape.
+PRIMARY_COLLECTORS = ("google_news", "gdelt", "national_press")
+
+# How many consecutive UTC days of runs storing nothing make a streak worth a
+# human. google_news stored 0 from 2026-09-17 to 09-21 and nothing said so,
+# because ops_status reads only the LATEST health row per collector.
+ZERO_STORE_STREAK_DAYS = 3
+
+
+def zero_store_streak_days(runs) -> int:
+    """Consecutive most-recent UTC days (that had runs) on which every run
+    stored zero rows. `runs` is an iterable of (run_at ISO string, stored).
+    A day with any storing run ends the streak; days with no run are skipped,
+    not counted (staleness already covers a collector that stopped running)."""
+    per_day: dict[str, int] = {}
+    for run_at, stored in runs:
+        day = str(run_at)[:10]
+        per_day[day] = per_day.get(day, 0) + int(stored or 0)
+    streak = 0
+    for day in sorted(per_day, reverse=True):
+        if per_day[day]:
+            break
+        streak += 1
+    return streak
