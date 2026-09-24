@@ -3014,6 +3014,53 @@ def parse_funding_usd(value: str):
     return int(round(amount))
 
 
+
+# --- A bare '$' in a peso country -------------------------------------------
+#
+# Grupo Éxito, Colombia, 2026-09: '$292.000 millones' stored as 292 BILLION US
+# dollars. Colombian, Mexican, Chilean, Argentine, Uruguayan and Dominican press
+# write their own PESO with a bare '$', and some Brazilian outlets drop the R
+# from R$. parse_funding_usd cannot see that - it is handed the string, not the
+# country - so the country-aware check lives here and validate.build_signal
+# calls it. It fires only on the narrow shape that produced the row: a bare
+# '$' (no US$, no USD, no dollar written out) AND a Spanish/Portuguese scale
+# word AND a row placed in a country whose currency is not the US dollar. An
+# unplaced row, an English scale word, or a stated US dollar is untouched.
+_IBERIAN_SCALE = re.compile(
+    r"(?i)(?<![A-Za-zÀ-ÿ])(?:millones|mill[oó]n|milh(?:õ|o)es|milh(?:ã|a)o"
+    r"|bill[oó]n|billones|bilh(?:õ|o)es|bilh(?:ã|a)o)(?![A-Za-zÀ-ÿ])")
+_BARE_DOLLAR = re.compile(r"(?<![A-Za-z])\$")
+#: Countries whose OWN currency is written with a bare '$' (the peso family,
+#: plus Brazil where outlets sometimes drop the R from R$). An allowlist, not
+#: "every non-US country": Costa Rican press writes colones as '₡' and uses '$'
+#: for US dollars ('$30 millones', Belca, El Financiero CR), and a denylist
+#: would have cleared that correct row.
+PESO_DOLLAR_SIGN_COUNTRIES = frozenset({
+    "AR", "CL", "CO", "MX", "UY", "DO", "CU", "BR",
+})
+
+
+def bare_dollar_is_local_currency(value: str, country) -> bool:
+    """True when '$' in this string most plausibly names a local peso/real."""
+    text = value or ""
+    if not country or country.upper() not in PESO_DOLLAR_SIGN_COUNTRIES:
+        return False
+    if not _BARE_DOLLAR.search(_USD_PREFIX.sub("", text)):
+        return False
+    if not _IBERIAN_SCALE.search(text):
+        return False
+    # A US dollar stated some other way ('USD', 'US$', 'dólares') wins.
+    without_bare = _BARE_DOLLAR.sub(" ", _USD_PREFIX.sub("USD ", text)) \
+        if _USD_PREFIX.search(text) else _BARE_DOLLAR.sub(" ", text)
+    return not _USD_MARKER.search(without_bare)
+
+
+def funding_usd_for_country(value: str, country):
+    """parse_funding_usd, refusing a bare '$' that names a local peso."""
+    if bare_dollar_is_local_currency(value, country):
+        return None
+    return parse_funding_usd(value)
+
 # --- Materiality ------------------------------------------------------------
 
 # How much a row is worth a recruiter's attention. Computed in Python at

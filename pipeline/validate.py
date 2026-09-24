@@ -777,7 +777,9 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # 'never state a number that is not in the text' would forbid it converting
     # '$1.45 Million' to 1450000, so we do the conversion ourselves. NULL for
     # non-USD currencies rather than a guessed exchange rate.
-    funding_usd = vocab.parse_funding_usd(funding) if funding else None
+    # Country-aware: a bare '$' beside 'millones' on a Colombian row is pesos
+    # (Grupo Éxito, TECHLOG 2026-09-24), so it stays NULL like any non-USD.
+    funding_usd = vocab.funding_usd_for_country(funding, country) if funding else None
     funding_stage = vocab.normalize_funding_stage(classified.get("funding_stage", "") or "")
 
     # Only meaningful alongside a number. A scope with no headcount describes
