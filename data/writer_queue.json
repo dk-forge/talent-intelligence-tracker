@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-24T07:29:45Z",
-  "last_tick": "2026-09-24T08:53:11Z",
+  "last_dispatch": "2026-09-24T09:28:22Z",
+  "last_tick": "2026-09-24T09:29:03Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -226,6 +226,15 @@
       "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
       "run_id": "35839631594",
       "workflow": "collect-structured"
+    },
+    {
+      "created_at": "2026-09-24T09:09:39Z",
+      "detail": "scheduled run displaced from the pending slot; it carries no inputs and the next cron covers the same ground",
+      "noticed_at": "2026-09-24T09:13:11Z",
+      "resolved": "2026-09-24T09:13:11Z",
+      "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
+      "run_id": "35979540739",
+      "workflow": "collect-structured"
     }
   ],
   "red_marks": {
@@ -239,12 +248,22 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-24T09:28:22Z",
       "history": [
         {
           "at": "2026-09-24T08:38:45Z",
           "detail": "scheduled link hygiene (20 */8 * * *)",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-24T09:28:22Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-24T09:29:03Z",
+          "detail": "run 35981441381",
+          "event": "bound"
         }
       ],
       "id": "20260924T083845Z-archive-sources",
@@ -255,8 +274,8 @@
       "reason": "scheduled link hygiene (20 */8 * * *)",
       "requested_at": "2026-09-24T08:38:45Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "queued",
+      "run_id": "35981441381",
+      "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
     {
