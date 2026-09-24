@@ -56,7 +56,7 @@ passing test, and the registry says which tier each market is actually at.
 ## Architecture
 
 ```
-GitHub Actions (cron, 2x/day)
+GitHub Actions (scheduled; see Collection schedule below)
         |  collectors -> classify -> validate -> dedupe -> store
         |  POST to a keyed REST endpoint
 WordPress plugin on asktherecruiter.com  (custom table + REST API + render)
@@ -95,14 +95,50 @@ write.
 .venv/bin/python -m pytest tests/ -q
 ```
 
-## Cost
+## Collection schedule, cost and keys
 
-Roughly **$0.60/month**, all of it LLM classification. Every data source is
-free and keyless. The budget holds because candidates are keyword-gated before
-they reach the model, URLs already seen are skipped before any spend, the
-classification prompt is deliberately tiny, and a `402` stops the run instead
-of burning a batch of failures. Set a hard spend cap on the API key itself —
-that is what makes it a guarantee rather than a hope.
+<!-- generated:readme_facts BEGIN (python3 readme_facts.py --write) -->
+
+**Schedule** (from the workflow crons; a missed weekly or monthly slot is re-queued the next morning by `catch-up.yml`, and every collector falls back to a GitHub-hosted runner when the self-hosted one stops answering):
+
+| Source | Workflow | Runs |
+|---|---|---|
+| `national_press` | `collect-press.yml` | daily at 23:00 UTC |
+| `ats_boards` | `collect-structured.yml` | daily at 09:00 UTC |
+| `gdelt` | `collect.yml` | daily at 22:00 UTC |
+| `google_news` | `collect.yml` | daily at 22:00 UTC |
+| `sec_edgar` | `collect.yml` | daily at 22:00 UTC |
+| `sec_form_d` | `collect.yml` | daily at 22:00 UTC |
+| `bse_india` | `collect-structured.yml` | weekly, Mondays at 04:00 UTC |
+| `companies_house` | `collect-structured.yml` | weekly, Thursdays at 04:00 UTC |
+| `czechia_ares` | `collect-structured.yml` | weekly, Fridays at 04:00 UTC |
+| `edinet_japan` | `collect-structured.yml` | weekly, Tuesdays at 04:00 UTC |
+| `estonia_ariregister` | `collect-structured.yml` | weekly, Saturdays at 04:00 UTC |
+| `opendart_korea` | `collect-structured.yml` | weekly, Wednesdays at 04:00 UTC |
+| `spain_borme` | `collect-structured.yml` | weekly, Sundays at 04:00 UTC |
+| `sec_execcomp` | `collect-structured.yml` | monthly on day 5 at 09:30 UTC |
+| `singapore_acra` | `collect-structured.yml` | monthly on day 7 at 10:30 UTC |
+| `uk_paygap` | `collect-structured.yml` | monthly on day 6 at 10:30 UTC |
+
+**Cost.** LLM spend is capped at **$8.00/month** (`spend.MONTHLY_ALLOWANCE_USD`); past 90% of it paid reads switch off and the free stages keep running. Run `python3 spend.py` for this month's actual figure and `python3 cost_projection.py` for demand.
+
+**Keys.** Most sources are keyless open data. These need a key (repository secrets, never committed):
+
+- `OPENROUTER_API_KEY`: LLM classification of news candidates, and the tripwire's search-backed queries
+- `EDINET_API_KEY_JP`: EDINET (Japan) filings
+- `OPENDART_API_KEY_KR`: OpenDART (Korea) filings
+- `COMPANIES_HOUSE_API_KEY_UK`: Companies House (UK) officer appointments
+- `DENMARK_DATA_USER`: Denmark CVR (dormant; secret not yet set)
+- `DENMARK_DATA_PASSWORD`: Denmark CVR (dormant; secret not yet set)
+
+<!-- generated:readme_facts END -->
+
+The budget holds because candidates are keyword-gated before they reach the
+model, URLs already seen are skipped before any spend, the classification prompt
+is deliberately tiny, and a `402` stops the run instead of burning a batch of
+failures. Set a hard spend cap on the API key itself — that is what makes it a
+guarantee rather than a hope. How each collector is run, watched and repaired:
+[docs/RUNBOOK_COLLECTION.md](docs/RUNBOOK_COLLECTION.md).
 
 ## Licence
 
