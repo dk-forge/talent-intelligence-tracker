@@ -180,6 +180,10 @@ def _escalate(report: dict, published: int) -> None:
     error = PublishError(str(guardrails.QuarantineOverdue(
         findings, published=published, oldest_hours=oldest)))
     error.findings = findings
+    # The ONLY failure is "nobody answered in time": the clean rows are sent.
+    # run_collect turns this into its own exit code so collect.yml can report
+    # the guardrail in a separate job from the collection (TECHLOG 2026-09-24).
+    error.overdue_only = True
     raise error
 
 
