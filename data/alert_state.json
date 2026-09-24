@@ -54,8 +54,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:ed86a38404343365": {
+      "first": 1790212581,
+      "last": 1790212581,
+      "subject": "CI RED: tests: assert not [('$3.8 bln', 3.8)]"
     }
   },
-  "updated_at": "2026-09-23T23:51:14+00:00",
+  "updated_at": "2026-09-24T01:16:22+00:00",
   "version": 1
 }
