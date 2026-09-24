@@ -218,8 +218,35 @@ permissions:
   contents: write
 
 jobs:
+  # Where to run (coverage audit 2026-09-24): the self-hosted box while its
+  # heartbeat is fresh, ubuntu-latest when it is not. See runner_pick.py. This
+  # job never touches the box, so it can still decide when the box is gone.
+  # Force either way with the repository variable TIT_RUNNER=hosted|self-hosted.
+  pick-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      labels: ${{ steps.pick.outputs.labels }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: runner_pick.py
+          sparse-checkout-cone-mode: false
+      - name: Pick the runner
+        id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TIT_RUNNER: ${{ vars.TIT_RUNNER }}
+        run: python3 runner_pick.py
+
   collect:
-    runs-on: [self-hosted, linux, contabo]
+    needs: pick-runner
+    runs-on: ${{ fromJSON(needs.pick-runner.outputs.labels) }}
+    outputs:
+      guardrail_overdue: ${{ steps.collect.outputs.guardrail_overdue }}
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v5
@@ -255,6 +282,7 @@ jobs:
           fi
 
       - name: Collect
+        id: collect
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
@@ -332,10 +360,20 @@ jobs:
           # variable change somebody makes on purpose.
           TIT_DK_CVR: ${{ vars.TIT_DK_CVR }}
           TIT_DK_DAYS: ${{ inputs.days }}
+        # Exit 4 is the overdue-guardrail code, not a collection failure; the
+        # guardrail-overdue job reports it (as collect.yml since #185).
         run: |
+          export TIT_GUARDRAIL_MARKER="$RUNNER_TEMP/guardrail_overdue"
+          rm -f "$TIT_GUARDRAIL_MARKER"
+          rc=0
           python run_collect.py \
             --source "${{ steps.pick.outputs.value }}" \
-            ${{ inputs.dry_run && '--dry-run' || '--publish' }}
+            ${{ inputs.dry_run && '--dry-run' || '--publish' }} || rc=$?
+          if [ -f "$TIT_GUARDRAIL_MARKER" ]; then
+            echo "guardrail_overdue=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::[guardrail] finding(s) past their grace window - reported by the guardrail-overdue job, not by this one."
+          fi
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 4 ]; then exit "$rc"; fi
 
       - name: Status
         if: ${{ !inputs.dry_run }}
@@ -404,4 +442,17 @@ jobs:
 
           echo "::error::Could not push after 5 attempts. This run's records \
           exist only on the runner and are lost."
+          exit 1
+
+  # The guardrail escalation on its own line, as in collect.yml (#185): an
+  # overdue guardrail finding must not turn the collection red, or a real
+  # collection failure hides behind it (google_news, 2026-09-17..21).
+  guardrail-overdue:
+    needs: collect
+    if: ${{ always() && needs.collect.outputs.guardrail_overdue == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "::error::[guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
           exit 1
