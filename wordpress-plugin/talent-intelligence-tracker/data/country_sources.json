@@ -306,6 +306,10 @@
   "live": [],
   "refused": [
    {
+    "name": "Business in Vancouver",
+    "reason": "2026-09-24 dead: HTTP 403 bot block"
+   },
+   {
     "name": "Communitech",
     "reason": "2026-07-29 not live (404, 0 items)"
    },
@@ -334,7 +338,7 @@
     "reason": "2026-07-29 robots.txt disallows this path"
    }
   ],
-  "researched": 19
+  "researched": 18
  },
  "CF": {
   "live": [],
@@ -391,8 +395,13 @@
  },
  "CM": {
   "live": [],
-  "refused": [],
-  "researched": 4
+  "refused": [
+   {
+    "name": "Actu Cameroun",
+    "reason": "2026-09-24 dead: HTTP 403 bot block"
+   }
+  ],
+  "researched": 3
  },
  "CN": {
   "live": [],

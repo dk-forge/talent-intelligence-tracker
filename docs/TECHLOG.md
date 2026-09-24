@@ -14,6 +14,134 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-24 - google_news stored nothing for five days; collect's red was the guardrail, not the collection
+
+Overnight fixes (branch `claude/overnight-fixes-2026-09-24`). Five items.
+
+### 1. google_news: 0 rows stored 2026-09-17 to 09-21 (before: 29-81/day)
+
+**Evidence (data/talent_intel.db, read-only).** Every run from 2026-09-17
+00:03 UTC: ~900-1,500 found, 111-389 "rejected", `model`/`gate_model` NULL,
+zero gate calls, zero cost. So nothing reached the classifier: every candidate
+died in `validate.precheck` BEFORE any model call. The seen-ledger
+(`talent_intel_cache.db` `seen_urls`) shows why: every google_news URL marked
+`rejected` since 09-17 is a BARE HOMEPAGE (`https://technode.com`,
+`https://mx.investing.com`, ...). Before 09-17 they were article URLs.
+
+**Root cause (strong inference, not live-proven - this sandbox cannot reach
+news.google.com).** `google_news.resolve_source_url` recovers the publisher
+URL from Google's redirect by scraping `data-n-a-sg`/`data-n-a-ts` off the
+article page. On failure it SILENTLY keeps the RSS `<source>` homepage, which
+validate rejects as a bare domain. It started failing on the first run after
+#139 (b1d3b94, 2026-09-16 11:52 +0200) moved `collect.yml` from
+`ubuntu-latest` (US) to the Contabo VPS (EU address). From EU addresses Google
+answers with its "Before you continue" consent interstitial, which carries no
+signature. No code in the resolver, the gate, the classifier, spend.py or any
+threshold changed in the window; paid reads were NOT off (`budget_deferred`
+NULL, no DEGRADED allowance marker). gdelt, which moved with it, also read 0
+found 09-17..09-20 - worth watching, not diagnosed here.
+
+**Fix.** The resolver now sends Google's consent cookies (`SOCS=CAI`,
+`CONSENT=YES+`; no identity, harmless from a US address) on both requests,
+counts pages that still come back as the consent wall
+(`google_news.STATS`), and run_collect writes `UNRESOLVED: n/m Google News
+links kept a homepage (k consent wall)` into the health detail, so the next
+silent failure says what it is. Tests: `tests/test_google_news_resolution.py`.
+**Owner: confirm on the next run on the VPS** (detail should show no
+UNRESOLVED marker and a non-zero stored count). If it still fails, the
+fallback is to run the google_news leg from a GitHub-hosted runner - it never
+touches the WordPress host except through `--publish`.
+
+**Alarm.** `ops_status.py [2]` now flags `ZERO-STORE STREAK` when a primary
+collector (`staleness.PRIMARY_COLLECTORS`: google_news, gdelt,
+national_press; the SEC pair is exempt for weekends) stored 0 rows on >= 3
+consecutive run days. It used to read only the latest row per collector, so
+five dead days looked like one bad night. Tests:
+`tests/test_zero_store_streak.py`. Against today's DB it fires for
+google_news (5 days).
+
+### 2. collect.yml: one overdue guardrail finding turned every collection red
+
+`run_collect` now exits `GUARDRAIL_OVERDUE_EXIT` (4) when the only failure is
+a finding past its grace window (clean rows already published;
+`publish._escalate` marks the error `overdue_only`), and writes
+`$TIT_GUARDRAIL_MARKER` whatever the exit code, so neither signal can mask the
+other. The Collect step treats 4 as success; the new `guardrail-overdue` job
+(needs: collect, ubuntu-latest, no secrets) goes red with the guardrail
+message. The guardrail is not silenced - it is a separate red job in the same
+run, and ci_alert still mails it. Other workflows calling `--publish`
+(collect-press etc.) still go non-zero on it, unchanged. Tests:
+`tests/test_guardrail_overdue_exit.py`.
+
+### 3. Peso '$' read as US dollars
+
+`vocab.funding_usd_for_country()`: a bare '$' (no US$/USD/dollar word) beside
+a Spanish/Portuguese scale word (millones, milhões, ...) on a row placed in a
+peso-sign country (`PESO_DOLLAR_SIGN_COUNTRIES`: AR CL CO MX UY DO CU BR)
+refuses, like any non-USD figure. Allowlist, not "every non-US country":
+Costa Rican press writes colones as '₡' and '$30 millones' there is USD
+(Belca, a live row a denylist would have cleared). Wired into
+`validate.build_signal` and `correct_funding_amount.rederivation`. Tests:
+`tests/test_local_peso_dollar_sign.py`. The database was NOT edited.
+
+All five named rows are already `rejected` amount findings (withheld, never
+published). Owner commands, through the writer queue (never dispatch a writer
+directly):
+
+- **Grupo Éxito** (`fe1eb761...`, CO, '$292.000 millones' = COP): after this
+  merges, dry-run then apply the re-derivation; the dry run now shows it as
+  the ONE new row versus main (292,000,000,000 -> none):
+
+      gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
+        -f inputs_json='{"dry_run":"true"}' -f reason='peso guard: Grupo Exito'
+      gh workflow run drain-writers.yml -f enqueue=correct-funding-amount.yml \
+        -f inputs_json='{"dry_run":"false"}' -f reason='peso guard: Grupo Exito'
+
+  CAUTION, pre-existing and not caused here: the same dry run also proposes
+  re-deriving Ominimo ($1.6B valuation) and Sapien ($180M valuation) back to
+  a figure, which an owner ruling cleared (TECHLOG 2026-09-20, #170). Read the
+  dry-run table before applying; if those two appear, do not apply until that
+  is resolved.
+- **DeepSeek 70B** (`ae8f9f41...`, valuation), **Argentina LNG 51B**
+  (`2eaf758a...`, project investment), **Broadcom 60B** (`f6f157c6...`, debt
+  report), **Nvidia 709B** (`186932f9...`, infrastructure financing, AU row -
+  possibly AUD): the stated figure is what the source said; what is wrong is
+  `money_basis = company_raise`. Re-judge the corpus with the money-basis
+  corrector:
+
+      gh workflow run drain-writers.yml -f enqueue=correct-money-basis.yml \
+        -f inputs_json='{"dry_run":"true"}' -f reason='re-judge basis: DeepSeek/ARG LNG/Broadcom/Nvidia'
+
+  and for any of the four the corrector still calls `company_raise`, put it to
+  the referees: `gh workflow run adjudicate-rows.yml -f
+  rows=<content_hash>` (DeepSeek already has a spec:
+  `-f from_spec=analysis/adjudications/2026-09-12-amount-ae8f9f415960cc768665378a99e59233.json`).
+
+### 4. data/signals.db removed
+
+Empty (0 bytes), tracked, referenced nowhere (grep of the tree). `git rm`.
+
+### 5. national_press dead feeds
+
+Checked against the last three `data/national_press_health.json` runs rather
+than taken on faith. Retired per the catalogue's convention (rss cleared,
+`feed_checked` = `2026-09-24 dead: ...`, "Feed retired" note):
+**Business in Vancouver** and **Actu Cameroun** (HTTP 403 on 8 consecutive
+runs). NOT retired, because the latest run (2026-09-23) read them fine or the
+failure is one night old: **brutkasten** (ok, 10 items), **Business Daily
+Africa** (ok, 25 items), **BusinessWorld** (HTTP 500/503 for two runs, ok on
+09-21 - transient). `data/feeds.csv` and `country_sources.json` regenerated.
+
+### Owner actions
+
+- **The Contabo runner is offline** (SSH access needs fixing by the owner).
+  Until it is back, collect.yml, collect-press and every host-touching
+  workflow queue and nothing collects; the fixes above are unverified live
+  until it runs.
+- Contrast audit on the same runner still needs Chrome (entry below).
+- Confirm google_news stores rows on the first VPS run after merge.
+- Run the money corrections above when ready.
+
 ## 2026-09-23 - Rendered contrast audit is broken on the self-hosted runner: no Chrome/Chromium installed
 
 **Open. Needs the owner; nothing here can fix it.**

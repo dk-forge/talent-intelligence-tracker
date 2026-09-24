@@ -54,3 +54,54 @@ def test_resolution_uses_a_browser_agent():
     agent is for the WordPress host and does not apply here."""
     assert "Mozilla/5.0" in google_news.BROWSER_UA
     assert "TalentIntel" not in google_news.BROWSER_UA
+
+
+class _Resp:
+    def __init__(self, text):
+        self.text = text
+
+
+class _RecordingSession:
+    """Answers like Google does from a US address, and records what was sent."""
+
+    def __init__(self):
+        self.calls = []
+
+    def get(self, url, **kw):
+        self.calls.append(("get", url, kw))
+        return _Resp('<c-wiz data-n-a-sg="SIG" data-n-a-ts="1726000000">')
+
+    def post(self, url, **kw):
+        self.calls.append(("post", url, kw))
+        return _Resp(REAL_RESPONSE)
+
+
+def test_resolution_presents_the_consent_cookie():
+    """2026-09-17 regression. collect.yml moved to the Contabo VPS (an EU
+    address) on 2026-09-16, and from then on google_news stored ZERO rows:
+    every candidate kept the RSS <source> homepage and was rejected as a bare
+    domain. From EU addresses Google answers the article page with its consent
+    interstitial, which carries no data-n-a-sg signature, so resolution
+    silently gave up. The consent cookie must ride on both requests."""
+    session = _RecordingSession()
+    item = {"discovery_url": "https://news.google.com/rss/articles/CBMiabc?oc=5",
+            "source_url": "https://www.hotel-online.com"}
+    out = google_news.resolve_source_url(item, session=session)
+    assert out["source_url"].endswith("/generator-appoints-chief-executive")
+    for _verb, _url, kw in session.calls:
+        cookies = kw.get("cookies") or {}
+        assert cookies.get("SOCS") and cookies.get("CONSENT"), _verb
+
+
+def test_consent_wall_page_is_recognised():
+    wall = '<form action="https://consent.google.com/save">Before you continue</form>'
+    assert google_news.is_consent_wall(wall)
+    assert not google_news.is_consent_wall('<c-wiz data-n-a-sg="x">')
+
+
+def test_unresolved_items_are_counted():
+    items = [
+        {"discovery_url": "https://news.google.com/rss/articles/A", "source_url": "https://www.ft.com"},
+        {"discovery_url": "https://news.google.com/rss/articles/B", "source_url": "https://www.ft.com/content/abc"},
+    ]
+    assert google_news.unresolved_count(items) == 1

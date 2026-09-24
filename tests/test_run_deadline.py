@@ -60,8 +60,18 @@ def _collect_workflows():
                  if "run_collect.py" in line]
         if not calls or all("--offline" in line for line in calls):
             continue
-        ceilings = [int(m) for m in
-                    re.findall(r"^\s*timeout-minutes:\s*(\d+)", text, re.M)]
+        # Only the ceilings of jobs that actually run the collector: a small
+        # side job in the same workflow (collect.yml's guardrail-overdue,
+        # 2026-09-24) has its own 5-minute ceiling and runs no clock.
+        import yaml
+        jobs = (yaml.safe_load(text) or {}).get("jobs") or {}
+        ceilings = [int(job["timeout-minutes"]) for job in jobs.values()
+                    if "timeout-minutes" in job
+                    and any("run_collect.py" in (st.get("run") or "")
+                            for st in job.get("steps") or [])]
+        if not jobs:
+            ceilings = [int(m) for m in
+                        re.findall(r"^\s*timeout-minutes:\s*(\d+)", text, re.M)]
         if ceilings:
             out[path.name] = min(ceilings)
     return out

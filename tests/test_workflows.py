@@ -127,7 +127,10 @@ def test_the_schedule_sweeps_every_collector_this_workflow_owns():
         "google_news production ceiling")
     # One failed source must not silence the sources after it in the loop, and
     # must still turn the step red at the end.
-    assert "|| overall=1" in run and "exit $overall" in run
+    # Since 2026-09-24 the code is captured (`|| rc=$?`) so exit 4, "only a
+    # guardrail finding is overdue", does not count as a collection failure.
+    assert ("|| overall=1" in run or ("|| rc=$?" in run and "overall=1" in run)) \
+        and "exit $overall" in run
     # The dispatch path keeps its single-source input.
     assert "inputs.source || 'google_news'" in step["run"]
 

@@ -175,7 +175,10 @@ def rederivation(row: dict):
     opinion about what "disagrees" means.
     """
     stored = _stored_usd(row)
-    parsed = vocab.parse_funding_usd(row.get("funding_amount") or "")
+    # Country-aware, the same function validate.build_signal calls, so a bare
+    # '$' beside 'millones' on a Colombian row (pesos) is cleared here too.
+    parsed = vocab.funding_usd_for_country(row.get("funding_amount") or "",
+                                           row.get("country"))
     if parsed == stored:
         return None
     return stored, parsed

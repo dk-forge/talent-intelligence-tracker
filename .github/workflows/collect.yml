@@ -65,6 +65,8 @@ permissions:
 jobs:
   collect:
     runs-on: [self-hosted, linux, contabo]
+    outputs:
+      guardrail_overdue: ${{ steps.collect.outputs.guardrail_overdue }}
     # SIZED FROM MEASUREMENT, 2026-08-13: median 20.0 min, max 101.5 over the
     # last 44 successful runs. Highly variable, and deliberately sized for the
     # tail rather than the middle: everything since 2026-08-03 sits between 12
@@ -163,15 +165,27 @@ jobs:
       # a dead GDELT costing us the SEC filings would be a new bug wearing a
       # sweep as a hat — so each failure is recorded and the step goes red
       # only after every source has had its run.
+      #
+      # AN OVERDUE GUARDRAIL FINDING IS NOT A COLLECTION FAILURE (2026-09-24).
+      # run_collect exits GUARDRAIL_OVERDUE_EXIT (4) when the clean rows were
+      # published and the only thing left is a finding past its grace window,
+      # and writes $TIT_GUARDRAIL_MARKER whatever its exit code. This step
+      # treats 4 as success and records the marker as an output; the separate
+      # `guardrail-overdue` job below goes red on it. One stale finding had
+      # turned every daily run red since 2026-09-17, which is exactly how
+      # google_news storing ZERO rows for five days went unnoticed.
       - name: Collect
+        id: collect
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
+          export TIT_GUARDRAIL_MARKER="$RUNNER_TEMP/guardrail_overdue"
+          rm -f "$TIT_GUARDRAIL_MARKER"
+          overall=0
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            overall=0
             for source in google_news gdelt sec_edgar sec_form_d; do
               case "$source" in
                 gdelt)                export TIT_READTHROUGH_CAP=9 ;;
@@ -180,19 +194,28 @@ jobs:
                 *)                    unset TIT_READTHROUGH_CAP ;;
               esac
               echo "::group::collect $source"
+              rc=0
               python run_collect.py \
                 --run-index "${{ steps.idx.outputs.value }}" \
                 --publish \
-                --source "$source" || overall=1
+                --source "$source" || rc=$?
+              if [ "$rc" -ne 0 ] && [ "$rc" -ne 4 ]; then overall=1; fi
               echo "::endgroup::"
             done
-            exit $overall
+          else
+            rc=0
+            python run_collect.py \
+              --run-index "${{ steps.idx.outputs.value }}" \
+              ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
+              ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }} \
+              --source "${{ inputs.source || 'google_news' }}" || rc=$?
+            if [ "$rc" -ne 0 ] && [ "$rc" -ne 4 ]; then overall=1; fi
           fi
-          python run_collect.py \
-            --run-index "${{ steps.idx.outputs.value }}" \
-            ${{ inputs.dry_run && '--dry-run' || '--publish' }} \
-            ${{ inputs.limit && format('--limit {0}', inputs.limit) || '' }} \
-            --source "${{ inputs.source || 'google_news' }}"
+          if [ -f "$TIT_GUARDRAIL_MARKER" ]; then
+            echo "guardrail_overdue=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::[guardrail] finding(s) past their grace window - reported by the guardrail-overdue job, not by this one."
+          fi
+          exit $overall
 
       - name: Status
         if: ${{ !inputs.dry_run }}
@@ -284,4 +307,19 @@ jobs:
 
           echo "::error::Could not push the database after 5 attempts. \
           This run's records exist only on the runner and are lost."
+          exit 1
+
+  # The guardrail escalation, kept loud but on its own line in the run. It
+  # touches neither the host nor a key, so it runs on a GitHub-hosted runner.
+  # Answer the findings with `python3 guardrails.py` (or let
+  # auto-adjudicate-guardrails.yml put them to the referees); this job turns
+  # green on the next run after they are answered.
+  guardrail-overdue:
+    needs: collect
+    if: ${{ always() && needs.collect.outputs.guardrail_overdue == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "::error::[guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
           exit 1

@@ -246,6 +246,47 @@ _TS = re.compile(r'data-n-a-ts="([^"]+)"')
 _RESOLVED = re.compile(r'garturlres\\",\\"(https?://[^\\"]+)')
 
 
+# Google's EU consent cookies. From an EU address (the Contabo VPS that
+# collect.yml has run on since 2026-09-16) the article page answers with the
+# "Before you continue" consent interstitial instead of the page carrying the
+# data-n-a-sg signature, and resolution silently fell back to the outlet
+# homepage for every item: google_news stored ZERO rows from 2026-09-17 while
+# finding ~1,000 a run (TECHLOG 2026-09-24). SOCS=CAI is the "reject all"
+# consent answer; CONSENT=YES+ is the older form still honoured. Neither
+# carries an identity. Harmless from a US address.
+CONSENT_COOKIES = {"SOCS": "CAI", "CONSENT": "YES+"}
+
+_CONSENT_WALL = re.compile(r"consent\.google\.|Before you continue", re.I)
+
+
+# Per-process tally of article pages that came back as the consent wall even
+# with the cookies above. run_collect writes it into the health detail.
+STATS = {"consent_wall": 0}
+
+
+def is_consent_wall(html: str) -> bool:
+    """Whether Google answered with its consent interstitial, not the page."""
+    return bool(_CONSENT_WALL.search(html or "")) and "data-n-a-sg" not in (html or "")
+
+
+def unresolved_count(items: list[dict]) -> int:
+    """Google News items whose source is still a homepage or Google itself.
+
+    Printed and written to the health detail by run_collect, so the next time
+    resolution breaks, the ledger says so in words instead of "every
+    candidate rejected".
+    """
+    n = 0
+    for it in items:
+        if "news.google.com" not in (it.get("discovery_url") or ""):
+            continue
+        src = it.get("source_url") or ""
+        path = src.split("://", 1)[-1].partition("/")[2].strip("/")
+        if "news.google.com" in src or not path:
+            n += 1
+    return n
+
+
 def article_id(discovery_url: str) -> str:
     return discovery_url.rstrip("/").rsplit("/", 1)[-1].split("?")[0]
 
@@ -266,9 +307,12 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
     try:
         aid = article_id(url)
         page = http.get(f"https://news.google.com/rss/articles/{aid}",
-                        headers={"User-Agent": BROWSER_UA}, timeout=timeout)
+                        headers={"User-Agent": BROWSER_UA},
+                        cookies=CONSENT_COOKIES, timeout=timeout)
         sig, ts = _SIG.search(page.text), _TS.search(page.text)
         if not (sig and ts):
+            if is_consent_wall(page.text):
+                STATS["consent_wall"] += 1
             return item
 
         inner = json.dumps([
@@ -283,6 +327,7 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
             headers={"User-Agent": BROWSER_UA,
                      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"},
             data={"f.req": json.dumps([[["Fbv4je", inner]]])},
+            cookies=CONSENT_COOKIES,
             timeout=timeout,
         )
         hit = _RESOLVED.search(resp.text)

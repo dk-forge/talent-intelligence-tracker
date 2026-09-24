@@ -23,7 +23,8 @@ import source_registry as registry
 # The global 36h this replaced called a five-day-old monthly source stale
 # while the digest called the same row healthy. staleness.py is stdlib-only,
 # which is the property this file's "no deps, no keys" promise rests on.
-from staleness import max_age_hours
+from staleness import (PRIMARY_COLLECTORS, ZERO_STORE_STREAK_DAYS,
+                       max_age_hours, zero_store_streak_days)
 # For cache_path_for and connect_ro ONLY. pipeline/schema.py is stdlib-only
 # (it imports pipeline.vocab, which is re and unicodedata), so this does not
 # cost this file its "no dependencies" promise — and importing it is what stops
@@ -696,7 +697,30 @@ def _report_health(conn) -> list[str]:
         if row["status"] not in BENIGN_STATUSES:
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
+    problems.extend(_zero_store_streaks(conn))
     return problems
+
+
+def _zero_store_streaks(conn) -> list[str]:
+    """A primary collector storing nothing for days on end is an outage.
+
+    The loop above reads one row per collector, so five dead days looked like
+    one bad night (google_news, 2026-09-17..21, TECHLOG 2026-09-24).
+    """
+    out = []
+    for collector in PRIMARY_COLLECTORS:
+        runs = conn.execute(
+            "SELECT run_at, items_stored FROM source_health WHERE collector = ? "
+            "AND run_at >= (SELECT datetime(MAX(run_at), '-30 days') "
+            "FROM source_health WHERE collector = ?)",
+            (collector, collector)).fetchall()
+        days = zero_store_streak_days((r[0], r[1]) for r in runs)
+        if days >= ZERO_STORE_STREAK_DAYS:
+            msg = (f"ZERO-STORE STREAK: {collector} has stored 0 rows on "
+                   f"{days} consecutive run days — an outage, not a quiet week")
+            print(f"    {msg}")
+            out.append(msg)
+    return out
 
 
 #: How much of the health ledger the cost window looks at. Collection runs

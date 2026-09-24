@@ -485,23 +485,6 @@
   "collector": ""
  },
  {
-  "name": "Actu Cameroun",
-  "url": "https://actucameroun.com",
-  "status": "candidate",
-  "category": "Technology News",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "National",
-  "country": "Cameroon",
-  "rss": "https://actucameroun.com/feed/",
-  "free": true,
-  "notes": "Verified by the mea region audit, 2026-07-29. General national news; 20 items.",
-  "collector": ""
- },
- {
   "name": "Actualite.cd",
   "url": "https://www.actualite.cd",
   "status": "candidate",
@@ -1770,23 +1753,6 @@
   "rss": "https://www.businessincameroon.com/index.php/component/obrss/fullrss",
   "free": true,
   "notes": "Verified by the mea region audit, 2026-07-29. Joomla obRSS component path. English edition of the Investir au Cameroun publisher.",
-  "collector": ""
- },
- {
-  "name": "Business in Vancouver",
-  "url": "https://www.biv.com",
-  "status": "candidate",
-  "category": "Business Journal",
-  "signals": [
-   "Funding",
-   "Executive Hire",
-   "Company Expansion"
-  ],
-  "coverage": "Metro",
-  "country": "Canada",
-  "rss": "https://www.biv.com/rss",
-  "free": true,
-  "notes": "Verified by the 2026-07-30 publisher widening: candidate taken from the sibling tracker's vetted outlet list as research and fetched through this collector's own path. Added for depth in a country the 2026-07-28 recall measurement scored at zero.",
   "collector": ""
  },
  {
