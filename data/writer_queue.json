@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-24T07:29:45Z",
-  "last_tick": "2026-09-24T09:09:05Z",
+  "last_tick": "2026-09-24T09:13:11Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -225,6 +225,15 @@
       "resolved": "2026-09-23T09:12:50Z",
       "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
       "run_id": "35839631594",
+      "workflow": "collect-structured"
+    },
+    {
+      "created_at": "2026-09-24T09:09:39Z",
+      "detail": "scheduled run displaced from the pending slot; it carries no inputs and the next cron covers the same ground",
+      "noticed_at": "2026-09-24T09:13:11Z",
+      "resolved": "2026-09-24T09:13:11Z",
+      "resolved_note": "schedule eviction, resolved automatically: the next scheduled run repeats the same pass",
+      "run_id": "35979540739",
       "workflow": "collect-structured"
     }
   ],
