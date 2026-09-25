@@ -2546,6 +2546,50 @@
       "run_id": "36099443554",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-25T06:42:03Z",
+          "detail": "catch-up: edinet_japan missed its scheduled slot",
+          "event": "queued"
+        }
+      ],
+      "id": "20260925T064203Z-collect-structured",
+      "inputs": {
+        "source": "edinet_japan"
+      },
+      "priority": 0,
+      "reason": "catch-up: edinet_japan missed its scheduled slot",
+      "requested_at": "2026-09-25T06:42:03Z",
+      "requested_by": "catch-up",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-25T06:42:03Z",
+          "detail": "catch-up: opendart_korea missed its scheduled slot",
+          "event": "queued"
+        }
+      ],
+      "id": "20260925T064204Z-collect-structured",
+      "inputs": {
+        "source": "opendart_korea"
+      },
+      "priority": 0,
+      "reason": "catch-up: opendart_korea missed its scheduled slot",
+      "requested_at": "2026-09-25T06:42:04Z",
+      "requested_by": "catch-up",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-structured.yml"
     }
   ],
   "version": 1
