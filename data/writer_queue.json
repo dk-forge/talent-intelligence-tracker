@@ -248,76 +248,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-25T08:52:43Z",
-      "history": [
-        {
-          "at": "2026-09-25T08:38:38Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-25T08:52:43Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-25T09:09:04Z",
-          "detail": "run 36115318356",
-          "event": "bound"
-        }
-      ],
-      "id": "20260925T083838Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-25T08:38:38Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "36115318356",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-17T14:47:43Z",
-      "history": [
-        {
-          "at": "2026-09-17T14:38:00Z",
-          "detail": "2026-09-17: two independent reviewers agreed TikTok row b1435535 (M) is TikTok's own outbound project investment in Vietnam, not a raise; money_raised.basis() already says outbound_investment.",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T14:47:43Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-17T14:55:02Z",
-          "detail": "run 35235976943",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-17T14:55:02Z",
-          "detail": "run 35235976943",
-          "event": "landed"
-        }
-      ],
-      "id": "20260917T143800Z-correct-money-basis",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-17T14:55:02Z",
-      "priority": 0,
-      "reason": "2026-09-17: two independent reviewers agreed TikTok row b1435535 (M) is TikTok's own outbound project investment in Vietnam, not a raise; money_raised.basis() already says outbound_investment.",
-      "requested_at": "2026-09-17T14:38:00Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35235976943",
-      "state": "landed",
-      "workflow": "correct-money-basis.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-17T15:01:25Z",
       "history": [
         {
@@ -2578,6 +2508,44 @@
       "run_id": "36104551272",
       "state": "landed",
       "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-25T08:52:43Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:38:38Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-25T08:52:43Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-25T09:09:04Z",
+          "detail": "run 36115318356",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-25T09:19:20Z",
+          "detail": "run 36115318356",
+          "event": "landed"
+        }
+      ],
+      "id": "20260925T083838Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-25T09:19:20Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-25T08:38:38Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36115318356",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
