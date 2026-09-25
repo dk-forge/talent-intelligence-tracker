@@ -248,71 +248,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-25T06:48:24Z",
-      "history": [
-        {
-          "at": "2026-09-25T06:42:03Z",
-          "detail": "catch-up: opendart_korea missed its scheduled slot",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-25T06:48:24Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260925T064204Z-collect-structured",
-      "inputs": {
-        "source": "opendart_korea"
-      },
-      "priority": 0,
-      "reason": "catch-up: opendart_korea missed its scheduled slot",
-      "requested_at": "2026-09-25T06:42:04Z",
-      "requested_by": "catch-up",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-17T14:55:02Z",
-      "history": [
-        {
-          "at": "2026-09-17T14:25:30Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T14:55:02Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-17T15:01:25Z",
-          "detail": "run 35236783379",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-17T15:01:25Z",
-          "detail": "run 35236783379",
-          "event": "landed"
-        }
-      ],
-      "id": "20260917T142530Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-17T15:01:25Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-17T14:25:30Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35236783379",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-17T14:47:43Z",
       "history": [
         {
@@ -2571,6 +2506,44 @@
       "requested_at": "2026-09-25T06:42:03Z",
       "requested_by": "catch-up",
       "run_id": "36104357015",
+      "state": "landed",
+      "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-25T06:48:24Z",
+      "history": [
+        {
+          "at": "2026-09-25T06:42:03Z",
+          "detail": "catch-up: opendart_korea missed its scheduled slot",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-25T06:48:24Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-25T06:51:42Z",
+          "detail": "run 36104551272",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-25T06:51:42Z",
+          "detail": "run 36104551272",
+          "event": "landed"
+        }
+      ],
+      "id": "20260925T064204Z-collect-structured",
+      "inputs": {
+        "source": "opendart_korea"
+      },
+      "landed_at": "2026-09-25T06:51:42Z",
+      "priority": 0,
+      "reason": "catch-up: opendart_korea missed its scheduled slot",
+      "requested_at": "2026-09-25T06:42:04Z",
+      "requested_by": "catch-up",
+      "run_id": "36104551272",
       "state": "landed",
       "workflow": "collect-structured.yml"
     }
