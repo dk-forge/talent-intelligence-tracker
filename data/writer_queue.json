@@ -238,7 +238,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260917T143821Z-adjudicate-rows": "2026-09-24T18:50:01Z",
     "ticket:20260917T174055Z-adjudicate-rows": "2026-09-24T21:08:16Z",
     "ticket:20260920T194430Z-extraction-benchmark": "2026-09-24T20:27:09Z",
     "ticket:20260921T112552Z-adjudicate-rows": "2026-09-24T11:36:01Z",
@@ -246,73 +245,6 @@
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-24T12:38:48Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-25T09:51:22Z",
-      "history": [
-        {
-          "at": "2026-09-25T09:45:59Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-25T09:51:22Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260925T094559Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-25T09:45:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-17T15:01:25Z",
-      "history": [
-        {
-          "at": "2026-09-17T14:38:21Z",
-          "detail": "money-basis-check failing on five figure rows; two reviewers agreed",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T15:01:25Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-17T15:02:36Z",
-          "detail": "run 35237491684",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-17T15:02:36Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260917T143821Z-adjudicate-rows",
-      "inputs": {
-        "ceiling": "0.50",
-        "dry_run": "false",
-        "reason": "money-basis-check 2026-09-17: two independent reviewers read each source; Ominimo $1.6B and Sapien $180M are valuations with no stated raise, Hubco $150M and FNC $14M are project capex, Brandeis $10M is a donation. None is a company raise.",
-        "rows": "734d99623f823e79e2d549649cd1abdf,465b406cd7cbe680aae7716507450719,9e66f52d50313f49f91d35deadc777a2,005123a94e8243df523375355d856a99,24351a64d835a6d01ddc4fe727ab88b2"
-      },
-      "priority": 0,
-      "reason": "money-basis-check failing on five figure rows; two reviewers agreed",
-      "requested_at": "2026-09-17T14:38:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35237491684",
-      "state": "failed",
-      "workflow": "adjudicate-rows.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-17T15:27:26Z",
@@ -2573,6 +2505,44 @@
       "run_id": "36115318356",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-25T09:51:22Z",
+      "history": [
+        {
+          "at": "2026-09-25T09:45:59Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-25T09:51:22Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-25T09:54:21Z",
+          "detail": "run 36120770904",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-25T09:54:21Z",
+          "detail": "run 36120770904",
+          "event": "landed"
+        }
+      ],
+      "id": "20260925T094559Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-25T09:54:21Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-09-25T09:45:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36120770904",
+      "state": "landed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
