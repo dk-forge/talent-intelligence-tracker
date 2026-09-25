@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-25T06:45:53Z",
-  "last_tick": "2026-09-25T06:45:53Z",
+  "last_dispatch": "2026-09-25T06:48:24Z",
+  "last_tick": "2026-09-25T06:48:24Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -248,39 +248,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-25T06:45:53Z",
-      "history": [
-        {
-          "at": "2026-09-25T06:42:03Z",
-          "detail": "catch-up: edinet_japan missed its scheduled slot",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-25T06:45:53Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260925T064203Z-collect-structured",
-      "inputs": {
-        "source": "edinet_japan"
-      },
-      "priority": 0,
-      "reason": "catch-up: edinet_japan missed its scheduled slot",
-      "requested_at": "2026-09-25T06:42:03Z",
-      "requested_by": "catch-up",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-25T06:48:24Z",
       "history": [
         {
           "at": "2026-09-25T06:42:03Z",
           "detail": "catch-up: opendart_korea missed its scheduled slot",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-25T06:48:24Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260925T064204Z-collect-structured",
@@ -292,46 +270,8 @@
       "requested_at": "2026-09-25T06:42:04Z",
       "requested_by": "catch-up",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-17T14:21:05Z",
-      "history": [
-        {
-          "at": "2026-09-17T13:34:32Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-17T14:21:05Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-17T14:38:04Z",
-          "detail": "run 35232977392",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-17T14:47:43Z",
-          "detail": "run 35232977392",
-          "event": "landed"
-        }
-      ],
-      "id": "20260917T133432Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-17T14:47:43Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-17T13:34:32Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35232977392",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2595,6 +2535,44 @@
       "run_id": "36099443554",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-25T06:45:53Z",
+      "history": [
+        {
+          "at": "2026-09-25T06:42:03Z",
+          "detail": "catch-up: edinet_japan missed its scheduled slot",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-25T06:45:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-25T06:48:24Z",
+          "detail": "run 36104357015",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-25T06:48:24Z",
+          "detail": "run 36104357015",
+          "event": "landed"
+        }
+      ],
+      "id": "20260925T064203Z-collect-structured",
+      "inputs": {
+        "source": "edinet_japan"
+      },
+      "landed_at": "2026-09-25T06:48:24Z",
+      "priority": 0,
+      "reason": "catch-up: edinet_japan missed its scheduled slot",
+      "requested_at": "2026-09-25T06:42:03Z",
+      "requested_by": "catch-up",
+      "run_id": "36104357015",
+      "state": "landed",
+      "workflow": "collect-structured.yml"
     }
   ],
   "version": 1
