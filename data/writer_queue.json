@@ -2540,6 +2540,50 @@
       "run_id": "36221278775",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-26T06:38:11Z",
+          "detail": "catch-up: companies_house missed its scheduled slot",
+          "event": "queued"
+        }
+      ],
+      "id": "20260926T063811Z-collect-structured",
+      "inputs": {
+        "source": "companies_house"
+      },
+      "priority": 0,
+      "reason": "catch-up: companies_house missed its scheduled slot",
+      "requested_at": "2026-09-26T06:38:11Z",
+      "requested_by": "catch-up",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-26T06:38:11Z",
+          "detail": "catch-up: singapore_acra missed its scheduled slot",
+          "event": "queued"
+        }
+      ],
+      "id": "20260926T063812Z-collect-structured",
+      "inputs": {
+        "source": "singapore_acra"
+      },
+      "priority": 0,
+      "reason": "catch-up: singapore_acra missed its scheduled slot",
+      "requested_at": "2026-09-26T06:38:12Z",
+      "requested_by": "catch-up",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "collect-structured.yml"
     }
   ],
   "version": 1
