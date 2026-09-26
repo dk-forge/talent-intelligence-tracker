@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-26T06:40:36Z",
-  "last_tick": "2026-09-26T06:57:05Z",
+  "last_dispatch": "2026-09-26T07:13:03Z",
+  "last_tick": "2026-09-26T07:13:03Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -246,44 +246,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-26T06:40:36Z",
-      "history": [
-        {
-          "at": "2026-09-26T06:38:11Z",
-          "detail": "catch-up: companies_house missed its scheduled slot",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-26T06:40:36Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-26T06:57:05Z",
-          "detail": "run 36224473156",
-          "event": "bound"
-        }
-      ],
-      "id": "20260926T063811Z-collect-structured",
-      "inputs": {
-        "source": "companies_house"
-      },
-      "priority": 0,
-      "reason": "catch-up: companies_house missed its scheduled slot",
-      "requested_at": "2026-09-26T06:38:11Z",
-      "requested_by": "catch-up",
-      "run_id": "36224473156",
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-09-26T07:13:03Z",
       "history": [
         {
           "at": "2026-09-26T06:38:11Z",
           "detail": "catch-up: singapore_acra missed its scheduled slot",
           "event": "queued"
+        },
+        {
+          "at": "2026-09-26T07:13:03Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20260926T063812Z-collect-structured",
@@ -295,46 +268,8 @@
       "requested_at": "2026-09-26T06:38:12Z",
       "requested_by": "catch-up",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-18T04:57:52Z",
-      "history": [
-        {
-          "at": "2026-09-18T04:52:11Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-18T04:57:52Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-18T05:24:25Z",
-          "detail": "run 35308962052",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-18T05:24:25Z",
-          "detail": "run 35308962052",
-          "event": "landed"
-        }
-      ],
-      "id": "20260918T045211Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-18T05:24:25Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-18T04:52:11Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35308962052",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2594,6 +2529,44 @@
       "run_id": "36221278775",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-26T06:40:36Z",
+      "history": [
+        {
+          "at": "2026-09-26T06:38:11Z",
+          "detail": "catch-up: companies_house missed its scheduled slot",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-26T06:40:36Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-26T06:57:05Z",
+          "detail": "run 36224473156",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-26T07:13:03Z",
+          "detail": "run 36224473156",
+          "event": "landed"
+        }
+      ],
+      "id": "20260926T063811Z-collect-structured",
+      "inputs": {
+        "source": "companies_house"
+      },
+      "landed_at": "2026-09-26T07:13:03Z",
+      "priority": 0,
+      "reason": "catch-up: companies_house missed its scheduled slot",
+      "requested_at": "2026-09-26T06:38:11Z",
+      "requested_by": "catch-up",
+      "run_id": "36224473156",
+      "state": "landed",
+      "workflow": "collect-structured.yml"
     }
   ],
   "version": 1
