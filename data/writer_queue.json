@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-09-26T06:40:36Z",
-  "last_tick": "2026-09-26T06:40:36Z",
+  "last_tick": "2026-09-26T06:57:05Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -257,6 +257,11 @@
           "at": "2026-09-26T06:40:36Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-09-26T06:57:05Z",
+          "detail": "run 36224473156",
+          "event": "bound"
         }
       ],
       "id": "20260926T063811Z-collect-structured",
@@ -267,7 +272,7 @@
       "reason": "catch-up: companies_house missed its scheduled slot",
       "requested_at": "2026-09-26T06:38:11Z",
       "requested_by": "catch-up",
-      "run_id": null,
+      "run_id": "36224473156",
       "state": "dispatched",
       "workflow": "collect-structured.yml"
     },
