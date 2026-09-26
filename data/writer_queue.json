@@ -246,76 +246,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-26T07:13:03Z",
-      "history": [
-        {
-          "at": "2026-09-26T06:38:11Z",
-          "detail": "catch-up: singapore_acra missed its scheduled slot",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-26T07:13:03Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-26T07:16:02Z",
-          "detail": "run 36226105572",
-          "event": "bound"
-        }
-      ],
-      "id": "20260926T063812Z-collect-structured",
-      "inputs": {
-        "source": "singapore_acra"
-      },
-      "priority": 0,
-      "reason": "catch-up: singapore_acra missed its scheduled slot",
-      "requested_at": "2026-09-26T06:38:12Z",
-      "requested_by": "catch-up",
-      "run_id": "36226105572",
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-18T13:32:17Z",
-      "history": [
-        {
-          "at": "2026-09-18T09:56:21Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-18T13:32:17Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-18T13:37:23Z",
-          "detail": "run 35350802031",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-18T13:37:23Z",
-          "detail": "run 35350802031",
-          "event": "landed"
-        }
-      ],
-      "id": "20260918T095621Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-18T13:37:23Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-18T09:56:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35350802031",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-18T13:37:23Z",
       "history": [
         {
@@ -2570,6 +2500,44 @@
       "requested_at": "2026-09-26T06:38:11Z",
       "requested_by": "catch-up",
       "run_id": "36224473156",
+      "state": "landed",
+      "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-26T07:13:03Z",
+      "history": [
+        {
+          "at": "2026-09-26T06:38:11Z",
+          "detail": "catch-up: singapore_acra missed its scheduled slot",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-26T07:13:03Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-26T07:16:02Z",
+          "detail": "run 36226105572",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-26T07:30:04Z",
+          "detail": "run 36226105572",
+          "event": "landed"
+        }
+      ],
+      "id": "20260926T063812Z-collect-structured",
+      "inputs": {
+        "source": "singapore_acra"
+      },
+      "landed_at": "2026-09-26T07:30:04Z",
+      "priority": 0,
+      "reason": "catch-up: singapore_acra missed its scheduled slot",
+      "requested_at": "2026-09-26T06:38:12Z",
+      "requested_by": "catch-up",
+      "run_id": "36226105572",
       "state": "landed",
       "workflow": "collect-structured.yml"
     }
