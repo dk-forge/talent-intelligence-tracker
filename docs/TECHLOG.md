@@ -14,6 +14,28 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-27 - Email audit: this tracker sends no reader mail; its digest section is owned by the sibling
+
+**Class:** contract-drift
+**Guard:** none added here (no reader-mail code in this repo); the sibling's `railway/tests/test_digest_*` pin the talent section.
+
+Owner request 2026-09-27: audit every reader email both trackers send. Result
+for this repo: **there is none to fix here.** The only `wp_mail` calls
+(`includes/api.php` ~1485/1521/1555) are `[Talent Intelligence Tracker]`
+operational alerts to the owner. The "Email digest" call to action on the
+tracker page renders the sibling plugin's `alt_digest_subscribe_form`; the
+talent section of that digest is composed by `alt_digest_compose_talent` in the
+sibling repo and audited there (its TECHLOG 2026-09-27, branch
+`claude/email-audit-2026-09-27`, plugin 2.20.212). `daily_digest.py` here is an
+offline editorial renderer; no workflow sends it.
+
+**Open item for the owner.** `daily_digest.py` already applies the
+count-meaning rules (only current openings count as roles) that the sibling's
+composer re-implements in PHP. Two definitions of "hiring signal" can drift.
+Recommend: when the sibling's talent section next changes, compare its counts
+to `python3 daily_digest.py --since X --until Y` for the same window and record
+any difference; no code change until one is seen.
+
 ## 2026-09-24 - coverage and self-heal: thin pillars queried, collectors fail over, missed slots re-run
 
 Branch `claude/coverage-and-self-heal` (from the 2026-09-24 coverage audit). Four slices.
