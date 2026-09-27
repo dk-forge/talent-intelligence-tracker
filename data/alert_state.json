@@ -44,13 +44,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:main:eabb5970398fa005": {
-      "first": 1790409102,
-      "last": 1790409102,
-      "subject": "CI RED: tests: assert not ({'ats_boards', 'bse_india', 'companies_house', 'czechia_ares', 'edinet_japan', 'estonia_ariregister', ...} - {'ats_boards', 'bse_india', 'companies_house"
     }
   },
-  "updated_at": "2026-09-27T13:01:14+00:00",
+  "updated_at": "2026-09-27T15:53:02+00:00",
   "version": 1
 }
