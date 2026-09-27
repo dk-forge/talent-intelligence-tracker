@@ -73,6 +73,7 @@ STRUCTURED_COLLECTORS = (
     "sec_execcomp",
     "sec_form_d",
     "sec_form_d_bulk",
+    "singapore_acra",
     "spain_borme",
     "uk_paygap",
     "us_exec_wire",
