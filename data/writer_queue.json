@@ -255,6 +255,28 @@
   "tickets": [
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-09-27T09:44:39Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        }
+      ],
+      "id": "20260927T094439Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-09-27T09:44:39Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-09-19T13:26:16Z",
       "history": [
         {
