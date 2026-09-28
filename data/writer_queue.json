@@ -249,8 +249,8 @@
   "red_marks": {
     "ticket:20260920T194430Z-extraction-benchmark": "2026-09-27T21:07:10Z",
     "ticket:20260921T112552Z-adjudicate-rows": "2026-09-28T11:49:43Z",
-    "ticket:20260921T113707Z-adjudicate-rows": "2026-09-27T12:53:13Z",
-    "ticket:20260921T113915Z-adjudicate-rows": "2026-09-27T12:53:13Z",
+    "ticket:20260921T113707Z-adjudicate-rows": "2026-09-28T13:02:03Z",
+    "ticket:20260921T113915Z-adjudicate-rows": "2026-09-28T13:02:03Z",
     "ticket:20260928T095318Z-enrich": "2026-09-28T09:58:58Z"
   },
   "tickets": [
