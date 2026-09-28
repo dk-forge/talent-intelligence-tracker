@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-28T09:57:12Z",
-  "last_tick": "2026-09-28T09:57:12Z",
+  "last_dispatch": "2026-09-28T14:23:39Z",
+  "last_tick": "2026-09-28T14:23:39Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -254,6 +254,35 @@
     "ticket:20260928T095318Z-enrich": "2026-09-28T09:58:58Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-28T14:23:39Z",
+      "history": [
+        {
+          "at": "2026-09-28T14:23:35Z",
+          "detail": "money figure contradictions ($15.13bn); owner-approved 2026-09-28",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-28T14:23:39Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260928T142335Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "stored amount is a valuation, project cost, purchase price or credit facility, not a raise (owner: fix the $15bn, 2026-09-28)",
+        "rows": "267ce439f3528b62b4e07d5d2891657b,104ac8e0dc2843434ac28d984999d989,fe73e8f52a5246fb7fc44a7a99aad753,07944fe42f7afb4501ae1f7635208978"
+      },
+      "priority": 0,
+      "reason": "money figure contradictions ($15.13bn); owner-approved 2026-09-28",
+      "requested_at": "2026-09-28T14:23:35Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-20T19:44:34Z",
