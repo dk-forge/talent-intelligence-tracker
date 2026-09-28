@@ -1,12 +1,40 @@
 {
  "key": "amount/104ac8e0dc2843434ac28d984999d989",
  "label": "Quanome $18,800,000",
- "status": "unknown",
+ "status": "disagree",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
  ],
- "verdicts": {},
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "outbound_investment",
+   "recommended": "edit",
+   "corrected_amount": 18800000,
+   "corrected_basis": "outbound_investment",
+   "confidence": 95,
+   "reasoning": "The headline states 'Quanome adquiere GPUs de Nvidia por 18,8 millones de dólares' (Quanome acquires Nvidia GPUs for $18.8 million). This is a purchase of equipment/hardware, not a capital raise. Quanome is the company PAYING $18.8 million to acquire GPUs, making this an outbound investment or capital expenditure. The money is leaving Quanome, not arriving as new capital from investors. This does not qualify as company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquired",
+   "recommended": "edit",
+   "corrected_amount": 18800000,
+   "corrected_basis": "acquired",
+   "confidence": 95,
+   "reasoning": "The sentence 'Quanome has acquired Nvidia GPUs for $18.8 million to support its AI hub' indicates that the amount is related to an acquisition, not a company raise. The money_basis should be 'acquired' as it refers to a purchase price for GPUs, not new capital from investors."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "edit",
+   "corrected_amount": 18800000,
+   "corrected_basis": "acquisition",
+   "confidence": 100,
+   "reasoning": "The summary states 'Quanome has acquired Nvidia GPUs for $18.8 million to support its AI hub. This acquisition is part of the company's efforts to advance its artificial intelligence capabilities.' Rule 2 states 'acquisition, acquired, merger, divestiture, joint_venture: a transaction price, not a raise.' The money_basis should be 'acquisition', not 'company_raise'."
+  }
+ },
  "row": {
   "company": "Quanome",
   "headline": "Quanome adquiere GPUs de Nvidia por 18,8 millones de dólares para su hub de IA",
@@ -28,9 +56,15 @@
   "hq_country": null,
   "published_at": "2026-09-24 22:43:24"
  },
- "why": "no evidence page could be read",
- "evidence_url": null,
- "cost_usd": 0.0,
+ "cost_usd": 0.012461,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007748999999999999,
+  "openai/gpt-4o": 0.004497499999999998,
+  "google/gemini-2.5-flash-lite": 0.0002146000000000023
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 865,
  "action": "keep",
- "written_at": "2026-09-28T14:24:11+00:00"
+ "correction": null,
+ "written_at": "2026-09-28T18:36:43+00:00"
 }

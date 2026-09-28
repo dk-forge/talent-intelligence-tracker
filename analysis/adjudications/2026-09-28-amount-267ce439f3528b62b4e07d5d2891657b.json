@@ -23,7 +23,16 @@
    "corrected_amount": null,
    "corrected_basis": "project_finance",
    "confidence": 95,
-   "reasoning": "The source states, 'This is not an immediate US$10 million injection into MetaOptics’ balance sheet. It is an investment facility: the eventual amount raised will depend on whether, when and under what terms White Lion exercises the warrants.' This indicates a project finance arrangement, not a company raise."
+   "reasoning": "The source states: 'This is not an immediate US$10 million injection into MetaOptics’ balance sheet. It is an investment facility: the eventual amount raised will depend on whether, when and under what terms White Lion exercises the warrants.' This indicates a project finance arrangement, not a company raise."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 10000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states: \"Singapore-listed MetaOptics has secured a potential financing line of up to US$10 million from Los Angeles-based White Lion Capital, giving the semiconductor optics company additional room to fund its United States expansion...\" This indicates a company_raise, but the detail in the guardrail finding suggests the amount is a valuation or credit facility, not a raise. However, the source text explicitly calls it a \"financing line\" and a \"potential financing line of up to US$10 million\", which aligns with the definition of company_raise as new capital from private investors or venture lenders, even if it's a facility. The guardrail finding's reasoning is not fully supported by the provided text, which describes it as a financing line to fund expansion, not just a valuation. The amount is stated for this event and the basis is company_raise."
   }
  },
  "row": {
@@ -47,14 +56,15 @@
   "hq_country": null,
   "published_at": "2026-09-23 09:30:18"
  },
- "cost_usd": 0.022989,
+ "cost_usd": 0.023441,
  "cost_by_referee": {
   "anthropic/claude-sonnet-4.5": 0.013659,
-  "openai/gpt-4o": 0.00933
+  "openai/gpt-4o": 0.00933,
+  "google/gemini-2.5-flash-lite": 0.0004516999999999993
  },
  "evidence_url": "https://web.archive.org/web/20260922095516/https://e27.co/singapores-metaoptics-eyes-us-expansion-with-potential-us10m-warrant-facility-20260922/",
  "evidence_chars": 12000,
  "action": "keep",
  "correction": null,
- "written_at": "2026-09-28T14:24:11+00:00"
+ "written_at": "2026-09-28T18:36:29+00:00"
 }
