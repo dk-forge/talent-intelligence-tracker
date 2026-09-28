@@ -1,0 +1,119 @@
+name: fill-landmarks
+
+# Fill the landmark gaps check_landmarks.py reports, through two referees.
+#
+# MANUAL ONLY. fill_landmarks.py spends model money (an extraction plus two
+# referee calls per gap), so nothing schedules it; the owner or a session
+# dispatches it when the weekly landmark report names gaps.
+#
+# THIS JOB WRITES NO DATABASE. The referees' verdicts become specs under
+# analysis/adjudications/; for landmarks BOTH referees accepted, `--queue`
+# rewrites data/primary_chase_worklist.json and appends ONE collect.yml
+# ticket (source=primary_chase) to data/writer_queue.json. drain-writers.yml
+# dispatches that ticket inside the `talent-collect` lock, and collect.yml is
+# the only thing that writes the row. That is why this workflow is NOT in the
+# talent-collect group: holding that lock for a job that does not write the
+# database would be a pending run that can evict a real writer.
+#
+# The model pass runs once, dry. After the reset onto current main, the queue
+# step is replayed with --from-specs (no model call) so the worklist and the
+# ticket are merged into whatever main holds now, never copied over it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Comma-separated landmark ids to fill (empty = every gap)'
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  # Which pot pays. A hand-dispatched fill is not a scheduled job.
+  TIT_RUN_KIND: discretionary
+
+concurrency:
+  # Only against itself: two fills would race on the worklist and the specs.
+  group: fill-landmarks
+  cancel-in-progress: false
+
+jobs:
+  fill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Spend guard (degrade, never halt)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+
+      # Exit 3 (some gap UNKNOWN / rejected / disagreed) still leaves specs
+      # worth committing, so the code is carried past the commit.
+      - name: Ask the referees (dry; writes specs only)
+        id: fill
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ONLY: ${{ inputs.only }}
+        run: |
+          ARGS=()
+          IFS=',' read -ra IDS <<< "$ONLY"
+          for id in "${IDS[@]}"; do
+            id="$(echo "$id" | xargs)"
+            [ -n "$id" ] && ARGS+=(--only "$id")
+          done
+          RC=0
+          python fill_landmarks.py --by "fill-landmarks.yml run $GITHUB_RUN_ID" "${ARGS[@]}" || RC=$?
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+          if [ "$RC" != "0" ] && [ "$RC" != "3" ]; then
+            exit "$RC"
+          fi
+
+      - name: Queue accepted landmarks and commit
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          mkdir -p "$RUNNER_TEMP/specs"
+          cp analysis/adjudications/*.json "$RUNNER_TEMP/specs/" 2>/dev/null || true
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p analysis/adjudications
+            cp "$RUNNER_TEMP"/specs/*.json analysis/adjudications/ 2>/dev/null || true
+            QRC=0
+            python fill_landmarks.py --from-specs --queue \
+              --by "fill-landmarks.yml run $GITHUB_RUN_ID" || QRC=$?
+            if [ "$QRC" != "0" ] && [ "$QRC" != "3" ]; then
+              echo "::error::fill_landmarks.py --from-specs --queue exited $QRC"
+              exit "$QRC"
+            fi
+            git add analysis/adjudications data/primary_chase_worklist.json data/writer_queue.json
+            if git diff --staged --quiet; then
+              echo "Nothing to commit."
+              exit 0
+            fi
+            git commit -q -m "landmarks: two-referee fill, queued accepted gaps $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt); replaying onto current main."
+            sleep $((attempt * 5))
+          done
+          echo "::error::could not push the fill after 5 attempts; nothing was queued"
+          exit 1
+
+      - name: Say which gaps still need the owner
+        if: ${{ steps.fill.outputs.rc == '3' }}
+        run: |
+          echo "::error::At least one landmark is UNKNOWN, rejected or the referees"
+          echo "::error::disagreed. Nothing was queued for it; read its spec under"
+          echo "::error::analysis/adjudications/."
+          exit 1

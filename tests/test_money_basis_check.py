@@ -538,3 +538,14 @@ def test_the_contradiction_classes_run_offline_and_before_the_site():
     src = inspect.getsource(cmb.check)
     assert src.index("_contradiction_lines(conn)") < src.index("if offline:")
     assert "_contradiction_lines" in src
+
+
+def test_the_printed_adjudicate_ticket_is_valid_json(conn):
+    """The ticket is pasted verbatim; a stray brace made drain-writers refuse it."""
+    import json, re
+    _published(conn, signal_id="f" * 32, company="Acme", usd=13_300_000_000,
+               headline="Sweden's Lovable valued at $13.3bn with Scaleup Europe Fund backing")
+    _verdict, lines = cmb.check(conn, offline=True)
+    cmd = next(l for l in lines if "enqueue=adjudicate-rows.yml" in l)
+    payload = json.loads(re.search(r"inputs_json='([^']*)'", cmd).group(1))
+    assert payload["rows"] == "f" * 32 and payload["dry_run"] == "false"
