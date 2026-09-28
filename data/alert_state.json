@@ -25,11 +25,6 @@
       "last": 1789556570,
       "subject": "CI RED: extraction-benchmark: an UNKNOWN is not a pass and not a failure."
     },
-    "main-green-check:main:b20d48d5c896e994": {
-      "first": 1790412749,
-      "last": 1790412749,
-      "subject": "CI RED: main-green-check: error: main is NOT verifiably green: tests.yml FAIL (newest completed run is failure on 796743cc)"
-    },
     "money-basis-check:main:dedcf2329403bf13": {
       "first": 1790233184,
       "last": 1790233184,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-28T07:10:52+00:00",
+  "updated_at": "2026-09-28T09:02:20+00:00",
   "version": 1
 }
