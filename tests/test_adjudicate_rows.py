@@ -73,7 +73,7 @@ def _referee(answers, cost=0.004, stats=None):
         calls.append((model, user))
         if stats is not None:
             stats["usd"] = float(stats.get("usd", 0.0)) + cost
-        answer = answers[model]
+        answer = answers.get(model, "no verdict")
         return answer if isinstance(answer, str) else json.dumps(answer)
 
     call.calls = calls
@@ -388,3 +388,58 @@ def test_apply_from_spec_re_applies_an_owner_ruled_spec_with_no_call(conn, tmp_p
     row = _current(conn, MONEY_HASH)
     assert row["money_basis"] == "project_finance"
     assert row["funding_amount_usd"] == 59_000_000, "the stored amount is kept, only the basis moves"
+
+
+# --- the third referee (owner ruling 2026-09-28: "on a split, consult a 3rd one")
+
+def test_a_split_asks_a_third_referee_and_two_of_three_decide(conn, tmp_path, stats):
+    adj.open_session_finding(conn, guardrails.AMOUNT, MONEY_HASH, "a split")
+    C = adj.REFEREE_C
+    assert C.split("/")[0] not in {A.split("/")[0], B.split("/")[0]}, "a third vendor"
+    call = _referee({A: _money("reject"), B: _money(), C: _money()}, stats=stats)
+    rc = adj.adjudicate(conn, f"amount/{MONEY_HASH}", apply=True, start_usd=0.0, call=call,
+                        fetch=lambda url: ARTICLE_MONEY, wayback=lambda url: None,
+                        spec_dir=tmp_path / "specs", push=lambda row, usd: {})
+    assert rc == 0
+    assert [m for m, _u in call.calls] == [A, B, C]
+    assert _current(conn, MONEY_HASH)["money_basis"] == "outbound_investment"
+    state = _state(conn, f"amount/{MONEY_HASH}")
+    assert state["state"] == "accepted" and "two of three" in state["review_note"]
+    spec = json.loads(next((tmp_path / "specs").glob("*.json")).read_text())
+    assert spec["status"] == "applied" and C in spec["verdicts"]
+
+
+def test_no_third_referee_when_the_first_two_agree(conn, tmp_path, stats):
+    adj.open_session_finding(conn, guardrails.AMOUNT, MONEY_HASH, "why")
+    call = _referee({A: _money(), B: _money()}, stats=stats)
+    adj.adjudicate(conn, f"amount/{MONEY_HASH}", apply=False, start_usd=0.0, call=call,
+                   fetch=lambda url: ARTICLE_MONEY, wayback=lambda url: None,
+                   spec_dir=tmp_path / "specs")
+    assert [m for m, _u in call.calls] == [A, B]
+
+
+def test_a_three_way_split_is_unresolved_and_applies_nothing(conn, tmp_path, stats):
+    adj.open_session_finding(conn, guardrails.AMOUNT, MONEY_HASH, "a split")
+    C = adj.REFEREE_C
+    call = _referee({A: _money("reject"), B: _money("accept"),
+                     C: _money("edit", basis="project_finance")}, stats=stats)
+    rc = adj.adjudicate(conn, f"amount/{MONEY_HASH}", apply=True, start_usd=0.0, call=call,
+                        fetch=lambda url: ARTICLE_MONEY, wayback=lambda url: None,
+                        spec_dir=tmp_path / "specs")
+    assert rc == 3 and len(call.calls) == 3
+    assert _state(conn, f"amount/{MONEY_HASH}")["state"] == "open"
+    assert _current(conn, MONEY_HASH)["revision"] == 1
+    spec = json.loads(next((tmp_path / "specs").glob("*.json")).read_text())
+    assert spec["status"] == "disagree" and spec["action"] == "keep"
+
+
+def test_an_unreadable_page_falls_back_to_the_rows_stored_text(conn, tmp_path, stats):
+    adj.open_session_finding(conn, guardrails.AMOUNT, MONEY_HASH, "unreadable")
+    call = _referee({A: _money(), B: _money()}, stats=stats)
+    rc = adj.adjudicate(conn, f"amount/{MONEY_HASH}", apply=False, start_usd=0.0, call=call,
+                        fetch=lambda url: "", wayback=lambda url: None,
+                        spec_dir=tmp_path / "specs")
+    assert rc == 0 and len(call.calls) == 2
+    assert all("SOURCE PAGE UNREADABLE" in u and MONEY_HEADLINE in u for _m, u in call.calls)
+    spec = json.loads(next((tmp_path / "specs").glob("*.json")).read_text())
+    assert spec["evidence_url"] == adj.STORED_EVIDENCE

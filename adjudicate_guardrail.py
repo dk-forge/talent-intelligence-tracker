@@ -96,6 +96,17 @@ REFEREES = (
     os.environ.get("ADJ_REFEREE_A", "anthropic/claude-sonnet-4.5"),
     os.environ.get("ADJ_REFEREE_B", "openai/gpt-4o"),
 )
+#: THE THIRD REFEREE (owner ruling 2026-09-22/23, repeated 2026-09-28: "No
+#: more humans -- 2 AI passes; on a split, never me, consult a 3rd one").
+#: Asked ONLY when A and B both answered and disagree, from a third vendor
+#: (Google) so no family breaks its own tie. Two of three agreeing under the
+#: same agreement rule decides; a three-way split stays UNKNOWN-for-a-human.
+#: gemini-2.5-flash-lite is already this repo's default extraction model, so
+#: it is priced and metered through classify._call like every other read.
+REFEREE_C = os.environ.get("ADJ_REFEREE_C", "google/gemini-2.5-flash-lite")
+#: The evidence_url recorded when no page could be read and the referees
+#: judged from the row's own stored text instead (see stored_evidence).
+STORED_EVIDENCE = "stored-row-text"
 #: What one run may spend across every key and every attempt, in USD, read
 #: from OpenRouter's own cost figure (classify.STATS["usd"]) before each call.
 RUN_CEILING_USD = 0.10
@@ -426,6 +437,29 @@ def fetch_evidence(item: dict, *, fetch=fetch_page, wayback=wayback_copy) -> tup
     return "", ""
 
 
+def stored_evidence(row: dict | None) -> str:
+    """The row's own stored text, for when no copy of the page can be read.
+
+    Owner ruling 2026-09-28: an unreadable page no longer stops the referees
+    (Quanome, $18.8M, sat UNKNOWN on a GPU purchase every reader could see from
+    the headline). The text is labelled as what it is, so a referee reading it
+    knows it is the tracker's extraction, not the publisher's page. '' when the
+    row carries no headline, and then the finding stays UNKNOWN.
+    """
+    row = row or {}
+    if not (row.get("headline") or "").strip():
+        return ""
+    parts = ["SOURCE PAGE UNREADABLE. Below is the tracker's own stored text for this",
+             "row, extracted from the cited source when it was collected. Judge from it;",
+             "if it does not settle the question, answer with low confidence."]
+    for field in ("headline", "summary", "talent_readthrough", "funding_amount",
+                  "source_name", "source_url", "published_date"):
+        value = row.get(field)
+        if value not in (None, ""):
+            parts.append(f"{field}: {value}")
+    return "\n".join(parts)
+
+
 # --------------------------------------------------------------------------
 # The referees, metered
 # --------------------------------------------------------------------------
@@ -599,6 +633,18 @@ def decide_place(verdicts: dict[str, dict | None]) -> tuple[str, str, dict | Non
     return "agree", "edit", {"corrected_city": city or None, "corrected_country": country}
 
 
+def majority(verdicts: dict[str, dict | None], judge) -> tuple[str, str, dict | None]:
+    """Two of three: the first pair of answered verdicts that `judge` calls an
+    agreement decides. No agreeing pair is a 'disagree' (a three-way split)."""
+    answered = [(m, v) for m, v in verdicts.items() if v]
+    for i, (ma, va) in enumerate(answered):
+        for mb, vb in answered[i + 1:]:
+            status, action, correction = judge({ma: va, mb: vb})
+            if status == "agree":
+                return status, action, correction
+    return "disagree", "keep", None
+
+
 def deciding_note(key: str, action: str, verdicts: dict, correction: dict | None) -> str:
     """The ledger note: the verdict and each referee's deciding sentence.
 
@@ -614,6 +660,9 @@ def deciding_note(key: str, action: str, verdicts: dict, correction: dict | None
     elif correction:
         fix = (f" corrected_amount={correction.get('corrected_amount')} "
                f"corrected_basis={correction.get('corrected_basis')}.")
+    if len([v for v in verdicts.values() if v]) > 2:
+        return (f"three-model adjudication of {key}, two of three referees say "
+                f"{action}.{fix} {quotes}")
     return f"two-model adjudication of {key}, both referees say {action}.{fix} {quotes}"
 
 
@@ -1084,6 +1133,11 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
 
     evidence, used = fetch_evidence(item, fetch=fetch, wayback=wayback)
     if not evidence:
+        evidence = stored_evidence(item["row"])
+        used = STORED_EVIDENCE if evidence else ""
+        if evidence:
+            print("  evidence: no page readable; judging from the row's stored text")
+    if not evidence:
         path = write_spec(item, "unknown", {}, {"why": "no evidence page could be read",
                                                 "evidence_url": None, "cost_usd": 0.0,
                                                 "action": "keep"}, spec_dir)
@@ -1108,6 +1162,21 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
         print(f"  {model}: " + (json.dumps(v, ensure_ascii=False) if v else "no usable verdict"))
 
     status, action, correction = judge(verdicts)
+    if status == "disagree":
+        # A split between two ANSWERED referees goes to a third vendor, never
+        # to a human (owner ruling 2026-09-28). UNKNOWN (a missing verdict) is
+        # not a split and is not escalated: that is a blind referee or a
+        # budget stop, and a third one would only be a tie-break on nothing.
+        print(f"  split: asking a third referee, {REFEREE_C}")
+        try:
+            verdicts[REFEREE_C], costs[REFEREE_C] = ask_referee(
+                REFEREE_C, prompt, start_usd=start_usd, call=call, parse=parse, ceiling=ceiling)
+        except BudgetStop as exc:
+            print(f"  {REFEREE_C}: budget stop ({exc}); UNDECIDED")
+            verdicts[REFEREE_C], costs[REFEREE_C] = None, 0.0
+        v = verdicts[REFEREE_C]
+        print(f"  {REFEREE_C}: " + (json.dumps(v, ensure_ascii=False) if v else "no usable verdict"))
+        status, action, correction = majority(verdicts, judge)
     cost = round(sum(costs.values()), 6)
     extra = {"cost_usd": cost, "cost_by_referee": costs, "evidence_url": used,
              "evidence_chars": len(evidence), "action": action, "correction": correction}
@@ -1125,9 +1194,11 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
         return 3
 
     note = deciding_note(key, action, verdicts, correction)
-    changed = act(conn, item, action, correction, note, apply=apply, push=push)
+    who = WHO if REFEREE_C not in verdicts else (
+        f"three-model adjudication ({REFEREES[0]} + {REFEREES[1]} + {REFEREE_C}), two of three")
+    changed = act(conn, item, action, correction, note, who=who, apply=apply, push=push)
     outcome = "applied" if apply and changed else "agree-dry-run"
-    path = write_spec(item, outcome, verdicts, {**extra, "note": note, "who": WHO,
+    path = write_spec(item, outcome, verdicts, {**extra, "note": note, "who": who,
                                                 "ledger_rows_changed": changed}, spec_dir)
     print(f"  AGREE: {action}. {'APPLIED' if apply else 'dry run'} (spend ${cost:.4f}) Spec: {path}")
     return 0

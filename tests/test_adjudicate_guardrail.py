@@ -95,7 +95,7 @@ def _referee(answers: dict, cost=0.004, stats=None):
         calls.append(model)
         if stats is not None:
             stats["usd"] = float(stats.get("usd", 0.0)) + cost
-        answer = answers[model]
+        answer = answers.get(model, "no verdict")
         if isinstance(answer, Exception):
             raise answer
         return answer if isinstance(answer, str) else json.dumps(answer)
@@ -203,7 +203,8 @@ def test_a_disagreement_writes_both_verdicts_and_exits_3(conn, tmp_path, stats):
     assert spec["status"] == "disagree"
     assert spec["verdicts"][A]["recommended"] == "accept"
     assert spec["verdicts"][B]["recommended"] == "reject"
-    assert spec["cost_usd"] == pytest.approx(0.008)
+    # A split asks the third referee (the stub gives it no verdict): three calls.
+    assert spec["cost_usd"] == pytest.approx(0.012)
 
 
 def test_two_edits_with_different_corrections_are_a_disagreement(conn, tmp_path, stats):
@@ -215,6 +216,10 @@ def test_two_edits_with_different_corrections_are_a_disagreement(conn, tmp_path,
 
 
 def test_unreadable_evidence_is_unknown_and_asks_no_referee(conn, tmp_path, stats):
+    # Since 2026-09-28 an unreadable page falls back to the row's stored text;
+    # only a row with no stored text left to read is still UNKNOWN for free.
+    conn.execute("UPDATE signals SET headline = '' WHERE content_hash = ?", (HASH,))
+    conn.commit()
     call = _referee({A: _verdict("accept"), B: _verdict("accept")}, stats=stats)
     rc = _run(conn, tmp_path, call, stats=stats, fetch=lambda url: "")
     assert rc == 3
@@ -248,11 +253,14 @@ def test_a_thin_read_tries_the_next_copy_and_no_copy_is_unknown(conn, tmp_path, 
     rc = adj.adjudicate(conn, KEY, apply=True, start_usd=0.0, call=call, fetch=fetch,
                         wayback=lambda url: "https://web.archive.org/web/1/x",
                         spec_dir=tmp_path / "specs")
-    assert rc == 3
+    assert rc == 0, "both referees reject from the stored text"
     assert seen == ["https://example.com/x", "https://web.archive.org/web/1/x"], (
         "the live page, then the Wayback copy, each judged against the floor")
-    assert call.calls == [], "nothing was spent on evidence nobody could read"
-    assert _state(conn)["state"] == "open"
+    # No copy cleared the floor, so the thin reads are NOT what the referees
+    # were shown: they judged from the row's stored text (owner ruling 2026-09-28).
+    assert len(call.calls) == 2
+    spec = json.loads(next((tmp_path / "specs").glob("*.json")).read_text())
+    assert spec["evidence_url"] == adj.STORED_EVIDENCE
 
 
 def test_a_long_enough_read_wins_over_a_thin_earlier_copy(conn, tmp_path, stats):
