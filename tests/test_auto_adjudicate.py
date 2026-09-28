@@ -19,6 +19,7 @@ import auto_adjudicate as auto
 from pipeline import classify, guardrails, publish, schema, validate
 
 A, B = adj.REFEREES
+C = adj.REFEREE_C
 NOW = dt.datetime(2026, 9, 21, 12, 0, tzinfo=dt.timezone.utc)
 HEADLINE = "Acme's $59 million investment in its new logistics centre"
 HASH = validate.content_hash("acme", "company_development", "2026-09-11", HEADLINE, "Gestion")
@@ -199,8 +200,11 @@ def test_agreement_applies_once(conn, tmp_path, stats):
 # --- disagreement: THE guard --------------------------------------------------
 
 def test_disagreement_applies_nothing_and_lands_in_the_issue(conn, tmp_path, stats):
+    # A split now asks a third referee; a third, different answer keeps it a
+    # three-way disagreement, which must still apply nothing.
     plan, state, _ = _run(conn, tmp_path, stats,
-                          {A: _money(amount=59_000_000), B: _money(amount=11_000_000)})
+                          {A: _money(amount=59_000_000), B: _money(amount=11_000_000),
+                           C: _money(amount=30_000_000)})
     item = plan["items"][0]
     assert item["outcome"] == auto.DISAGREE and item["enqueue"] is False
     gh = Gh()
@@ -217,7 +221,8 @@ def test_disagreement_applies_nothing_and_lands_in_the_issue(conn, tmp_path, sta
 
 def test_an_item_that_is_not_an_agreement_is_never_enqueued_even_if_flagged(conn, tmp_path, stats):
     """Belt and braces: the enqueue reads the OUTCOME, not only the flag."""
-    plan, _, _ = _run(conn, tmp_path, stats, {A: _money("accept"), B: _money("reject")})
+    plan, _, _ = _run(conn, tmp_path, stats, {A: _money("accept"), B: _money("reject"),
+                                              C: _money(amount=1)})
     plan["items"][0]["enqueue"] = True
     gh = Gh()
     assert auto.enqueue_agreed(plan, gh=gh, out=lambda *_: None) == 0
@@ -225,7 +230,8 @@ def test_an_item_that_is_not_an_agreement_is_never_enqueued_even_if_flagged(conn
 
 
 def test_a_disagreement_on_file_is_not_paid_for_again(conn, tmp_path, stats):
-    _, state, call = _run(conn, tmp_path, stats, {A: _money("accept"), B: _money("reject")})
+    _, state, call = _run(conn, tmp_path, stats, {A: _money("accept"), B: _money("reject"),
+                                                  C: _money(amount=1)})
     plan, _, call2 = _run(conn, tmp_path, stats, {A: _money(), B: _money()}, state=state)
     assert call2.calls == [] and plan["items"][0]["outcome"] == auto.DISAGREE
 
