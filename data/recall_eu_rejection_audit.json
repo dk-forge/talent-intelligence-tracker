@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-09-21T17:06:48+02:00",
- "measured_on": "2026-09-21",
+ "generated_at": "2026-09-28T10:32:34+02:00",
+ "measured_on": "2026-09-28",
  "goldset_version": "2026-08-eu-v1",
  "gold_events": 46,
  "misses": 22,
  "feed_backlog_days": 3,
  "catalogue_rows": 1333,
- "feeds_swept": 652,
+ "feeds_swept": 650,
  "gold_countries_on_the_backstop_route": [],
  "first_run": {
   "adjudicate_rows": "2026-09-14",
@@ -32,6 +32,7 @@
   "sec_execcomp": "2026-07-28",
   "sec_form_d": "2026-07-27",
   "sec_form_d_bulk": "2026-07-29",
+  "singapore_acra": "2026-09-26",
   "spain_borme": "2026-09-13",
   "tripwire": "2026-08-02",
   "uk_paygap": "2026-07-28"
@@ -239,7 +240,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 39,
+   "urls_fetched_from_this_domain": 42,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -315,7 +316,7 @@
    "domain": "stockwatch.pl",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 6,
+   "urls_fetched_from_this_domain": 7,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -353,7 +354,7 @@
    "domain": "mamstartup.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 31,
+   "urls_fetched_from_this_domain": 38,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -372,7 +373,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 118,
+   "urls_fetched_from_this_domain": 139,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -391,7 +392,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 118,
+   "urls_fetched_from_this_domain": 139,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -619,7 +620,7 @@
    "domain": "bankier.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 75,
+   "urls_fetched_from_this_domain": 91,
    "live_routes": [
     "gdelt",
     "google_news",
