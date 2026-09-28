@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-structured:main:3c6a865f0cfd5877": {
+      "first": 1790569260,
+      "last": 1790569260,
+      "subject": "CI RED: collect-structured: [bse_india] FETCH FAILED: https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w returned 403 for 'Change in Management'. BSE answers 403 with"
+    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
       "last": 1789928815,
@@ -41,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-27T21:09:24+00:00",
+  "updated_at": "2026-09-28T04:21:01+00:00",
   "version": 1
 }
