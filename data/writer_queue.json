@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-09-28T18:35:55Z",
-  "last_tick": "2026-09-28T18:35:55Z",
+  "last_dispatch": "2026-09-28T19:24:18Z",
+  "last_tick": "2026-09-28T19:24:18Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -255,6 +255,35 @@
     "ticket:20260928T183551Z-adjudicate-rows": "2026-09-28T18:37:23Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-28T19:24:18Z",
+      "history": [
+        {
+          "at": "2026-09-28T19:24:14Z",
+          "detail": "re-adjudicate MetaOptics + Quanome after #192",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-28T19:24:18Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20260928T192414Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "re-adjudicate after agree-on-meaning fix (PR #192)",
+        "rows": "267ce439f3528b62b4e07d5d2891657b,104ac8e0dc2843434ac28d984999d989"
+      },
+      "priority": 0,
+      "reason": "re-adjudicate MetaOptics + Quanome after #192",
+      "requested_at": "2026-09-28T19:24:14Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-21T08:53:55Z",
