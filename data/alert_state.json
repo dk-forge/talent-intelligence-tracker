@@ -35,17 +35,12 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
-    "money-basis-check:main:dedcf2329403bf13": {
-      "first": 1790233184,
-      "last": 1790233184,
-      "subject": "CI RED: money-basis check: VERDICT: FAIL"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-28T19:25:47+00:00",
+  "updated_at": "2026-09-28T19:51:45+00:00",
   "version": 1
 }
