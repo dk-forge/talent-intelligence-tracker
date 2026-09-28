@@ -257,73 +257,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-28T19:24:18Z",
-      "history": [
-        {
-          "at": "2026-09-28T19:24:14Z",
-          "detail": "re-adjudicate MetaOptics + Quanome after #192",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-28T19:24:18Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260928T192414Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "reason": "re-adjudicate after agree-on-meaning fix (PR #192)",
-        "rows": "267ce439f3528b62b4e07d5d2891657b,104ac8e0dc2843434ac28d984999d989"
-      },
-      "priority": 0,
-      "reason": "re-adjudicate MetaOptics + Quanome after #192",
-      "requested_at": "2026-09-28T19:24:14Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T08:53:55Z",
-      "history": [
-        {
-          "at": "2026-09-21T08:40:32Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T08:53:55Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T09:11:40Z",
-          "detail": "run 35580303637",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-21T09:20:22Z",
-          "detail": "run 35580303637",
-          "event": "landed"
-        }
-      ],
-      "id": "20260921T084032Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-21T09:20:22Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-21T08:40:32Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35580303637",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-21T09:51:20Z",
       "history": [
         {
@@ -2582,6 +2515,46 @@
       "requested_by": "dakotta-labs",
       "run_id": "36466327334",
       "state": "failed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-28T19:24:18Z",
+      "history": [
+        {
+          "at": "2026-09-28T19:24:14Z",
+          "detail": "re-adjudicate MetaOptics + Quanome after #192",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-28T19:24:18Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-28T19:25:50Z",
+          "detail": "run 36472000224",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-28T19:25:50Z",
+          "detail": "run 36472000224",
+          "event": "landed"
+        }
+      ],
+      "id": "20260928T192414Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "re-adjudicate after agree-on-meaning fix (PR #192)",
+        "rows": "267ce439f3528b62b4e07d5d2891657b,104ac8e0dc2843434ac28d984999d989"
+      },
+      "landed_at": "2026-09-28T19:25:50Z",
+      "priority": 0,
+      "reason": "re-adjudicate MetaOptics + Quanome after #192",
+      "requested_at": "2026-09-28T19:24:14Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36472000224",
+      "state": "landed",
       "workflow": "adjudicate-rows.yml"
     }
   ],
