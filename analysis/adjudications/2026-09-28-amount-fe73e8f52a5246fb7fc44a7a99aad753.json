@@ -1,0 +1,66 @@
+{
+ "key": "amount/fe73e8f52a5246fb7fc44a7a99aad753",
+ "label": "Nelo $100,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 100000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states 'Nelo renewed its $100M credit facility with Victory Park Capital.' A credit facility is explicitly defined in the rules as project_finance: 'a loan or bank facility advanced against an asset or a project.' This is not venture debt arriving as new capital (company_raise), but rather a renewal of an existing credit line. The amount $100M is correctly stated, but the basis must be project_finance, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 100000000,
+   "corrected_basis": "project_finance",
+   "confidence": 100,
+   "reasoning": "The source states: 'Mexican buy now, pay later fintech Nelo renewed its $100M credit facility with Victory Park Capital.' This indicates a credit facility, which falls under 'project_finance' rather than 'company_raise' as per the money rules."
+  }
+ },
+ "row": {
+  "company": "Nelo",
+  "headline": "Nelo renews $100M credit facility with Victory Park Capital",
+  "summary": "Mexican buy now, pay later fintech Nelo renewed its $100M credit facility with Victory Park Capital.",
+  "funding_amount": "$100M",
+  "funding_amount_usd": 100000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://latamlist.com/nelo-renews-100m-credit-facility-with-victory-park-capital/",
+  "source_name": "LatamList",
+  "published_date": "2026-09-15",
+  "collector": "national_press",
+  "city": null,
+  "region": "Latin America",
+  "state": null,
+  "country": "MX",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-27 23:38:32"
+ },
+ "cost_usd": 0.013629,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008427,
+  "openai/gpt-4o": 0.005202499999999999
+ },
+ "evidence_url": "https://latamlist.com/nelo-renews-100m-credit-facility-with-victory-park-capital/",
+ "evidence_chars": 2620,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 100000000,
+  "corrected_basis": "project_finance"
+ },
+ "note": "two-model adjudication of amount/fe73e8f52a5246fb7fc44a7a99aad753, both referees say edit. corrected_amount=100000000 corrected_basis=project_finance. anthropic/claude-sonnet-4.5: The source states 'Nelo renewed its $100M credit facility with Victory Park Capital.' A credit facility is explicitly defined in the rules as project_finance: 'a loan or bank facility advanced against an asset or a proje; openai/gpt-4o: The source states: 'Mexican buy now, pay later fintech Nelo renewed its $100M credit facility with Victory Park Capital.' This indicates a credit facility, which falls under 'project_finance' rather than 'company_raise' ",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-28T14:24:19+00:00"
+}

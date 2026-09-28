@@ -1,0 +1,66 @@
+{
+ "key": "amount/07944fe42f7afb4501ae1f7635208978",
+ "label": "OpenEvidence $15,000,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 250000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'OpenEvidence, an AI search engine for doctors, is currently valued at $15 billion after it managed to raise $250 million in investment from hospital systems and Andreessen Horowitz.' The $15 billion is explicitly a valuation, not the raise amount. The actual raise is $250 million. The guardrail is correct: the stored amount confuses valuation with the funding raised. The basis remains company_raise, but the amount must be corrected to $250 million."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 250000000,
+   "corrected_basis": "company_raise",
+   "confidence": 95,
+   "reasoning": "The source states: 'OpenEvidence, an AI search engine for doctors, is currently valued at $15 billion after it managed to raise $250 million in investment from hospital systems and Andreessen Horowitz.' This indicates the raise amount is $250 million, not $15 billion, which is a valuation."
+  }
+ },
+ "row": {
+  "company": "OpenEvidence",
+  "headline": "What is OpenEvidence, the ‘ChatGPT for doctors’ valued at $15 billion in a new funding round?",
+  "summary": "OpenEvidence, valued at $15 billion, is deploying its AI search engine for doctors in 100 countries, enhancing medical knowledge access.",
+  "funding_amount": "$15 billion",
+  "funding_amount_usd": 15000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.livemint.com/companies/news/what-is-openevidence-the-chatgpt-for-doctors-valued-at-15-billion-in-a-new-funding-round-11790333618550.html",
+  "source_name": "Mint",
+  "published_date": "2026-09-25",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-27 23:38:32"
+ },
+ "cost_usd": 0.015547,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.009566999999999999,
+  "openai/gpt-4o": 0.005979999999999999
+ },
+ "evidence_url": "https://www.livemint.com/companies/news/what-is-openevidence-the-chatgpt-for-doctors-valued-at-15-billion-in-a-new-funding-round-11790333618550.html",
+ "evidence_chars": 4112,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 250000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/07944fe42f7afb4501ae1f7635208978, both referees say edit. corrected_amount=250000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: 'OpenEvidence, an AI search engine for doctors, is currently valued at $15 billion after it managed to raise $250 million in investment from hospital systems and Andreessen Horowitz.' The $15 b; openai/gpt-4o: The source states: 'OpenEvidence, an AI search engine for doctors, is currently valued at $15 billion after it managed to raise $250 million in investment from hospital systems and Andreessen Horowitz.' This indicates th",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-09-28T14:24:28+00:00"
+}

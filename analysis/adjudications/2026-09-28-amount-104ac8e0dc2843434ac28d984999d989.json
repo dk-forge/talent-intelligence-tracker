@@ -1,0 +1,36 @@
+{
+ "key": "amount/104ac8e0dc2843434ac28d984999d989",
+ "label": "Quanome $18,800,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {},
+ "row": {
+  "company": "Quanome",
+  "headline": "Quanome adquiere GPUs de Nvidia por 18,8 millones de dólares para su hub de IA",
+  "summary": "Quanome has acquired Nvidia GPUs for $18.8 million to support its AI hub. This acquisition is part of the company's efforts to advance its artificial intelligence capabilities.",
+  "funding_amount": "$18.8 million",
+  "funding_amount_usd": 18800000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://es.investing.com/news/company-news/quanome-adquiere-gpus-de-nvidia-por-188-millones-de-dolares-para-su-hub-de-ia-93CH-3845983",
+  "source_name": "Investing.com España",
+  "published_date": "2026-09-23",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-09-24 22:43:24"
+ },
+ "why": "no evidence page could be read",
+ "evidence_url": null,
+ "cost_usd": 0.0,
+ "action": "keep",
+ "written_at": "2026-09-28T14:24:11+00:00"
+}
