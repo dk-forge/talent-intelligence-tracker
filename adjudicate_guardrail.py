@@ -478,6 +478,43 @@ def _gate(start_usd: float, ceiling: float | None = None) -> None:
         raise BudgetStop(f"run ceiling ${limit:.2f} reached (${spent:.4f} spent)")
 
 
+#: Referee spellings of a basis, mapped onto the repo's vocabulary
+#: (money_raised.EXCLUDING_DEAL_TYPES + company_raise). Referees are told the
+#: vocabulary and still answer "acquired" for "acquisition" or "grant" for
+#: state_funding; the exact-string rule then called a unanimous "not a raise"
+#: a split (Quanome 104ac8e0, 2026-09-28). `acquired` folds into `acquisition`
+#: FOR REFEREE ANSWERS ONLY: both are transaction prices and neither is summed,
+#: so the fold loses nothing the site shows. Anything not here and not in the
+#: vocabulary is unparsed (None) for that referee.
+BASIS_SYNONYMS = {
+    "acquired": "acquisition", "purchase": "acquisition", "purchased": "acquisition",
+    "buyout": "acquisition", "takeover": "acquisition", "acquire": "acquisition",
+    "grant": "state_funding", "subsidy": "state_funding", "government_funding": "state_funding",
+    "raise": money_raised.COMPANY_RAISE, "funding_round": money_raised.COMPANY_RAISE,
+    "investment": money_raised.OUTBOUND_INVESTMENT,
+    "credit_facility": "project_finance", "bank_loan": "project_finance",
+    "fund": money_raised.FUND_RAISE, "ipo_proceeds": "ipo",
+    "bond": "bond_issue", "bonds": "bond_issue", "pledged": money_raised.PLEDGE,
+}
+#: The basis an agreed "not a raise" takes when the majority agree the figure
+#: is not summed but name DIFFERENT non-raise bases: `pledge` (announced, not
+#: received) is an existing vocabulary member that claims least about who
+#: paid whom, and like every excluding basis it keeps the figure out of the sum.
+NOT_A_RAISE_FALLBACK = money_raised.PLEDGE
+
+
+def canonical_basis(label) -> str | None:
+    """A referee's basis label in the vocabulary, or None when it is not one."""
+    if not isinstance(label, str):
+        return None
+    key = re.sub(r"[\s-]+", "_", label.strip().casefold())
+    if key == "acquired":
+        return "acquisition"
+    if key in BASIS_VOCAB:
+        return key
+    return BASIS_SYNONYMS.get(key)
+
+
 def parse_verdict(content: str) -> dict | None:
     """A verdict dict, or None when the answer is not the JSON that was asked for."""
     try:
@@ -500,9 +537,9 @@ def parse_verdict(content: str) -> dict | None:
         # The prompt tells a referee that cannot see the source to answer
         # "reject" at confidence 0. That is a report, not a verdict.
         return None
-    basis = parsed.get("corrected_basis")
-    if basis is not None and basis not in BASIS_VOCAB:
-        parsed["corrected_basis"] = None
+    for field in ("corrected_basis", "money_basis"):
+        if field in parsed:
+            parsed[field] = canonical_basis(parsed.get(field))
     amount = parsed.get("corrected_amount")
     if amount is not None:
         try:
@@ -608,6 +645,62 @@ def decide(verdicts: dict[str, dict | None]) -> tuple[str, str, dict | None]:
     return "agree", "edit", {"corrected_amount": amount, "corrected_basis": basis}
 
 
+RAISE, NOT_RAISE = "raise", "not_raise"
+
+
+def _side(v: dict, stored_amount) -> str | None:
+    """Which side of the only question the site cares about a verdict is on:
+    is this figure summed as a company raise? None = the verdict does not say
+    (a reject, or an edit whose basis did not parse)."""
+    action = v.get("recommended")
+    if action == "accept":
+        return RAISE
+    if action != "edit":
+        return None
+    basis = v.get("corrected_basis")
+    if basis == money_raised.COMPANY_RAISE:
+        amount = v.get("corrected_amount")
+        # A raise at a DIFFERENT figure is not agreement to keep this one.
+        if amount is not None and stored_amount is not None and amount != stored_amount:
+            return None
+        return RAISE
+    if basis in money_raised.EXCLUDING_DEAL_TYPES:
+        return NOT_RAISE
+    return None
+
+
+def decide_by_meaning(verdicts: dict[str, dict | None],
+                      stored_amount=None) -> tuple[str, str, dict | None]:
+    """The exact rule first; where it splits, agreement on whether the figure
+    is summed decides (owner rule 2026-09-28: two AIs agree, a third breaks
+    ties, no human). Both say raise: accept as stored. Both say not a raise:
+    a basis edit, with the shared basis or NOT_A_RAISE_FALLBACK, and the
+    amount only where both name the same one (else the stored figure stands)."""
+    status, action, correction = decide(verdicts)
+    if status != "disagree":
+        return status, action, correction
+    answered = [v for v in verdicts.values() if v]
+    sides = {_side(v, stored_amount) for v in answered}
+    if len(sides) != 1 or None in sides:
+        return "disagree", "keep", None
+    if sides.pop() == RAISE:
+        return "agree", "accept", None
+    bases = {v.get("corrected_basis") for v in answered}
+    fix: dict = {"corrected_basis": bases.pop() if len(bases) == 1 else NOT_A_RAISE_FALLBACK}
+    amounts = {v.get("corrected_amount") for v in answered}
+    if len(amounts) == 1 and None not in amounts:
+        fix["corrected_amount"] = amounts.pop()
+    return "agree", "edit", fix
+
+
+def amount_judge(stored_amount):
+    """The judge for an amount finding on a row whose stored figure is known."""
+    def judge(verdicts):
+        return decide_by_meaning(verdicts, stored_amount)
+    judge.exact = decide
+    return judge
+
+
 def decide_place(verdicts: dict[str, dict | None]) -> tuple[str, str, dict | None]:
     """The agreement rule for a place finding. An `edit` agrees only when both
     referees name the same country and the same city (case-insensitive)."""
@@ -635,8 +728,17 @@ def decide_place(verdicts: dict[str, dict | None]) -> tuple[str, str, dict | Non
 
 def majority(verdicts: dict[str, dict | None], judge) -> tuple[str, str, dict | None]:
     """Two of three: the first pair of answered verdicts that `judge` calls an
-    agreement decides. No agreeing pair is a 'disagree' (a three-way split)."""
+    agreement decides. No agreeing pair is a 'disagree' (a three-way split).
+    A judge carrying `.exact` gets a first pass with it, so a pair that names
+    the same basis outranks a pair that only agrees on raise / not-a-raise."""
     answered = [(m, v) for m, v in verdicts.items() if v]
+    exact = getattr(judge, "exact", None)
+    if exact is not None:
+        for i, (ma, va) in enumerate(answered):
+            for mb, vb in answered[i + 1:]:
+                status, action, correction = exact({ma: va, mb: vb})
+                if status == "agree":
+                    return status, action, correction
     for i, (ma, va) in enumerate(answered):
         for mb, vb in answered[i + 1:]:
             status, action, correction = judge({ma: va, mb: vb})
@@ -1119,7 +1221,9 @@ def adjudicate(conn, key: str, *, apply: bool, start_usd: float,
     is_place = key.startswith(PLACE + "/")
     template, rules, parse, judge, act = (
         (PLACE_PROMPT, PLACE_RULES, parse_place_verdict, decide_place, apply_place)
-        if is_place else (PROMPT, RULES, parse_verdict, decide, apply_decision))
+        if is_place else (PROMPT, RULES, parse_verdict,
+                          amount_judge((item.get("row") or {}).get("funding_amount_usd")),
+                          apply_decision))
     finding = item["finding"]
     print(f"\n{key}  [{finding.get('state')}]  {finding.get('label')}")
     if finding.get("state") != "open":

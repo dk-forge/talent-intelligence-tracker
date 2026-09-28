@@ -201,10 +201,14 @@ def test_agreement_applies_once(conn, tmp_path, stats):
 
 def test_disagreement_applies_nothing_and_lands_in_the_issue(conn, tmp_path, stats):
     # A split now asks a third referee; a third, different answer keeps it a
-    # three-way disagreement, which must still apply nothing.
+    # three-way disagreement, which must still apply nothing. company_raise at
+    # three different figures: three referees who agree it IS a raise but not
+    # on what was raised (three that agree it is NOT a raise now resolve to a
+    # basis-only edit, tests/test_adjudicate_meaning.py).
     plan, state, _ = _run(conn, tmp_path, stats,
-                          {A: _money(amount=59_000_000), B: _money(amount=11_000_000),
-                           C: _money(amount=30_000_000)})
+                          {A: _money(basis="company_raise", amount=12_000_000),
+                           B: _money(basis="company_raise", amount=11_000_000),
+                           C: _money(basis="company_raise", amount=30_000_000)})
     item = plan["items"][0]
     assert item["outcome"] == auto.DISAGREE and item["enqueue"] is False
     gh = Gh()
@@ -215,7 +219,7 @@ def test_disagreement_applies_nothing_and_lands_in_the_issue(conn, tmp_path, sta
     assert auto.sync_issue(auto.issue_lines(plan), gh=gh, out=lambda *_: None) == "created"
     body = gh.issues[0]["body"]
     assert auto.ISSUE_MARKER in body and f"amount/{HASH}" in body
-    assert "corrected_amount=59000000" in body and "corrected_amount=11000000" in body
+    assert "corrected_amount=12000000" in body and "corrected_amount=11000000" in body
     assert A in body and B in body
 
 
