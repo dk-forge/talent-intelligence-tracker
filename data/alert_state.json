@@ -1,5 +1,10 @@
 {
   "open": {
+    "adjudicate-rows:main:7f8ec31963bd0908": {
+      "first": 1790605505,
+      "last": 1790605505,
+      "subject": "CI RED: adjudicate-rows: analysis/adjudications/ and list it for the owner."
+    },
     "backfill-gdelt-2026:main:50bce181f01d6d18": {
       "first": 1788722284,
       "last": 1788722284,
@@ -41,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-28T09:58:57+00:00",
+  "updated_at": "2026-09-28T14:25:07+00:00",
   "version": 1
 }
