@@ -1,0 +1,471 @@
+{
+ "ran_at": "2026-09-28T09:43:50+02:00",
+ "ran_on": "2026-09-28",
+ "plan": {
+  "cycle": 542,
+  "planned_on": "2026-09-28",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-09-21 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "EE",
+    "name": "Estonia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "ET",
+    "name": "Ethiopia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "FI",
+    "name": "Finland",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "FR",
+    "name": "France",
+    "tier": "covered",
+    "measured": {
+     "total": 1,
+     "held": 1,
+     "held_pct": 100.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "EE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "ET",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "FI",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "FR",
+   "tier": "covered",
+   "measured": {
+    "total": 1,
+    "held": 1,
+    "held_pct": 100.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 14,
+  "held": 5,
+  "missing": 9,
+  "unusable": 0,
+  "usable": 14
+ },
+ "by_country": {
+  "EE": {
+   "leads": 3,
+   "held": 0,
+   "missing": 3,
+   "unusable": 0
+  },
+  "FR": {
+   "leads": 6,
+   "held": 3,
+   "missing": 3,
+   "unusable": 0
+  },
+  "FI": {
+   "leads": 4,
+   "held": 2,
+   "missing": 2,
+   "unusable": 0
+  },
+  "ET": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0226,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0016,
+  "usd_per_candidate_miss": 0.0025,
+  "lifetime_usd": 0.4081,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:EE",
+   "leads": 3,
+   "usd": 0.00556,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 223,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:ET",
+   "leads": 1,
+   "usd": 0.0054,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 70,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:FI",
+   "leads": 4,
+   "usd": 0.00571,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 374,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:FR",
+   "leads": 6,
+   "usd": 0.0059,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 570,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "SkySelect",
+   "claimed_country": "EE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-03-23",
+   "claimed_amount": "\u20ac7,8 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Trade with Estonia",
+   "claimed_url": "https://tradewithestonia.com/estonian-startup-skyselect-raises-e78m-to-fix-aviations-e30b-problem/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "EstBAN",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-06-22",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "EstBAN",
+   "claimed_url": "https://estban.ee/news/events/estban-activities-in-the-first-half-of-2026/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "sTARTUp Day",
+   "claimed_country": "EE",
+   "claimed_city": "Tartu",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-04",
+   "claimed_amount": "\u20ac200 000",
+   "claimed_stage": "",
+   "claimed_outlet": "sTARTUp Day",
+   "claimed_url": "https://www.startupday.ee/news",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ET",
+   "dimension_tier": "zero",
+   "claimed_company": "Ethiopian Investment Holdings",
+   "claimed_country": "ET",
+   "claimed_city": "Addis Ababa",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-25",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "ENA",
+   "claimed_url": "https://www.ena.et/web/eng/economy",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "DIMECC Oy",
+   "claimed_country": "FI",
+   "claimed_city": "Tampere",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-02",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "DIMECC",
+   "claimed_url": "https://dimecc.com/news/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "Luxmet Oy",
+   "claimed_country": "FI",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-27",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Luxmet",
+   "claimed_url": "https://www.luxmet.fi/2026/08/27/hannu-hautala-appointed-ceo-of-luxmet-oy/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "Verda",
+   "claimed_country": "FI",
+   "claimed_city": "Helsinki",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-22",
+   "claimed_amount": "\u20ac163M",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "FAIREDiH",
+   "claimed_url": "https://www.fairedih.fi/en/2026/09/22/helsinki-ai-cloud-firm-verda-becomes-europes-newest-unicorn-after-e163m-raise/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "9fb50ea953813e31f8bfff8ae131aaf5",
+    "company": "Verda",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-22",
+    "source_url": "https://pulse2.com/verda-raises-189-million-series-b-to-become-europes-latest-ai-infrastructure-unicorn/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "Kasvu Therapeutics",
+   "claimed_country": "FI",
+   "claimed_city": "Helsinki",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-24",
+   "claimed_amount": "\u20ac30M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "GlobeNewswire",
+   "claimed_url": "https://www.globenewswire.com/news-release/2026/09/24/3367998/0/en/kasvu-therapeutics-raises-30-million-series-a-financing-round-led-by-hadean-ventures-to-advance-its-novel-trkb-potentiator-into-clinical-development-targeting-neuropsychiatric-diso.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "103c0d0d3a4b1ccf79b3c6f87d74023f",
+    "company": "Kasvu Therapeutics",
+    "pillar": "company_development",
+    "country": "FI",
+    "published_date": "2026-09-24",
+    "source_url": "https://www.talouselama.fi/uutiset/a/cde5dd3b-4a04-4ba5-8b42-9afd52701eef?utm_source=rss"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FR",
+   "dimension_tier": "covered",
+   "claimed_company": "Mistral",
+   "claimed_country": "FR",
+   "claimed_city": "Paris",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-08",
+   "claimed_amount": "\u20ac3 billion",
+   "claimed_stage": "series_d",
+   "claimed_outlet": "Reuters",
+   "claimed_url": "https://www.reuters.com/world/europe/french-ai-company-mistral-hits-24-billion-valuation-funding-round-2026-09-08/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "92d2833dc035bbc3dddef597a4d587b5",
+    "company": "Mistral",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-08",
+    "source_url": "https://www.calcalistech.com/ctechnews/article/r1gpvm6ofg"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FR",
+   "dimension_tier": "covered",
+   "claimed_company": "Hackuity",
+   "claimed_country": "FR",
+   "claimed_city": "Lyon",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-16",
+   "claimed_amount": "\u20ac16M",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "FrenchWeb",
+   "claimed_url": "https://www.frenchweb.fr/les-levees-de-fonds-de-la-french-tech-du-14-au-18-septembre-2026-422-millions-deuros-lia-capte-82-des-capitaux/463537",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "b3b34276efd5ac3d74162f41eb08bbd2",
+    "company": "Hackuity",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-23",
+    "source_url": "https://incyber.org/article/hackuity-leve-19-millions-dollars-accelerer-gestion-vulnerabilites/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FR",
+   "dimension_tier": "covered",
+   "claimed_company": "AbTx",
+   "claimed_country": "FR",
+   "claimed_city": "Dijon",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-17",
+   "claimed_amount": "\u20ac1.7M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "FrenchWeb",
+   "claimed_url": "https://www.frenchweb.fr/les-levees-de-fonds-de-la-french-tech-du-14-au-18-septembre-2026-422-millions-deuros-lia-capte-82-des-capitaux/463537",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FR",
+   "dimension_tier": "covered",
+   "claimed_company": "NEVERHACK",
+   "claimed_country": "FR",
+   "claimed_city": "Paris",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-17",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "French Tech Journal",
+   "claimed_url": "https://www.frenchtechjournal.com/french-tech-funding-wire-august-17-chargepoly-eur23m-led-10-deals-for-eur61m/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "ddc654ef5448b7efff5e6361cb8b91e3",
+    "company": "NEVERHACK",
+    "pillar": "company_development",
+    "country": "FR",
+    "published_date": "2026-07-30",
+    "source_url": "https://www.mediavenir.fr/la-levee-de-fonds-de-11-me-place-neverhack-au-coeur-de-lia-cyber-souveraine-en-france/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FR",
+   "dimension_tier": "covered",
+   "claimed_company": "Sensing Atmospheric Intelligence",
+   "claimed_country": "FR",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-07",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "French Tech Journal",
+   "claimed_url": "https://www.frenchtechjournal.com/french-tech-funding-wire-september-7-hugging-face-jackpot-lupin-dental-eur15m-led-8-deals-for-eur46-6m/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FR",
+   "dimension_tier": "covered",
+   "claimed_company": "Canva France",
+   "claimed_country": "FR",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Le Figaro",
+   "claimed_url": "https://www.lefigaro.fr/decideurs/j-ai-toujours-recherche-l-autonomie-et-non-le-pouvoir-canva-nomme-une-nouvelle-directrice-generale-pour-la-france-20260921",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
