@@ -14,6 +14,36 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-28 - adjudicate-rows: referees agree on MEANING (is it summed?), not on the spelling of a basis
+
+**Class:** missing-rule
+**Guard:** `tests/test_adjudicate_meaning.py` (Quanome-shaped, MetaOptics-shaped,
+majority-raise kept, 1-1 with an unusable third stays unresolved, synonyms).
+
+adjudicate-rows run 36466327334 still left Quanome
+(`amount/104ac8e0dc2843434ac28d984999d989`) and MetaOptics
+(`amount/267ce439f3528b62b4e07d5d2891657b`) unresolved and money-basis-check
+FAILing on them, though every referee that mattered agreed the figure is NOT a
+raise: Quanome outbound_investment / "acquired" / "acquisition" at $18.8M (3 of
+3), MetaOptics pledge / project_finance (amount null) / company_raise (2 of 3).
+`decide` compared `(corrected_amount, corrected_basis)` as exact tuples.
+
+Fix in `adjudicate_guardrail.py`: `canonical_basis` folds referee labels onto
+the vocabulary (`acquired`/`purchase`/... -> `acquisition`, `grant` ->
+`state_funding`, ...; anything else is unparsed for that referee), applied in
+`parse_verdict`. `decide_by_meaning` (used through `amount_judge(stored)`)
+keeps the exact rule first; on a split it asks the only question the site
+cares about, summed or not. Both "raise" (accept, or company_raise at the
+stored figure) -> accept. Both "not a raise" -> a basis edit with the shared
+basis, or `NOT_A_RAISE_FALLBACK` = `pledge` (an existing excluding basis) when
+they name different ones; the amount is written only when both name the same
+non-null one, otherwise the stored figure stands. A reject or an unparsed basis
+is on no side, so a 1-1 stays a disagreement. `majority` tries exact pairs
+before meaning pairs, so with three referees a same-basis pair wins.
+`tests/test_auto_adjudicate.py`'s three-way-split case now uses three
+company_raise figures (three "outbound_investment" at different amounts is now,
+correctly, an agreed basis-only edit).
+
 ## 2026-09-28 - adjudicate-rows: a split goes to a third referee; an unreadable page falls back to the row's stored text
 
 **Class:** missing-rule
