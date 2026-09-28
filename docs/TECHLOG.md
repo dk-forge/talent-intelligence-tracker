@@ -14,6 +14,29 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-28 - Money-basis follow-ups: a valid adjudicate ticket, the right command, a fill-landmarks workflow
+
+**Class:** contract-drift
+**Guard:** `tests/test_money_basis_check.py::test_the_printed_adjudicate_ticket_is_valid_json`.
+
+`correct_money_basis.py --check` printed the adjudicate-rows ticket with a stray
+`}` (`...\"dry_run\":\"false\"}}'`): the closing `}}` sat in a plain string
+implicitly concatenated to the f-string, so it was never un-doubled. Pasted
+verbatim, the `inputs_json` is not JSON. The money-basis-check failure help
+named only `correct-money-basis.yml`, which cannot fix a `FAIL figure` row; it
+now names the adjudicate-rows ticket for that case and correct-money-basis for
+unjudged/stale. New `fill-landmarks.yml` (manual only) runs
+`fill_landmarks.py` with two referees, then replays `--from-specs --queue` onto
+current main so accepted gaps become ONE collect.yml ticket in
+`data/writer_queue.json` for drain-writers; it writes no database and holds no
+`talent-collect` lock.
+
+Live state the same day: adjudicate-rows run 36435635486 applied OpenEvidence
+($15bn valuation -> $250M raise) and Nelo ($100M credit facility ->
+project_finance); Quanome was UNKNOWN (no readable evidence page) and MetaOptics
+split (pledge vs project_finance). money-basis-check run 36443513288 is FAIL on
+exactly those two rows.
+
 ## 2026-09-27 - Email audit: this tracker sends no reader mail; its digest section is owned by the sibling
 
 **Class:** contract-drift

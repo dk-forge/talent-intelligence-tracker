@@ -375,7 +375,7 @@ def _contradiction_lines(conn) -> tuple[list[str], list[str]]:
         lines.append(
             "          gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml "
             f"-f inputs_json='{{\"rows\":\"{hashes}\",\"reason\":\"stored amount is a "
-            "valuation, project cost, purchase price or revenue figure\",\"dry_run\":\"false\"}}' "
+            "valuation, project cost, purchase price or revenue figure\",\"dry_run\":\"false\"}' "
             "-f reason='money figure contradictions'")
     else:
         verdicts.append(PASS)
