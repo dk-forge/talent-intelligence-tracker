@@ -39,8 +39,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:769714fb2c7968d1": {
+      "first": 1790639595,
+      "last": 1790639595,
+      "subject": "CI RED: tests: assert not [('$8.8 MDD', 8.8)]"
     }
   },
-  "updated_at": "2026-09-28T19:51:45+00:00",
+  "updated_at": "2026-09-28T23:53:16+00:00",
   "version": 1
 }
