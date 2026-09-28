@@ -14,6 +14,31 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-28 - adjudicate-rows: a split goes to a third referee; an unreadable page falls back to the row's stored text
+
+**Class:** missing-rule
+**Guard:** `tests/test_adjudicate_rows.py::test_a_split_asks_a_third_referee_and_two_of_three_decide`,
+`::test_a_three_way_split_is_unresolved_and_applies_nothing`,
+`::test_an_unreadable_page_falls_back_to_the_rows_stored_text`.
+
+Owner rule (2026-09-22/23, repeated today): "No more humans -- 2 AI passes; on a
+split, never me, consult a 3rd one." adjudicate-rows run 36435635486 left two
+money rows open and money-basis-check red on exactly them: MetaOptics ($10M,
+`amount/267ce439f3528b62b4e07d5d2891657b`) SPLIT (Sonnet: pledge/warrant
+facility; GPT-4o: project finance; both "not a company raise"), and Quanome
+($18.8M, `amount/104ac8e0dc2843434ac28d984999d989`) UNKNOWN because no copy of
+the page was readable. `adjudicate_guardrail.adjudicate` now (1) on a split
+between two ANSWERED referees asks `REFEREE_C` (`ADJ_REFEREE_C`, default
+`google/gemini-2.5-flash-lite`, a third vendor already priced as the repo's
+extraction model) through the same metered `ask_referee` (gate + ceiling read
+before the call) and applies the first pair that agrees under the unchanged
+agreement rule; a three-way split stays `disagree`, applies nothing, exit 3;
+a missing verdict (blind or budget stop) is still UNKNOWN and is not escalated;
+(2) when no page clears the floor, judges from the row's stored
+headline/summary/readthrough/amount, labelled "SOURCE PAGE UNREADABLE" and
+recorded as `evidence_url: stored-row-text`; a row with no headline stays
+UNKNOWN at $0. The ledger note and `who` say "two of three" when C decided.
+
 ## 2026-09-28 - Money-basis follow-ups: a valid adjudicate ticket, the right command, a fill-landmarks workflow
 
 **Class:** contract-drift

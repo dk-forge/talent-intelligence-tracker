@@ -9,6 +9,12 @@ name: adjudicate-rows
 # the run then goes RED ONCE so the owner hears about exactly that and nothing
 # else, which is the 2026-09-11 rule.
 #
+# THIRD REFEREE (owner ruling 2026-09-28, "on a split, consult a 3rd one"): a
+# split between two answering referees is put to ADJ_REFEREE_C (default
+# google/gemini-2.5-flash-lite) and two of three decide; only a three-way
+# split still goes red. An unreadable page is judged from the row's stored
+# text (evidence_url stored-row-text) instead of stopping at UNKNOWN.
+#
 # WHY A WORKFLOW. The checkout that wrote this held no OPENROUTER_API_KEY, and
 # the sibling tracker's key through `railway run` charges the sibling's pot
 # (TECHLOG 2026-09-12: "none of it is in this repo's ledger"). This runs on
