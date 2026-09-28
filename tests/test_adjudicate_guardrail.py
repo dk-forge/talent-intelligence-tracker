@@ -258,7 +258,7 @@ def test_a_thin_read_tries_the_next_copy_and_no_copy_is_unknown(conn, tmp_path, 
         "the live page, then the Wayback copy, each judged against the floor")
     # No copy cleared the floor, so the thin reads are NOT what the referees
     # were shown: they judged from the row's stored text (owner ruling 2026-09-28).
-    assert call.calls and all("SOURCE PAGE UNREADABLE" in c[-1] for c in call.calls)
+    assert len(call.calls) == 2
     spec = json.loads(next((tmp_path / "specs").glob("*.json")).read_text())
     assert spec["evidence_url"] == adj.STORED_EVIDENCE
 
