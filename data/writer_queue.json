@@ -257,73 +257,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-29T05:44:12Z",
-      "history": [
-        {
-          "at": "2026-09-29T05:37:42Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-29T05:44:12Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260929T053742Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-09-29T05:37:42Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T11:16:06Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:16:02Z",
-          "detail": "dry run before applying the Ominimo/Sapien re-apply for real",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:16:06Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T11:16:56Z",
-          "detail": "run 35593156715",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-21T11:16:56Z",
-          "detail": "run 35593156715",
-          "event": "landed"
-        }
-      ],
-      "id": "20260921T111602Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "true",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-734d99623f823e79e2d549649cd1abdf.json,analysis/adjudications/2026-09-17-amount-465b406cd7cbe680aae7716507450719.json",
-        "reason": "re-apply owner-ruled edits: the ledger never reached accepted after the 2026-09-17 SharedNoteRefused killed the batch (session 2026-09-21)"
-      },
-      "landed_at": "2026-09-21T11:16:56Z",
-      "priority": 0,
-      "reason": "dry run before applying the Ominimo/Sapien re-apply for real",
-      "requested_at": "2026-09-21T11:16:02Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35593156715",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-21T11:17:18Z",
       "history": [
         {
@@ -2584,6 +2517,44 @@
       "run_id": "36506847604",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-29T05:44:12Z",
+      "history": [
+        {
+          "at": "2026-09-29T05:37:42Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-29T05:44:12Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-29T05:49:01Z",
+          "detail": "run 36527577689",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-29T05:49:01Z",
+          "detail": "run 36527577689",
+          "event": "landed"
+        }
+      ],
+      "id": "20260929T053742Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-29T05:49:01Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-09-29T05:37:42Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36527577689",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
