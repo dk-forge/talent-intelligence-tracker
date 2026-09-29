@@ -247,7 +247,6 @@
     }
   ],
   "red_marks": {
-    "ticket:20260921T112552Z-adjudicate-rows": "2026-09-28T11:49:43Z",
     "ticket:20260921T113707Z-adjudicate-rows": "2026-09-28T13:02:03Z",
     "ticket:20260921T113915Z-adjudicate-rows": "2026-09-28T13:02:03Z",
     "ticket:20260928T095318Z-enrich": "2026-09-28T09:58:58Z",
@@ -255,77 +254,6 @@
     "ticket:20260928T183551Z-adjudicate-rows": "2026-09-28T18:37:23Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-29T08:44:24Z",
-      "history": [
-        {
-          "at": "2026-09-29T08:40:31Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-29T08:44:24Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-29T08:57:31Z",
-          "detail": "run 36544641138",
-          "event": "bound"
-        }
-      ],
-      "id": "20260929T084031Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-29T08:40:31Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "36544641138",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T11:25:57Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:25:52Z",
-          "detail": "dry run: price and read the two referees before applying",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:25:57Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T11:26:58Z",
-          "detail": "run 35594021888",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-21T11:26:58Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260921T112552Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "true",
-        "reason": "two overdue held findings (OpenAI $40bn primary source, Digital Realty $80M vehicle-name false positive), session 2026-09-21",
-        "rows": "7a788f5c7491918c805221920e4d98f1,0e83122d231fc2ffaa1f9310f3be247b"
-      },
-      "priority": 0,
-      "reason": "dry run: price and read the two referees before applying",
-      "requested_at": "2026-09-21T11:25:52Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35594021888",
-      "state": "failed",
-      "workflow": "adjudicate-rows.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-21T11:35:34Z",
@@ -2585,6 +2513,44 @@
       "run_id": "36542015756",
       "state": "landed",
       "workflow": "benchmark-diff.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-29T08:44:24Z",
+      "history": [
+        {
+          "at": "2026-09-29T08:40:31Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-29T08:44:24Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-29T08:57:31Z",
+          "detail": "run 36544641138",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-29T09:11:32Z",
+          "detail": "run 36544641138",
+          "event": "landed"
+        }
+      ],
+      "id": "20260929T084031Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-29T09:11:32Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-29T08:40:31Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36544641138",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
