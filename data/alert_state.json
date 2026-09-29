@@ -20,11 +20,6 @@
       "last": 1789928815,
       "subject": "STILL FAILING: CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
-    "enrich:main:590fd8ee0302f8fe": {
-      "first": 1790589536,
-      "last": 1790589536,
-      "subject": "CI RED: enrich: requests.exceptions.HTTPError: 520 Server Error: <none> for url: ***/wp-json/talent/v1/enrich"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-29T08:00:14+00:00",
+  "updated_at": "2026-09-29T09:55:09+00:00",
   "version": 1
 }
