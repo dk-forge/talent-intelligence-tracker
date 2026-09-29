@@ -34,13 +34,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:main:f35d5d6be890ff2a": {
-      "first": 1790718802,
-      "last": 1790718802,
-      "subject": "CI RED: tests: AssertionError: '28975ec6e9e5d99e95c8fc775f8ab033d558454091e8b8c3a972d314ef238c85' not found in '# Tech Log \u2014 Talent Intelligence Tracker\\n\\n**INCIDENT 2026-09-29 21"
     }
   },
-  "updated_at": "2026-09-29T21:53:23+00:00",
+  "updated_at": "2026-09-29T22:52:14+00:00",
   "version": 1
 }
