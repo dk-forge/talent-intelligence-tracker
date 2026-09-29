@@ -14,6 +14,15 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-09-29 - launch triage: #196 closed as fixed by the TECHLOG restore; no REAL open items
+
+**Class:** process
+**Guard:** none new; the digest tests (`test_card_contract`, `test_style_standard`) are what caught the wipe.
+
+Issue #196 (tests failed, run 36632999842) failed only the two digest-in-TECHLOG tests, because `bc1152a` had wiped this file. `8cf81da` restored it; the full suite on `8cf81da` passes locally (5462 passed; the one failure is `test_offline_suite_is_offline` probe, which cannot see requests behind the sandbox proxy). PR #197 duplicates `8cf81da` and can be closed.
+Stale open notes re-checked: contrast audit has Chrome again (runs 50-51 green), runner heartbeat is green, sources.json is in sync and says 35 editions / 16 languages, Lovable/Nvidia are handled by the money-basis check.
+Left as owner notes, not work: `TIT_LEADERSHIP_PRECHECK` stays in shadow, `TIT_RUNNER` choice, the `daily_digest.py` vs sibling composer comparison.
+
 ## 2026-09-29 - ops check: closed stale claude-autofix #194; TECHLOG wipe restored
 
 **Class:** process
