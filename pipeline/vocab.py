@@ -2446,8 +2446,13 @@ SCALE_WORDS_BY_LANGUAGE = {
                   "milijard": _MILLIARD, "tisoč": _THOUSAND},
     # `billón`/`billones` are 10^12 in Spanish and are NOT here; see
     # AMBIGUOUS_SCALE_WORDS for why they refuse rather than pick.
+    # `mdd` is Mexican financial-press shorthand for 'millones de dólares'
+    # (millions of dollars) — gob.mx's own press release spells out
+    # '$8.8 million' in the headline for the same figure it gives as '88 MDD'
+    # in the body, so the word names 10^6 and already states the currency.
     "Spanish": {"millón": _MILLION, "millon": _MILLION,
                 "millones": _MILLION, "milliones": _MILLION,
+                "mdd": _MILLION,
                 "millardo": _MILLIARD, "millardos": _MILLIARD},
     "Swahili": {"milioni": _MILLION, "bilioni": _MILLIARD, "elfu": _THOUSAND},
     "Swedish": {"miljon": _MILLION, "miljoner": _MILLION,
