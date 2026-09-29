@@ -87,6 +87,17 @@ def test_a_european_decimal_comma_is_not_a_thousands_separator():
     assert parse_funding_usd("$1,000.0 million") == 1_000_000_000
 
 
+def test_mdd_is_mexican_shorthand_for_millions_of_dollars():
+    """'$8.8 MDD' arrived live 2026-09-29 and was caught by the plausibility
+    floor: MDD was unknown, so the parser read '8.8' with no multiplier and
+    swallowed a truncation-looking $8.80 instead of the $8.8 million the
+    publisher stated. MDD ("millones de dolares") names dollars specifically,
+    unlike 'mdp' (pesos), so it is read rather than refused.
+    """
+    assert parse_funding_usd("$8.8 MDD") == 8_800_000
+    assert parse_funding_usd("$8.8 mdd") == 8_800_000
+
+
 def test_an_ambiguous_scale_word_refuses_instead_of_guessing():
     """'mil' is a million in Singapore English and a thousand in Spanish.
 
