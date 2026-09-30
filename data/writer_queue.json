@@ -253,78 +253,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-30T08:49:35Z",
-      "history": [
-        {
-          "at": "2026-09-30T08:41:25Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-30T08:49:35Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-30T09:09:13Z",
-          "detail": "run 36692143311",
-          "event": "bound"
-        }
-      ],
-      "id": "20260930T084125Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-30T08:41:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "36692143311",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T11:58:44Z",
-      "history": [
-        {
-          "at": "2026-09-21T11:58:41Z",
-          "detail": "",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T11:58:44Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T11:59:34Z",
-          "detail": "run 35596919416",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-21T11:59:34Z",
-          "detail": "run 35596919416",
-          "event": "landed"
-        }
-      ],
-      "id": "20260921T115841Z-adjudicate-rows",
-      "inputs": {
-        "accept_keys": "amount/7a788f5c7491918c805221920e4d98f1",
-        "dry_run": "false",
-        "note": "Two independent referee agents with web access both ruled ACCEPT on 2026-09-21: 40bn is primary capital raised by OpenAI, announced 2025-03-31, fully funded per CNBC and Reuters 2025-12-30. The model referee path returned UNKNOWN only because the JS-rendered source strips to 769 chars. Watch for a separate December 2025 completion row double counting as company_raise."
-      },
-      "landed_at": "2026-09-21T11:59:34Z",
-      "priority": 0,
-      "reason": "",
-      "requested_at": "2026-09-21T11:58:41Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35596919416",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-21T13:25:47Z",
       "history": [
         {
@@ -2573,6 +2501,44 @@
       "run_id": "36674826455",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-30T08:49:35Z",
+      "history": [
+        {
+          "at": "2026-09-30T08:41:25Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-30T08:49:35Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-30T09:09:13Z",
+          "detail": "run 36692143311",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-30T09:16:12Z",
+          "detail": "run 36692143311",
+          "event": "landed"
+        }
+      ],
+      "id": "20260930T084125Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-30T09:16:12Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-09-30T08:41:25Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36692143311",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
