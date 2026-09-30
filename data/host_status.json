@@ -1,5 +1,5 @@
 {
-  "_committed_at": "2026-09-30T07:38:13+00:00",
+  "_committed_at": "2026-09-30T07:56:27+00:00",
   "announced": false,
   "consecutive_failures": 0,
   "history": [
@@ -59,13 +59,13 @@
       "state": "up"
     }
   ],
-  "last_detail": "HTTP 200 in 333ms",
-  "last_ok_at": "2026-09-30T07:38:13+00:00",
-  "last_probe_at": "2026-09-30T07:38:13+00:00",
+  "last_detail": "HTTP 200 in 704ms",
+  "last_ok_at": "2026-09-30T07:56:27+00:00",
+  "last_probe_at": "2026-09-30T07:56:27+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
-      "consecutive_failures": 1,
+      "consecutive_failures": 0,
       "history": [
         {
           "at": "2026-09-05T22:10:44+00:00",
@@ -76,13 +76,18 @@
           "at": "2026-09-30T07:38:13+00:00",
           "detail": "HTTP 404 from /healthz",
           "state": "down"
+        },
+        {
+          "at": "2026-09-30T07:56:27+00:00",
+          "detail": "HTTP 200 status=ok version=v1.0.1154 in 230ms",
+          "state": "up"
         }
       ],
-      "last_detail": "HTTP 404 from /healthz",
-      "last_ok_at": "2026-09-30T07:04:46+00:00",
-      "last_probe_at": "2026-09-30T07:38:13+00:00",
-      "since": "2026-09-30T07:38:13+00:00",
-      "state": "down"
+      "last_detail": "HTTP 200 status=ok version=v1.0.1154 in 230ms",
+      "last_ok_at": "2026-09-30T07:56:27+00:00",
+      "last_probe_at": "2026-09-30T07:56:27+00:00",
+      "since": "2026-09-30T07:56:27+00:00",
+      "state": "up"
     },
     "sandbox-frontend": {
       "announced": false,
@@ -94,9 +99,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1154 in 220ms",
-      "last_ok_at": "2026-09-30T07:38:13+00:00",
-      "last_probe_at": "2026-09-30T07:38:13+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1154 in 156ms",
+      "last_ok_at": "2026-09-30T07:56:27+00:00",
+      "last_probe_at": "2026-09-30T07:56:27+00:00",
       "since": "2026-09-05T22:10:44+00:00",
       "state": "up"
     }
