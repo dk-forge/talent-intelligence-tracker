@@ -253,73 +253,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-09-30T10:09:00Z",
-      "history": [
-        {
-          "at": "2026-09-30T09:49:33Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-30T10:09:00Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20260930T094933Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-09-30T09:49:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T13:25:47Z",
-      "history": [
-        {
-          "at": "2026-09-21T13:25:44Z",
-          "detail": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T13:25:47Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T13:26:21Z",
-          "detail": "run 35605556049",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-21T13:26:46Z",
-          "detail": "run 35605556049",
-          "event": "landed"
-        }
-      ],
-      "id": "20260921T132544Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-17-amount-24351a64d835a6d01ddc4fe727ab88b2.json",
-        "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise"
-      },
-      "landed_at": "2026-09-21T13:26:46Z",
-      "priority": 0,
-      "reason": "two-reviewer ruling: Brandeis 10M is a gift, not a raise",
-      "requested_at": "2026-09-21T13:25:44Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35605556049",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-21T13:38:27Z",
       "history": [
         {
@@ -2566,6 +2499,44 @@
       "run_id": "36692143311",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-09-30T10:09:00Z",
+      "history": [
+        {
+          "at": "2026-09-30T09:49:33Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-09-30T10:09:00Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-09-30T10:14:20Z",
+          "detail": "run 36700630795",
+          "event": "bound"
+        },
+        {
+          "at": "2026-09-30T10:14:20Z",
+          "detail": "run 36700630795",
+          "event": "landed"
+        }
+      ],
+      "id": "20260930T094933Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-09-30T10:14:20Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-09-30T09:49:33Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36700630795",
+      "state": "landed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
