@@ -16797,3 +16797,14 @@ forever with nothing to judge it, however trivial the diff. #196 was closed dire
 (the fix, `8cf81da`, already landed on `main`; `tests.yml` is green there since
 2026-09-30T02:02 UTC), so #198 is now a stale duplicate — closing it (or landing a real
 push to it so CI actually runs) is a work-session cleanup, not urgent.
+
+## 2026-09-30 — hourly ops-check: stale self-heal alert, already recovered
+
+Sandbox's fleet-wide `self-heal-fleet-scan.yml` filed #199
+(`[self-heal 2a74d64a4d] tests failed`, cause line "(none extracted)") pointing at
+`tests.yml` run 1524 (2026-09-28T23:48 UTC, head `b075bfc`, conclusion `failure`). By the
+time the issue was filed (2026-09-30T08:52 UTC), `tests.yml` on `main` had five further
+scheduled/dispatched runs (#1575-#1579, 2026-09-30T07:35-08:56 UTC), every one green,
+so whatever failed on 2026-09-28 was already a resolved incident before the alert ever
+landed — the fleet scanner has no window over which failures got fixed, only the one
+run it sampled. No code change needed; closed #199 with the run history as evidence.
