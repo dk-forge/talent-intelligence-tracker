@@ -20,6 +20,11 @@
       "last": 1789928815,
       "subject": "STILL FAILING: CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "drain-writers:main:fdb9d03109cc19a7": {
+      "first": 1790778722,
+      "last": 1790778722,
+      "subject": "CI RED: drain-writers: no error line could be extracted from the log"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -36,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-09-29T22:52:14+00:00",
+  "updated_at": "2026-09-30T14:32:03+00:00",
   "version": 1
 }
