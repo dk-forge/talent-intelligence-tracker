@@ -16786,3 +16786,14 @@ including the control, so it stays unverified rather than assumed.
   vocabulary (`pipeline.validate._region_for_country` returns None for PY, BO,
   SV, JM, TT, NA, IQ and one more). That is our geography failing to admit a
   market the benchmark covers, and nothing currently notices.
+
+## 2026-09-30 — hourly ops-check: API-created PR never triggers `pull_request` CI
+
+`pull_request` events never fired for #198 (`claude/triage-2026-09-29`, opened via the
+GitHub API/MCP by a prior hourly session) — `tests.yml` shows zero runs on that branch,
+ever, and the PR carries zero check runs. `merge_train.py` treats an empty check list as
+"CI has not started", never mergeable, so an API-opened PR with no further push sits
+forever with nothing to judge it, however trivial the diff. #196 was closed directly
+(the fix, `8cf81da`, already landed on `main`; `tests.yml` is green there since
+2026-09-30T02:02 UTC), so #198 is now a stale duplicate — closing it (or landing a real
+push to it so CI actually runs) is a work-session cleanup, not urgent.
