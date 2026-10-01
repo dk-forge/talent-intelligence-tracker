@@ -145,6 +145,14 @@ function tit_head_description($description) {
  */
 function tit_dashboard_head() {
     if (!is_page(TIT_PAGE_SLUG)) return;
+    // ONE DESCRIPTION, AND THE OWNER'S. The dashboard is a real WordPress page,
+    // so an active SEO plugin already prints its description and og:description
+    // (set by hand in Rank Math). Printing ours too gave the page two of each
+    // and share cards picked one at random (owner's SEO pass, 2026-10-01).
+    // Without an SEO plugin this live-count line is the only description, so it
+    // still prints. Scoped to the dashboard: the routed pages (sources, recall,
+    // corrections, company, place) are not WordPress pages and keep theirs.
+    if (defined('RANK_MATH_VERSION') || defined('WPSEO_VERSION')) return;
     if (!function_exists('tit_dashboard_facts') || !function_exists('tit_table_name')) return;
 
     $facts = tit_dashboard_facts(tit_table_name());

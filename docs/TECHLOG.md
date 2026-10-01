@@ -16808,3 +16808,7 @@ scheduled/dispatched runs (#1575-#1579, 2026-09-30T07:35-08:56 UTC), every one g
 so whatever failed on 2026-09-28 was already a resolved incident before the alert ever
 landed — the fleet scanner has no window over which failures got fixed, only the one
 run it sampled. No code change needed; closed #199 with the run history as evidence.
+
+## 2026-10-01: dashboard printed two meta descriptions
+
+The owner's SEO pass found two `meta[name=description]` and two `og:description` on /blog/talent-intelligence-tracker/: Rank Math's and the plugin's live-count line (`tit_dashboard_head`, includes/page.php). The dashboard is a real WordPress page, so when Rank Math or Yoast is active the plugin now stays silent there; without one, the live-count fallback still prints. The routed pages (sources, recall, corrections, company, place) are unchanged. Guard: tests/test_dashboard_single_description.py. Plugin 1.88.8.
