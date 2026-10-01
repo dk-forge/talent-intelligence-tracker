@@ -253,73 +253,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-01T07:45:30Z",
-      "history": [
-        {
-          "at": "2026-10-01T07:17:15Z",
-          "detail": "scheduled link hygiene (0 7 * * 1,4)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-01T07:45:30Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261001T071715Z-tripwire",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (0 7 * * 1,4)",
-      "requested_at": "2026-10-01T07:17:15Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "tripwire.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-21T20:47:23Z",
-      "history": [
-        {
-          "at": "2026-09-21T20:47:19Z",
-          "detail": "two-reviewer ruling: split Elite Metal / Machine Sciences",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-21T20:47:23Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-21T20:47:57Z",
-          "detail": "run 35653261833",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-21T20:48:38Z",
-          "detail": "run 35653261833",
-          "event": "landed"
-        }
-      ],
-      "id": "20260921T204719Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-09-21-amount-23344cfec1156a226e3bc355bae49768.json",
-        "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences"
-      },
-      "landed_at": "2026-09-21T20:48:38Z",
-      "priority": 0,
-      "reason": "two-reviewer ruling: split Elite Metal / Machine Sciences",
-      "requested_at": "2026-09-21T20:47:19Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35653261833",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-22T01:06:12Z",
       "history": [
         {
@@ -2562,6 +2495,44 @@
       "run_id": "36821247760",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-01T07:45:30Z",
+      "history": [
+        {
+          "at": "2026-10-01T07:17:15Z",
+          "detail": "scheduled link hygiene (0 7 * * 1,4)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-01T07:45:30Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-01T07:48:43Z",
+          "detail": "run 36832191388",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-01T07:48:43Z",
+          "detail": "run 36832191388",
+          "event": "landed"
+        }
+      ],
+      "id": "20261001T071715Z-tripwire",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-01T07:48:43Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (0 7 * * 1,4)",
+      "requested_at": "2026-10-01T07:17:15Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "36832191388",
+      "state": "landed",
+      "workflow": "tripwire.yml"
     }
   ],
   "version": 1
