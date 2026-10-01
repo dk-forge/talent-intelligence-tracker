@@ -627,6 +627,79 @@ def _repo_root():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _recent_gate_candidates(ledgers_dir, ledgers, *, cap_per_collector=400,
+                             floor=50):
+    """The most recent raw lines per collector, spanning ledger files.
+
+    A single file (the newest one) is enough on an ordinary day, but right
+    after the ledger's monthly rotation that file alone can hold only the
+    first hour's lines from whichever collector ran first. Walking backward
+    into older files until the combined sample clears ``floor`` keeps the
+    per-collector cap unchanged and leaves same-day behaviour untouched: the
+    loop only reaches a second file when the newest one was too thin.
+    """
+    per_collector: dict = {}
+    for fname in reversed(ledgers):
+        with open(os.path.join(ledgers_dir, fname), encoding="utf-8") as fh:
+            lines = fh.readlines()
+        for raw in reversed(lines):
+            try:
+                who = json.loads(raw).get("collector") or ""
+            except ValueError:
+                continue
+            bucket = per_collector.setdefault(who, [])
+            if len(bucket) < cap_per_collector:
+                bucket.append(raw)
+        if sum(len(bucket) for bucket in per_collector.values()) >= floor:
+            break
+    return [raw for bucket in per_collector.values() for raw in bucket]
+
+
+def test_recent_gate_candidates_spans_a_thin_rotated_ledger(tmp_path):
+    """The exact shape that failed on 2026-10-01: labels-2026-10.jsonl held
+    28 lines, all from one collector, right after the month rolled over,
+    while labels-2026-09.jsonl held plenty. A single-file read reports "too
+    few real candidates to judge" even though the ledger as a whole has not
+    gone thin -- only its newest shard has.
+    """
+    old = tmp_path / "labels-2026-09.jsonl"
+    old.write_text("".join(
+        json.dumps({"collector": "national_press", "headline": f"h{i}"}) + "\n"
+        for i in range(60)))
+    new = tmp_path / "labels-2026-10.jsonl"
+    new.write_text("".join(
+        json.dumps({"collector": "google_news", "headline": f"h{i}"}) + "\n"
+        for i in range(28)))
+    ledgers = ["labels-2026-09.jsonl", "labels-2026-10.jsonl"]
+
+    sample = _recent_gate_candidates(str(tmp_path), ledgers, floor=50)
+
+    assert len(sample) >= 50
+    collectors = {json.loads(raw)["collector"] for raw in sample}
+    assert collectors == {"national_press", "google_news"}, (
+        "a thin newest shard must pull the rest of the sample from the "
+        "previous one, not report the newest shard's count alone")
+
+
+def test_recent_gate_candidates_does_not_touch_older_files_when_unneeded(
+        tmp_path):
+    """Same-day behaviour is unchanged: a newest file that already clears
+    the floor on its own must not even open an older one. The older "file"
+    here is actually a directory, so opening it raises -- proving the loop
+    never reached it, rather than merely yielding the same count either way.
+    """
+    (tmp_path / "labels-2026-08.jsonl").mkdir()
+    plenty = tmp_path / "labels-2026-09.jsonl"
+    plenty.write_text("".join(
+        json.dumps({"collector": "national_press", "headline": f"h{i}"}) + "\n"
+        for i in range(60)))
+    ledgers = ["labels-2026-08.jsonl", "labels-2026-09.jsonl"]
+
+    sample = _recent_gate_candidates(str(tmp_path), ledgers, floor=50)
+
+    assert len(sample) == 60
+
+
 def test_a_missing_artifact_is_never_silent(classifier_dir, capsys):
     """The regression. `load()` used to return early on the absent-file
     OSError, skipping both the cache and the stderr line, so the commonest
@@ -696,12 +769,12 @@ def test_the_committed_classifier_is_not_silently_all_uncertain(monkeypatch):
         f"the committed classifier is {state}: {detail}. Every candidate is "
         "failing open to the paid LLM gate.")
 
+    ledgers_dir = os.path.join(root, "data", "gate_labels")
     ledgers = sorted(
-        f for f in os.listdir(os.path.join(root, "data", "gate_labels"))
+        f for f in os.listdir(ledgers_dir)
         if f.startswith("labels-") and f.endswith(".jsonl"))
     if not ledgers:
         pytest.skip("no committed label ledger to route")
-    path = os.path.join(root, "data", "gate_labels", ledgers[-1])
     # The most recent 400 lines PER COLLECTOR, not the last 400 of the file.
     # The ledger is appended one run at a time, so its tail is whatever single
     # run merged last. On 2026-09-24 that was one google_news run of 505 lines,
@@ -711,18 +784,12 @@ def test_the_committed_classifier_is_not_silently_all_uncertain(monkeypatch):
     # A guard that flips with merge order is measuring the order, not the
     # model. The floor is unchanged: at least one confident route, over real
     # recent candidates from every collector that writes labels.
-    with open(path, encoding="utf-8") as fh:
-        lines = fh.readlines()
-    per_collector: dict = {}
-    for raw in reversed(lines):
-        try:
-            who = json.loads(raw).get("collector") or ""
-        except ValueError:
-            continue
-        bucket = per_collector.setdefault(who, [])
-        if len(bucket) < 400:
-            bucket.append(raw)
-    sample = [raw for bucket in per_collector.values() for raw in bucket]
+    #
+    # The ledger also rotates monthly (labels-YYYY-MM.jsonl), and the newest
+    # file alone can be thinner than the floor in the first hour after
+    # rotation -- not a classifier regression, just a file boundary. Walk
+    # backward across files until the combined sample clears the floor.
+    sample = _recent_gate_candidates(ledgers_dir, ledgers)
 
     routed = {gate_classifier.RELEVANT: 0, gate_classifier.UNCERTAIN: 0,
               gate_classifier.IRRELEVANT: 0}

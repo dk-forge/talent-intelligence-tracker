@@ -16812,3 +16812,41 @@ run it sampled. No code change needed; closed #199 with the run history as evide
 ## 2026-10-01: dashboard printed two meta descriptions
 
 The owner's SEO pass found two `meta[name=description]` and two `og:description` on /blog/talent-intelligence-tracker/: Rank Math's and the plugin's live-count line (`tit_dashboard_head`, includes/page.php). The dashboard is a real WordPress page, so when Rank Math or Yoast is active the plugin now stays silent there; without one, the live-count fallback still prints. The routed pages (sources, recall, corrections, company, place) are unchanged. Guard: tests/test_dashboard_single_description.py. Plugin 1.88.8.
+
+## 2026-10-01 — hourly ops-check: monthly ledger rotation starved the gate-classifier health test
+
+`tests.yml` run #1634 (22:48-22:53 UTC, head `fdcee9a1b`, the `data: collect
+2026-10-01T22:47Z` commit) failed on `main` for the first time in this test's
+history: `test_the_committed_classifier_is_not_silently_all_uncertain` asserted
+"too few real candidates to judge" — `28 >= 50` — where every prior run that
+day and before had passed.
+
+Root cause was the file the test reads, not the classifier. The test picked
+only `ledgers[-1]`, the single most-recently-dated `labels-YYYY-MM.jsonl`
+shard. `data/gate_labels/labels-2026-10.jsonl` had just been created by the
+month rolling over (2026-10-01), and at the time this ran it held 28 lines
+from one collector — real, but not yet "the real recent candidates" by volume.
+`labels-2026-09.jsonl` (the prior shard) had thousands. The classifier itself
+was never exercised against a thin sample; the test's own file-selection logic
+silently discarded everything but the newest shard.
+
+Fix: `tests/test_gate_classifier.py::_recent_gate_candidates` now walks
+ledger files newest-to-oldest, filling the same per-collector cap (400) as
+before, and only opens an older file when the files already read haven't
+cleared the 50-line floor. On an ordinary day this reads exactly the one file
+it always did (pinned by
+`test_recent_gate_candidates_does_not_touch_older_files_when_unneeded`, which
+makes the would-be-second file a directory so touching it raises). Right after
+a monthly rotation it now spans into the previous shard
+(`test_recent_gate_candidates_spans_a_thin_rotated_ledger`, built from the
+exact 28-vs-60 shape that failed). Neither the 50-line floor nor the
+"at least one confident route" assertion changed — only how far back the
+sample is allowed to reach. Confirmed red before (`28 >= 50` locally,
+reproducing the CI failure) / green after on the full 38-test
+`tests/test_gate_classifier.py` file and the full suite. No change to
+`pipeline/gate_classifier.py` or the committed model artifact — this was a
+test-only fix, not an arming or data-adjudication decision. PR:
+dk-forge/talent-intelligence-tracker (branch
+`claude/ops-fix-gate-ledger-rotation-floor`). This will recur every month's
+first hour or so until enough candidates accumulate in the new shard, which is
+now harmless rather than a false red.
