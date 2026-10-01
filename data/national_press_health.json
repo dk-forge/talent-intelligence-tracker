@@ -1,11 +1,11 @@
 {
- "run_at": "2026-09-30T23:29:12+00:00",
- "run_number": 78,
+ "run_at": "2026-10-01T23:25:52+00:00",
+ "run_number": 79,
  "feeds": 683,
- "live": 592,
- "dead": 48,
- "resting": 43,
- "items": 10660,
+ "live": 616,
+ "dead": 22,
+ "resting": 45,
+ "items": 12216,
  "blocked_aggregators": 0,
  "by_feed": [
   {
@@ -97,7 +97,7 @@
    "url": "https://www.abc.com.py/arc/outboundfeeds/rss/?outputType=xml",
    "status": "ok",
    "items": 25,
-   "new": 20,
+   "new": 19,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -148,7 +148,7 @@
    "new": 12,
    "detail": "",
    "accept": "rss",
-   "newest_days": 3,
+   "newest_days": 4,
    "quiet_runs": 0
   },
   {
@@ -220,7 +220,7 @@
    "new": 8,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -229,7 +229,7 @@
    "url": "https://rss.aktuelno.me",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -280,7 +280,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -335,10 +335,10 @@
    "name": "Antigua and Barbuda (discovery backstop)",
    "country": "Antigua and Barbuda",
    "url": "https://news.google.com/rss/search?q=%22Antigua+and+Barbuda%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=AG&ceid=AG%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 35,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -362,7 +362,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -401,10 +401,10 @@
    "name": "Aruba (discovery backstop)",
    "country": "Aruba",
    "url": "https://news.google.com/rss/search?q=%22Aruba%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=AW&ceid=AW%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 48,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -440,7 +440,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -488,7 +488,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -522,9 +522,9 @@
    "status": "stale",
    "items": 4,
    "new": 4,
-   "detail": "newest item is 78d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 79d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 78,
+   "newest_days": 79,
    "quiet_runs": 0
   },
   {
@@ -543,10 +543,10 @@
    "name": "Barbados (discovery backstop)",
    "country": "Barbados",
    "url": "https://news.google.com/rss/search?q=%22Barbados%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=BB&ceid=BB%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -570,7 +570,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 20,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -591,7 +591,7 @@
    "url": "https://www.bfmtv.com/rss/economie/",
    "status": "ok",
    "items": 25,
-   "new": 21,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -712,7 +712,7 @@
    "new": 8,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -720,8 +720,8 @@
    "country": "Denmark",
    "url": "https://borsen.dk/rss",
    "status": "ok",
-   "items": 24,
-   "new": 24,
+   "items": 25,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -736,7 +736,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -768,8 +768,8 @@
    "country": "Sweden",
    "url": "https://www.breakit.se/feed/artiklar",
    "status": "ok",
-   "items": 16,
-   "new": 16,
+   "items": 25,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -779,10 +779,10 @@
    "name": "Brunei (discovery backstop)",
    "country": "Brunei",
    "url": "https://news.google.com/rss/search?q=%22Brunei%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=BN&ceid=BN%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 47,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -830,7 +830,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -842,20 +842,18 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 6,
+   "newest_days": 7,
    "quiet_runs": 0
   },
   {
    "name": "Business Daily Africa",
    "country": "Kenya",
    "url": "https://www.businessdailyafrica.com/bd/rss.xml",
-   "status": "ok",
-   "items": 25,
-   "new": 25,
-   "detail": "",
-   "accept": "rss",
-   "newest_days": 0,
-   "quiet_runs": 0
+   "status": "dead",
+   "items": 0,
+   "new": 0,
+   "detail": "HTTP 404",
+   "quiet_runs": 1
   },
   {
    "name": "Business in Cameroon",
@@ -911,7 +909,7 @@
    "url": "https://www.brecorder.com/feeds/latest-news",
    "status": "ok",
    "items": 25,
-   "new": 22,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -1022,7 +1020,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -1126,7 +1124,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -1138,7 +1136,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -1217,11 +1215,11 @@
    "name": "CNET Japan",
    "country": "Japan",
    "url": "https://japan.cnet.com/rss/index.rdf",
-   "status": "resting",
+   "status": "dead",
    "items": 0,
    "new": 0,
-   "detail": "quiet for 14 runs, probing every 14",
-   "quiet_runs": 14
+   "detail": "HTTP 404",
+   "quiet_runs": 15
   },
   {
    "name": "CoinDesk",
@@ -1304,7 +1302,7 @@
    "new": 8,
    "detail": "",
    "accept": "rss",
-   "newest_days": 14,
+   "newest_days": 15,
    "quiet_runs": 0
   },
   {
@@ -1335,10 +1333,10 @@
    "name": "Curacao (discovery backstop)",
    "country": "Curacao",
    "url": "https://news.google.com/rss/search?q=%22Curacao%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=CW&ceid=CW%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 45,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -1395,10 +1393,10 @@
    "url": "https://www.dailymaverick.co.za/rss",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -1422,7 +1420,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 2,
+   "newest_days": 3,
    "quiet_runs": 0
   },
   {
@@ -1458,7 +1456,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -1530,7 +1528,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -1698,7 +1696,7 @@
    "new": 0,
    "detail": "200 but no parseable items",
    "accept": "rss",
-   "quiet_runs": 3
+   "quiet_runs": 4
   },
   {
    "name": "Digital Business Africa",
@@ -1766,7 +1764,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -1778,7 +1776,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -1797,10 +1795,10 @@
    "name": "Dominica (discovery backstop)",
    "country": "Dominica",
    "url": "https://news.google.com/rss/search?q=%22Dominica%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=DM&ceid=DM%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 2,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -1824,7 +1822,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 5,
+   "newest_days": 6,
    "quiet_runs": 0
   },
   {
@@ -1848,7 +1846,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -1872,7 +1870,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -1881,7 +1879,7 @@
    "url": "https://e24.no/rss",
    "status": "ok",
    "items": 25,
-   "new": 20,
+   "new": 22,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -1961,13 +1959,11 @@
    "name": "Efecto Cocuyo",
    "country": "Venezuela",
    "url": "https://efectococuyo.com/feed/",
-   "status": "ok",
-   "items": 10,
-   "new": 10,
-   "detail": "",
-   "accept": "rss",
-   "newest_days": 0,
-   "quiet_runs": 0
+   "status": "dead",
+   "items": 0,
+   "new": 0,
+   "detail": "HTTP 403",
+   "quiet_runs": 1
   },
   {
    "name": "Ekonomichna Pravda",
@@ -2035,7 +2031,7 @@
    "items": 0,
    "new": 0,
    "detail": "HTTP 429",
-   "quiet_runs": 1
+   "quiet_runs": 2
   },
   {
    "name": "El Economista Mexico",
@@ -2089,7 +2085,7 @@
    "url": "https://www.elnacional.com/feed/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -2168,11 +2164,11 @@
    "name": "El Vocero",
    "country": "Puerto Rico",
    "url": "https://www.elvocero.com/search/?f=rss&t=article&c=economia&l=50",
-   "status": "resting",
+   "status": "dead",
    "items": 0,
    "new": 0,
-   "detail": "quiet for 18 runs, probing every 14",
-   "quiet_runs": 18
+   "detail": "HTTP 429",
+   "quiet_runs": 19
   },
   {
    "name": "elsalvador.com",
@@ -2337,7 +2333,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 8,
+   "newest_days": 9,
    "quiet_runs": 0
   },
   {
@@ -2361,7 +2357,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -2417,8 +2413,8 @@
    "country": "United States",
    "url": "https://www.fastcompany.com/rss",
    "status": "ok",
-   "items": 18,
-   "new": 18,
+   "items": 19,
+   "new": 19,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -2440,10 +2436,10 @@
    "name": "Fiji (discovery backstop)",
    "country": "Fiji",
    "url": "https://news.google.com/rss/search?q=%22Fiji%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=FJ&ceid=FJ%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -2503,7 +2499,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 6,
+   "newest_days": 7,
    "quiet_runs": 0
   },
   {
@@ -2535,7 +2531,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 13,
+   "newest_days": 14,
    "quiet_runs": 0
   },
   {
@@ -2556,7 +2552,7 @@
    "url": "https://forbes.n1info.rs/feed/",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -2643,7 +2639,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 8,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -2727,7 +2723,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 2,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -2760,7 +2756,7 @@
    "url": "https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=594",
    "status": "ok",
    "items": 15,
-   "new": 14,
+   "new": 13,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -2775,7 +2771,7 @@
    "new": 15,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -2818,10 +2814,10 @@
    "name": "Grenada (discovery backstop)",
    "country": "Grenada",
    "url": "https://news.google.com/rss/search?q=%22Grenada%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=GD&ceid=GD%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 50,
+   "new": 2,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -2842,7 +2838,7 @@
    "url": "https://www.guineenews.org/feed/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -2865,8 +2861,8 @@
    "country": "United Arab Emirates",
    "url": "https://gulfnews.com/feed/",
    "status": "ok",
-   "items": 10,
-   "new": 9,
+   "items": 8,
+   "new": 8,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -2900,10 +2896,10 @@
    "name": "Haiti (discovery backstop)",
    "country": "Haiti",
    "url": "https://news.google.com/rss/search?q=%22Haiti%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=HT&ceid=HT%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 55,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -2995,8 +2991,8 @@
    "country": "India",
    "url": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml",
    "status": "ok",
-   "items": 24,
-   "new": 24,
+   "items": 23,
+   "new": 23,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -3057,9 +3053,9 @@
    "status": "stale",
    "items": 25,
    "new": 25,
-   "detail": "newest item is 115d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 116d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 115,
+   "newest_days": 116,
    "quiet_runs": 0
   },
   {
@@ -3119,7 +3115,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 7,
+   "newest_days": 8,
    "quiet_runs": 0
   },
   {
@@ -3188,7 +3184,7 @@
    "url": "https://www.inc.com/rss/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -3215,7 +3211,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -3225,9 +3221,9 @@
    "status": "stale",
    "items": 10,
    "new": 10,
-   "detail": "newest item is 114d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 115d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 114,
+   "newest_days": 115,
    "quiet_runs": 0
   },
   {
@@ -3263,7 +3259,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 29,
+   "newest_days": 30,
    "quiet_runs": 0
   },
   {
@@ -3274,7 +3270,7 @@
    "items": 0,
    "new": 0,
    "detail": "HTTP 403",
-   "quiet_runs": 9
+   "quiet_runs": 10
   },
   {
    "name": "INSIDE",
@@ -3379,7 +3375,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -3439,7 +3435,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 50,
+   "newest_days": 51,
    "quiet_runs": 0
   },
   {
@@ -3473,7 +3469,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -3509,7 +3505,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -3566,7 +3562,7 @@
    "url": "https://www.jamaicaobserver.com/feed/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 23,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -3578,7 +3574,7 @@
    "url": "https://a.jiemian.com/index.php?m=article&a=rss",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -3592,7 +3588,7 @@
    "items": 0,
    "new": 0,
    "detail": "HTTP 404",
-   "quiet_runs": 4
+   "quiet_runs": 5
   },
   {
    "name": "Jornal de Negocios",
@@ -3600,10 +3596,10 @@
    "url": "https://www.jornaldenegocios.pt/rss",
    "status": "ok",
    "items": 20,
-   "new": 20,
+   "new": 19,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -3615,7 +3611,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -3639,7 +3635,7 @@
    "new": 8,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -3680,11 +3676,13 @@
    "name": "Katadata",
    "country": "Indonesia",
    "url": "https://katadata.co.id/rss",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "ReadTimeout",
-   "quiet_runs": 1
+   "status": "ok",
+   "items": 25,
+   "new": 25,
+   "detail": "",
+   "accept": "rss",
+   "newest_days": -1,
+   "quiet_runs": 0
   },
   {
    "name": "KED Global",
@@ -3695,7 +3693,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 14,
+   "newest_days": 15,
    "quiet_runs": 0
   },
   {
@@ -3704,7 +3702,7 @@
    "url": "https://www.khaleejtimes.com/api/v1/collections/business.rss",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -3760,10 +3758,10 @@
    "name": "Kuwait (discovery backstop)",
    "country": "Kuwait",
    "url": "https://news.google.com/rss/search?q=%22Kuwait%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=KW&ceid=KW%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 87,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -3773,9 +3771,9 @@
    "status": "stale",
    "items": 10,
    "new": 10,
-   "detail": "newest item is 281d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 282d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 281,
+   "newest_days": 282,
    "quiet_runs": 0
   },
   {
@@ -3823,7 +3821,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -3835,7 +3833,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -3931,7 +3929,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -3974,10 +3972,10 @@
    "name": "Laos (discovery backstop)",
    "country": "Laos",
    "url": "https://news.google.com/rss/search?q=%22Laos%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=LA&ceid=LA%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 44,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -4001,17 +3999,17 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
    "name": "Le Figaro",
    "country": "France",
    "url": "https://www.lefigaro.fr/rss/figaro_economie.xml",
-   "status": "dead",
+   "status": "resting",
    "items": 0,
    "new": 0,
-   "detail": "HTTP 403",
+   "detail": "quiet for 15 runs, probing every 14",
    "quiet_runs": 15
   },
   {
@@ -4021,9 +4019,9 @@
    "status": "stale",
    "items": 10,
    "new": 10,
-   "detail": "newest item is 54d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 55d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 54,
+   "newest_days": 55,
    "quiet_runs": 0
   },
   {
@@ -4035,7 +4033,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -4047,7 +4045,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -4071,7 +4069,7 @@
    "new": 21,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -4083,7 +4081,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -4107,7 +4105,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -4131,17 +4129,17 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 5,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
    "name": "Libya (discovery backstop)",
    "country": "Libya",
    "url": "https://news.google.com/rss/search?q=%22Libya%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=LY&ceid=LY%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 56,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -4165,7 +4163,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -4387,7 +4385,7 @@
    "new": 9,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -4430,7 +4428,7 @@
    "url": "https://www.manilatimes.net/business/feed",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -4469,7 +4467,7 @@
    "new": 9,
    "detail": "",
    "accept": "rss",
-   "newest_days": 3,
+   "newest_days": 4,
    "quiet_runs": 0
   },
   {
@@ -4616,7 +4614,7 @@
    "url": "https://mkd.mk/feed/",
    "status": "ok",
    "items": 10,
-   "new": 8,
+   "new": 10,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -4631,7 +4629,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -4660,10 +4658,10 @@
    "name": "Mongolia (discovery backstop)",
    "country": "Mongolia",
    "url": "https://news.google.com/rss/search?q=%22Mongolia%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=MN&ceid=MN%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -4720,7 +4718,7 @@
    "url": "https://ba.n1info.com/feed/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -4732,7 +4730,7 @@
    "url": "https://n1info.rs/feed/",
    "status": "ok",
    "items": 25,
-   "new": 22,
+   "new": 23,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -4744,7 +4742,7 @@
    "url": "https://www.naftemporiki.gr/feed/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -4766,11 +4764,13 @@
    "name": "Nation",
    "country": "Kenya",
    "url": "https://nation.africa/kenya/rss.xml",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 404",
-   "quiet_runs": 1
+   "status": "ok",
+   "items": 25,
+   "new": 25,
+   "detail": "",
+   "accept": "rss",
+   "newest_days": 0,
+   "quiet_runs": 0
   },
   {
    "name": "National Post",
@@ -4810,10 +4810,10 @@
    "name": "Netokracija Serbia",
    "country": "Serbia",
    "url": "https://www.netokracija.rs/feed",
-   "status": "dead",
+   "status": "resting",
    "items": 0,
    "new": 0,
-   "detail": "HTTP 403",
+   "detail": "quiet for 15 runs, probing every 14",
    "quiet_runs": 15
   },
   {
@@ -4849,7 +4849,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -4938,10 +4938,10 @@
    "name": "Nicaragua (discovery backstop)",
    "country": "Nicaragua",
    "url": "https://news.google.com/rss/search?q=%22Nicaragua%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=NI&ceid=NI%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 54,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -4974,7 +4974,7 @@
    "url": "https://nilepost.co.ug/feed/",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5022,7 +5022,7 @@
    "url": "https://nova.rs/feed/",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 23,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -5037,7 +5037,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 5,
+   "newest_days": 6,
    "quiet_runs": 0
   },
   {
@@ -5070,7 +5070,7 @@
    "url": "https://www.nrk.no/toppsaker.rss",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5164,10 +5164,10 @@
    "name": "Oman (discovery backstop)",
    "country": "Oman",
    "url": "https://news.google.com/rss/search?q=%22Oman%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=OM&ceid=OM%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 84,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -5317,8 +5317,8 @@
    "country": "Cyprus",
    "url": "https://www.politis.com.cy/feed/",
    "status": "ok",
-   "items": 4,
-   "new": 4,
+   "items": 3,
+   "new": 3,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5330,7 +5330,7 @@
    "url": "https://rss.portalanalitika.me",
    "status": "ok",
    "items": 25,
-   "new": 23,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5381,7 +5381,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -5450,7 +5450,7 @@
    "url": "https://www.presseportal.de/rss/finanzen.rss2",
    "status": "ok",
    "items": 15,
-   "new": 13,
+   "new": 15,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5465,7 +5465,7 @@
    "new": 15,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -5486,7 +5486,7 @@
    "url": "https://www.primicias.ec/rss/home.xml",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5498,7 +5498,7 @@
    "url": "https://www.primicias.ec/rss/economia.xml",
    "status": "ok",
    "items": 25,
-   "new": 9,
+   "new": 11,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5640,10 +5640,10 @@
    "name": "Qatar (discovery backstop)",
    "country": "Qatar",
    "url": "https://news.google.com/rss/search?q=%22Qatar%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=QA&ceid=QA%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -5655,7 +5655,7 @@
    "new": 12,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -5748,7 +5748,7 @@
    "url": "https://republika.mk/feed/",
    "status": "ok",
    "items": 20,
-   "new": 13,
+   "new": 16,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5790,11 +5790,11 @@
    "name": "Revista Summa",
    "country": "El Salvador",
    "url": "https://revistasumma.com/feed/",
-   "status": "resting",
+   "status": "dead",
    "items": 0,
    "new": 0,
-   "detail": "quiet for 14 runs, probing every 14",
-   "quiet_runs": 14
+   "detail": "HTTP 403",
+   "quiet_runs": 15
   },
   {
    "name": "RFI Economie",
@@ -5813,8 +5813,8 @@
    "country": "New Zealand",
    "url": "https://www.rnz.co.nz/rss/business.xml",
    "status": "ok",
-   "items": 17,
-   "new": 17,
+   "items": 18,
+   "new": 18,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -5848,10 +5848,10 @@
    "name": "RTE Business",
    "country": "Ireland",
    "url": "https://www.rte.ie/feeds/rss/?index=/news/business/",
-   "status": "dead",
+   "status": "resting",
    "items": 0,
    "new": 0,
-   "detail": "HTTP 403",
+   "detail": "quiet for 15 runs, probing every 14",
    "quiet_runs": 15
   },
   {
@@ -5860,7 +5860,7 @@
    "url": "https://today.rtl.lu/rss/news",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -5894,52 +5894,50 @@
    "name": "Rwanda (discovery backstop)",
    "country": "Rwanda",
    "url": "https://news.google.com/rss/search?q=%22Rwanda%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=RW&ceid=RW%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
    "name": "SaaStr",
    "country": "United States",
    "url": "https://www.saastr.com/feed/",
-   "status": "ok",
-   "items": 10,
-   "new": 10,
-   "detail": "",
-   "accept": "rss",
-   "newest_days": 0,
-   "quiet_runs": 0
+   "status": "dead",
+   "items": 0,
+   "new": 0,
+   "detail": "HTTP 403",
+   "quiet_runs": 1
   },
   {
    "name": "Saint Kitts and Nevis (discovery backstop)",
    "country": "Saint Kitts and Nevis",
    "url": "https://news.google.com/rss/search?q=%22Saint+Kitts+and+Nevis%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=KN&ceid=KN%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 64,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
    "name": "Saint Lucia (discovery backstop)",
    "country": "Saint Lucia",
    "url": "https://news.google.com/rss/search?q=%22Saint+Lucia%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=LC&ceid=LC%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 10,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
    "name": "Saint Vincent and the Grenadines (discovery backstop)",
    "country": "Saint Vincent and the Grenadines",
    "url": "https://news.google.com/rss/search?q=%22Saint+Vincent+and+the+Grenadines%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=VC&ceid=VC%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 76,
+   "new": 2,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -5951,7 +5949,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -5996,7 +5994,7 @@
    "url": "https://www.seneweb.com/feed",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -6047,7 +6045,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 8,
+   "newest_days": 9,
    "quiet_runs": 0
   },
   {
@@ -6057,9 +6055,9 @@
    "status": "stale",
    "items": 10,
    "new": 10,
-   "detail": "newest item is 263d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 264d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 263,
+   "newest_days": 264,
    "quiet_runs": 0
   },
   {
@@ -6112,10 +6110,10 @@
    "name": "Sloboden Pecat",
    "country": "North Macedonia",
    "url": "https://www.slobodenpecat.mk/feed/",
-   "status": "dead",
+   "status": "resting",
    "items": 0,
    "new": 0,
-   "detail": "HTTP 403",
+   "detail": "quiet for 16 runs, probing every 14",
    "quiet_runs": 16
   },
   {
@@ -6139,7 +6137,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -6160,7 +6158,7 @@
    "url": "https://www.scmp.com/rss/36/feed",
    "status": "ok",
    "items": 25,
-   "new": 17,
+   "new": 18,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -6204,10 +6202,10 @@
    "name": "Sri Lanka (discovery backstop)",
    "country": "Sri Lanka",
    "url": "https://news.google.com/rss/search?q=%22Sri+Lanka%22+%28%22appointed%22+OR+%22appoints%22+OR+%22chief+executive%22+OR+%22steps+down%22+OR+%22hiring%22+OR+%22to+hire%22+OR+%22new+jobs%22+OR+%22creates+jobs%22+OR+%22opens+office%22+OR+%22raises%22+OR+%22funding+round%22+OR+%22seed+funding%22+OR+%22investment%22%29+when%3A21d&hl=en&gl=LK&ceid=LK%3Aen",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 503",
+   "status": "ok",
+   "items": 100,
+   "new": 3,
+   "detail": "",
    "role": "backstop"
   },
   {
@@ -6255,7 +6253,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 19,
+   "newest_days": 20,
    "quiet_runs": 0
   },
   {
@@ -6267,7 +6265,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -6315,7 +6313,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 33,
+   "newest_days": 34,
    "quiet_runs": 0
   },
   {
@@ -6327,7 +6325,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -6418,11 +6416,13 @@
    "name": "Sunday Standard",
    "country": "Botswana",
    "url": "https://www.sundaystandard.info/feed/",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "ReadTimeout",
-   "quiet_runs": 1
+   "status": "ok",
+   "items": 10,
+   "new": 10,
+   "detail": "",
+   "accept": "rss",
+   "newest_days": 4,
+   "quiet_runs": 0
   },
   {
    "name": "Supply Chain Dive",
@@ -6457,7 +6457,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -6635,7 +6635,7 @@
    "new": 8,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -6746,11 +6746,13 @@
    "name": "Tecmundo",
    "country": "Brazil",
    "url": "https://rss.tecmundo.com.br/feed",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 404",
-   "quiet_runs": 1
+   "status": "ok",
+   "items": 25,
+   "new": 25,
+   "detail": "",
+   "accept": "rss",
+   "newest_days": 24,
+   "quiet_runs": 0
   },
   {
    "name": "Tehran Times",
@@ -6785,7 +6787,7 @@
    "new": 0,
    "detail": "200 but no parseable items",
    "accept": "rss",
-   "quiet_runs": 3
+   "quiet_runs": 4
   },
   {
    "name": "Telex",
@@ -6805,7 +6807,7 @@
    "url": "https://telma.com.mk/feed/",
    "status": "ok",
    "items": 10,
-   "new": 10,
+   "new": 9,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -6844,7 +6846,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 11,
+   "newest_days": 12,
    "quiet_runs": 0
   },
   {
@@ -6852,8 +6854,8 @@
    "country": "United States",
    "url": "https://www.theblock.co/rss.xml",
    "status": "ok",
-   "items": 19,
-   "new": 19,
+   "items": 18,
+   "new": 18,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -6868,7 +6870,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -6913,7 +6915,7 @@
    "url": "https://www.businesstimes.com.sg/rss/companies-markets",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -6973,7 +6975,7 @@
    "url": "https://www.thedailystar.net/business/economy/rss.xml",
    "status": "ok",
    "items": 10,
-   "new": 1,
+   "new": 3,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -6983,11 +6985,13 @@
    "name": "The EastAfrican",
    "country": "East Africa (regional)",
    "url": "https://www.theeastafrican.co.ke/rss.xml",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "HTTP 404",
-   "quiet_runs": 1
+   "status": "ok",
+   "items": 25,
+   "new": 25,
+   "detail": "",
+   "accept": "rss",
+   "newest_days": 0,
+   "quiet_runs": 0
   },
   {
    "name": "The Economic Times",
@@ -6995,10 +6999,10 @@
    "url": "https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -7019,7 +7023,7 @@
    "url": "https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/business/",
    "status": "ok",
    "items": 25,
-   "new": 25,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -7092,7 +7096,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -7104,7 +7108,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": -1,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
@@ -7123,21 +7127,20 @@
    "name": "The Korea Times (Business)",
    "country": "South Korea",
    "url": "https://www.koreatimes.co.kr/www/rss/biz.xml",
-   "status": "ok",
-   "items": 2,
-   "new": 2,
-   "detail": "",
+   "status": "empty",
+   "items": 0,
+   "new": 0,
+   "detail": "200 but no parseable items",
    "accept": "rss",
-   "newest_days": 0,
-   "quiet_runs": 0
+   "quiet_runs": 1
   },
   {
    "name": "The London Standard",
    "country": "United Kingdom",
    "url": "https://www.standard.co.uk/business/rss",
    "status": "ok",
-   "items": 11,
-   "new": 11,
+   "items": 16,
+   "new": 16,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -7159,11 +7162,13 @@
    "name": "The Namibian",
    "country": "Namibia",
    "url": "https://www.namibian.com.na/feed/",
-   "status": "dead",
-   "items": 0,
-   "new": 0,
-   "detail": "TooManyRedirects",
-   "quiet_runs": 1
+   "status": "ok",
+   "items": 12,
+   "new": 12,
+   "detail": "",
+   "accept": "rss",
+   "newest_days": 0,
+   "quiet_runs": 0
   },
   {
    "name": "The Nassau Guardian",
@@ -7192,8 +7197,8 @@
    "country": "Papua New Guinea",
    "url": "https://www.thenationalnews.com/arc/outboundfeeds/rss/category/business/?outputType=xml",
    "status": "ok",
-   "items": 18,
-   "new": 18,
+   "items": 21,
+   "new": 21,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -7206,9 +7211,9 @@
    "status": "stale",
    "items": 25,
    "new": 25,
-   "detail": "newest item is 123d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 124d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 123,
+   "newest_days": 124,
    "quiet_runs": 0
   },
   {
@@ -7239,10 +7244,10 @@
    "name": "The Reporter Ethiopia",
    "country": "Ethiopia",
    "url": "https://www.thereporterethiopia.com/feed/",
-   "status": "dead",
+   "status": "resting",
    "items": 0,
    "new": 0,
-   "detail": "HTTP 403",
+   "detail": "quiet for 16 runs, probing every 14",
    "quiet_runs": 16
   },
   {
@@ -7278,7 +7283,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -7302,7 +7307,7 @@
    "new": 9,
    "detail": "",
    "accept": "rss",
-   "newest_days": 7,
+   "newest_days": 8,
    "quiet_runs": 0
   },
   {
@@ -7323,7 +7328,7 @@
    "url": "https://www.straitstimes.com/news/business/rss.xml",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 23,
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
@@ -7350,19 +7355,20 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 2,
+   "newest_days": 0,
    "quiet_runs": 0
   },
   {
    "name": "The Tico Times",
    "country": "Costa Rica",
    "url": "https://ticotimes.net/feed",
-   "status": "empty",
-   "items": 0,
-   "new": 0,
-   "detail": "200 but no parseable items",
+   "status": "ok",
+   "items": 10,
+   "new": 10,
+   "detail": "",
    "accept": "rss",
-   "quiet_runs": 1
+   "newest_days": 0,
+   "quiet_runs": 0
   },
   {
    "name": "The Tribune",
@@ -7406,7 +7412,7 @@
    "url": "https://timesofoman.com/feed/",
    "status": "ok",
    "items": 25,
-   "new": 24,
+   "new": 25,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -7421,7 +7427,7 @@
    "new": 11,
    "detail": "",
    "accept": "rss",
-   "newest_days": 1,
+   "newest_days": 2,
    "quiet_runs": 0
   },
   {
@@ -7442,7 +7448,7 @@
    "url": "https://tn.com.ar/feed/",
    "status": "ok",
    "items": 25,
-   "new": 23,
+   "new": 24,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -7481,7 +7487,7 @@
    "new": 25,
    "detail": "",
    "accept": "rss",
-   "newest_days": 3,
+   "newest_days": 4,
    "quiet_runs": 0
   },
   {
@@ -7547,7 +7553,7 @@
    "country": "Latvia",
    "url": "https://www.tvnet.lv/rss",
    "status": "ok",
-   "items": 24,
+   "items": 25,
    "new": 24,
    "detail": "",
    "accept": "rss",
@@ -7607,7 +7613,7 @@
    "url": "https://www.uspto.gov/rss.xml",
    "status": "ok",
    "items": 25,
-   "new": 23,
+   "new": 22,
    "detail": "",
    "accept": "rss",
    "newest_days": null,
@@ -7634,7 +7640,7 @@
    "new": 20,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": -1,
    "quiet_runs": 0
   },
   {
@@ -7795,7 +7801,7 @@
    "url": "https://volimpodgoricu.me/feed/",
    "status": "ok",
    "items": 10,
-   "new": 10,
+   "new": 9,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
@@ -7822,7 +7828,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 0,
+   "newest_days": 1,
    "quiet_runs": 0
   },
   {
@@ -7844,9 +7850,9 @@
    "status": "stale",
    "items": 25,
    "new": 25,
-   "detail": "newest item is 91d old (limit 45d) — the feed answers but the publisher has stopped",
+   "detail": "newest item is 92d old (limit 45d) — the feed answers but the publisher has stopped",
    "accept": "rss",
-   "newest_days": 91,
+   "newest_days": 92,
    "quiet_runs": 0
   },
   {
@@ -7967,7 +7973,7 @@
    "detail": "",
    "accept": "rss",
    "newest_days": -1,
-   "quiet_runs": 5
+   "quiet_runs": 6
   },
   {
    "name": "Ziarul de Garda",
@@ -7990,7 +7996,7 @@
    "new": 10,
    "detail": "",
    "accept": "rss",
-   "newest_days": 4,
+   "newest_days": 5,
    "quiet_runs": 0
   },
   {
@@ -8011,7 +8017,7 @@
    "url": "https://www.theindependent.co.zw/feed/",
    "status": "ok",
    "items": 10,
-   "new": 9,
+   "new": 10,
    "detail": "",
    "accept": "rss",
    "newest_days": 0,
