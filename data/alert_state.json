@@ -40,12 +40,17 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
+    "merge-train:main:61af19bb69ffd932": {
+      "first": 1790895155,
+      "last": 1790895155,
+      "subject": "CI RED: Merge train: no error line could be extracted from the log"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-01T22:48:47+00:00",
+  "updated_at": "2026-10-01T22:52:36+00:00",
   "version": 1
 }
