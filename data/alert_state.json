@@ -44,13 +44,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:main:6780c4650fa81fd0": {
-      "first": 1790895230,
-      "last": 1790895230,
-      "subject": "CI RED: tests: +      where <built-in method values of dict object at 0x7f58cd022380> = {'relevant': 0, 'uncertain': 28, 'irrelevant': 0}.values"
     }
   },
-  "updated_at": "2026-10-01T23:42:42+00:00",
+  "updated_at": "2026-10-01T23:53:20+00:00",
   "version": 1
 }
