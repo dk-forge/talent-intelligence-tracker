@@ -40,11 +40,6 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
-    "merge-train:main:61af19bb69ffd932": {
-      "first": 1790895155,
-      "last": 1790895155,
-      "subject": "CI RED: Merge train: no error line could be extracted from the log"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -56,6 +51,6 @@
       "subject": "CI RED: tests: +      where <built-in method values of dict object at 0x7f58cd022380> = {'relevant': 0, 'uncertain': 28, 'irrelevant': 0}.values"
     }
   },
-  "updated_at": "2026-10-01T22:53:51+00:00",
+  "updated_at": "2026-10-01T23:42:42+00:00",
   "version": 1
 }
