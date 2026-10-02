@@ -8,13 +8,13 @@
  ],
  "verdicts": {
   "anthropic/claude-sonnet-4.5": {
-   "amount_stated_for_this_event": true,
-   "money_basis": "state_funding",
-   "recommended": "edit",
-   "corrected_amount": 44000000000,
-   "corrected_basis": "state_funding",
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
    "confidence": 95,
-   "reasoning": "The source states: 'From 2025 to August 2026, MDEC secured close to US$44 billion in digital investments from more than 1,000 Malaysia Digital status companies.' MDEC is a government agency ('Malaysia Digital Economy Corporation'), not a company raising venture capital. The $44B represents investments MDEC facilitated/secured for the digital economy program, not capital raised by MDEC itself. This is state_funding activity (government program outcomes), not company_raise."
+   "reasoning": "The source text appears to be a truncated/corrupted webpage with navigation elements and unrelated content about 'Tech Innovators' and 'AI Innovations' securing $50 million. The headline mentions 'US$44B investment push' but the actual article text is missing. Without the full article content, I cannot verify whether $44B refers to a company_raise for MDEC or represents aggregate investments during the CEO's tenure (which would not be a single raise event). The figure cannot be confirmed from the provided source text."
   },
   "openai/gpt-4o": null
  },
@@ -39,14 +39,14 @@
   "hq_country": null,
   "published_at": null
  },
- "cost_usd": 0.024212,
+ "cost_usd": 0.014257,
  "cost_by_referee": {
-  "anthropic/claude-sonnet-4.5": 0.014412,
-  "openai/gpt-4o": 0.009799999999999998
+  "anthropic/claude-sonnet-4.5": 0.00891,
+  "openai/gpt-4o": 0.0053475
  },
- "evidence_url": "https://web.archive.org/web/20260930215458/https://e27.co/mdec-chief-anuar-fariz-fadzil-to-exit-after-us44b-investment-push-20260930/",
- "evidence_chars": 12000,
+ "evidence_url": "https://e27.co/mdec-chief-anuar-fariz-fadzil-to-exit-after-us44b-investment-push-20260930/",
+ "evidence_chars": 2898,
  "action": "keep",
  "correction": null,
- "written_at": "2026-10-02T06:39:10+00:00"
+ "written_at": "2026-10-02T12:35:07+00:00"
 }
