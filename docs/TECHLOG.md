@@ -14,6 +14,33 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-02 - ops check: `drain-writers.yml` reds on 3 queued problems, 1 of them new (`enrich.yml` failed, logs unreadable)
+
+**Class:** external/unknown (log retention)
+**Guard:** none new — this is the drainer's own designed red-once-per-problem alarm (`writer_queue.py status`), working as intended
+
+Found by the hourly ops check (15:0x UTC run). `drain-writers.yml`'s latest
+completed run (2026-10-02, run 37024820099, 15:08 UTC) failed with
+`writer_queue.py status` reporting 3 open problems:
+
+- Two already-aged items from 2026-09-28 (`adjudicate-rows.yml` tickets
+  `20260928T142335Z-adjudicate-rows` and `20260928T183551Z-adjudicate-rows`) —
+  presumably already surfaced to a prior session; not re-diagnosed this run.
+- One NEW item: `enrich.yml` run `20261002T094811Z-enrich`
+  (run 36993800280, started 2026-10-02 10:08 UTC) FAILED. Its job log could not
+  be read from this session by either of the two usual paths — the GitHub MCP
+  job-logs tool returned HTTP 404, and `gh run view --log` returned a signed-URL
+  `403 Forbidden` through this session's proxy — so the root cause is UNKNOWN,
+  not diagnosed, not fixed.
+
+Per this repo's own rule, a database writer is never dispatched directly and
+never resolved by guessing: none of these three were re-queued or
+`-f resolve=`'d this run. Needs a session that can read the run's log (or the
+operator) to decide whether to re-queue `enrich.yml` via
+`drain-writers.yml -f enqueue=enrich.yml ...` or mark it `-f resolve=<run_id>`.
+Until then this will keep reddening the drainer once per problem per its own
+mute window.
+
 ## 2026-10-02 - ops check: closed stale claude-autofix #202 (referenced an already-fixed run)
 
 **Class:** process
