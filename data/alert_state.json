@@ -30,6 +30,11 @@
       "last": 1790778722,
       "subject": "CI RED: drain-writers: no error line could be extracted from the log"
     },
+    "enrich:main:7743585f0c63bcbf": {
+      "first": 1790936333,
+      "last": 1790936333,
+      "subject": "CI RED: enrich: no error line could be extracted from the log"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-01T23:53:20+00:00",
+  "updated_at": "2026-10-02T10:18:54+00:00",
   "version": 1
 }
