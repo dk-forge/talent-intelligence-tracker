@@ -1,0 +1,52 @@
+{
+ "key": "amount/440b7e16389d69399d5681257c6033e3",
+ "label": "MDEC $44,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source text appears to be a truncated/corrupted webpage with navigation elements and unrelated content about 'Tech Innovators' and 'AI Innovations' securing $50 million. The headline mentions 'US$44B investment push' but the actual article text is missing. The $44B figure in the headline likely refers to investments MDEC facilitated or attracted to Malaysia during the CEO's tenure, not a company_raise for MDEC itself. MDEC is a government agency, not a venture-backed company. Without the full article text stating MDEC received $44B in venture funding, this must be rejected."
+  },
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "MDEC",
+  "headline": "MDEC chief Anuar Fariz Fadzil to exit after US$44B investment push",
+  "summary": "Malaysia Digital Economy Corporation (MDEC) CEO Anuar Fariz Fadzil will leave the agency on October 2, 2026, at the end of his contract. His tenure focused on AI, high-value investment, and economic outcomes.",
+  "funding_amount": "US$44B",
+  "funding_amount_usd": 44000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://e27.co/mdec-chief-anuar-fariz-fadzil-to-exit-after-us44b-investment-push-20260930/",
+  "source_name": "e27",
+  "published_date": "2026-09-30",
+  "collector": "national_press",
+  "city": null,
+  "region": "Asia",
+  "state": null,
+  "country": "MY",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": null
+ },
+ "cost_usd": 0.014558,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.00924,
+  "openai/gpt-4o": 0.005317500000000001
+ },
+ "evidence_url": "https://e27.co/mdec-chief-anuar-fariz-fadzil-to-exit-after-us44b-investment-push-20260930/",
+ "evidence_chars": 2898,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-10-02T00:59:41+00:00"
+}
