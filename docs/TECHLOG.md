@@ -14,6 +14,21 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-02 - ops check: closed stale claude-autofix #202 (referenced an already-fixed run)
+
+**Class:** process
+
+The asktherecruiter-sandbox self-heal watcher filed #202 at 13:58 UTC today for a `tests`
+workflow failure, citing run `36499882093` (run #1524, 2026-09-28 23:48 UTC) with no cause
+line extracted. `tests.yml` on this repo's `main` has run hourly since then with every
+completed run green (run #1656, 2026-10-02 13:50-13:55 UTC, and every run back through
+09-28) — the failure was already resolved days before the watcher's cross-repo note arrived.
+Closed as stale; no code change needed. Lesson echoes #194: the cross-repo watcher's lookback
+window can surface a long-since-fixed failure as a fresh issue, so always check the
+referenced run's workflow for its *current* latest-completed-run status before treating a
+`claude-autofix` issue as live work.
+
+
 ## 2026-09-29 - ops check: closed stale claude-autofix #194; TECHLOG wipe restored
 
 **Class:** process
