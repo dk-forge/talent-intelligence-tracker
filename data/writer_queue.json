@@ -253,71 +253,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-04T07:26:24Z",
-      "history": [
-        {
-          "at": "2026-10-04T07:22:54Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-04T07:26:24Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261004T072254Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-04T07:22:54Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-24T09:28:22Z",
-      "history": [
-        {
-          "at": "2026-09-24T08:38:45Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-24T09:28:22Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-24T09:29:03Z",
-          "detail": "run 35981441381",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-24T09:55:06Z",
-          "detail": "run 35981441381",
-          "event": "landed"
-        }
-      ],
-      "id": "20260924T083845Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-09-24T09:55:06Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-09-24T08:38:45Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "35981441381",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-09-24T09:55:06Z",
       "history": [
         {
@@ -2559,6 +2494,44 @@
       "run_id": "37171347306",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-04T07:26:24Z",
+      "history": [
+        {
+          "at": "2026-10-04T07:22:54Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-04T07:26:24Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-04T07:31:32Z",
+          "detail": "run 37185786055",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-04T07:31:32Z",
+          "detail": "run 37185786055",
+          "event": "landed"
+        }
+      ],
+      "id": "20261004T072254Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-04T07:31:32Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-10-04T07:22:54Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "37185786055",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
