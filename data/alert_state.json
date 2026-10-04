@@ -17,7 +17,7 @@
     },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1788716370,
-      "last": 1789928815,
+      "last": 1791145518,
       "subject": "STILL FAILING: CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
     "drain-writers:main:fdb9d03109cc19a7": {
@@ -41,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-03T23:41:01+00:00",
+  "updated_at": "2026-10-04T20:25:18+00:00",
   "version": 1
 }
