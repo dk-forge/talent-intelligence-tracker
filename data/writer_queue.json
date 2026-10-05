@@ -253,6 +253,28 @@
   "tickets": [
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-10-05T07:30:21Z",
+          "detail": "scheduled link hygiene (0 7 * * 1,4)",
+          "event": "queued"
+        }
+      ],
+      "id": "20261005T073021Z-tripwire",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (0 7 * * 1,4)",
+      "requested_at": "2026-10-05T07:30:21Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "tripwire.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-09-25T06:48:24Z",
       "history": [
         {
