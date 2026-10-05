@@ -49,8 +49,13 @@
       "first": 1791231362,
       "last": 1791231362,
       "subject": "CI RED: Style standard: no error line could be extracted from the log"
+    },
+    "tests:main:510b6ff0d6701557": {
+      "first": 1791231669,
+      "last": 1791231669,
+      "subject": "CI RED: tests: no error line could be extracted from the log"
     }
   },
-  "updated_at": "2026-10-05T20:16:03+00:00",
+  "updated_at": "2026-10-05T20:21:10+00:00",
   "version": 1
 }
