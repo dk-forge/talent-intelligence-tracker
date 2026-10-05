@@ -35,6 +35,11 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
+    "indeed-occupations:main:f42479d02cd05eba": {
+      "first": 1791222055,
+      "last": 1791222055,
+      "subject": "CI RED: indeed-occupations: build_indeed_index.SchemaError: https://raw.githubusercontent.com/hiring-lab/job_postings_tracker/master/AU/job_postings_by_sector_AU.csv: body hit the "
+    },
     "money-basis-check:main:dedcf2329403bf13": {
       "first": 1791184750,
       "last": 1791184750,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-05T09:25:59+00:00",
+  "updated_at": "2026-10-05T17:40:56+00:00",
   "version": 1
 }
