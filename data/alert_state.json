@@ -49,13 +49,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "style-standard:main:0ede51744251870b": {
-      "first": 1791231362,
-      "last": 1791231362,
-      "subject": "CI RED: Style standard: no error line could be extracted from the log"
     }
   },
-  "updated_at": "2026-10-05T22:41:58+00:00",
+  "updated_at": "2026-10-05T23:09:08+00:00",
   "version": 1
 }
