@@ -324,6 +324,14 @@ def _output(name: str, value: str) -> None:
 
 
 def main(argv=None) -> int:
+    try:
+        return _main(argv)
+    except Exception as exc:  # one readable annotation; Actions logs are not always reachable
+        print(f"::error::h1b_lca failed: {type(exc).__name__}: {exc}", flush=True)
+        raise
+
+
+def _main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--discover", action="store_true")
     p.add_argument("--xlsx")
