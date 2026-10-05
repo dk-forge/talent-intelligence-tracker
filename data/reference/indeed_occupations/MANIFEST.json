@@ -8,11 +8,12 @@
   "IT",
   "NL"
  ],
- "fetched_at": "2026-10-05T17:47:27+00:00",
+ "checked_at": "2026-10-05T19:14:58+00:00",
+ "fetched_at": "2026-10-05T19:14:58+00:00",
  "files": {
   "latest.json": {
    "bytes": 416258,
-   "sha256": "c96b20fd4d2311e673aeafc7b85b68796a32de7f95b906eccf8714ae06d8c866"
+   "sha256": "3aa2863345760a414a3daf06f8968a2a129f07ac428c525e8b033a2d63b586a1"
   }
  },
  "licence": "CC BY 4.0",
