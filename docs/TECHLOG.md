@@ -14,6 +14,33 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-05 — hourly ops-check: two self-heal-fleet-scan issues closed, neither a code defect
+
+**Class:** housekeeping (no code change)
+
+`#217` ("[self-heal 2a74d64a4d] tests failed", filed by the sandbox's
+`self-heal-fleet-scan.yml`) pointed at `tests.yml` run 37366523167, whose only
+job (`pytest`) had conclusion `cancelled` — superseded by a newer push on
+`main` seconds later (head moved `50cb36b3b` → `b3245f9f3` → `94a358ba3` →
+`dbaff9c92`), not a test failure. `tests.yml` has run green 4 times since.
+
+`#218` ("[self-heal 009fc6b5cb] collect failed") pointed at `collect.yml` run
+37379749932. The `collect` step exited 1 because `google_news` got HTTP 503 on
+all 22 queries this run (every slice throttled, `observed == 0`), which
+`run_outcome()` in `run_collect.py` deliberately fails on by design (see its
+docstring: "If EVERY slice was throttled then observed == 0 and the run fails
+on that"). `source_health` shows the identical full-throttle shape on
+2026-10-01 and partially on 2026-10-03, each followed by a normal `ok` run the
+next day — a third-party rate limiter, not a defect, and the collector design
+already accounts for it. `sec_edgar` (1 row) and `sec_form_d` (3 rows) stored
+normally in the same run and the database commit/push succeeded ("Pushed on
+attempt 1"); no data was lost, and google_news's throttled slices are retried
+next run per `http_retry`. Closed both issues with the above evidence; no code
+change needed.
+
+---
+
+
 ## 2026-10-05 - Reference data rendered: hiring demand, H-1B sponsors, company H-1B box (plugin 1.91.0)
 
 **Class:** feature
