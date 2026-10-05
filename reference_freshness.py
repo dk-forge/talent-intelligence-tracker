@@ -35,8 +35,13 @@ ISSUE_TITLE = "Reference data is stale"
 #: indeed_occupations: weekly job (7d) + one missed run = 10d; Hiring Lab rows
 #:   lag ~1 week and are pushed ~weekly, so the newest date older than 21d means
 #:   the repository stopped updating.
+#: h1b_lca: monthly check (30d) + one missed run = 40d (checked_at counts, so a
+#:   month with no new quarter is not a dead collector); DOL posts each quarter's
+#:   cumulative FY file roughly one quarter after it ends, so the newest quarter
+#:   end older than 92 + 92 + 16 = 200d means OFLC stopped publishing.
 SPECS: dict[str, tuple[int, int]] = {
     "indeed_occupations": (10, 21),
+    "h1b_lca": (40, 200),
 }
 
 
@@ -64,7 +69,7 @@ def check(store=reference_store.STORE, now: datetime | None = None,
             row["problems"].append("never stored (no MANIFEST.json)")
             out.append(row)
             continue
-        cd = _days(m.get("fetched_at"), now)
+        cd = _days(m.get("checked_at") or m.get("fetched_at"), now)
         sd = _days(m.get("as_of"), now)
         row.update(collector_days=cd, source_days=sd, rows=m.get("rows"))
         if cd is None or cd > c_lim:
@@ -80,7 +85,7 @@ def issue_body(rows: list[dict]) -> str:
     for r in rows:
         if r["problems"]:
             lines.append(f"- **{r['source']}**: " + "; ".join(r["problems"]))
-    lines += ["", "Collectors: `indeed-occupations.yml` (weekly). "
+    lines += ["", "Collectors: `indeed-occupations.yml` (weekly), `h1b-lca.yml` (monthly check, quarterly file). "
               "This issue is edited in place and closes itself on recovery."]
     return "\n".join(lines)
 
