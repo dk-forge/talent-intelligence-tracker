@@ -33,6 +33,16 @@ function tit_reference_sources() {
                        . 'them (100 = February 1, 2020); the 4- and 52-week changes are ours. '
                        . 'Licensed CC BY 4.0.',
         ),
+        'h1b_lca' => array(
+            'name'    => 'U.S. Department of Labor, OFLC: H-1B Labor Condition Application disclosure data',
+            'url'     => 'https://www.dol.gov/agencies/eta/foreign-labor/performance',
+            'licence' => 'Public domain (U.S. Government work)',
+            'cadence' => 'quarterly',
+            'line'    => 'H-1B applications aggregated by employer, NAICS industry, worksite '
+                       . 'state and county, and occupation family, with wage quartiles. '
+                       . 'Aggregation is ours; no personal data is kept. Source: U.S. '
+                       . 'Department of Labor, Office of Foreign Labor Certification.',
+        ),
     );
 }
 

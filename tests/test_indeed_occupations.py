@@ -128,15 +128,17 @@ def test_freshness_flags_a_stalled_collector_and_a_stalled_source(tmp_path):
     agg, sec = _inputs()
     io_.store(io_.build(agg, sec), tmp_path)
     now = datetime.now(timezone.utc)
-    rows = reference_freshness.check(tmp_path, now)
-    assert rows[0]["source"] == "indeed_occupations"
+    spec = {"indeed_occupations": reference_freshness.SPECS["indeed_occupations"]}
+    rows = reference_freshness.check(tmp_path, now, spec)
+    assert rows[0]["source"] == "indeed_occupations" and not rows[0]["problems"]
     later = datetime(2027, 1, 1, tzinfo=timezone.utc)
-    problems = reference_freshness.check(tmp_path, later)[0]["problems"]
+    problems = reference_freshness.check(tmp_path, later, spec)[0]["problems"]
     assert any("collector" in x for x in problems) and any("source" in x for x in problems)
 
 
 def test_freshness_treats_a_never_stored_source_as_stale(tmp_path):
     rows = reference_freshness.check(tmp_path)
+    assert all(r["problems"] == ["never stored (no MANIFEST.json)"] for r in rows)
     assert rows[0]["problems"] == ["never stored (no MANIFEST.json)"]
 
 

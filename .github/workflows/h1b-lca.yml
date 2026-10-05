@@ -1,0 +1,70 @@
+name: h1b-lca
+
+# DOL OFLC H-1B/LCA disclosure data -> employer-level aggregate (h1b_lca.py).
+#
+# Monthly CHECK, quarterly PULL: OFLC replaces the cumulative fiscal-year file
+# once a quarter, and this run downloads (~250 MB) only when the performance
+# page lists a file newer than the one stored; otherwise it records checked_at
+# so the freshness alarm sees a live collector.
+#
+# GitHub-hosted on purpose: a public file, no database writes (the tracker DB is
+# only READ, for the company-name join), no model. The aggregate (no personal
+# data) is committed to data/reference/h1b_lca/; the raw xlsx goes to a
+# GitHub Release asset `dol-oflc-lca-<file stem>` and NEVER into git.
+on:
+  schedule:
+    - cron: '37 13 18 * *'     # the 18th of each month, 13:37 UTC
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-pull even if the latest file is already stored'
+        type: boolean
+        default: false
+
+concurrency:
+  group: reference-h1b
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+      - name: Check, pull, reduce, store
+        id: pull
+        env:
+          FORCE: ${{ inputs.force && '--force' || '' }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -euo pipefail
+          python h1b_lca.py --download "$RUNNER_TEMP/lca" --store --publish $FORCE
+      - name: Commit the aggregate
+        run: |
+          bash reference_commit.sh "reference: h1b lca ${{ steps.pull.outputs.file }}" data/reference/h1b_lca
+      - name: Raw file to a Release asset (never git)
+        if: steps.pull.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RAW: ${{ steps.pull.outputs.path }}
+        run: |
+          set -euo pipefail
+          stem="$(basename "$RAW" .xlsx)"
+          tag="dol-oflc-lca-$stem"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::notice::$tag already released"
+            exit 0
+          fi
+          gh release create "$tag" "$RAW" \
+            --title "DOL OFLC LCA disclosure file $stem" \
+            --notes "Unmodified copy of $stem.xlsx from https://www.dol.gov/agencies/eta/foreign-labor/performance. Source: U.S. Department of Labor, Office of Foreign Labor Certification. Public domain (U.S. Government work). Contains the personal data DOL publishes (contacts, attorneys); the tracker stores only the employer-level aggregate in data/reference/h1b_lca/." \
+            --latest=false
+          echo "::notice::released $tag ($(stat -c %s "$RAW") bytes)"

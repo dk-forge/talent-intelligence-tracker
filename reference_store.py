@@ -42,7 +42,7 @@ STORE = REPO_ROOT / "data" / "reference"
 SHRINK_LIMIT = 0.5
 
 #: Sources the site route accepts. Mirrors the PHP allowlist.
-SOURCES = ("indeed_occupations",)
+SOURCES = ("indeed_occupations", "h1b_lca")
 
 
 class StoreError(RuntimeError):
@@ -102,6 +102,7 @@ def write(source: str, files: dict[str, bytes], *, rows: int, as_of: str,
     manifest = {
         "source": source,
         "as_of": as_of,
+        "checked_at": (now or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
         "fetched_at": (now or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
         "rows": rows,
         "licence": licence,
@@ -114,6 +115,20 @@ def write(source: str, files: dict[str, bytes], *, rows: int, as_of: str,
     (directory / "MANIFEST.json").write_text(
         json.dumps(manifest, indent=1, sort_keys=True) + "\n")
     return manifest
+
+
+def touch(source: str, store: Path = STORE, now: datetime | None = None) -> None:
+    """Record a run that checked the source and found nothing new.
+
+    `checked_at` is what the freshness alarm's collector clock reads first, so a
+    monthly check of a quarterly source does not read as a dead collector.
+    """
+    m = read_manifest(source, store)
+    if not m:
+        return
+    m["checked_at"] = (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")
+    (source_dir(source, store) / "MANIFEST.json").write_text(
+        json.dumps(m, indent=1, sort_keys=True) + "\n")
 
 
 def notice(message: str) -> None:

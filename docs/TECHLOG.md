@@ -16942,3 +16942,31 @@ classification.
   `indeed-hiring-lab-<YYYY-MM>`.
 - **Tests:** `tests/test_indeed_occupations.py`, offline against recorded
   Hiring Lab rows in `tests/fixtures/indeed_occupations/`.
+
+## 2026-10-05 — reference data: DOL OFLC H-1B/LCA employer aggregate
+
+Second reference source from the depth-source probe, on the store added for
+Indeed (above). Nothing here touches ingest, signals or classification; the
+tracker DB is only READ (for the name join).
+
+- **Collector:** `h1b_lca.py` + `h1b-lca.yml` (GitHub-hosted, monthly check on
+  the 18th, downloads only when the performance page lists a newer
+  `LCA_Disclosure_Data_FY<YYYY>_Q<n>.xlsx`; otherwise `reference_store.touch`
+  records `checked_at`). Stdlib streaming xlsx reader that extracts ONLY the
+  aggregate columns by header name — contact/attorney names, emails, phones,
+  case numbers and addresses are never parsed. H-1B visa class only.
+- **Aggregate:** one row per (normalised employer, NAICS, worksite state,
+  county, SOC major group): cases, certified, positions, annualised wage
+  p25/median/p75 (certified cases, $15k–$2M plausibility band, rounded to
+  $100). `data/reference/h1b_lca/employers.csv.gz` (refused over 45 MB) +
+  MANIFEST (fiscal year/quarter, stats, tracker match rate).
+- **Raw file:** Release asset `dol-oflc-lca-<stem>` only, never git.
+- **Join:** `h1b_join.py` (test-first): one symmetric normaliser (suffixes,
+  d/b/a, '&'), EXACT key match only — a fuzzy join would put a stranger's visa
+  filings on a tracker company. The match rate is reported in the run notice
+  and the manifest. The probe measured ~9.6% with a looser normaliser.
+- **Site/alarm:** `h1b_lca` added to the reference allowlist (plugin 1.90.0)
+  with its attribution row; freshness spec collector 40d / newest quarter end
+  200d.
+- **Tests:** `tests/test_h1b_lca.py` (synthetic file in the real header layout,
+  carrying PII-shaped columns to prove none survive), `tests/test_h1b_join.py`.
