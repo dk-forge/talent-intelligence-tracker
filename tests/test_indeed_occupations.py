@@ -209,3 +209,9 @@ def test_every_stored_source_has_a_site_allowlist_entry_and_attribution():
     assert "tit_reference_attribution_html" in (PLUGIN / "includes" / "sources.php").read_text()
     assert "tit_require('includes/reference_data.php');" in (
         PLUGIN / "talent-intelligence-tracker.php").read_text()
+
+
+def test_the_byte_cap_fits_a_live_category_file():
+    # The live sector CSVs were ~12.4 MB on 2026-10-05; the first run tripped a
+    # 12 MB cap. Keep generous headroom.
+    assert io_.MAX_CSV_BYTES >= 3 * 12_500_000

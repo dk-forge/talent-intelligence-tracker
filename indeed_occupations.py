@@ -38,7 +38,7 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from build_indeed_index import MAX_CSV_BYTES, USER_AGENT, SchemaError, _need_columns
+from build_indeed_index import USER_AGENT, SchemaError, _need_columns
 
 import reference_store
 
@@ -60,6 +60,11 @@ ATTRIBUTION = (
 #: a source change to look at, not a quiet narrowing.
 MIN_CATEGORY_COUNTRIES = 5
 WEEKS_KEPT = 26
+#: The category files are ~12 MB each (daily rows since 2020, ~48 categories)
+#: and grow ~2 MB a year; build_indeed_index's 12 MB cap is sized for the
+#: national file and truncated them on the first live run. A body AT the cap is
+#: still refused as truncated.
+MAX_CSV_BYTES = 60_000_000
 
 
 def _ord(d: str) -> int:
@@ -226,6 +231,14 @@ def store(payload: dict, store_dir: Path = reference_store.STORE) -> dict:
 
 
 def main(argv=None) -> int:
+    try:
+        return _main(argv)
+    except Exception as exc:  # one readable annotation; Actions logs are not always reachable
+        print(f"::error::indeed_occupations failed: {type(exc).__name__}: {exc}", flush=True)
+        raise
+
+
+def _main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--dir", help="read CSVs from this folder instead of the network")
     p.add_argument("--stdout", action="store_true")
