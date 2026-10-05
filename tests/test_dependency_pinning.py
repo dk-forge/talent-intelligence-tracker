@@ -88,10 +88,29 @@ class EveryLockIsFullyHashed(unittest.TestCase):
                                      f"{package} is pinned two ways")
 
 
+# A workflow named here installs a version-pinned but NOT hash-locked package.
+# Allowed only because it holds no secret and no token at all
+# (`permissions: {}`, nothing from `secrets.`), which the test below re-checks:
+# the threat this file guards is an unpinned install in a runner holding keys.
+# laya-eval.yml: manual-only experiment with laya==0.3.27, whose torch tree
+# cannot reasonably be hash-locked for a one-off evaluation.
+KEYLESS_UNHASHED_ALLOWED = {"laya-eval.yml"}
+
+
 class NoWorkflowInstallsAnythingUnpinned(unittest.TestCase):
+    def test_the_unhashed_exception_holds_no_secret(self):
+        for path in workflow_files():
+            if path.name in KEYLESS_UNHASHED_ALLOWED:
+                text = path.read_text()
+                with self.subTest(workflow=path.name):
+                    self.assertNotIn("secrets.", text)
+                    self.assertIn("permissions: {}", text)
+
     def test_no_bare_pip_install_survives(self):
         """`pip install requests` in a runner holding two API keys."""
         for path in workflow_files():
+            if path.name in KEYLESS_UNHASHED_ALLOWED:
+                continue
             for number, line in enumerate(path.read_text().splitlines(), 1):
                 if "pip install" not in line or line.lstrip().startswith("#"):
                     continue
