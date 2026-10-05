@@ -1,0 +1,175 @@
+date,jobcountry,indeed_job_postings_index,variable,display_name
+2025-08-22,US,113.51,total postings,Accounting
+2025-08-29,US,112.99,total postings,Accounting
+2025-09-05,US,111.54,total postings,Accounting
+2025-09-12,US,109.8,total postings,Accounting
+2025-09-19,US,109.7,total postings,Accounting
+2025-09-26,US,109.72,total postings,Accounting
+2025-10-03,US,110.87,total postings,Accounting
+2025-10-10,US,111.28,total postings,Accounting
+2025-10-17,US,110.7,total postings,Accounting
+2025-10-24,US,110.76,total postings,Accounting
+2025-10-31,US,111.55,total postings,Accounting
+2025-11-07,US,109.87,total postings,Accounting
+2025-11-14,US,109.47,total postings,Accounting
+2025-11-21,US,109.54,total postings,Accounting
+2025-11-28,US,109.89,total postings,Accounting
+2025-12-05,US,109.64,total postings,Accounting
+2025-12-12,US,110.1,total postings,Accounting
+2025-12-19,US,112.4,total postings,Accounting
+2025-12-26,US,113.75,total postings,Accounting
+2026-01-02,US,111.53,total postings,Accounting
+2026-01-09,US,112.07,total postings,Accounting
+2026-01-16,US,112.2,total postings,Accounting
+2026-01-23,US,113.92,total postings,Accounting
+2026-01-30,US,114.35,total postings,Accounting
+2026-02-06,US,115.57,total postings,Accounting
+2026-02-13,US,116.36,total postings,Accounting
+2026-02-20,US,117.01,total postings,Accounting
+2026-02-27,US,118.39,total postings,Accounting
+2026-03-06,US,118.67,total postings,Accounting
+2026-03-13,US,118.24,total postings,Accounting
+2026-03-20,US,118.24,total postings,Accounting
+2026-03-27,US,116.63,total postings,Accounting
+2026-04-03,US,104.12,total postings,Accounting
+2026-04-10,US,104.07,total postings,Accounting
+2026-04-17,US,93.8,total postings,Accounting
+2026-04-24,US,94.8,total postings,Accounting
+2026-05-01,US,94.36,total postings,Accounting
+2026-05-08,US,96.86,total postings,Accounting
+2026-05-15,US,96.73,total postings,Accounting
+2026-05-22,US,96.34,total postings,Accounting
+2026-05-29,US,93.33,total postings,Accounting
+2026-06-05,US,92.07,total postings,Accounting
+2026-06-12,US,91.69,total postings,Accounting
+2026-06-19,US,91.81,total postings,Accounting
+2026-06-26,US,92.53,total postings,Accounting
+2026-07-03,US,92.45,total postings,Accounting
+2026-07-10,US,95.05,total postings,Accounting
+2026-07-17,US,93.66,total postings,Accounting
+2026-07-24,US,89.27,total postings,Accounting
+2026-07-31,US,89.17,total postings,Accounting
+2026-08-07,US,85.49,total postings,Accounting
+2026-08-14,US,90.56,total postings,Accounting
+2026-08-21,US,97.33,total postings,Accounting
+2026-08-28,US,96.71,total postings,Accounting
+2026-09-04,US,98.31,total postings,Accounting
+2026-09-11,US,102.95,total postings,Accounting
+2026-09-18,US,103.32,total postings,Accounting
+2026-09-25,US,104.87,total postings,Accounting
+2025-08-22,US,115.36,total postings,Nursing
+2025-08-29,US,115.32,total postings,Nursing
+2025-09-05,US,115.15,total postings,Nursing
+2025-09-12,US,114.84,total postings,Nursing
+2025-09-19,US,113.92,total postings,Nursing
+2025-09-26,US,113.02,total postings,Nursing
+2025-10-03,US,112.88,total postings,Nursing
+2025-10-10,US,112.49,total postings,Nursing
+2025-10-17,US,112.5,total postings,Nursing
+2025-10-24,US,112.59,total postings,Nursing
+2025-10-31,US,112.52,total postings,Nursing
+2025-11-07,US,111.77,total postings,Nursing
+2025-11-14,US,110.3,total postings,Nursing
+2025-11-21,US,110.26,total postings,Nursing
+2025-11-28,US,110.68,total postings,Nursing
+2025-12-05,US,110.55,total postings,Nursing
+2025-12-12,US,110.34,total postings,Nursing
+2025-12-19,US,109.62,total postings,Nursing
+2025-12-26,US,110.51,total postings,Nursing
+2026-01-02,US,109.6,total postings,Nursing
+2026-01-09,US,108.86,total postings,Nursing
+2026-01-16,US,109.03,total postings,Nursing
+2026-01-23,US,108.76,total postings,Nursing
+2026-01-30,US,109.18,total postings,Nursing
+2026-02-06,US,108.89,total postings,Nursing
+2026-02-13,US,109.16,total postings,Nursing
+2026-02-20,US,109.38,total postings,Nursing
+2026-02-27,US,108.5,total postings,Nursing
+2026-03-06,US,107.36,total postings,Nursing
+2026-03-13,US,106.15,total postings,Nursing
+2026-03-20,US,105.01,total postings,Nursing
+2026-03-27,US,103.84,total postings,Nursing
+2026-04-03,US,104.46,total postings,Nursing
+2026-04-10,US,104.47,total postings,Nursing
+2026-04-17,US,103.92,total postings,Nursing
+2026-04-24,US,104.17,total postings,Nursing
+2026-05-01,US,102.83,total postings,Nursing
+2026-05-08,US,102.07,total postings,Nursing
+2026-05-15,US,101.47,total postings,Nursing
+2026-05-22,US,101.93,total postings,Nursing
+2026-05-29,US,100.56,total postings,Nursing
+2026-06-05,US,100.61,total postings,Nursing
+2026-06-12,US,101.18,total postings,Nursing
+2026-06-19,US,102.47,total postings,Nursing
+2026-06-26,US,102.39,total postings,Nursing
+2026-07-03,US,101.49,total postings,Nursing
+2026-07-10,US,102,total postings,Nursing
+2026-07-17,US,102.42,total postings,Nursing
+2026-07-24,US,103.25,total postings,Nursing
+2026-07-31,US,103.94,total postings,Nursing
+2026-08-07,US,103.99,total postings,Nursing
+2026-08-14,US,104.04,total postings,Nursing
+2026-08-21,US,104.14,total postings,Nursing
+2026-08-28,US,104.61,total postings,Nursing
+2026-09-04,US,104.99,total postings,Nursing
+2026-09-11,US,106.46,total postings,Nursing
+2026-09-18,US,109.28,total postings,Nursing
+2026-09-25,US,109.82,total postings,Nursing
+2025-08-22,US,66.58,total postings,Software Development
+2025-08-29,US,65.73,total postings,Software Development
+2025-09-05,US,64.58,total postings,Software Development
+2025-09-12,US,65.5,total postings,Software Development
+2025-09-19,US,64.71,total postings,Software Development
+2025-09-26,US,64.17,total postings,Software Development
+2025-10-03,US,64.34,total postings,Software Development
+2025-10-10,US,64.37,total postings,Software Development
+2025-10-17,US,65.15,total postings,Software Development
+2025-10-24,US,65.33,total postings,Software Development
+2025-10-31,US,65.89,total postings,Software Development
+2025-11-07,US,66.04,total postings,Software Development
+2025-11-14,US,66.11,total postings,Software Development
+2025-11-21,US,66.34,total postings,Software Development
+2025-11-28,US,66.59,total postings,Software Development
+2025-12-05,US,66.5,total postings,Software Development
+2025-12-12,US,66.71,total postings,Software Development
+2025-12-19,US,67.18,total postings,Software Development
+2025-12-26,US,67.36,total postings,Software Development
+2026-01-02,US,67.2,total postings,Software Development
+2026-01-09,US,67.14,total postings,Software Development
+2026-01-16,US,68.19,total postings,Software Development
+2026-01-23,US,68.92,total postings,Software Development
+2026-01-30,US,69.32,total postings,Software Development
+2026-02-06,US,69.91,total postings,Software Development
+2026-02-13,US,70.27,total postings,Software Development
+2026-02-20,US,70.51,total postings,Software Development
+2026-02-27,US,70.97,total postings,Software Development
+2026-03-06,US,70.57,total postings,Software Development
+2026-03-13,US,71.43,total postings,Software Development
+2026-03-20,US,71.44,total postings,Software Development
+2026-03-27,US,72.76,total postings,Software Development
+2026-04-03,US,72.5,total postings,Software Development
+2026-04-10,US,72.2,total postings,Software Development
+2026-04-17,US,73.14,total postings,Software Development
+2026-04-24,US,73.73,total postings,Software Development
+2026-05-01,US,72.96,total postings,Software Development
+2026-05-08,US,74.66,total postings,Software Development
+2026-05-15,US,74.06,total postings,Software Development
+2026-05-22,US,74.44,total postings,Software Development
+2026-05-29,US,73.65,total postings,Software Development
+2026-06-05,US,73.51,total postings,Software Development
+2026-06-12,US,72.89,total postings,Software Development
+2026-06-19,US,72.68,total postings,Software Development
+2026-06-26,US,73.52,total postings,Software Development
+2026-07-03,US,73.81,total postings,Software Development
+2026-07-10,US,74.55,total postings,Software Development
+2026-07-17,US,75.61,total postings,Software Development
+2026-07-24,US,75.5,total postings,Software Development
+2026-07-31,US,75.46,total postings,Software Development
+2026-08-07,US,73.66,total postings,Software Development
+2026-08-14,US,74.37,total postings,Software Development
+2026-08-21,US,74.58,total postings,Software Development
+2026-08-28,US,74.62,total postings,Software Development
+2026-09-04,US,76.13,total postings,Software Development
+2026-09-11,US,76.63,total postings,Software Development
+2026-09-18,US,77.33,total postings,Software Development
+2026-09-25,US,78.09,total postings,Software Development
