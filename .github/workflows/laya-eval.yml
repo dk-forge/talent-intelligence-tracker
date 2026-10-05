@@ -1,0 +1,36 @@
+name: laya eval (gate gold set)
+
+# Manual-only experiment: does the local CPU classifier `laya` (PyPI,
+# NandhaKishorM/laya) agree with the gate gold set? No secrets, no
+# write token, no API calls that cost money: it installs laya, downloads its
+# public checkpoint, scores the gate gold items and writes the job summary.
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Items to score (max 200; the set has 80)'
+        required: false
+        default: '200'
+
+permissions: {}
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install laya in a venv
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu laya==0.3.27
+      - name: Score gold set
+        env:
+          LAYA_LIMIT: ${{ inputs.limit }}
+        run: .venv/bin/python analysis/models/laya_eval.py
