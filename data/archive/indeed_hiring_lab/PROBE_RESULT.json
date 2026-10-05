@@ -1,0 +1,40 @@
+{
+ "source": "indeed_hiring_lab",
+ "licence": "CC BY 4.0 (attribution)",
+ "frequency": "weekly (daily rows)",
+ "countries": [
+  "AU",
+  "CA",
+  "DE",
+  "EA",
+  "ES",
+  "FR",
+  "GB",
+  "IE",
+  "IT",
+  "NL",
+  "US"
+ ],
+ "us_files": [
+  "aggregate_job_postings_US.csv",
+  "job_postings_by_sector_US.csv",
+  "metro_job_postings_us.csv",
+  "state_job_postings_us.csv"
+ ],
+ "repo_size_kb": 1065352,
+ "latest": "2026-09-25",
+ "stale_days": 10,
+ "occupational_categories": 47,
+ "reachable": true,
+ "demographics": "none (postings by occupation category, country, some metros/states for US)",
+ "geo": "11 countries",
+ "match": {
+  "events": 7800,
+  "industry_pct": 47.7,
+  "region_pct": 32.2,
+  "industry_and_region_pct": 32.2
+ },
+ "full_pull_estimate": "whole repo ~= repo_size_kb; grows a few MB/month",
+ "tracker": "tit",
+ "snapshot_bytes": 12033516
+}
