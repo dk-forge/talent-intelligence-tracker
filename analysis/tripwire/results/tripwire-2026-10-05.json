@@ -1,0 +1,585 @@
+{
+ "ran_at": "2026-10-05T09:52:39+02:00",
+ "ran_on": "2026-10-05",
+ "plan": {
+  "cycle": 556,
+  "planned_on": "2026-10-05",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-09-28 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "SE",
+    "name": "Sweden",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "NL",
+    "name": "Netherlands",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "AE",
+    "name": "United Arab Emirates",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "US",
+    "name": "United States",
+    "tier": "covered",
+    "measured": {
+     "total": 34,
+     "held": 17,
+     "held_pct": 50.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "SE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "NL",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "AE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "US",
+   "tier": "covered",
+   "measured": {
+    "total": 34,
+    "held": 17,
+    "held_pct": 50.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 18,
+  "held": 11,
+  "missing": 7,
+  "unusable": 0,
+  "usable": 18
+ },
+ "by_country": {
+  "NL": {
+   "leads": 5,
+   "held": 1,
+   "missing": 4,
+   "unusable": 0
+  },
+  "SE": {
+   "leads": 5,
+   "held": 3,
+   "missing": 2,
+   "unusable": 0
+  },
+  "AE": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  },
+  "US": {
+   "leads": 5,
+   "held": 5,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0228,
+  "queries": 4,
+  "usd_per_query": 0.0057,
+  "usd_per_lead": 0.0013,
+  "usd_per_candidate_miss": 0.0033,
+  "lifetime_usd": 0.5574,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:SE",
+   "leads": 5,
+   "usd": 0.00573,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 394,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:NL",
+   "leads": 5,
+   "usd": 0.00572,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 391,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:AE",
+   "leads": 3,
+   "usd": 0.0056,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 335,
+   "completion_tokens": 264,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:US",
+   "leads": 5,
+   "usd": 0.00576,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 423,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Klang",
+   "claimed_country": "SE",
+   "claimed_city": "Stockholm",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-28",
+   "claimed_amount": "\u20ac1.3M",
+   "claimed_stage": "",
+   "claimed_outlet": "Vestbee",
+   "claimed_url": "https://www.vestbee.com/insights/tag/sweden",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c2aedd45477a217ea740d81a3515b67c",
+    "company": "Klang",
+    "pillar": "company_development",
+    "country": "SE",
+    "published_date": "2026-09-24",
+    "source_url": "https://www.breakit.se/artikel/47495/ai-bolaget-klang-tar-in-15-miljoner-och-soker-nya-kollegor-till-litet-team"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Tandem Health",
+   "claimed_country": "SE",
+   "claimed_city": "Stockholm",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-14",
+   "claimed_amount": "$100M",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "Tech.eu",
+   "claimed_url": "https://tech.eu/2026/09/14/swedish-healthtech-tandem-health-scores-100m-series-b-led-by-eus-eur5bn-tech-startup-fund/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "29270c52f37c392df2592c789e3e7e36",
+    "company": "Tandem Health",
+    "pillar": "company_development",
+    "country": "SE",
+    "published_date": "2026-09-14",
+    "source_url": "https://www.eu-startups.com/2026/09/stockholms-tandem-health-raises-e86-5-million-to-build-an-ai-native-operating-system-for-european-healthcare/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Rebaba",
+   "claimed_country": "SE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-09",
+   "claimed_amount": "$4.6M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Tech.eu",
+   "claimed_url": "https://tech.eu/2026/09/28/european-tech-weekly-recap-over-eur2b-invested-across-65-deals/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Enginzyme AB",
+   "claimed_country": "SE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-23",
+   "claimed_amount": "SEK 75 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/fundings/enginzyme-funding-round-f9554c",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Stegra",
+   "claimed_country": "SE",
+   "claimed_city": "Boden",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-03",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/stegra-implements-changes-following-100-day-review-under-new-owners-hakan-buskhe-appointed-ceo",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a2a32764cef6db368992789619d733a5",
+    "company": "Stegra",
+    "pillar": "leadership_change",
+    "country": "SE",
+    "published_date": "2026-09-30",
+    "source_url": "https://it.marketscreener.com/notizie/stegra-ha-bisogno-di-altro-capitale-h-kan-buskhe-sara-il-nuovo-amministratore-delegato-ce785ad2dc88f727"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Whispp",
+   "claimed_country": "NL",
+   "claimed_city": "Leiden",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-22",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Big News Network / ACCESS Newswire",
+   "claimed_url": "https://www.bignewsnetwork.com/news/279323462/whispp-appoints-former-dolby-executive-andreas-spechtler-as-ceo",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Euclyd",
+   "claimed_country": "NL",
+   "claimed_city": "Eindhoven",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-15",
+   "claimed_amount": "\u20ac200M",
+   "claimed_stage": "Series A",
+   "claimed_outlet": "Bloomberg",
+   "claimed_url": "https://www.bloomberg.com/news/articles/2026-09-15/chip-startup-euclyd-backed-by-ex-asml-ceo-raises-more-than-200-million",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "615634f74e0257dc41e346747a2b9587",
+    "company": "Euclyd",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-15",
+    "source_url": "https://www.idnfinancials.com/fr/news/68865/samsung-soutient-la-startup-de-puces-ia-euclyd-qui-l%C3%A8ve-231-millions-de-dollars"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Corbion N.V.",
+   "claimed_country": "NL",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-02",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "AFM",
+   "claimed_url": "https://www.afm.nl/en/sector/registers/meldingenregisters/openbaarmaking-voorwetenschap",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Holland Colours N.V.",
+   "claimed_country": "NL",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-30",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "AFM",
+   "claimed_url": "https://www.afm.nl/en/sector/registers/meldingenregisters/openbaarmaking-voorwetenschap",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "AMS-IX",
+   "claimed_country": "NL",
+   "claimed_city": "Amsterdam",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Telecompaper",
+   "claimed_url": "https://www.telecompaper.com/netherlands",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "National Central Cooling Company PJSC (Tabreed)",
+   "claimed_country": "AE",
+   "claimed_city": "Abu Dhabi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-11",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Tabreed",
+   "claimed_url": "https://tabreed.ae/en/news/tabreed-announces-appointment-dr-yousif-al-hammadi-chief-executive-officer",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "Stellaria",
+   "claimed_country": "AE",
+   "claimed_city": "Dubai",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-25",
+   "claimed_amount": "AED 25 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "SpaceTech Gulf",
+   "claimed_url": "https://spacetech-gulf.com/2026/08/stellaria-raises-aed-25m-seed-funding-geospatial-intelligence/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "709c03f92d72b89505ae30c1be24ceb7",
+    "company": "Stellaria",
+    "pillar": "company_development",
+    "country": "AE",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/08/uae-stellaria-secures-6-8-million-scale-geospatial-ai-platform"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "Amaani",
+   "claimed_country": "AE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-03",
+   "claimed_amount": "$5 million",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Arab News",
+   "claimed_url": "https://www.arabnews.com/business/startup-wrap-gulf-investors-back-robotics-fintech-beauty-and-proptech-3004227",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "f4a6f0a1899ae5932f0d9eac05904068",
+    "company": "Amaani",
+    "pillar": "company_development",
+    "country": "EG",
+    "published_date": "2026-09-28",
+    "source_url": "https://www.wamda.com/2026/09/%C3%AFza-parent-amaani-raises-5-million-series-a-gcc-expansion"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Crusoe",
+   "claimed_country": "US",
+   "claimed_city": "Denver",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-04",
+   "claimed_amount": "$3.9 billion",
+   "claimed_stage": "series_f",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/ai-infrastructure-provider-crusoe-valued-at-309-billion-in-latest-funding-round_8600d8",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "61964a1c7495c201c8b0ecde68970447",
+    "company": "Crusoe",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-03",
+    "source_url": "https://www.bloomberg.com/news/articles/2026-09-03/crusoe-raises-over-3-billion-in-funding-at-30-billion-valuation"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Stability AI",
+   "claimed_country": "US",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-02",
+   "claimed_amount": "$76 million",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/stability-ai-raises-76-million-in-funding-round-backed-by-universal-music-group-warner-music-group-sony-music-and-electronic-arts",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d6ce85257d1fdd20a9694421968f84b5",
+    "company": "Stability AI",
+    "pillar": "company_development",
+    "country": "GB",
+    "published_date": "2026-08-26",
+    "source_url": "https://newscord.org/article/stability-ai-raises-76-million-series-b-backed-by-universal-sony-warner-and-elec--Story_20260826_StabilityAImakerofima38a93a1"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "CScale",
+   "claimed_country": "US",
+   "claimed_city": "Palo Alto",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "$145 million",
+   "claimed_stage": "series_c",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/nvidia-backed-cscale-emerges-from-stealth-with-145m-to-build-optical-interconnects-for-gigawatt-scale-ai-tech-startups",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "ca8b1c65e56b929b4f13c5c3bfaa954c",
+    "company": "CScale",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://ventureburn.com/cscale-raises-145-million-to-fix-ai-networking/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Starcloud",
+   "claimed_country": "US",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-03",
+   "claimed_amount": "$250 million",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/starcloud-raises-250-million-for-orbital-data-centers-as-launch-options-dry-up",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "97335c1044b4c597d4f84cb6aa1e43a3",
+    "company": "Starcloud",
+    "pillar": "company_development",
+    "country": "US",
+    "published_date": "2026-08-21",
+    "source_url": "https://techcrunch.com/2026/08/21/starcloud-raises-200-million-for-orbital-data-centers-as-launch-options-dry-up/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Fortem Technologies",
+   "claimed_country": "US",
+   "claimed_city": "Lindon",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "$50 million",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/fortem-technologies-closes-50m-series-b-financing-led-by-lockheed-martin",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a4cc7dd89b753ebacd9f0f9ffacc34e9",
+    "company": "Fortem Technologies",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://www.unmannedairspace.info/counter-uas-systems-and-policies/fortem-technologies-closes-usd50-million-series-b-led-by-lockheed-martin/"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}
