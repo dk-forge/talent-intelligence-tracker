@@ -40,6 +40,11 @@
       "last": 1791184750,
       "subject": "CI RED: money-basis check: VERDICT: FAIL"
     },
+    "self-heal:main:8707d92a6982d034": {
+      "first": 1791232631,
+      "last": 1791232631,
+      "subject": "CI RED: Self-heal: no error line could be extracted from the log"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -56,6 +61,6 @@
       "subject": "CI RED: tests: no error line could be extracted from the log"
     }
   },
-  "updated_at": "2026-10-05T20:21:10+00:00",
+  "updated_at": "2026-10-05T20:37:12+00:00",
   "version": 1
 }
