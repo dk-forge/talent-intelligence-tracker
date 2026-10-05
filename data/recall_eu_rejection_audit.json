@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-28T10:32:34+02:00",
- "measured_on": "2026-09-28",
+ "generated_at": "2026-10-05T10:34:06+02:00",
+ "measured_on": "2026-10-05",
  "goldset_version": "2026-08-eu-v1",
  "gold_events": 46,
  "misses": 22,
@@ -240,7 +240,7 @@
    "domain": "globenewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 42,
+   "urls_fetched_from_this_domain": 44,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -259,7 +259,7 @@
    "domain": "teleborsa.it",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 6,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -278,7 +278,7 @@
    "domain": "capital.es",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 2,
+   "urls_fetched_from_this_domain": 4,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -297,7 +297,7 @@
    "domain": "milanofinanza.it",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 9,
+   "urls_fetched_from_this_domain": 11,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -335,7 +335,7 @@
    "domain": "teleborsa.it",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 3,
+   "urls_fetched_from_this_domain": 6,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -354,7 +354,7 @@
    "domain": "mamstartup.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 38,
+   "urls_fetched_from_this_domain": 44,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -373,7 +373,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 139,
+   "urls_fetched_from_this_domain": 155,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -392,7 +392,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 139,
+   "urls_fetched_from_this_domain": 155,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -620,7 +620,7 @@
    "domain": "bankier.pl",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 91,
+   "urls_fetched_from_this_domain": 103,
    "live_routes": [
     "gdelt",
     "google_news",

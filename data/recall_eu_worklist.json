@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-28T10:32:19+02:00",
- "measured_on": "2026-09-28",
+ "generated_at": "2026-10-05T10:33:50+02:00",
+ "measured_on": "2026-10-05",
  "goldset_version": "2026-08-eu-v1",
  "overall": {
   "total": 46,
@@ -276,9 +276,9 @@
   "due": true,
   "reason": "the last 3 measurements against this set all held 24 events, so it has converged and further runs measure memory rather than reach",
   "suggested_window": {
-   "start": "2026-08-01",
-   "end": "2026-08-31"
+   "start": "2026-09-01",
+   "end": "2026-09-30"
   },
-  "instruction": "Build a new EUROPE recall gold set for 2026-08-01 to 2026-08-31 and seal it. The population is the EU27 plus the United Kingdom, Switzerland and Norway, and nothing else. Run several INDEPENDENT research passes, one per group of countries (the north and the British Isles, the centre and the south, central and eastern Europe and the Baltics), each for funding and for leadership, every pass forbidden from consulting asktherecruiter.com, this repository, our database or our source registry: a set drawn from the feeds we already watch measures memory rather than reach. Enumerate candidates CHRONOLOGICALLY within the window and take them in that order rather than picking the interesting ones; search in the local language as well as English. Every item cites the original publisher, which is the company's own announcement, the filing or exchange notice, or a named outlet's own article; no aggregator, database or other tracker may be named anywhere in the repository. Fetch every source URL and confirm the company, the date, the country and the amount on the page itself before writing the row down; drop what will not verify and record why. Write it to analysis/recall/eu/goldset-eu-2026-08.json with sealed=true, family=\"eu\" and an assembled_on date. `python3 measure_recall.py --family eu --check` must pass before it is used; analysis/recall/goldset.py EU_REQUIRED_SHAPE is the guard that stops a European set being quietly rebuilt out of the London press, which is the one part of Europe that is easy to enumerate in English."
+  "instruction": "Build a new EUROPE recall gold set for 2026-09-01 to 2026-09-30 and seal it. The population is the EU27 plus the United Kingdom, Switzerland and Norway, and nothing else. Run several INDEPENDENT research passes, one per group of countries (the north and the British Isles, the centre and the south, central and eastern Europe and the Baltics), each for funding and for leadership, every pass forbidden from consulting asktherecruiter.com, this repository, our database or our source registry: a set drawn from the feeds we already watch measures memory rather than reach. Enumerate candidates CHRONOLOGICALLY within the window and take them in that order rather than picking the interesting ones; search in the local language as well as English. Every item cites the original publisher, which is the company's own announcement, the filing or exchange notice, or a named outlet's own article; no aggregator, database or other tracker may be named anywhere in the repository. Fetch every source URL and confirm the company, the date, the country and the amount on the page itself before writing the row down; drop what will not verify and record why. Write it to analysis/recall/eu/goldset-eu-2026-09.json with sealed=true, family=\"eu\" and an assembled_on date. `python3 measure_recall.py --family eu --check` must pass before it is used; analysis/recall/goldset.py EU_REQUIRED_SHAPE is the guard that stops a European set being quietly rebuilt out of the London press, which is the one part of Europe that is easy to enumerate in English."
  }
 }

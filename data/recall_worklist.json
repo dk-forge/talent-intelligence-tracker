@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-28T10:31:04+02:00",
- "measured_on": "2026-09-28",
+ "generated_at": "2026-10-05T10:32:50+02:00",
+ "measured_on": "2026-10-05",
  "goldset_version": "2026-07-v2",
  "overall": {
   "total": 169,
@@ -778,11 +778,11 @@
  "missed_total": 123,
  "next_goldset": {
   "due": true,
-  "reason": "the current set covers a window that closed 62 days ago, so it no longer describes what we reach today",
+  "reason": "the current set covers a window that closed 69 days ago, so it no longer describes what we reach today",
   "suggested_window": {
-   "start": "2026-08-01",
-   "end": "2026-08-31"
+   "start": "2026-09-01",
+   "end": "2026-09-30"
   },
-  "instruction": "Build a new recall gold set for 2026-08-01 to 2026-08-31 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-08.json with sealed=true, family=\"world\" and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
+  "instruction": "Build a new recall gold set for 2026-09-01 to 2026-09-30 and seal it. Run several INDEPENDENT research passes, one per segment (US large funding, US small funding, Europe, Asia-Pacific, Israel, rest of world, US leadership, non-US leadership), each forbidden from consulting asktherecruiter.com or any of our own data: a set drawn from what we already hold measures nothing. Every item needs a source URL that a stranger can open, and quotas must be filled per segment rather than taking whatever was easy to find. Check every URL resolves, drop only the unreachable ones, and drop nothing at all once matching has begun. Write it to analysis/recall/goldset-2026-09.json with sealed=true, family=\"world\" and an assembled_on date, matching the shape of the previous set. `python3 measure_recall.py --check` must pass before it is used; analysis/recall/goldset.py REQUIRED_SHAPE is the guard that stops a set being quietly rebuilt out of easy US filings. The newest set on disk is the one measured, so nothing else needs changing."
  }
 }
