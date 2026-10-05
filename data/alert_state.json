@@ -45,6 +45,11 @@
       "last": 1791232631,
       "subject": "CI RED: Self-heal: no error line could be extracted from the log"
     },
+    "sentry-error-check:main:b39ea8dfaa157afd": {
+      "first": 1791233869,
+      "last": 1791233869,
+      "subject": "CI RED: sentry-error-check: no error line could be extracted from the log"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -61,6 +66,6 @@
       "subject": "CI RED: tests: no error line could be extracted from the log"
     }
   },
-  "updated_at": "2026-10-05T20:37:12+00:00",
+  "updated_at": "2026-10-05T20:57:51+00:00",
   "version": 1
 }
