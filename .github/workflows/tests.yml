@@ -170,6 +170,12 @@ jobs:
       - name: Render the sources page and check what it claims about the archive
         run: php tests/php/render_sources.php
 
+      # The reference sections (Indeed by country/occupation, H-1B): each one
+      # names its source and licence, hides without data, and the H-1B box
+      # matches an employer name exactly or shows nothing.
+      - name: Render the reference-data sections
+        run: php tests/php/render_reference.php
+
       # The RSS feed has to satisfy a strict parser for every row we hold, the
       # filtered feed has to honour the filters, and the CRM preset headers are
       # a contract with two import wizards that map columns by name.

@@ -245,14 +245,72 @@ def to_csv_gz(table: list[dict]) -> bytes:
     return gzip.compress(buf.getvalue().encode(), compresslevel=9, mtime=0)
 
 
-def top_employers(table: list[dict], n: int = 100) -> list[dict]:
+def weighted_median(pairs) -> int | None:
+    """Median of (value, weight) pairs. Used to combine the per-group wage
+    medians into one employer figure, weighted by how many certified wages
+    each group's median was taken over. An approximation of the true median of
+    the underlying filings, and the site says so."""
+    pairs = sorted((v, w) for v, w in pairs if v not in ("", None) and w)
+    total = sum(w for _, w in pairs)
+    if not total:
+        return None
+    run = 0
+    for v, w in pairs:
+        run += w
+        if run * 2 >= total:
+            return int(v)
+    return int(pairs[-1][0])
+
+
+def _top(counter: Counter, n: int) -> dict:
+    return {k: v for k, v in counter.most_common(n) if k and v}
+
+
+def employer_rollup(table: list[dict], keys=None, breakdown: int = 5) -> dict[str, dict]:
+    """Per employer: counts, certified filings by job family and by worksite
+    state (top `breakdown` each), and the combined median offered wage."""
     agg: dict[str, dict] = {}
     for r in table:
-        a = agg.setdefault(r["employer_key"], {"employer": r["employer"], "cases": 0,
-                                               "certified": 0, "positions": 0})
+        if keys is not None and r["employer_key"] not in keys:
+            continue
+        a = agg.setdefault(r["employer_key"], {
+            "employer": r["employer"], "cases": 0, "certified": 0, "positions": 0,
+            "_roles": Counter(), "_states": Counter(), "_wages": []})
         for k in ("cases", "certified", "positions"):
             a[k] += r[k]
-    return sorted(agg.values(), key=lambda a: (-a["cases"], a["employer"]))[:n]
+        a["_roles"][r["job_family"]] += r["certified"]
+        a["_states"][r["worksite_state"]] += r["certified"]
+        if r["wage_n"]:
+            a["_wages"].append((r["wage_median"], r["wage_n"]))
+    out = {}
+    for k, a in agg.items():
+        out[k] = {"employer": a["employer"], "cases": a["cases"],
+                  "certified": a["certified"], "positions": a["positions"],
+                  "roles": _top(a["_roles"], breakdown),
+                  "states": _top(a["_states"], breakdown),
+                  "wage_median": weighted_median(a["_wages"]),
+                  "wage_n": sum(w for _, w in a["_wages"])}
+    return out
+
+
+def top_employers(table: list[dict], n: int = 200) -> list[dict]:
+    rolled = employer_rollup(table)
+    rows = [{k: v for k, v in a.items() if k != "wage_n"} for a in rolled.values()]
+    return sorted(rows, key=lambda a: (-a["cases"], a["employer"]))[:n]
+
+
+def read_stored_table(store_dir=reference_store.STORE) -> list[dict]:
+    """The committed aggregate, typed back to what reduce() produced, so the
+    site copy can be rebuilt without re-downloading the 250 MB source file."""
+    path = reference_store.source_dir(SOURCE, store_dir) / TABLE
+    ints = ("cases", "certified", "positions", "wage_n", "wage_p25", "wage_median", "wage_p75")
+    out = []
+    with gzip.open(path, "rt", newline="") as f:
+        for r in csv.DictReader(f):
+            for k in ints:
+                r[k] = int(r[k]) if r[k] != "" else ""
+            out.append(dict(r))
+    return out
 
 
 def store(table, stats, meta, match=None, store_dir=reference_store.STORE) -> dict:
@@ -278,11 +336,19 @@ def stored_employer_keys(store_dir=reference_store.STORE) -> set[str]:
 
 
 def compact(table, stats, meta, match) -> dict:
+    """The site copy. `companies` holds ONLY employers that exact-matched a
+    tracker company, and `names` maps each tracker spelling to its key; the
+    site splits both into their own option (company pages read them, the
+    dashboard does not)."""
+    pairs = match.get("pairs") or {}
     return {"source": SOURCE, "as_of": meta["as_of"], "file": meta["file"],
+            "fiscal_year": meta.get("fiscal_year"), "quarter": meta.get("quarter"),
             "licence": LICENCE, "attribution": ATTRIBUTION, "source_url": PAGE,
             "stats": stats, "tracker_match": {k: match[k] for k in
                                               ("tracker_companies", "matched", "match_pct")},
-            "top_employers": top_employers(table)}
+            "top_employers": top_employers(table),
+            "companies": employer_rollup(table, keys=set(pairs.values())),
+            "names": dict(match.get("names") or {})}
 
 
 # --- network -------------------------------------------------------------------
@@ -339,7 +405,23 @@ def _main(argv=None) -> int:
     p.add_argument("--store", action="store_true")
     p.add_argument("--publish", action="store_true")
     p.add_argument("--force", action="store_true", help="re-pull even if this file is stored")
+    p.add_argument("--republish", action="store_true",
+                   help="rebuild the site copy from the committed table and publish it")
     a = p.parse_args(argv)
+
+    if a.republish:
+        m = reference_store.read_manifest(SOURCE) or {}
+        table = read_stored_table()
+        stats = m.get("stats") or {}
+        meta = {k: m.get(k) for k in ("file", "as_of", "fiscal_year", "quarter")}
+        import h1b_join
+        match = h1b_join.match(h1b_join.tracker_companies(
+            reference_store.REPO_ROOT / "data" / "talent_intel.db"),
+            {r["employer_key"] for r in table})
+        reference_store.notice(
+            f"h1b_lca republish {meta['file']} site="
+            f"{reference_store.publish(SOURCE, compact(table, stats, meta, match))}")
+        return 0
 
     if a.xlsx:
         m = re.search(r"FY(\d{4})_Q(\d)", a.xlsx)

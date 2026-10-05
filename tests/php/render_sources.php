@@ -406,6 +406,24 @@ ob_start(); tit_sources_render($SOURCES); ob_end_clean();
 check($wpdb->reads === 0,
       'and none warm, or the count is paid on every request: ' . $wpdb->reads);
 
+/*
+ * REFERENCE DATA HAS ROWS HERE. The tracker draws two external series (Indeed
+ * Hiring Lab by occupation, DOL OFLC H-1B LCAs) on the dashboard and company
+ * pages; a number on a page whose source is missing from the Sources page is a
+ * number with no source. Both must print, with licence and link.
+ */
+ob_start(); tit_sources_render($SOURCES); $ref_html = ob_get_clean();
+check(strpos($ref_html, 'Reference Data') !== false, 'the Sources page lost its Reference Data block');
+foreach (array(
+    'Indeed Hiring Lab' => 'https://github.com/hiring-lab/job_postings_tracker',
+    'U.S. Department of Labor, OFLC' => 'https://www.dol.gov/agencies/eta/foreign-labor/performance',
+) as $name => $url) {
+    check(strpos($ref_html, $name) !== false, "the Sources page has no row for {$name}");
+    check(strpos($ref_html, 'href="' . $url . '"') !== false, "the {$name} row does not link {$url}");
+}
+check(strpos($ref_html, 'CC BY 4.0') !== false, 'the Indeed row lost its licence');
+check(strpos($ref_html, 'Public domain') !== false, 'the DOL row lost its licence');
+
 if ($failures) {
     fwrite(STDERR, "sources FAILED:\n  - " . implode("\n  - ", $failures) . "\n");
     exit(1);

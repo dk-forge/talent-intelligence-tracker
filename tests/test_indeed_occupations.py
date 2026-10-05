@@ -115,11 +115,14 @@ def test_store_writes_manifest_with_attribution_and_refuses_a_shrink(tmp_path):
         io_.store(p2, tmp_path)
 
 
-def test_compact_drops_weekly_arrays_only():
+def test_compact_keeps_the_country_trend_and_drops_category_weeklies():
+    """The site draws each country's total over time, so the 26 weekly points
+    of the 11 totals travel; the ~280 category weeklies do not."""
     agg, sec = _inputs()
     p = io_.build(agg, sec)
     c = io_.compact(p)
-    assert "weekly" not in c["countries"]["US"]["total"]
+    assert c["countries"]["US"]["total"]["weekly"] == p["countries"]["US"]["total"]["weekly"]
+    assert all("weekly" not in s for s in c["countries"]["US"]["categories"].values())
     assert c["countries"]["US"]["categories"]["Nursing"]["index"] == p["countries"]["US"]["categories"]["Nursing"]["index"]
     assert len(json.dumps(c)) < len(json.dumps(p))
 

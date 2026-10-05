@@ -1057,6 +1057,11 @@ function tit_company_render($rows, $key, $profile) {
       if (function_exists('tit_board_series_panel')) {
           echo tit_board_series_panel(tit_company_legacy_slug($company_key));  // built and escaped there
       }
+      // H-1B Labor Condition Applications, on an EXACT employer-name match
+      // only ('' otherwise). Guarded for the FTP race like the panel above.
+      if (function_exists('tit_h1b_company_panel')) {
+          echo tit_h1b_company_panel($rows);  // built and escaped there
+      }
       ?>
 
       <?php if (!$profile['indexable']) : ?>

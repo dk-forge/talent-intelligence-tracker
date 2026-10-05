@@ -1568,6 +1568,63 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:var(--tit-mk-u); background:var(--
 .tit-macro .tit-event-meta { margin:8px 0 0; font-size:12.5px; }
 .tit-macro .tit-note { margin:8px 0 12px; }
 
+/* Reference sections (includes/reference_render.php): hiring demand by
+   country and occupation, H-1B sponsors, the company-page H-1B box. They sit
+   in the same .tit-macro band as the Indeed backdrop, for the same reason:
+   external context, visibly apart from our own counts. Every colour is a
+   token, so both themes follow; nothing here is wider than its container, so
+   a phone never scrolls sideways. */
+.tit-hd, .tit-h1b, .tit-h1b-co { max-width:100%; box-sizing:border-box; overflow:hidden; }
+.tit-hd-controls, .tit-h1b-controls { display:flex; flex-wrap:wrap; gap:8px 12px;
+  align-items:center; margin:0 0 12px; font-size:13.5px; color:var(--tit-fg); }
+.tit-hd-countries { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; border:0;
+  min-width:0; }
+.tit-hd-countries legend { width:100%; margin:0 0 4px; padding:0; font-weight:700;
+  color:var(--tit-fg); }
+.tit-hd-hint { font-weight:400; color:var(--tit-mut); }
+.tit-hd-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px;
+  border:1px solid var(--tit-ctl-line); border-radius:999px; background:var(--tit-surface-1);
+  color:var(--tit-fg); cursor:pointer; }
+.tit-hd-chip:has(input:disabled) { opacity:.55; cursor:not-allowed; }
+.tit-hd-occ-l, .tit-h1b-controls label { font-weight:700; color:var(--tit-fg); }
+.tit-hd-occ, .tit-h1b-controls select, .tit-h1b-q { max-width:100%; min-width:0;
+  padding:6px 8px; border:1px solid var(--tit-ctl-line); border-radius:8px;
+  background:var(--tit-surface-1); color:var(--tit-fg); font:inherit; }
+.tit-hd-fig { margin:0; }
+.tit-hd-svg { display:block; width:100%; height:auto; max-width:100%; }
+.tit-hd-grid { stroke:var(--tit-grid); stroke-width:1; }
+.tit-hd-base { stroke:var(--tit-faint); stroke-width:1; stroke-dasharray:4 4; }
+.tit-hd-ax { fill:var(--tit-mut); font-size:12px; }
+.tit-hd-line { fill:none; stroke-width:2.25; stroke-linejoin:round; stroke-linecap:round; }
+.tit-hd-s0 { stroke:var(--tit-blue); }   .tit-hd-k0 { background:var(--tit-blue); }
+.tit-hd-s1 { stroke:var(--tit-orange); } .tit-hd-k1 { background:var(--tit-orange); }
+.tit-hd-s2 { stroke:var(--tit-teal); }   .tit-hd-k2 { background:var(--tit-teal); }
+.tit-hd-s3 { stroke:var(--tit-violet); } .tit-hd-k3 { background:var(--tit-violet); }
+.tit-hd-s4 { stroke:var(--tit-ochre); }  .tit-hd-k4 { background:var(--tit-ochre); }
+.tit-hd-s5 { stroke:var(--tit-cutting); } .tit-hd-k5 { background:var(--tit-cutting); }
+.tit-hd-legend { display:flex; flex-wrap:wrap; gap:4px 16px; margin:8px 0 0; padding:0;
+  list-style:none; font-size:13px; color:var(--tit-fg); }
+.tit-hd-key { display:inline-block; width:12px; height:3px; margin:0 4px 3px 0;
+  vertical-align:middle; border-radius:2px; }
+.tit-hd-chg { color:var(--tit-mut); }
+.tit-hd-missing, .tit-hd-status { margin:6px 0 0; font-size:12.5px; color:var(--tit-mut); }
+.tit-h1b-table { width:100%; border-collapse:collapse; font-size:14px; table-layout:auto;
+  color:var(--tit-fg); }
+.tit-h1b-table th, .tit-h1b-table td { padding:7px 8px; text-align:left;
+  border-bottom:1px solid var(--tit-line); overflow-wrap:anywhere; }
+.tit-wrap .tit-h1b-table th { font-size:12px; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--tit-mut); background:var(--tit-surface); }
+.tit-h1b-table .tit-num { text-align:right; white-space:nowrap; }
+.tit-h1b-dl { display:grid; grid-template-columns:max-content 1fr; gap:4px 14px;
+  margin:0 0 10px; font-size:14px; color:var(--tit-fg); }
+.tit-h1b-dl dt { font-weight:700; color:var(--tit-mut); }
+.tit-h1b-dl dd { margin:0; min-width:0; overflow-wrap:anywhere; }
+@media (max-width: 600px) {
+  .tit-h1b-table .tit-h1b-opt { display:none; }
+  .tit-h1b-dl { grid-template-columns:1fr; }
+  .tit-h1b-dl dd { margin:0 0 6px; }
+}
+
 
 /* ===========================================================================
    Family styling, taken from the sibling tracker's live stylesheet.
