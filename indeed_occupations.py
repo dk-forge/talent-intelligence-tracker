@@ -172,13 +172,15 @@ def build(aggregates: dict[str, str], sectors: dict[str, str | None], *,
 
 
 def compact(payload: dict) -> dict:
-    """The site copy: no weekly arrays, so one option stays small."""
+    """The site copy. Each country's TOTAL keeps its 26 weekly points (the
+    site draws it over time; 11 x 26 points is small); the ~280 category
+    series drop theirs, so one option stays small."""
     slim = {k: v for k, v in payload.items() if k != "countries"}
     slim["countries"] = {}
     for c, block in payload["countries"].items():
         strip = lambda s: {k: v for k, v in s.items() if k != "weekly"}  # noqa: E731
         slim["countries"][c] = {
-            "total": strip(block["total"]),
+            "total": dict(block["total"]),
             "categories": ({n: strip(s) for n, s in block["categories"].items()}
                            if block["categories"] else None),
         }

@@ -2433,7 +2433,12 @@ function tit_dashboard_html() {
                rather than fatalling. */
       if (function_exists('tit_indeed_index_panel')) {
           echo tit_indeed_index_panel();
-      } ?>
+      }
+      /* Reference data, drawn: Indeed by country and occupation, then the
+         H-1B sponsors table. Same band, same rules: external, separately
+         sourced, '' when nothing is stored. Guarded for the FTP race. */
+      if (function_exists('tit_hiring_demand_panel')) echo tit_hiring_demand_panel();
+      if (function_exists('tit_h1b_sponsors_panel')) echo tit_h1b_sponsors_panel(); ?>
 
       <?php echo tit_trust_panel_html($facts); ?>
 

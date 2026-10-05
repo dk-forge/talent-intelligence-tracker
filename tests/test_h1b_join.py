@@ -53,3 +53,8 @@ def test_tracker_companies_reads_current_us_rows_read_only(tmp_path):
         ("Old Name Inc", "US", 0), ("Euro GmbH", "DE", 1), (None, "US", 1)])
     c.commit(); c.close()
     assert h1b_join.tracker_companies(db) == ["Acme Widgets Corp"]
+
+
+def test_match_maps_every_tracker_spelling_to_its_key():
+    r = h1b_join.match(["Acme, Inc.", "ACME Inc", "Other Co"], {"acme"})
+    assert r["names"] == {"Acme, Inc.": "acme", "ACME Inc": "acme"}

@@ -20,6 +20,10 @@ on:
         description: 'Re-pull even if the latest file is already stored'
         type: boolean
         default: false
+      republish:
+        description: 'Only rebuild the site copy from the committed aggregate and POST it (no download)'
+        type: boolean
+        default: false
 
 concurrency:
   group: reference-h1b
@@ -38,7 +42,14 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+      - name: Republish the site copy from the committed aggregate
+        if: inputs.republish
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: python h1b_lca.py --republish
       - name: Check, pull, reduce, store
+        if: ${{ !inputs.republish }}
         id: pull
         env:
           FORCE: ${{ inputs.force && '--force' || '' }}
@@ -48,6 +59,7 @@ jobs:
           set -euo pipefail
           python h1b_lca.py --download "$RUNNER_TEMP/lca" --store --publish $FORCE
       - name: Commit the aggregate
+        if: ${{ !inputs.republish }}
         run: |
           bash reference_commit.sh "reference: h1b lca ${{ steps.pull.outputs.file }}" data/reference/h1b_lca
       - name: Raw file to a Release asset (never git)

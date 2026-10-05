@@ -114,3 +114,42 @@ def test_touch_keeps_a_monthly_check_of_a_quarterly_source_fresh(tmp_path):
     assert any("collector" in p for p in reference_freshness.check(tmp_path, later, spec)[0]["problems"])
     reference_store.touch("h1b_lca", tmp_path, now=later)
     assert not reference_freshness.check(tmp_path, later, spec)[0]["problems"]
+
+
+def test_compact_carries_matched_company_detail_keyed_by_tracker_name():
+    """Company pages look up an EXACT tracker company name; the site never
+    re-implements the normaliser, so the name->key map is built here."""
+    table, stats = _table()
+    key = table[0]["employer_key"]
+    match = {"tracker_companies": 2, "matched": 1, "match_pct": 50.0,
+             "pairs": {key: key}, "names": {"Tracker Name Inc": key}}
+    c = h1b_lca.compact(table, stats, {"file": XLSX.name, "as_of": "2026-06-30",
+                                       "fiscal_year": 2026, "quarter": 3}, match)
+    assert c["fiscal_year"] == 2026 and c["quarter"] == 3
+    assert c["names"] == {"Tracker Name Inc": key}
+    d = c["companies"][key]
+    rows = [r for r in table if r["employer_key"] == key]
+    assert d["certified"] == sum(r["certified"] for r in rows)
+    assert d["cases"] == sum(r["cases"] for r in rows)
+    assert d["roles"] and d["states"]
+    assert set(c["companies"]) == {key}          # unmatched employers never travel
+
+
+def test_top_employers_carry_role_and_state_breakdowns_for_the_filters():
+    table, stats = _table()
+    top = h1b_lca.top_employers(table)
+    assert top[0]["roles"] and top[0]["states"]
+    assert sum(top[0]["states"].values()) <= top[0]["certified"] or top[0]["certified"] == 0
+
+
+def test_weighted_median_combines_group_medians_by_wage_count():
+    assert h1b_lca.weighted_median([(100000, 1), (200000, 3)]) == 200000
+    assert h1b_lca.weighted_median([]) is None
+
+
+def test_republish_rebuilds_from_the_committed_table(tmp_path):
+    table, stats = _table()
+    meta = {"file": XLSX.name, "as_of": "2026-06-30", "fiscal_year": 2026, "quarter": 3}
+    h1b_lca.store(table, stats, meta, store_dir=tmp_path)
+    back = h1b_lca.read_stored_table(tmp_path)
+    assert back == table

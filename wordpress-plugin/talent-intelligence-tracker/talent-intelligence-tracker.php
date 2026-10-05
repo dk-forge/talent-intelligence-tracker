@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.90.0
+ * Version: 1.91.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.90.0');
+define('TIT_VERSION', '1.91.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -70,6 +70,8 @@ tit_require('includes/indeed_index.php');
 // External reference series (Indeed by occupation, ...): keyed ingest, public
 // read, one non-autoloaded option per source, never mixed into our counts.
 tit_require('includes/reference_data.php');
+// Draws those series: hiring demand, H-1B sponsors, the company-page box.
+tit_require('includes/reference_render.php');
 // Reads the SIBLING's public HTTP API at render time. Ships disabled; see
 // the header of that file for the measurement that says why.
 tit_require('includes/cross_tracker.php');

@@ -14,6 +14,43 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-05 - Reference data rendered: hiring demand, H-1B sponsors, company H-1B box (plugin 1.91.0)
+
+**Class:** feature
+**Guard:** `tests/php/render_reference.php` (new, in `tests.yml`), Sources-page
+rows asserted in `tests/php/render_sources.php`, `tests/test_h1b_lca.py`,
+`tests/test_h1b_join.py`, `tests/test_indeed_occupations.py`
+
+The two stored reference series had no reader. `includes/reference_render.php`
+draws them, on templates the plugin owns (no stored page content edited):
+
+- **Dashboard, after the Indeed backdrop:** "Hiring demand by country and
+  occupation" (inline-SVG index over time, up to 6 countries, occupation
+  category select; "Source: Indeed Hiring Lab (<licence from payload>)" and
+  as-of) and "H-1B sponsors" (top employers by LCAs filed, search, role and
+  work-state filters, DOL source + as-of). Server renders the default view;
+  `assets/reference.js` redraws from the public `/reference/<source>` route,
+  config on `data-api` (Autoptimize gotcha 10).
+- **Company pages:** an H-1B box (certified LCAs, median offered wage, top
+  roles, top work states, fiscal period, DOL source + as-of) on an EXACT
+  tracker-name match only, via a `names` map built by `h1b_join.match()`.
+- Every H-1B surface says LCAs are filings, not hires. Every section returns
+  '' when its option is missing or malformed.
+
+**Data shape changes (need a republish before the new parts show):**
+`indeed_occupations.compact()` keeps the 26 weekly points of each country
+TOTAL (until the next weekly run the chart draws three points: a year ago, 4
+weeks ago, latest, and its caption says so). `h1b_lca.compact()` adds
+`fiscal_year`, `quarter`, per-employer `roles`/`states`/`wage_median` on
+`top_employers` (now 200), and `companies` + `names` for matched employers;
+the ingest route splits those two into `tit_reference_h1b_lca_companies` so
+the dashboard never unserializes them. The quarterly h1b run skips a stored
+file, so `h1b-lca.yml` gained a `republish` input (`h1b_lca.py --republish`
+rebuilds the site copy from the committed table, no download). Until that
+runs, the sponsors table shows names and counts without role/state filters,
+and company pages show no H-1B box. The median wage is a wage_n-weighted
+median of the per-group medians, labelled as combined.
+
 ## 2026-10-05 - Subscriber email design: the talent section's blue design ships in the sibling
 
 **Class:** contract-drift (record only)

@@ -79,6 +79,17 @@ function tit_api_reference_ingest(WP_REST_Request $req) {
             array('status' => 400));
     }
     $body['stored_at'] = gmdate('c');
+    // H-1B: the per-company detail and the tracker-name map are read only by
+    // company pages, never by the dashboard or the public route, so they live
+    // in their own option and the sponsors table does not unserialize ~400 KB.
+    if ($source === 'h1b_lca' && (isset($body['companies']) || isset($body['names']))) {
+        update_option('tit_reference_h1b_lca_companies', array(
+            'as_of'     => $body['as_of'],
+            'companies' => is_array($body['companies'] ?? null) ? $body['companies'] : array(),
+            'names'     => is_array($body['names'] ?? null) ? $body['names'] : array(),
+        ), false);
+        unset($body['companies'], $body['names']);
+    }
     // Not autoloaded: these are read by one route, never on every page.
     update_option(tit_reference_option($source), $body, false);
     return rest_ensure_response(array(

@@ -44,10 +44,12 @@ def normalise_employer(name: str | None) -> str:
 
 def match(tracker_names, employer_keys: set[str], sample: int = 25) -> dict:
     keys = {}
+    spellings: dict[str, list[str]] = {}
     for name in tracker_names:
         k = normalise_employer(name)
         if k:
             keys.setdefault(k, name)
+            spellings.setdefault(k, []).append(name)
     pairs = {k: k for k in keys if k in employer_keys}
     total = len(keys)
     return {
@@ -55,6 +57,10 @@ def match(tracker_names, employer_keys: set[str], sample: int = 25) -> dict:
         "matched": len(pairs),
         "match_pct": round(100 * len(pairs) / total, 1) if total else 0.0,
         "pairs": pairs,
+        # Every tracker spelling of a matched employer -> its key, so the site
+        # can look a company page up by its EXACT stored name and never needs a
+        # second copy of the normaliser.
+        "names": {n: k for k in pairs for n in spellings[k]},
         "unmatched_sample": sorted(k for k in keys if k not in pairs)[:sample],
     }
 
