@@ -1,0 +1,48 @@
+name: Depth source snapshot (test only)
+
+# TEST-ONLY one-off: re-runs the depth source probe and pushes the small
+# snapshots it fetched (each < 50 MB, licence permits archiving) to a NEW
+# branch under data/archive/<source>/ for a human/agent to PR. It never pushes
+# to main and never touches the database, ingest or pages. Large sources (OFLC
+# LCA ~250 MB/FY, full Indeed repo ~1 GB) are NOT committed here.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: depth-source-snapshot
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Fetch snapshots
+        run: |
+          for s in indeed; do
+            python depth_source_probe.py --source "$s" --tracker tit --out "probe-out/$s"
+            if [ -d "probe-out/$s/archive" ]; then
+              for d in probe-out/$s/archive/*/; do
+                n=$(basename "$d"); mkdir -p "data/archive/$n"
+                cp -r "$d". "data/archive/$n/"
+                cp "probe-out/$s/result_${s}_tit.json" "data/archive/$n/PROBE_RESULT.json"
+              done
+            fi
+          done
+          du -sh data/archive/* || true
+      - name: Push to a snapshot branch (never main)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          b="archive/depth-snapshot-${GITHUB_RUN_ID}"
+          git checkout -b "$b"
+          git add data/archive
+          git commit -m "Depth source snapshot $(date -u +%F) (test only)"
+          git push origin "$b"
+          echo "::notice title=snapshot branch::$b"
