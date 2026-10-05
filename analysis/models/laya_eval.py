@@ -85,6 +85,17 @@ def main():
         lines.append(f"- {title} - gold={gold}, laya p(yes)={p:.2f}")
     report = "\n".join(lines) + "\n"
     print(report)
+    # Annotations: the only part of a run the API can read back (the step
+    # summary is not exposed). Public headlines only, no PII.
+    def esc(v):
+        return str(v).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    pct = f"{100.0 * agree / scored:.1f}" if scored else "n/a"
+    med = f"{statistics.median(times):.3f}" if times else "n/a"
+    print(f"::notice title=laya-result::agreement={pct}%25, n={scored}, "
+          f"median_s={med}, peak_rss_mb={peak_rss_mb():.0f}, errors={errors}")
+    for title, gold, p in disagree[:5]:
+        print(f"::notice title=laya-disagreement::{esc(title)} gold={gold} "
+              f"laya={p >= 0.5} p={p:.2f}")
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if path:
         with open(path, "a") as fh:
