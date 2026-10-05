@@ -14,6 +14,22 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-05 - Subscriber email design: the talent section's blue design ships in the sibling
+
+**Class:** contract-drift (record only)
+**Guard:** sibling `railway/tests/test_digest_email_design.py` (ai-layoff-tracker PR #458)
+
+Owner request TRACKER-EMAIL-QUALITY: roll out the design approved 2026-09-29
+(tracker colours, bold headings, bigger lead number, simple tables, small
+charts) to both trackers. This repo still sends no reader mail (see 2026-09-27
+below): the talent section of the subscriber digest is composed by the
+sibling's `alt_digest_compose_talent` and rendered by its
+`railway/digest_layout.py`. So the talent design (blue `#1d4ed8` accent, green
+highlights, 40px lead number, table-bar chart under "Other talent activity")
+is implemented and tested there, in ai-layoff-tracker PR #458
+(`railway/digest_design.py`). No code change here; `daily_digest.py` is an
+offline plain-text renderer and has no HTML to style.
+
 ## 2026-10-02 - ops check: `drain-writers.yml` reds on 3 queued problems, 1 of them new (`enrich.yml` failed, logs unreadable)
 
 **Class:** external/unknown (log retention)
