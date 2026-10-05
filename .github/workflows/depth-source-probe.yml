@@ -1,0 +1,34 @@
+name: Depth source probe (test only)
+
+# TEST-ONLY. Probes free official depth/demographics sources and a match test
+# against this tracker's own public last-90-day events. Writes nothing, posts
+# nothing, holds no secret (permissions {}); results surface as ::notice
+# annotations and an artifact with small snapshots. Not wired into ingest.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [events, indeed, oflc]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Probe ${{ matrix.source }}
+        run: python depth_source_probe.py --source ${{ matrix.source }} --tracker tit --out probe-out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-${{ matrix.source }}
+          path: probe-out
+          retention-days: 14
