@@ -1,0 +1,53 @@
+name: classifier eval (free local models vs gold set)
+
+# Manual-only experiment, sibling of laya-eval.yml: do free CPU classifiers
+# (sentence embeddings + logistic regression, GLiClass zero-shot, fastText)
+# beat the always-"no" baseline on the same gold set, and could one act as a
+# pre-filter in front of the paid LLM? No secrets, no write token, no paid
+# API. Each candidate gets its own venv and step (continue-on-error), so one
+# broken install cannot hide the others. Results: ::notice annotations.
+# Test-only: nothing here touches how the tracker classifies in production.
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache pip and model downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: classifier-eval-v1
+      - name: Split and always-no baseline
+        run: python analysis/models/classifier_eval.py baseline
+      - name: Embeddings + logistic regression
+        continue-on-error: true
+        run: |
+          python -m venv .venv-embed
+          .venv-embed/bin/pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu torch==2.8.0 sentence-transformers==6.1.0 scikit-learn==1.7.2
+          .venv-embed/bin/python analysis/models/classifier_eval.py embed
+      - name: GLiClass zero-shot
+        continue-on-error: true
+        run: |
+          python -m venv .venv-gliclass
+          .venv-gliclass/bin/pip install --quiet --extra-index-url https://download.pytorch.org/whl/cpu torch==2.8.0 gliclass==0.1.20
+          .venv-gliclass/bin/python analysis/models/classifier_eval.py gliclass
+      - name: fastText supervised
+        continue-on-error: true
+        run: |
+          python -m venv .venv-fasttext
+          .venv-fasttext/bin/pip install --quiet fasttext-wheel==0.9.2 numpy==1.26.4
+          .venv-fasttext/bin/python analysis/models/classifier_eval.py fasttext

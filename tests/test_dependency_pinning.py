@@ -94,7 +94,9 @@ class EveryLockIsFullyHashed(unittest.TestCase):
 # the threat this file guards is an unpinned install in a runner holding keys.
 # laya-eval.yml: manual-only experiment with laya==0.3.27, whose torch tree
 # cannot reasonably be hash-locked for a one-off evaluation.
-KEYLESS_UNHASHED_ALLOWED = {"laya-eval.yml"}
+# classifier-eval.yml: the same kind of keyless manual experiment (torch,
+# sentence-transformers, gliclass, fastText, all version-pinned).
+KEYLESS_UNHASHED_ALLOWED = {"laya-eval.yml", "classifier-eval.yml"}
 
 
 class NoWorkflowInstallsAnythingUnpinned(unittest.TestCase):
