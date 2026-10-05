@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-05T05:50:22Z",
-  "last_tick": "2026-10-05T05:50:22Z",
+  "last_dispatch": "2026-10-05T07:52:05Z",
+  "last_tick": "2026-10-05T07:52:05Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -253,12 +253,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-10-05T07:52:05Z",
       "history": [
         {
           "at": "2026-10-05T07:30:21Z",
           "detail": "scheduled link hygiene (0 7 * * 1,4)",
           "event": "queued"
+        },
+        {
+          "at": "2026-10-05T07:52:05Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20261005T073021Z-tripwire",
@@ -270,7 +275,7 @@
       "requested_at": "2026-10-05T07:30:21Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "tripwire.yml"
     },
     {
