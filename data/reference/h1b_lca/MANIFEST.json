@@ -1,8 +1,8 @@
 {
  "as_of": "2026-06-30",
  "attribution": "H-1B Labor Condition Application disclosure data: U.S. Department of Labor, Office of Foreign Labor Certification (dol.gov/agencies/eta/foreign-labor/performance). Public domain. Aggregated by employer, worksite and SOC major group by us; no personal data is kept.",
- "checked_at": "2026-10-05T17:56:24+00:00",
- "fetched_at": "2026-10-05T17:56:24+00:00",
+ "checked_at": "2026-10-05T19:17:44+00:00",
+ "fetched_at": "2026-10-05T19:17:44+00:00",
  "file": "LCA_Disclosure_Data_FY2026_Q3.xlsx",
  "files": {
   "employers.csv.gz": {
@@ -24,7 +24,7 @@
  },
  "tracker_match": {
   "match_pct": 19.4,
-  "matched": 1238,
-  "tracker_companies": 6368
+  "matched": 1242,
+  "tracker_companies": 6398
  }
 }
