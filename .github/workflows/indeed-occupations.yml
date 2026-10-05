@@ -1,0 +1,40 @@
+name: indeed-occupations
+
+# Weekly reference pull: Indeed Hiring Lab job postings by occupational category
+# and country (11 countries), CC BY 4.0. See indeed_occupations.py.
+#
+# GitHub-hosted on purpose: keyless public CSVs, no database, no lock, no model.
+# It writes data/reference/indeed_occupations/ and commits it (reference_commit.sh),
+# then POSTs a compact copy to the keyed /reference-ingest route (a 404 there is
+# a plugin-deploy lag, reported, not a failure). Outside talent-collect: it has
+# no rows to lose and nothing to race.
+on:
+  schedule:
+    - cron: '23 11 * * 2'      # Tuesdays 11:23 UTC, after indeed-index
+  workflow_dispatch:
+
+concurrency:
+  group: reference-indeed
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+      - name: Pull, reduce, store
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: python indeed_occupations.py --store --publish
+      - name: Commit the reference table
+        run: |
+          bash reference_commit.sh "reference: indeed occupations $(date -u +%Y-%m-%d)" data/reference/indeed_occupations

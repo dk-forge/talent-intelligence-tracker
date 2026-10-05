@@ -1,0 +1,60 @@
+name: indeed-archive
+
+# Monthly archive of Indeed Hiring Lab (CC BY 4.0):
+#   * small, in git: data/archive/indeed_hiring_lab/monthly/<YYYY-MM>.json.gz,
+#     the reduced reference table (indeed_archive.py);
+#   * large, never in git: a `git bundle` of the whole
+#     hiring-lab/job_postings_tracker history as Release asset
+#     indeed-hiring-lab-<YYYY-MM> (attribution in the release notes).
+on:
+  schedule:
+    - cron: '29 12 2 * *'      # the 2nd of each month, 12:29 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: reference-indeed
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Monthly snapshot (small, in git)
+        run: |
+          set -euo pipefail
+          python indeed_archive.py --snapshot --month "$(date -u +%Y-%m)"
+          bash reference_commit.sh "archive: indeed occupations $(date -u +%Y-%m)" data/archive/indeed_hiring_lab/monthly
+      - name: Full history (large, Release asset)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          month="$(date -u +%Y-%m)"
+          tag="indeed-hiring-lab-$month"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::notice::$tag already exists; nothing to do"
+            exit 0
+          fi
+          cd "$RUNNER_TEMP"
+          git clone -q --mirror https://github.com/hiring-lab/job_postings_tracker.git ihl.git
+          git -C ihl.git bundle create "$RUNNER_TEMP/$tag.bundle" --all
+          bytes=$(stat -c %s "$tag.bundle")
+          if [ "$bytes" -gt 2000000000 ]; then
+            echo "::error::bundle is $bytes bytes, over the 2 GB Release asset limit"
+            exit 1
+          fi
+          head=$(git -C ihl.git rev-parse HEAD)
+          cd "$GITHUB_WORKSPACE"
+          gh release create "$tag" "$RUNNER_TEMP/$tag.bundle" \
+            --title "Indeed Hiring Lab archive $month" \
+            --notes "Full git history of github.com/hiring-lab/job_postings_tracker at $head, as a git bundle (restore: git clone $tag.bundle). Data: Indeed Hiring Lab, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Unmodified copy." \
+            --latest=false
+          echo "::notice::released $tag ($bytes bytes, upstream $head)"

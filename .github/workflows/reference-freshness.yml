@@ -1,0 +1,34 @@
+name: reference-freshness
+
+# Daily, offline read of data/reference/*/MANIFEST.json (reference_freshness.py).
+# A stale source opens ONE issue ("Reference data is stale"), edited in place and
+# closed on recovery. Never red for staleness: the issue is the alarm, and a red
+# run would make the CI alerter mail the same news a second time.
+on:
+  schedule:
+    - cron: '41 7 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: reference-freshness
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+      - name: Check freshness and sync the issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python reference_freshness.py --issue

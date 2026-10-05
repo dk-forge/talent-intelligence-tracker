@@ -394,6 +394,8 @@ function tit_sources_render($sources) {
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">See the corrections log</a>.
       </div>
 
+      <?php if (function_exists('tit_reference_attribution_html')) echo tit_reference_attribution_html(); // phpcs:ignore - escaped inside ?>
+
       <?php $tit_trend_html = tit_sources_trend_html(); ?>
       <?php if ($tit_trend_html !== '') : ?>
         <h2>Updates Collected a Day</h2>

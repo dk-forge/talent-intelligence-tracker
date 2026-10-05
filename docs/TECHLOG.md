@@ -16908,3 +16908,37 @@ dk-forge/talent-intelligence-tracker (branch
 `claude/ops-fix-gate-ledger-rotation-floor`). This will recur every month's
 first hour or so until enough candidates accumulate in the new shard, which is
 now harmless rather than a false red.
+
+## 2026-10-05 — reference data: Indeed Hiring Lab by occupation and country
+
+Promoted from the depth-source probe (#209/#211/#212), mirroring the sibling's
+BLS/OECD reference pattern (ai-layoff-tracker #474/#475) on this repo's own
+conventions. Nothing here touches ingest, the signals database or
+classification.
+
+- **Store:** `reference_store.py` writes `data/reference/<source>/` (table +
+  `MANIFEST.json` with licence, attribution, as_of, fetched_at, rows, sha256),
+  committed by the collector via `reference_commit.sh` (reset-and-replace,
+  5 push attempts, loud on give-up). Refuses an empty table or one under 50%
+  of the stored row count (fail-soft: a bad pull never overwrites a good one).
+- **Collector:** `indeed_occupations.py` (extends `build_indeed_index.py`,
+  reusing its schema guards): SA `total postings` index for all 11 Hiring Lab
+  countries + per-occupational-category index for the 6 that publish a
+  category file (AU CA DE FR GB US; EA ES IE IT NL publish none — recorded as
+  `categories_unpublished`, never guessed). Latest, 4w/52w change, 26 weekly
+  points. Weekly, `indeed-occupations.yml`, GitHub-hosted.
+- **Site:** `includes/reference_data.php` (plugin 1.89.0): keyed
+  `POST /talent/v1/reference-ingest/<source>`, public
+  `GET /talent/v1/reference/<source>`, allowlisted, one non-autoloaded option
+  each; the collector posts a compact copy (404 = plugin not deployed yet,
+  reported as `site=not-deployed`, not a failure). Sources page prints the
+  attribution list from the same allowlist.
+- **Alarm:** `reference_freshness.py` + `reference-freshness.yml` (daily):
+  collector >10d or newest Hiring Lab date >21d opens ONE issue "Reference data
+  is stale", edited in place, closed on recovery. Never a red run.
+- **Archive:** `indeed-archive.yml` (monthly): gzipped reduced table to
+  `data/archive/indeed_hiring_lab/monthly/<YYYY-MM>.json.gz` (~45 KB) in git;
+  full upstream history as a `git bundle` Release asset
+  `indeed-hiring-lab-<YYYY-MM>`.
+- **Tests:** `tests/test_indeed_occupations.py`, offline against recorded
+  Hiring Lab rows in `tests/fixtures/indeed_occupations/`.
