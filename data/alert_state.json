@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect:main:60df369c57d653c4": {
+      "first": 1791327039,
+      "last": 1791327039,
+      "subject": "CI RED: collect: REJECT  NDC\u2019s 24-hour economy has failed to deliver jobs \u2013 Bawumia - Pulse Gha"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1791240117,
       "last": 1791240117,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-05T23:09:08+00:00",
+  "updated_at": "2026-10-06T22:50:40+00:00",
   "version": 1
 }
