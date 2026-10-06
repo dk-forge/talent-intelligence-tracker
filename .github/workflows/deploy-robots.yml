@@ -113,9 +113,9 @@ jobs:
           python -c "import yaml, requests"
           python -m pytest tests/test_robots_sitemaps.py -q
 
-      # WP_PLUGIN_REMOTE_DIR is READ here, and only to derive a path to LOOK
+      # WP_PLUGIN_REMOTE_DIR (a repo variable) is READ here, and only to derive a path to LOOK
       # at. Run 30577050236 refused because the session is rooted somewhere
-      # none of the four hand-written candidates reach, and that secret is the
+      # none of the four hand-written candidates reach, and that value is the
       # one remote path known to work for these credentials — deploy-plugin.yml
       # mirrors into it. Three levels up from it is the WordPress root, which
       # is where a robots.txt lives.
@@ -127,11 +127,14 @@ jobs:
       # FtpTransport.write.
       - name: Append the sitemap lines
         env:
+          # 2026-10-06: the same credentials and path deploy-plugin.yml uses.
+          # The July FTP_USERNAME / FTP_PASSWORD / FTP_PORT secrets belong to the
+          # old host and are retired; port is lftp/ftplib's default 21 (FTP_PORT
+          # unset), and the remote dir is the repo VARIABLE, as in deploy-plugin.
           FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
-          WP_PLUGIN_REMOTE_DIR: ${{ secrets.WP_PLUGIN_REMOTE_DIR }}
+          FTP_USERNAME: ${{ secrets.CHEMICLOUD_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.CHEMICLOUD_PASSWORD_FTP }}
+          WP_PLUGIN_REMOTE_DIR: ${{ vars.WP_PLUGIN_REMOTE_DIR }}
         run: |
           python robots_sitemaps.py \
             --targets '${{ inputs.targets }}' \

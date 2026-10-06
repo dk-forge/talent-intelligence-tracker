@@ -720,7 +720,24 @@ def test_the_workflow_passes_the_secret_the_derivation_needs():
                    if "robots_sitemaps.py" in (s.get("run") or "")
                    and "pytest" not in (s.get("run") or ""))
     assert writing["env"].get("WP_PLUGIN_REMOTE_DIR") == \
-        "${{ secrets.WP_PLUGIN_REMOTE_DIR }}"
+        "${{ vars.WP_PLUGIN_REMOTE_DIR }}"
+
+
+def test_the_workflow_reads_the_same_credentials_as_the_plugin_deploy():
+    """2026-10-06: the July FTP_USERNAME / FTP_PASSWORD / FTP_PORT secrets were
+    retired. This job must read the live ChemiCloud set, never the old names."""
+    steps = [s for job in _workflow()["jobs"].values() for s in job.get("steps", [])]
+    writing = next(s for s in steps
+                   if "robots_sitemaps.py" in (s.get("run") or "")
+                   and "pytest" not in (s.get("run") or ""))
+    env = writing["env"]
+    assert env["FTP_HOST"] == "${{ secrets.FTP_HOST }}"
+    assert env["FTP_USERNAME"] == "${{ secrets.CHEMICLOUD_USERNAME }}"
+    assert env["FTP_PASSWORD"] == "${{ secrets.CHEMICLOUD_PASSWORD_FTP }}"
+    raw = (ROOT / ".github/workflows/deploy-robots.yml").read_text()
+    for retired in ("secrets.FTP_USERNAME", "secrets.FTP_PASSWORD",
+                    "secrets.FTP_PORT", "secrets.WP_PLUGIN_REMOTE_DIR"):
+        assert retired not in raw, retired
 
 
 def test_the_workflow_runs_these_guards_before_it_reaches_for_a_credential():
