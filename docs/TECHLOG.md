@@ -17049,3 +17049,43 @@ tracker DB is only READ (for the name join).
   200d.
 - **Tests:** `tests/test_h1b_lca.py` (synthetic file in the real header layout,
   carrying PII-shaped columns to prove none survive), `tests/test_h1b_join.py`.
+
+## 2026-10-06 — hourly ops-check: two owner-adjudication items, not touched
+
+Found by the hourly ops-check, reported on asktherecruiter-sandbox#1259,
+written here per CLAUDE.md's "adjudication is the owner's" rule. Neither
+corrected; both need `python3 guardrails.py` / the adjudicate-rows referees,
+which only Dakotta can run.
+
+1. **Guardrail quarantine, not overdue.** `python3 guardrails.py` (read-only,
+   run from this session) shows one open finding:
+   `amount/440b7e16389d69399d5681257c6033e3` — MDEC $44,000,000,000 (national
+   press, single outlet), "red in 72h" — i.e. still inside its grace window,
+   not yet escalated. 14 other rows from the same batch are already
+   `WITHHELD` by a prior rejection ($1,448.68bn) and need nothing further.
+   `collect.yml`'s last two scheduled runs (2026-10-05T22:01Z run 37379749932,
+   2026-10-06T22:01Z run 37537911694) both completed with conclusion
+   `failure` even though `guardrails.py` itself reports "Nothing is overdue
+   yet, so runs are still green" and the DB push in both runs succeeded
+   (rows stored and published normally, e.g. 2026-10-06: signals_inserted=97,
+   pushed on attempt 1). The exact source of the non-zero `overall` in the
+   `Collect` step's per-source loop (google_news/gdelt/sec_edgar/sec_form_d)
+   was not pinned down in this pass — the google_news leg's own output is
+   long (33 min, thousands of DEFER/REJECT lines) and the tail-only log reads
+   this session used didn't carry its exit code far enough back to confirm
+   which source returned `rc=1`. Not a data-loss issue (next session: compare
+   each source's `rc` directly, e.g. re-run `python3 run_collect.py --source
+   google_news --publish` by hand, or fetch the job log in full rather than
+   by tail, to find which leg actually returned 1).
+2. **`money-basis-check.yml` FAIL, same adjudication path.** Latest run
+   (2026-10-06T07:02Z, run 37427225970) and the one before it
+   (2026-10-05T07:18Z, run 37277006785) both report `VERDICT: FAIL`: one
+   published row (key `741b46d58bccad0199eaa7b62bcbe4c0`, "Amazon pledges $1B
+   to data center communities") is summed into `money_raised` at a figure the
+   row's own text attributes to a pledge/project cost, not a company raise.
+   The job prints the exact referee ticket:
+   `gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml -f
+   inputs_json='{"rows":"741b46d58bccad0199eaa7b62bcbe4c0","reason":"stored
+   amount is a valuation, project cost, purchase price or revenue figure",
+   "dry_run":"false"}' -f reason='money figure contradictions'` — not queued
+   by this session, since two referees (not the checker) decide it.
