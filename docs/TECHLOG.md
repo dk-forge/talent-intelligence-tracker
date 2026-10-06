@@ -14,6 +14,21 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-06 - deploy-robots reads the same FTP credentials as deploy-plugin
+
+**Class:** cleanup (workflow only, no plugin change)
+**Guard:** `tests/test_robots_sitemaps.py::test_the_workflow_reads_the_same_credentials_as_the_plugin_deploy`
+
+`deploy-robots.yml` (one-shot, dispatched by hand) still read the July
+`FTP_USERNAME`, `FTP_PASSWORD`, `FTP_PORT` and `WP_PLUGIN_REMOTE_DIR` secrets.
+It now reads `FTP_HOST` + `CHEMICLOUD_USERNAME` / `CHEMICLOUD_PASSWORD_FTP`
+and `vars.WP_PLUGIN_REMOTE_DIR`, exactly as deploy-plugin.yml does; the port is
+the default 21 (`robots_sitemaps.py` falls back when `FTP_PORT` is unset). Kept
+rather than deleted: its guards and tests stay useful if robots.txt needs the
+edit again. No workflow now reads those four secrets, so the owner can delete
+them once this merges (the `WP_PLUGIN_REMOTE_DIR` repo VARIABLE stays).
+
+
 ## 2026-10-05 — hourly ops-check: two self-heal-fleet-scan issues closed, neither a code defect
 
 **Class:** housekeeping (no code change)
