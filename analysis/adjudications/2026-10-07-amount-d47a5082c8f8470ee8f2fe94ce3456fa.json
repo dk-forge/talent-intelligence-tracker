@@ -1,0 +1,73 @@
+{
+ "key": "amount/d47a5082c8f8470ee8f2fe94ce3456fa",
+ "label": "Warner Bros. Discovery $110,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source clearly states: \"Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger\" and \"Paramount takes over Warner Bros in $110bn Hollywood merger.\" The $110bn figure is explicitly stated as the transaction price for this acquisition/merger. The money_basis is correctly classified as \"acquired\" (an acquisition/merger transaction price), which per the rules is NOT summed into company_raise totals. The amount and basis are both correct as stored."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states, 'Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger.' This is an acquisition, not a company raise. The money_basis is 'acquired', which is not summed according to the rules."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text explicitly states \"Paramount takes over Warner Bros in $110bn Hollywood merger\" and \"Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger\". Rule 2 states that 'acquisition, acquired, merger, divestiture, joint_venture: a transaction price, not a raise.' Therefore, the money_basis should be 'acquired' and not summed."
+  }
+ },
+ "row": {
+  "company": "Warner Bros. Discovery",
+  "headline": "Paramount takes over Warner Bros in $110bn Hollywood merger",
+  "summary": "Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger that is set to reshape Hollywood and the media landscape.",
+  "funding_amount": "$110bn",
+  "funding_amount_usd": 110000000000,
+  "funding_stage": "other",
+  "deal_type": "acquired",
+  "money_basis": "acquired",
+  "source_url": "https://www.myjoyonline.com/paramount-takes-over-warner-bros-in-110bn-hollywood-merger-2/",
+  "source_name": "MyJoyOnline",
+  "published_date": "2026-10-06",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.021211,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.012528,
+  "openai/gpt-4o": 0.008304999999999998,
+  "google/gemini-2.5-flash-lite": 0.0003781999999999987
+ },
+ "evidence_url": "https://www.myjoyonline.com/paramount-takes-over-warner-bros-in-110bn-hollywood-merger-2/",
+ "evidence_chars": 8623,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/d47a5082c8f8470ee8f2fe94ce3456fa, two of three referees say reject. anthropic/claude-sonnet-4.5: The source clearly states: \"Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger\" and \"Paramount takes over Warner Bros in $110bn Hollywood merger.\" The $110bn figure is explicitly state; openai/gpt-4o: The source states, 'Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger.' This is an acquisition, not a company raise. The money_basis is 'acquired', which is not summed according to th; google/gemini-2.5-flash-lite: The source text explicitly states \"Paramount takes over Warner Bros in $110bn Hollywood merger\" and \"Paramount Skydance has officially taken over Warner Bros. Discovery in a $110bn merger\". Rule 2 states that 'acquisitio",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-07T01:02:21+00:00"
+}
