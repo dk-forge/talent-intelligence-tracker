@@ -17077,6 +17077,28 @@ which only Dakotta can run.
    each source's `rc` directly, e.g. re-run `python3 run_collect.py --source
    google_news --publish` by hand, or fetch the job log in full rather than
    by tail, to find which leg actually returned 1).
+
+   **2026-10-07 follow-up (hourly ops-check): pinned down, not a bug.**
+   Fetched job 112523536310 (run 37537911694, 2026-10-06) in full rather than
+   by tail. All four legs' `[publish]` lines report `errors=0`
+   (google_news sent=95/stored=94, gdelt sent=0, sec_edgar sent=0,
+   sec_form_d sent=2/stored=2) — the nonzero `overall` is not a publish
+   error. `run_collect.py`'s own `run()` returns `1 if failed else 0`, where
+   `failed = observed == 0 or everything_rejected or mostly_throttled or
+   mostly_errored` (`run_collect.py:503`). The gdelt leg's log reads
+   `[gdelt] 10 queries` then `[gdelt] 0 fetched, 0 filtered out, 0 going to
+   the classifier` — `observed == 0` — which is the documented "every slice
+   was throttled" / nothing-observed failure path, triggered by design
+   ("needs no threshold of its own", same docstring). So `rc=1` comes from
+   the **gdelt** leg specifically, not a crash or exception anywhere, and it
+   is the designed alarm for "this collector saw nothing," not a bug to
+   patch in `run_collect.py`. It fired on both 2026-10-05 and 2026-10-06,
+   i.e. GDELT returned zero fetchable items two nights running — worth a
+   human checking whether that's a genuinely quiet two days or GDELT's own
+   10 queries are no longer returning anything (a rotation/vocabulary defect
+   of the shape CLAUDE.md documents for the sibling tracker). Not fixed
+   here: distinguishing "quiet" from "broken" needs the actual GDELT query
+   output, which this session did not fetch.
 2. **`money-basis-check.yml` FAIL, same adjudication path.** Latest run
    (2026-10-06T07:02Z, run 37427225970) and the one before it
    (2026-10-05T07:18Z, run 37277006785) both report `VERDICT: FAIL`: one
