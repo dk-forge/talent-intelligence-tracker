@@ -45,6 +45,23 @@ def pick_models(catalog: list[dict]) -> list[str]:
     return grok + small
 
 
+def fetch_catalog(token: str) -> tuple[list[dict], str]:
+    """GET the live model catalog. Mirrors call()'s guard below: check the
+    status before parsing, and send the same Accept header every other
+    GitHub API caller in this repo sends (runner_pick.py,
+    reference_freshness.py, depth_source_probe.py, call() itself) -- this
+    was the one GET that forgot it."""
+    r = requests.get(CATALOG, timeout=30, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json"})
+    if r.status_code >= 400:
+        return [], f"HTTP {r.status_code}: {r.text[:160]}"
+    try:
+        return r.json(), ""
+    except ValueError as exc:
+        return [], f"non-JSON catalog response: {exc}"
+
+
 def call(model: str, text: str, token: str) -> tuple[str, dict, str]:
     from pipeline import classify
     body = {"model": model, "temperature": 0, "max_tokens": 8, "messages": [
@@ -77,8 +94,9 @@ def main() -> int:
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         print("::error::GITHUB_TOKEN missing"); return 1
-    cat = requests.get(CATALOG, timeout=30, headers={
-        "Authorization": f"Bearer {token}"}).json()
+    cat, err = fetch_catalog(token)
+    if err:
+        print(f"::error::GitHub Models catalog fetch failed: {err}"); return 1
     print("::notice::GitHub Models catalog: " + ", ".join(m["id"] for m in cat))
     for m in cat:
         if m["id"].lower().startswith("xai/") or m["id"] in pick_models(cat):
