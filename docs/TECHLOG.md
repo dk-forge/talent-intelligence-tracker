@@ -14,6 +14,23 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-08 - Haiku 5.5 eval harness (dispatch-only, no production change)
+
+**Class:** measurement tooling (owner question: can paid call sites move to
+`anthropic/claude-haiku-5.5`, $0.10/$0.50 per M?)
+**Guard:** none needed; the harness writes nothing, holds no WordPress key,
+sends one request per call with no retries, runs on the discretionary pot and
+stops at a $1.00 billed cap (`EVAL_CAP_USD`).
+
+`eval_haiku55.py` + `eval-haiku55.yml` (VPS runner, dispatch only) score the
+current model vs Haiku 5.5 per call type with the repo's own validators: gate
+(`TIT_GATE_MODEL`) on the gate gold set via `gate_goldset.score`; extraction
+(`TIT_MODEL`) on `is_talent_signal` vs the same gold plus deciding-field
+agreement; read-through (`TIT_READ_MODEL`) on the production acceptance rule
+(`ungrounded_reason`, `_HEDGE`); referees (`ADJ_REFEREE_A/B/C`) on settled
+money findings in `analysis/adjudications/`. Results are `::notice::` lines.
+No model setting and no data changed.
+
 ## 2026-10-06 - deploy-robots reads the same FTP credentials as deploy-plugin
 
 **Class:** cleanup (workflow only, no plugin change)

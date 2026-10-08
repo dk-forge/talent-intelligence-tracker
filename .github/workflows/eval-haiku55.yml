@@ -1,0 +1,51 @@
+name: eval-haiku55
+
+# Owner question 2026-10-08: can the paid call sites move to
+# anthropic/claude-haiku-5.5 without losing quality? See eval_haiku55.py.
+# Dispatch only, never scheduled. Writes nothing to the database, posts
+# nothing, no WordPress secret in scope. Hard cap $1.00 per run on
+# OpenRouter's billed cost. Results are ::notice:: annotations.
+
+on:
+  workflow_dispatch:
+    inputs:
+      referee:
+        description: 'Settled money findings to put to the referees'
+        default: '30'
+      dry_run:
+        description: 'Build prompts only, spend nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval-haiku55
+  cancel-in-progress: false
+
+jobs:
+  eval:
+    runs-on: [self-hosted, linux, contabo]
+    # Discretionary pot (budget.py), like ab-models: dispatched by hand, so it
+    # cannot spend the committed pot the scheduled collectors run on.
+    env:
+      TIT_RUN_KIND: discretionary
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+      - name: Spend guard (degrade, never halt)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python spend.py --degrade
+      - name: Score (writes nothing)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          EVAL_CAP_USD: '1.00'
+          EVAL_REFEREE_N: ${{ inputs.referee }}
+          EVAL_DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+        run: python eval_haiku55.py
