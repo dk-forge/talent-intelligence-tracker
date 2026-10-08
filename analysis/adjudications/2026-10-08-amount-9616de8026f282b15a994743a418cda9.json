@@ -1,0 +1,66 @@
+{
+ "key": "amount/9616de8026f282b15a994743a418cda9",
+ "label": "SpaceX $40,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 40000000000,
+   "corrected_basis": "project_finance",
+   "confidence": 85,
+   "reasoning": "The source states SpaceX is 'seeking $40 billion in debt financing, including $10 billion in bank loans, to purchase chips from Nvidia.' This is debt financing/bank loans for a specific purpose (chip purchase), which fits 'project_finance: a loan or bank facility advanced against an asset or a project (a syndicated bank loan is here, a venture lender is not).' It is NOT company_raise, which requires new capital from private investors or venture lenders. Bank loans for asset purchases are project_finance."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 40000000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states 'SpaceX is reportedly seeking $40 billion in debt financing, including $10 billion in bank loans, to purchase chips from Nvidia.' This indicates project finance, not company_raise, as it involves debt financing for a specific purchase."
+  }
+ },
+ "row": {
+  "company": "SpaceX",
+  "headline": "SpaceX, Nvidia in mega $40 bln debt finance deal for chips",
+  "summary": "SpaceX is reportedly seeking $40 billion in debt financing, including $10 billion in bank loans, to purchase chips from Nvidia. A financial advisory CEO has warned of a risky loop in the AI boom where suppliers bankroll customers.",
+  "funding_amount": "$40 bln",
+  "funding_amount_usd": 40000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.financialmirror.com/2026/10/07/spacex-nvidia-in-mega-40-bln-debt-finance-deal-for-chips/",
+  "source_name": "Financial Mirror",
+  "published_date": "2026-10-07",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.012427,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007842,
+  "openai/gpt-4o": 0.0045850000000000005
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 848,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 40000000000,
+  "corrected_basis": "project_finance"
+ },
+ "note": "two-model adjudication of amount/9616de8026f282b15a994743a418cda9, both referees say edit. corrected_amount=40000000000 corrected_basis=project_finance. anthropic/claude-sonnet-4.5: The source states SpaceX is 'seeking $40 billion in debt financing, including $10 billion in bank loans, to purchase chips from Nvidia.' This is debt financing/bank loans for a specific purpose (chip purchase), which fit; openai/gpt-4o: The source states 'SpaceX is reportedly seeking $40 billion in debt financing, including $10 billion in bank loans, to purchase chips from Nvidia.' This indicates project finance, not company_raise, as it involves debt f",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-08T01:01:32+00:00"
+}
