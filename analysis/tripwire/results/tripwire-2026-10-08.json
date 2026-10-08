@@ -1,0 +1,433 @@
+{
+ "ran_at": "2026-10-08T09:26:09+02:00",
+ "ran_on": "2026-10-08",
+ "plan": {
+  "cycle": 562,
+  "planned_on": "2026-10-08",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-10-05 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "GE",
+    "name": "Georgia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "HR",
+    "name": "Croatia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "IQ",
+    "name": "Iraq",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "CZ",
+    "name": "Czechia",
+    "tier": "covered",
+    "measured": {
+     "total": 2,
+     "held": 1,
+     "held_pct": 50.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "GE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "HR",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "IQ",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "CZ",
+   "tier": "covered",
+   "measured": {
+    "total": 2,
+    "held": 1,
+    "held_pct": 50.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 12,
+  "held": 3,
+  "missing": 9,
+  "unusable": 0,
+  "usable": 12
+ },
+ "by_country": {
+  "US": {
+   "leads": 4,
+   "held": 0,
+   "missing": 4,
+   "unusable": 0
+  },
+  "CZ": {
+   "leads": 3,
+   "held": 0,
+   "missing": 3,
+   "unusable": 0
+  },
+  "GE": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "HR": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  },
+  "BG": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  },
+  "IQ": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0222,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0019,
+  "usd_per_candidate_miss": 0.0025,
+  "lifetime_usd": 0.5796,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:GE",
+   "leads": 5,
+   "usd": 0.00568,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 345,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:HR",
+   "leads": 3,
+   "usd": 0.0056,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 266,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:IQ",
+   "leads": 1,
+   "usd": 0.00541,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 79,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:CZ",
+   "leads": 3,
+   "usd": 0.00552,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 335,
+   "completion_tokens": 186,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "GE",
+   "dimension_tier": "zero",
+   "claimed_company": "Optio",
+   "claimed_country": "GE",
+   "claimed_city": "Tbilisi",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-25",
+   "claimed_amount": "$1M",
+   "claimed_stage": "",
+   "claimed_outlet": "Forbes Georgia",
+   "claimed_url": "https://forbes.ge/en/category/all-news/partner-en/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GE",
+   "dimension_tier": "zero",
+   "claimed_company": "Fusion Connect",
+   "claimed_country": "US",
+   "claimed_city": "Atlanta",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-06",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Metro Atlanta CEO",
+   "claimed_url": "https://metroatlantaceo.com/features/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GE",
+   "dimension_tier": "zero",
+   "claimed_company": "City of Hope Atlanta",
+   "claimed_country": "US",
+   "claimed_city": "Atlanta",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Metro Atlanta CEO",
+   "claimed_url": "https://metroatlantaceo.com/features/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GE",
+   "dimension_tier": "zero",
+   "claimed_company": "Atlanta Community Food Bank",
+   "claimed_country": "US",
+   "claimed_city": "Atlanta",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-06",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Metro Atlanta CEO",
+   "claimed_url": "https://metroatlantaceo.com/features/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GE",
+   "dimension_tier": "zero",
+   "claimed_company": "University System of Georgia",
+   "claimed_country": "US",
+   "claimed_city": "Atlanta",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "CBS News Atlanta",
+   "claimed_url": "https://www.cbsnews.com/atlanta/news/former-southern-company-ceo-thomas-a-fanning-approved-as-next-university-system-of-georgia-chancellor/?intcid=CNR-02-0623&ftag=CNM-00-10aab4i",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "HR",
+   "dimension_tier": "zero",
+   "claimed_company": "LAUNCHub Ventures",
+   "claimed_country": "BG",
+   "claimed_city": "Sofia",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "\u20ac65 million",
+   "claimed_stage": "",
+   "claimed_outlet": "tportal",
+   "claimed_url": "https://www.tportal.hr/tehno/clanak/launchub-osigurao-65-milijuna-eura-za-novi-fond-hrvatska-medu-kljucnim-trzistima-20261005",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "08e773f8edbb728824be3efaac51a520",
+    "company": "LAUNCHub Ventures",
+    "pillar": "company_development",
+    "country": "RO",
+    "published_date": "2026-10-01",
+    "source_url": "https://start-up.ro/launchub-ventures-anunta-prima-inchidere-a-fondului-iii-65-mil-euro-angajate-din-tinta-de-peste-75-mil-euro-romania-piata-prioritara/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "HR",
+   "dimension_tier": "zero",
+   "claimed_company": "Farseer",
+   "claimed_country": "HR",
+   "claimed_city": "Zagreb",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "$7.2m",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Tech.eu",
+   "claimed_url": "https://tech.eu/2026/10/07/ai-makes-it-incredibly-easy-for-finance-teams-to-be-lazy-says-founder-of-excel-challenger-farseer/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "HR",
+   "dimension_tier": "zero",
+   "claimed_company": "HCP",
+   "claimed_country": "HR",
+   "claimed_city": "Zagreb",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-26",
+   "claimed_amount": "\u20ac55 million",
+   "claimed_stage": "",
+   "claimed_outlet": "HCP",
+   "claimed_url": "https://hcp.hr/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3fb89c913194edf5a5476d2ee2e4df98",
+    "company": "HCP Plastene Bulkpack Ltd",
+    "pillar": "leadership_change",
+    "country": "IN",
+    "published_date": "2026-08-12",
+    "source_url": "https://www.bseindia.com/corporates/anndet_new?newsid=58edcd68-3684-45b5-bf33-7e5d3f42f95b"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "IQ",
+   "dimension_tier": "zero",
+   "claimed_company": "Lafarge Iraq",
+   "claimed_country": "IQ",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Iraq Business News",
+   "claimed_url": "https://www.iraq-businessnews.com/2026/10/05/new-ceo-at-lafarge-iraq/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "744cfe87ec39d632006f8830b05f3378",
+    "company": "Lafarge Iraq",
+    "pillar": "leadership_change",
+    "country": "IQ",
+    "published_date": "2026-10-05",
+    "source_url": "https://www.iraq-businessnews.com/2026/10/05/new-ceo-at-lafarge-iraq/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CZ",
+   "dimension_tier": "covered",
+   "claimed_company": "Exclusive Networks Czechia",
+   "claimed_country": "CZ",
+   "claimed_city": "Prague",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "RMOL",
+   "claimed_url": "https://www.rmol.cz/personalie",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CZ",
+   "dimension_tier": "covered",
+   "claimed_company": "STADA \u010cesk\u00e1 republika",
+   "claimed_country": "CZ",
+   "claimed_city": "Prague",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-18",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Management News",
+   "claimed_url": "https://www.managementnews.cz/personalni-zmeny",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CZ",
+   "dimension_tier": "covered",
+   "claimed_company": "Benefit Plus",
+   "claimed_country": "CZ",
+   "claimed_city": "Prague",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-14",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Management News",
+   "claimed_url": "https://www.managementnews.cz/personalni-zmeny",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
