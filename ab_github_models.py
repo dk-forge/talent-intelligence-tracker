@@ -77,8 +77,16 @@ def main() -> int:
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         print("::error::GITHUB_TOKEN missing"); return 1
-    cat = requests.get(CATALOG, timeout=30, headers={
-        "Authorization": f"Bearer {token}"}).json()
+    r = requests.get(CATALOG, timeout=30, headers={
+        "Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"})
+    try:
+        cat = r.json()
+    except ValueError:
+        print(f"::error::catalog HTTP {r.status_code}: {r.text[:300]!r}")
+        return 1
+    if isinstance(cat, dict):  # some deployments wrap the list
+        cat = cat.get("models") or cat.get("data") or []
     print("::notice::GitHub Models catalog: " + ", ".join(m["id"] for m in cat))
     for m in cat:
         if m["id"].lower().startswith("xai/") or m["id"] in pick_models(cat):
