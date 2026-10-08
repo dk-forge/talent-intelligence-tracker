@@ -67,7 +67,13 @@ def call(model: str, text: str, token: str) -> tuple[str, dict, str]:
             continue
         if r.status_code >= 400:
             return "", limits, f"HTTP {r.status_code}: {r.text[:160]}"
-        msg = ((r.json().get("choices") or [{}])[0].get("message") or {})
+        try:
+            payload = r.json()
+        except ValueError:
+            return "", limits, (f"non-JSON HTTP {r.status_code} "
+                                f"ctype={r.headers.get('content-type')} "
+                                f"server={r.headers.get('server')} body={r.text[:80]!r}")
+        msg = ((payload.get("choices") or [{}])[0].get("message") or {})
         return msg.get("content") or "", limits, ""
     return "", {}, "rate-limited"
 
@@ -108,7 +114,10 @@ def main() -> int:
             content, limits, err = call(model, it["text"], token)
             last_limits = limits or last_limits
             if err:
-                errors.append(err); continue
+                errors.append(err)
+                if len(errors) >= 3 and not answers:
+                    break  # endpoint unusable for this model; do not burn quota
+                continue
             v = gate_answer(content)
             if v is None:
                 unparsed += 1; continue
