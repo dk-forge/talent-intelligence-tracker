@@ -5,6 +5,11 @@
       "last": 1791489122,
       "subject": "CI RED: ab-github-models: requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
     },
+    "ab-github-models:main:e5299ffb45019611": {
+      "first": 1791489457,
+      "last": 1791489457,
+      "subject": "CI RED: ab-github-models: catalog HTTP 200: 'OK\\r\\n'"
+    },
     "backfill-gdelt-2026:main:50bce181f01d6d18": {
       "first": 1788722284,
       "last": 1788722284,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-08T19:52:04+00:00",
+  "updated_at": "2026-10-08T19:57:39+00:00",
   "version": 1
 }
