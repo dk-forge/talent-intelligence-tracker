@@ -1,0 +1,41 @@
+name: ab-github-models
+
+# Owner-approved one-off (2026-10-08): gate accuracy on the hand-labelled gold
+# set via GitHub Models' FREE inference (GITHUB_TOKEN, models: read). Spends $0,
+# writes nothing, manual dispatch only. Compare against the flash-lite row of
+# `ab-models` mode=gate-gold.
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: 'Comma-separated GitHub Models ids; empty = every listed xai/* plus small OpenAI/Meta/Mistral'
+        required: false
+        default: ''
+      limit:
+        description: 'Gold items to score (0 = all)'
+        required: false
+        default: '0'
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+      - name: Score
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AB_MODELS: ${{ inputs.models }}
+          AB_LIMIT: ${{ inputs.limit }}
+        run: python ab_github_models.py --models "$AB_MODELS" --limit "${AB_LIMIT:-0}"
