@@ -23,6 +23,10 @@ import requests
 
 CATALOG = "https://models.github.ai/catalog/models"
 ENDPOINT = "https://models.github.ai/inference/chat/completions"
+# Used only if the catalog does not answer with JSON.
+PROBE_IDS = ["xai/grok-3-mini", "xai/grok-3", "openai/gpt-4.1-nano",
+             "openai/gpt-4.1-mini", "meta/llama-3.3-70b-instruct",
+             "mistral-ai/ministral-3b"]
 
 
 def gate_answer(text: str) -> bool | None:
@@ -83,8 +87,10 @@ def main() -> int:
     try:
         cat = r.json()
     except ValueError:
-        print(f"::error::catalog HTTP {r.status_code}: {r.text[:300]!r}")
-        return 1
+        print(f"::warning::catalog HTTP {r.status_code} not JSON: {r.text[:120]!r}; "
+              "probing PROBE_IDS directly (an unlisted id fails its calls, so "
+              "availability is still verified live, not assumed)")
+        cat = [{"id": i} for i in PROBE_IDS]
     if isinstance(cat, dict):  # some deployments wrap the list
         cat = cat.get("models") or cat.get("data") or []
     print("::notice::GitHub Models catalog: " + ", ".join(m["id"] for m in cat))
