@@ -246,76 +246,7 @@
       "workflow": "collect-structured"
     }
   ],
-  "red_marks": {
-    "ticket:20260928T183551Z-adjudicate-rows": "2026-10-08T21:07:58Z"
-  },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-09T05:53:21Z",
-      "history": [
-        {
-          "at": "2026-10-09T05:39:53Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-09T05:53:21Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261009T053953Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-09T05:39:53Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-09-28T18:35:55Z",
-      "history": [
-        {
-          "at": "2026-09-28T18:35:51Z",
-          "detail": "re-adjudicate MetaOptics + Quanome with third referee",
-          "event": "queued"
-        },
-        {
-          "at": "2026-09-28T18:35:55Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-09-28T18:37:23Z",
-          "detail": "run 36466327334",
-          "event": "bound"
-        },
-        {
-          "at": "2026-09-28T18:37:23Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20260928T183551Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "reason": "re-adjudicate after third-referee + stored-text fallback (PR #191)",
-        "rows": "267ce439f3528b62b4e07d5d2891657b,104ac8e0dc2843434ac28d984999d989"
-      },
-      "priority": 0,
-      "reason": "re-adjudicate MetaOptics + Quanome with third referee",
-      "requested_at": "2026-09-28T18:35:51Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "36466327334",
-      "state": "failed",
-      "workflow": "adjudicate-rows.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-09-28T19:24:18Z",
@@ -2562,6 +2493,44 @@
       "run_id": "37869087643",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-09T05:53:21Z",
+      "history": [
+        {
+          "at": "2026-10-09T05:39:53Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-09T05:53:21Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-09T05:59:16Z",
+          "detail": "run 37890731129",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-09T05:59:16Z",
+          "detail": "run 37890731129",
+          "event": "landed"
+        }
+      ],
+      "id": "20261009T053953Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-09T05:59:16Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-10-09T05:39:53Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "37890731129",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
