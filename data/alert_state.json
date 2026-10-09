@@ -15,16 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "drain-writers:main:2e81661ce7c364f0": {
-      "first": 1788716370,
-      "last": 1791145518,
-      "subject": "STILL FAILING: CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
-    },
-    "drain-writers:main:fdb9d03109cc19a7": {
-      "first": 1790778722,
-      "last": 1790778722,
-      "subject": "CI RED: drain-writers: no error line could be extracted from the log"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -46,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-09T00:52:33+00:00",
+  "updated_at": "2026-10-09T05:59:44+00:00",
   "version": 1
 }
