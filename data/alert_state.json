@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-national-press:main:3824a06556f3cd16": {
+      "first": 1791589477,
+      "last": 1791589477,
+      "subject": "CI RED: collect national press: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect-press job. Answer them: python3 guardrails.py"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1791586682,
       "last": 1791586682,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-09T23:00:46+00:00",
+  "updated_at": "2026-10-09T23:44:38+00:00",
   "version": 1
 }
