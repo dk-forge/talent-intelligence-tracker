@@ -20,6 +20,11 @@
       "last": 1791589477,
       "subject": "CI RED: collect national press: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect-press job. Answer them: python3 guardrails.py"
     },
+    "collect-structured:main:f5702fb48050491a": {
+      "first": 1791605572,
+      "last": 1791605572,
+      "subject": "CI RED: collect-structured: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1791586682,
       "last": 1791586682,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-09T23:47:13+00:00",
+  "updated_at": "2026-10-10T04:12:52+00:00",
   "version": 1
 }
