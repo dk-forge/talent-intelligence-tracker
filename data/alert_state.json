@@ -30,6 +30,11 @@
       "last": 1791586682,
       "subject": "CI RED: collect: [publish] sent=2 stored=2 duplicate=0 errors=0"
     },
+    "enrich:main:cd0f1a58933504d7": {
+      "first": 1791626083,
+      "last": 1791626083,
+      "subject": "CI RED: enrich: pipeline.publish.PublishError: 1 guardrail finding(s) have been open longer than their grace window (oldest 202h). 40147 clean row(s) WERE published; the flagged on"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-10T09:27:58+00:00",
+  "updated_at": "2026-10-10T09:54:44+00:00",
   "version": 1
 }
