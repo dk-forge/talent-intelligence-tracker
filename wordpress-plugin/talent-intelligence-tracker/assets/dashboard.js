@@ -428,6 +428,19 @@
     rumored: 'Unconfirmed'
   };
 
+  // The public trust tier (docs/VERIFICATION_TIERS.md), sent additively by
+  // /query as r.tier and r.rumored. Older cached rows lack it, so they fall
+  // back to the evidence label above.
+  var TIER_LABEL = {
+    verified: 'Verified: official filing',
+    reported: 'Reported: news',
+    measured: 'Measured: job board'
+  };
+  function tierLabel(r) {
+    if (r.tier === 'reported' && r.rumored) { return 'Reported: unconfirmed'; }
+    return TIER_LABEL[r.tier] || CONFIDENCE_LABEL[r.confidence] || r.confidence;
+  }
+
   // Which map names the values of which fetched control. One registry rather
   // than a labels argument at the fill site and a raw value everywhere else:
   // applyUrlState() adds an option for a value a shared link carried BEFORE
@@ -3690,7 +3703,7 @@
       '<td class="tit-ut-amt">' + (usd > 0 ? esc(moneyShort(usd)) : '') + '</td>' +
       '<td>' + (code ? esc(countryLabel(code)) : '<span class="tit-card-nowhere">Not stated</span>') + '</td>' +
       '<td><span class="tit-conf tit-c-' + esc(r.confidence) + '">' +
-        esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span></td>' +
+        esc(tierLabel(r)) + '</span></td>' +
       '<td class="tit-ut-src">' + srcAnchor(r) + '</td>' +
       '</tr>';
   }
