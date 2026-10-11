@@ -1,0 +1,73 @@
+{
+ "key": "amount/7fb14ecb62643636ca0696061348ce38",
+ "label": "Scotia Group Jamaica Limited $63,500,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'minority shareholders on Wednesday approved an offer by Scotiabank Caribbean Holdings Limited (SCH) to acquire their shares for $63.50 billion (US$397.84 million).' This is an acquisition transaction where SCH is buying out minority shareholders to take SGJ private. The amount $63.50 billion is the total acquisition price. The money_basis 'acquired' is correct per the rules vocabulary. This is NOT a company_raise; it's a transaction price for an acquisition, which should be stored but not summed."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states: 'Scotiabank Caribbean Holdings Limited to acquire their shares for $63.50 billion (US$397.84 million).' This is an acquisition, not a company raise, as per the money rules. The basis 'acquired' is correct, but acquisitions are not summed in 'money raised' totals."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "acquisition",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "Minority shareholders approved an offer by Scotiabank Caribbean Holdings Limited to acquire their shares for $63.50 billion (US$397.84 million). The decision was made at an extraordinary general meeting in Kingston. The money_basis is 'acquired' which is not summed."
+  }
+ },
+ "row": {
+  "company": "Scotia Group Jamaica Limited",
+  "headline": "Scotia going private",
+  "summary": "Scotia Group Jamaica Limited is becoming a private company after minority shareholders approved an offer by Scotiabank Caribbean Holdings Limited to acquire their shares for $63.50 billion (US$397.84 million). The decision was made at an extraordinary general meeting in Kingston.",
+  "funding_amount": "$63.50 billion",
+  "funding_amount_usd": 63500000000,
+  "funding_stage": "other",
+  "deal_type": "acquired",
+  "money_basis": "acquired",
+  "source_url": "https://www.jamaicaobserver.com/2026/10/08/scotia-going-private/",
+  "source_name": "Jamaica Observer",
+  "published_date": "2026-10-08",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": "JM",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": null
+ },
+ "cost_usd": 0.023154,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.013649999999999999,
+  "openai/gpt-4o": 0.0091175,
+  "google/gemini-2.5-flash-lite": 0.000386400000000002
+ },
+ "evidence_url": "https://www.jamaicaobserver.com/2026/10/08/scotia-going-private/",
+ "evidence_chars": 10040,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/7fb14ecb62643636ca0696061348ce38, two of three referees say reject. anthropic/claude-sonnet-4.5: The source clearly states: 'minority shareholders on Wednesday approved an offer by Scotiabank Caribbean Holdings Limited (SCH) to acquire their shares for $63.50 billion (US$397.84 million).' This is an acquisition tran; openai/gpt-4o: The source states: 'Scotiabank Caribbean Holdings Limited to acquire their shares for $63.50 billion (US$397.84 million).' This is an acquisition, not a company raise, as per the money rules. The basis 'acquired' is corr; google/gemini-2.5-flash-lite: Minority shareholders approved an offer by Scotiabank Caribbean Holdings Limited to acquire their shares for $63.50 billion (US$397.84 million). The decision was made at an extraordinary general meeting in Kingston. The ",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-11T01:07:21+00:00"
+}

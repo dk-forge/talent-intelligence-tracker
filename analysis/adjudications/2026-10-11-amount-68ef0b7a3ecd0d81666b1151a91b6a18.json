@@ -1,0 +1,73 @@
+{
+ "key": "amount/68ef0b7a3ecd0d81666b1151a91b6a18",
+ "label": "SoftBank $100,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "pledge",
+   "recommended": "edit",
+   "corrected_amount": 100000000000,
+   "corrected_basis": "pledge",
+   "confidence": 95,
+   "reasoning": "The source states \"Masayoshi Son is trying to raise up to $100 billion from Gulf investors\" and \"there is no guarantee the talks succeed.\" The money is being sought, not received. The rules state: \"A round that is being sought or discussed is a pledge.\" This is clearly a fundraising effort in progress (\"trying to raise\", \"holding talks\"), not completed capital that has arrived at the company. The basis should be \"pledge\", not \"company_raise\"."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'Masayoshi Son is trying to raise up to $100 billion from Gulf investors,' indicating the amount is sought, not received. This aligns with the definition of 'pledge' rather than 'company_raise,' as the talks are ongoing and there is no guarantee the talks succeed."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states \"SoftBank Seeks $100 Billion From Gulf Investors\" and \"Masayoshi Son is trying to raise up to $100 billion from Gulf investors\". However, the text also states \"The people cautioned that there is no guarantee the talks succeed\", indicating the funding is sought but not yet received. This falls under the definition of 'pledge' which is not summed according to rule 2."
+  }
+ },
+ "row": {
+  "company": "SoftBank",
+  "headline": "Masa Passes The Hat: SoftBank Seeks $100 Billion From The Gulf After Maxing Out Junk Bonds, Margin Loans And Japanese Retail",
+  "summary": "SoftBank is seeking up to $100 billion from Gulf investors, with Masayoshi Son holding talks with senior figures in the UAE. This comes as the scramble for AI cash accelerates.",
+  "funding_amount": "$100 billion",
+  "funding_amount_usd": 100000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.gulf-insider.com/masa-passes-hat-softbank-seeks-100-billion/",
+  "source_name": "Gulf Insider",
+  "published_date": "2026-10-10",
+  "collector": "national_press",
+  "city": null,
+  "region": "Middle East",
+  "state": null,
+  "country": "AE",
+  "hq_city": "Tokyo",
+  "hq_country": "JP",
+  "published_at": null
+ },
+ "cost_usd": 0.027919,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.016422,
+  "openai/gpt-4o": 0.011009999999999999,
+  "google/gemini-2.5-flash-lite": 0.00048729999999999954
+ },
+ "evidence_url": "https://www.gulf-insider.com/masa-passes-hat-softbank-seeks-100-billion/",
+ "evidence_chars": 12000,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/68ef0b7a3ecd0d81666b1151a91b6a18, two of three referees say reject. anthropic/claude-sonnet-4.5: The source states \"Masayoshi Son is trying to raise up to $100 billion from Gulf investors\" and \"there is no guarantee the talks succeed.\" The money is being sought, not received. The rules state: \"A round that is being ; openai/gpt-4o: The source text states 'Masayoshi Son is trying to raise up to $100 billion from Gulf investors,' indicating the amount is sought, not received. This aligns with the definition of 'pledge' rather than 'company_raise,' as; google/gemini-2.5-flash-lite: The source text states \"SoftBank Seeks $100 Billion From Gulf Investors\" and \"Masayoshi Son is trying to raise up to $100 billion from Gulf investors\". However, the text also states \"The people cautioned that there is no",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-11T01:07:14+00:00"
+}
