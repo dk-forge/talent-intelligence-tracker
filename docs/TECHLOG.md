@@ -14,6 +14,19 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-11 - Public trust tiers: verified / reported / measured (plugin 1.92.0)
+
+**Class:** feature (owner-approved labels shared with the AI Layoff Tracker)
+**Guard:** `tests/test_tiers.py` (table-driven; news-only never verified,
+job board always measured, measured never CONFIRMED_HIRES, PHP twin parity).
+
+`pipeline/tiers.py` derives a public tier from stored columns; nothing stored
+changes. `rumored` maps to `reported` with `rumored=true`. Plugin 1.92.0 adds
+`includes/tiers.php`, appends `tier` and `rumored` to `/query` rows and the
+CSV and JSON downloads (additive, CSV columns appended last), and shows the
+tier in the table's evidence column. The daily digest row tag now names the
+tier. Mapping in `docs/VERIFICATION_TIERS.md`. Pushed on a branch, not deployed.
+
 ## 2026-10-08 - Haiku 5.5 eval harness (dispatch-only, no production change)
 
 **Class:** measurement tooling (owner question: can paid call sites move to

@@ -188,9 +188,13 @@ function tit_export_csv() {
         'published_date', 'captured_at',
         'predicted_outcome', 'check_after_date', 'outcome_observed',
         'source_attribution',
+        // Appended, never inserted: existing readers index by position.
+        'tier', 'rumored',
     ));
 
     tit_export_walk(function ($row) use ($out) {
+        $t = function_exists('tit_tier_of_row') ? tit_tier_of_row($row)
+                                                 : array('tier' => '', 'rumored' => false);
         fputcsv($out, array(
             tit_csv_guard($row->signal_id),
             tit_csv_guard($row->company),
@@ -224,6 +228,8 @@ function tit_export_csv() {
             $row->check_after_date ?: '',
             tit_csv_guard((string) $row->outcome_observed),
             'Talent Intelligence Tracker - asktherecruiter.com - CC BY 4.0',
+            $t['tier'],
+            $t['rumored'] ? 'true' : 'false',
         ));
     });
 
@@ -251,6 +257,8 @@ function tit_export_json() {
     tit_export_walk(function ($row) use (&$count) {
         // The same public fields /query returns, so the download and the API
         // describe every record identically.
+        $t = function_exists('tit_tier_of_row') ? tit_tier_of_row($row)
+                                                 : array('tier' => '', 'rumored' => false);
         $entry = array(
             'signal_id'          => $row->signal_id,
             'headline'           => $row->headline,
@@ -283,6 +291,9 @@ function tit_export_json() {
             'archive_url'        => $row->archive_url,
             'materiality'        => $row->materiality,
             'confidence'         => $row->confidence,
+            // Public trust tier, additive (docs/VERIFICATION_TIERS.md).
+            'tier'               => $t['tier'],
+            'rumored'            => $t['rumored'],
             'source_url'         => $row->source_url,
             'source_name'        => $row->source_name,
             'published_date'     => $row->published_date,

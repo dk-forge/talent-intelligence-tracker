@@ -152,7 +152,18 @@ class OpenVacanciesProvenance(unittest.TestCase):
                                       "postings than our previous scan "
                                       "(job board: 252 to 269)"))
         self.assertEqual(f.meaning.type, cm.OPEN_VACANCIES)
-        self.assertEqual(f.provenance(), "First-party employer board")
+        self.assertEqual(f.tier, "measured")
+        self.assertEqual(f.provenance(), "Measured: first-party employer board")
+
+    def test_tier_labels_in_digest(self):
+        sec = "https://www.sec.gov/Archives/x.htm"
+        self.assertEqual(dd._featured(row(confidence="verified", source_url=sec))
+                         .provenance(), "Verified: primary source")
+        self.assertEqual(dd._featured(row(confidence="rumored")).provenance(),
+                         "Reported: unconfirmed")
+        self.assertEqual(dd._featured(row()).provenance(), "Reported")
+        # News claiming verified is still reported.
+        self.assertEqual(dd._featured(row(confidence="verified")).tier, "reported")
 
 
 if __name__ == "__main__":

@@ -34,6 +34,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from pipeline import count_meaning as cm
 from pipeline import schema
+from pipeline import tiers
 
 
 # --- Windowing -------------------------------------------------------------
@@ -118,6 +119,9 @@ class Featured:
     published_date: str | None
     non_english: bool
     summary_english: bool
+    # Public trust tier (pipeline/tiers.py, docs/VERIFICATION_TIERS.md).
+    tier: str = "reported"
+    rumored: bool = False
 
     @property
     def _substitute(self) -> bool:
@@ -148,15 +152,18 @@ class Featured:
         return self.non_english and not self.summary_english
 
     def provenance(self) -> str:
-        if self.meaning.primary:
-            return "Primary source"
-        if self.meaning.first_party:
-            return "First-party employer board"
+        if self.tier == "measured":
+            return "Measured: first-party employer board"
+        if self.tier == "verified":
+            return "Verified: primary source"
+        if self.rumored:
+            return "Reported: unconfirmed"
         return "Reported"
 
 
 def _featured(row) -> Featured:
     headline = row["headline"] or ""
+    _tier = tiers.tier_of_row(row)
     return Featured(
         company=row["company"] or "",
         headline=headline,
@@ -168,6 +175,8 @@ def _featured(row) -> Featured:
         published_date=(row["published_date"] if _has(row, "published_date") else None),
         non_english=looks_non_english(headline),
         summary_english=not looks_non_english(row["summary"] or ""),
+        tier=_tier.tier,
+        rumored=_tier.rumored,
     )
 
 

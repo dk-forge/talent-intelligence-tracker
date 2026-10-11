@@ -1031,6 +1031,14 @@ function tit_api_query(WP_REST_Request $req) {
                   ORDER BY {$order}
                   LIMIT %d OFFSET %d";
     $rows = $wpdb->get_results($wpdb->prepare($rows_sql, array_merge($params, array($per_page, $offset))), ARRAY_A);
+    // Public trust tier, additive (docs/VERIFICATION_TIERS.md).
+    if ($rows && function_exists('tit_tier_of_row')) {
+        foreach ($rows as $i => $r) {
+            $t = tit_tier_of_row($r);
+            $rows[$i]['tier']    = $t['tier'];
+            $rows[$i]['rumored'] = $t['rumored'];
+        }
+    }
 
     $out = array(
         'total'    => $total,
