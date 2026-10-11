@@ -17128,3 +17128,28 @@ which only Dakotta can run.
    amount is a valuation, project cost, purchase price or revenue figure",
    "dry_run":"false"}' -f reason='money figure contradictions'` — not queued
    by this session, since two referees (not the checker) decide it.
+
+### tests #1969 (self-heal issue #228): the same flake class as run 32152450241, not reproducible
+
+`self-heal-fleet-scan.yml` filed `claude-autofix` issue #228 off `tests` run
+38111909254 (run #1969, 2026-10-11 04:32-04:38 UTC, triggered right after a
+`data: spain_borme` commit) with no cause line extracted. Read the job log
+directly: 5606 passed, 7 skipped, 1 failed —
+`tests/test_cdp_launch.py::ARealChromeStillComesUp::test_a_browser_launches_and_evaluates`,
+`cdp.CDPUnavailable: Chrome ran for 30s without exposing a debug target`, with
+Chrome's own stderr captured per the 2026-08-18 fix: two `dbus/bus.cc` lines
+("Failed to connect to the bus: Could not parse server address") followed by
+Chrome's own `DevTools listening on ws://127.0.0.1:34885/...` line — i.e.
+Chrome did start and did bind a debug port, but `_wait_for_target`'s
+`/json/list` poll never got a `type: page` target back inside the 30s
+deadline on this runner. Same failure shape already diagnosed for run
+32152450241 (TECHLOG "tests: the only defect, and it was never a flake"):
+infrastructure, not an assertion, and rare — every `tests` run since (#1970
+through at least #1984, 15+ consecutive scheduled/dispatched runs on later
+commits) is green, so this did not recur. Per that entry's own conclusion
+("no retry was added, deliberately... one red in 200 runs is not a browser
+that fails often"), nothing in `cdp.py` or the test needed changing here —
+widening the 30s deadline or adding a retry would convert the next genuine
+dead-Chrome occurrence back into silence, which is the exact regression that
+fix exists to prevent. Closed #228 with this entry linked, no code pushed.
+· hourly ops-check
