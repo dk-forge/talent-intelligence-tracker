@@ -1001,10 +1001,9 @@ function tit_company_render($rows, $key, $profile) {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-company">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">›</span> <?php echo esc_html($name); ?>
-      </nav>
+      <?php // Same trail as the BreadcrumbList in the head (includes/breadcrumbs.php).
+      if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(
+          tit_breadcrumbs_company_trail($name, tit_company_url($company_key))); ?>
 
       <h1><?php echo esc_html($name); ?></h1>
 

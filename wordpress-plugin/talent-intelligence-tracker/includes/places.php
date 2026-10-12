@@ -1083,12 +1083,9 @@ function tit_place_render($kind, $cell, $facts) {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-place">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">&rsaquo;</span>
-        <a href="<?php echo esc_url(tit_places_url()); ?>"><?php echo esc_html($spec['many']); ?></a>
-        <span aria-hidden="true">&rsaquo;</span> <?php echo esc_html($cell['name']); ?>
-      </nav>
+      <?php // Same trail as the BreadcrumbList in the head (includes/breadcrumbs.php).
+      if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_place_trail(
+          $spec['many'], tit_places_url(), $cell['name'], tit_place_url($kind, $cell['key']))); ?>
 
       <h1><?php echo esc_html($heading); ?></h1>
 
@@ -1407,10 +1404,7 @@ function tit_places_render() {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-place tit-directory">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">&rsaquo;</span> Countries, Cities And Industries
-      </nav>
+      <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_places_trail(tit_places_url())); ?>
 
       <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
       <p class="tit-note">
