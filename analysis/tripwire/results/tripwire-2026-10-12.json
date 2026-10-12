@@ -1,0 +1,614 @@
+{
+ "ran_at": "2026-10-12T10:05:58+02:00",
+ "ran_on": "2026-10-12",
+ "plan": {
+  "cycle": 570,
+  "planned_on": "2026-10-12",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-10-05 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "JP",
+    "name": "Japan",
+    "tier": "zero",
+    "measured": {
+     "total": 4,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "ZA",
+    "name": "South Africa",
+    "tier": "zero",
+    "measured": {
+     "total": 4,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "KE",
+    "name": "Kenya",
+    "tier": "zero",
+    "measured": {
+     "total": 4,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "LU",
+    "name": "Luxembourg",
+    "tier": "covered",
+    "measured": {
+     "total": 1,
+     "held": 1,
+     "held_pct": 100.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "JP",
+   "tier": "zero",
+   "measured": {
+    "total": 4,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "ZA",
+   "tier": "zero",
+   "measured": {
+    "total": 4,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "KE",
+   "tier": "zero",
+   "measured": {
+    "total": 4,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "LU",
+   "tier": "covered",
+   "measured": {
+    "total": 1,
+    "held": 1,
+    "held_pct": 100.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 20,
+  "held": 10,
+  "missing": 10,
+  "unusable": 0,
+  "usable": 20
+ },
+ "by_country": {
+  "ZA": {
+   "leads": 8,
+   "held": 3,
+   "missing": 5,
+   "unusable": 0
+  },
+  "JP": {
+   "leads": 5,
+   "held": 2,
+   "missing": 3,
+   "unusable": 0
+  },
+  "KE": {
+   "leads": 5,
+   "held": 4,
+   "missing": 1,
+   "unusable": 0
+  },
+  "LU": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0229,
+  "queries": 4,
+  "usd_per_query": 0.0057,
+  "usd_per_lead": 0.0011,
+  "usd_per_candidate_miss": 0.0023,
+  "lifetime_usd": 0.6025,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:JP",
+   "leads": 5,
+   "usd": 0.00573,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 397,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:ZA",
+   "leads": 8,
+   "usd": 0.00598,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 644,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:KE",
+   "leads": 5,
+   "usd": 0.0057,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 364,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:LU",
+   "leads": 2,
+   "usd": 0.00547,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 135,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "JP",
+   "dimension_tier": "zero",
+   "claimed_company": "Helical Fusion Co., Ltd.",
+   "claimed_country": "JP",
+   "claimed_city": "Tokyo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "JPY 3.23 billion",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "Business Wire",
+   "claimed_url": "https://finance.yahoo.com/energy/articles/fuji-electric-joins-helical-fusion-000000265.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JP",
+   "dimension_tier": "zero",
+   "claimed_company": "Ocean Co., Ltd.",
+   "claimed_country": "JP",
+   "claimed_city": "Tokyo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-09",
+   "claimed_amount": "\u00a5500M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "The SaaS News",
+   "claimed_url": "https://www.thesaasnews.com/news/ocean-co-ltd-raises-500m-series-a/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "16c00c88dd52ace73b054e1953c0da38",
+    "company": "Ocean Intelligence",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-13",
+    "source_url": "https://thefishsite.com/articles/ocean-intelligence-raises-pre-seed-funding"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JP",
+   "dimension_tier": "zero",
+   "claimed_company": "SOMPO Holdings, Inc.",
+   "claimed_country": "JP",
+   "claimed_city": "Tokyo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-25",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "SOMPO Holdings",
+   "claimed_url": "https://www.sompo-hd.com/-/media/hd/en/files/news/2026/e_20260925_1.pdf?la=ja-JP",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JP",
+   "dimension_tier": "zero",
+   "claimed_company": "Recomm Co., Ltd.",
+   "claimed_country": "JP",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-30",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Japan IR",
+   "claimed_url": "https://japanir.jp/en/company/company-3323/ir/3323-20260930-01_wp_executive_change/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "JP",
+   "dimension_tier": "zero",
+   "claimed_company": "Nidec Corporation",
+   "claimed_country": "JP",
+   "claimed_city": "Kyoto",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Japan CO.jp",
+   "claimed_url": "https://japan.co.jp/e/reports/nidec-ceo-mitsuya-kishida-resignation-2026.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "ad792356b2cf03ec5ef2e9cc791a5c8b",
+    "company": "Nidec",
+    "pillar": "leadership_change",
+    "country": "JP",
+    "published_date": null,
+    "source_url": "https://asia.nikkei.com/business/companies/nidec-ceo-kishida-set-to-resign-over-losses-at-e-axle-ev-drive-unit"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "Mission Mobile",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "ZAR500 million",
+   "claimed_stage": "",
+   "claimed_outlet": "All Africa",
+   "claimed_url": "https://allafrica.com/stories/202610050724.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "e59600f16c1ca468340aba3462002d59",
+    "company": "Mission Mobile",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-23",
+    "source_url": "https://thecondia.com/mission-mobile-funding-by-dn-invest/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "Bongani Mthombeni appointed CEO of Atana",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-06",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Bona",
+   "claimed_url": "https://www.bona.co.za/entertainment/bongani-mthombeni-appointed-ceo-of-atana/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "WalaPay",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-04",
+   "claimed_amount": "$4.6 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Africa Fintech Network",
+   "claimed_url": "https://africafintechnetwork.com/stablecoin-infrastructure-firm-walapay-raises-4-6-million-in-seed-funding/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "f23a1ee6adb69626c00a10fec73fdf07",
+    "company": "Walapay",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-02",
+    "source_url": "https://pulse2.com/walapay-raises-4-6-million-seed-round-to-expand-global-payments-infrastructure/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "Atana",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Engineering News",
+   "claimed_url": "https://www.engineeringnews.co.za/article/atana-appoints-bongani-mthombeni-ceo-2026-10-08",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "NjiaPay",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-12",
+   "claimed_amount": "$2.1 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "BusinessDay NG",
+   "claimed_url": "https://businessday.ng/technology/article/njiapay-raises-2-1m-seed-funding-to-scale-payment-infrastructure/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "Littlefish",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-11",
+   "claimed_amount": "$9.5 million",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "BusinessDay NG",
+   "claimed_url": "https://businessday.ng/technology/article/littlefish-secures-9-5m-series-a-to-scale-merchant-infrastructure-for-african-banks/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "Healthleap",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "$38 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "TechCrunch",
+   "claimed_url": "https://techcrunch.com/2026/10/07/healthleap-raises-38m-for-its-ai-that-flags-hospital-patients-who-may-need-a-closer-look/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZA",
+   "dimension_tier": "zero",
+   "claimed_company": "Nile.ag",
+   "claimed_country": "ZA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-09",
+   "claimed_amount": "R200 million",
+   "claimed_stage": "",
+   "claimed_outlet": "FreshPlaza",
+   "claimed_url": "https://www.freshplaza.com/asia/article/9739409/agri-tech-platform-raises-us-10-6-million/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "af1c7d46ce07891a6b6d41c87ac28c92",
+    "company": "Nile",
+    "pillar": "leadership_change",
+    "country": "US",
+    "published_date": "2026-09-26",
+    "source_url": "https://itbrief.co.nz/story/nile-names-srinivas-kavuri-as-chief-development-officer"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KE",
+   "dimension_tier": "zero",
+   "claimed_company": "ARC Ride",
+   "claimed_country": "KE",
+   "claimed_city": "Nairobi",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-11",
+   "claimed_amount": "$33.3 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/african-ev-startup-arc-ride-raises-33-million-to-expand-battery-swapping-network_a3c31e",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "94a7fe22ebd2821427d3beacacf4512f",
+    "company": "Arc Ride",
+    "pillar": "company_development",
+    "country": "KE",
+    "published_date": "2026-09-08",
+    "source_url": "https://thecondia.com/arc-ride-funding-south-africa/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KE",
+   "dimension_tier": "zero",
+   "claimed_company": "Cloud9",
+   "claimed_country": "KE",
+   "claimed_city": "Nairobi",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "$500,000",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "The Condia",
+   "claimed_url": "https://thecondia.com/alliance-gives-cloud9-500k-pre-seed/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "8a6d01d84924c36215d47ada973422f6",
+    "company": "Cloud9",
+    "pillar": "company_development",
+    "country": "KE",
+    "published_date": "2026-10-07",
+    "source_url": "https://techmoran.com/2026/10/07/cloud9-hits-1-million-funding-milestone-after-500000-alliance-investment/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KE",
+   "dimension_tier": "zero",
+   "claimed_company": "Satlyt",
+   "claimed_country": "KE",
+   "claimed_city": "Nairobi",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-05",
+   "claimed_amount": "$8M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "The SaaS News",
+   "claimed_url": "https://www.thesaasnews.com/news/satlyt-raises-8m-seed/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3321118c60d0f2b7d591859d70530d54",
+    "company": "Satlyt",
+    "pillar": "company_development",
+    "country": "KE",
+    "published_date": "2026-10-01",
+    "source_url": "https://ventureburn.com/satlyt-raises-8m-seed-satellite-ai/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KE",
+   "dimension_tier": "zero",
+   "claimed_company": "Stanbic Bank Kenya",
+   "claimed_country": "KE",
+   "claimed_city": "Nairobi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "TechTrendsKE",
+   "claimed_url": "https://techtrendske.co.ke/category/new-appointments/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "5125f16cc46ac81717d41ceffaf2212d",
+    "company": "Stanbic Bank",
+    "pillar": "how_we_work",
+    "country": "ZW",
+    "published_date": "2026-09-08",
+    "source_url": "https://zimbabwe-independent.com/article/stanbic-bank-opens-chiredzi-branch/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KE",
+   "dimension_tier": "zero",
+   "claimed_company": "Geothermal Development Company Limited",
+   "claimed_country": "KE",
+   "claimed_city": "Nairobi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-30",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "The Online Kenyan",
+   "claimed_url": "https://www.theonlinekenyan.com/read/story/675144",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LU",
+   "dimension_tier": "covered",
+   "claimed_company": "fundcraft",
+   "claimed_country": "LU",
+   "claimed_city": "Luxembourg",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-09",
+   "claimed_amount": "\u20ac12m",
+   "claimed_stage": "",
+   "claimed_outlet": "Startup Luxembourg",
+   "claimed_url": "https://startupluxembourg.com/scale-your-startup/finance-your-growth",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "350461658e9c5c2c735aa3b145ea3763",
+    "company": "fundcraft",
+    "pillar": "company_development",
+    "country": "LU",
+    "published_date": "2026-09-09",
+    "source_url": "https://www.siliconluxembourg.lu/fundcraft-secures-e12m-growth-financing/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LU",
+   "dimension_tier": "covered",
+   "claimed_company": "Luxinnovation",
+   "claimed_country": "LU",
+   "claimed_city": "Luxembourg",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-28",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Luxinnovation",
+   "claimed_url": "https://luxinnovation.lu/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
