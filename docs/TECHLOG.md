@@ -14,6 +14,52 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - city and company alerts: DESIGN ONLY, not built
+
+Owner-approved 2026-10-12 (item 4) with the condition "only if an email/digest
+mechanism already exists in this repo". **It does not.** The digest signup on
+the dashboard calls `alt_digest_subscribe_form('talent')`, and the subscriber
+store, consent flow and sender all live in the SIBLING plugin
+(`includes/subscribe.php` in the layoff tracker's repo). This repo writes only
+the digest CONTENT (`daily_digest.py`, offline, read-only) and the ops mail
+(`opsmail.py`, owner-only, never readers). The subscriber list is personal
+data that must never reach this public repo (RECOVERY.md). So nothing was
+built; this is the design for whoever picks it up.
+
+**What already exists and does most of the work.** `GET talent/v1/feed` is RSS
+of any filtered view: it calls `tit_build_where()`, which already accepts
+`city=` and `company=`, caches per filter, and every item links to the source
+document. A per-city or per-company alert is therefore a URL that exists
+today, e.g. `.../wp-json/talent/v1/feed?city=London`.
+
+**Step 1, this repo only, no personal data (smallest useful slice).** Print a
+"Follow updates for {city}/{employer} (RSS)" link on the city and company
+pages, pointing at the filtered feed, plus `<link rel="alternate"
+type="application/rss+xml">` in their heads. No email, no store, no consent
+question. Test: the link carries exactly the page's own filter and the feed
+route accepts it.
+
+**Step 2, needs the sibling's subscriber store (the owner's call, two repos).**
+Email alerts per city/company:
+- Store: one extra column on the sibling's subscriber record, `talent_follows`
+  (a short list of `city:<name>` / `company:<company_key>`, capped at ~10),
+  set only through the existing double-opt-in flow. Unsubscribe and "manage
+  follows" ride on the existing token links. Nothing about followers is ever
+  written to this repo or its database.
+- Content: this repo exposes `GET talent/v1/follow-digest?since=D&follow=...`
+  (public, cached, no personal data in or out: it answers "what changed for
+  these keys since D"), built from `daily_digest.py`'s rules so a headcount is
+  only a "roles" figure when `count_meaning` says it is, plus the open-role
+  count change from `board_series` when a board moved under the rising rule.
+  Falling boards are never phrased as cuts.
+- Send: the sibling's existing daily send loop groups subscribers by follow
+  key, fetches one digest per key (so 1,000 London followers cost one request),
+  and skips any key with nothing new. Reader mail stays on the sibling's
+  provider and budget, never `opsmail.py`.
+- Cadence: daily at most, weekly default; a key with nothing new sends nothing.
+
+Owner decisions this needs before step 2: whether the sibling's list may hold
+follow preferences, and the default cadence.
 ## 2026-10-12 - company pages: open roles in the description; both sitemaps in the index (1.95.0, pushed, NOT deployed)
 
 Owner-approved 2026-10-12 (item 3). Per-company pages already existed with the
