@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-05T10:33:50+02:00",
- "measured_on": "2026-10-05",
+ "generated_at": "2026-10-12T10:40:06+02:00",
+ "measured_on": "2026-10-12",
  "goldset_version": "2026-08-eu-v1",
  "overall": {
   "total": 46,
@@ -274,7 +274,7 @@
  "missed_total": 22,
  "next_goldset": {
   "due": true,
-  "reason": "the last 3 measurements against this set all held 24 events, so it has converged and further runs measure memory rather than reach",
+  "reason": "the current set covers a window that closed 42 days ago, so it no longer describes what we reach today",
   "suggested_window": {
    "start": "2026-09-01",
    "end": "2026-09-30"

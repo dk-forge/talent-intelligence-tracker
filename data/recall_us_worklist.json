@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-05T10:33:22+02:00",
- "measured_on": "2026-10-05",
+ "generated_at": "2026-10-12T10:39:34+02:00",
+ "measured_on": "2026-10-12",
  "goldset_version": "2026-06-us-v1",
  "overall": {
   "total": 51,
@@ -291,7 +291,7 @@
  "missed_total": 28,
  "next_goldset": {
   "due": true,
-  "reason": "the current set covers a window that closed 66 days ago, so it no longer describes what we reach today",
+  "reason": "the current set covers a window that closed 73 days ago, so it no longer describes what we reach today",
   "suggested_window": {
    "start": "2026-09-01",
    "end": "2026-09-30"
