@@ -14,6 +14,30 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - bse_india (#231) and gdelt (#220) zero-store streaks: source side, not code
+
+**Class:** external dependency (not fixable from code)
+
+**bse_india.** `source_health` shows `error` on 09-28, 10-05 and 10-12, all
+"returned 403 for 'Change in Management'"; last good run 09-21 (236 found, 140
+stored). Probed live 2026-10-12: the API answers an Akamai "Access Denied"
+HTML page (Reference #18....) with the exact browser UA + Referer the collector
+sends, also with Origin/Accept added, and on a second endpoint (AnnGetData).
+That is an edge IP/bot block, not a missing header or a changed API; no header
+change gets past it. Unblock options are an owner call: a run from a
+non-datacenter egress, or retiring the source. The collector correctly goes red
+(error row), so no silent loss.
+
+**gdelt.** Runs on 10-09..10-11 are `degraded`, found 0. Probed live
+2026-10-12 with the collector's own `fetch()` and GDELT_QUERIES[:4]: HTTP 200,
+valid JSON, zero articles, no throttle-out. Control queries confirm the index
+itself is near-empty: `layoffs` over 3d with maxrecords=50 returned 2
+articles, `("job cuts" OR layoffs) sourcelang:english` returned 1; and 429s
+arrive even at 15s spacing. Query syntax is accepted (no QUERY REJECTED), the
+parser handles the shape. GDELT DOC 2.0 is serving a thin index upstream; the
+collector reports it honestly as degraded. Recheck with the runbook step
+(`TIT_RUNNER=hosted`) once GDELT recovers; nothing to change in code.
+
 ## 2026-10-12 - #228 tests red on a data-only commit: national_press tests read live state
 
 **Class:** flaky test (shared state) + latent non-determinism in production
