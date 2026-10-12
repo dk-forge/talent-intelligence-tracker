@@ -65,17 +65,12 @@
       "last": 1791184750,
       "subject": "CI RED: money-basis check: VERDICT: FAIL"
     },
-    "sentry-error-check:main:a4a22be5e7801dd0": {
-      "first": 1791819200,
-      "last": 1791819200,
-      "subject": "CI RED: sentry-error-check: sentry-error-check: could not read Sentry (HTTP 502: Bad Gateway)"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-12T15:33:21+00:00",
+  "updated_at": "2026-10-12T16:32:58+00:00",
   "version": 1
 }
