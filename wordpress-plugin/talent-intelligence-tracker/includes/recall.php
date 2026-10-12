@@ -904,6 +904,7 @@ function tit_recall_render($data) {
     if (empty($data) || empty($data['summary'])) {
         ?>
         <div class="tit-wrap tit-recall">
+          <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Measured recall', tit_recall_url())); ?>
           <h1>Measured recall</h1>
           <p class="tit-note">No measurement has been published yet. When one is,
             this page carries the number, the date it was measured, and the
@@ -929,10 +930,7 @@ function tit_recall_render($data) {
     $sets    = array_unique(array_column($points, 'goldset_version'));
     ?>
     <div class="tit-wrap tit-recall" id="tit-recall">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">›</span> Measured recall
-      </nav>
+      <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Measured recall', tit_recall_url())); ?>
 
       <h1 data-tit-route-heading>How much do we miss?</h1>
 

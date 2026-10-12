@@ -35,6 +35,11 @@ function tit_breadcrumbs_company_trail($name, $url) {
     return array(tit_breadcrumbs_hub(), array('name' => (string) $name, 'url' => (string) $url));
 }
 
+/** Talent Intelligence Tracker > Press (press, recall, sources, corrections). */
+function tit_breadcrumbs_section_trail($name, $url) {
+    return array(tit_breadcrumbs_hub(), array('name' => (string) $name, 'url' => (string) $url));
+}
+
 /** Visible trail. Pure. Keeps the existing .tit-crumb look; the list wraps. */
 function tit_breadcrumbs_html($trail) {
     $trail = array_values((array) $trail);
@@ -67,6 +72,17 @@ function tit_breadcrumbs_jsonld($trail) {
 
 /** The trail for the current request, or null. Used by the head hook. */
 function tit_breadcrumbs_current() {
+    $sections = array(
+        'tit_press'       => array('Press', 'tit_press_url'),
+        'tit_recall'      => array('Measured recall', 'tit_recall_url'),
+        'tit_sources'     => array('Sources', 'tit_sources_url'),
+        'tit_corrections' => array('Corrections', 'tit_corrections_url'),
+    );
+    foreach ($sections as $qv => $sec) {
+        if (get_query_var($qv) && function_exists($sec[1])) {
+            return tit_breadcrumbs_section_trail($sec[0], call_user_func($sec[1]));
+        }
+    }
     if (get_query_var('tit_places') && function_exists('tit_places_url')) {
         return tit_breadcrumbs_places_trail(tit_places_url());
     }
@@ -87,3 +103,23 @@ function tit_breadcrumbs_head() {
     if ($trail) echo tit_breadcrumbs_jsonld($trail);
 }
 add_action('wp_head', 'tit_breadcrumbs_head', 21);
+
+/**
+ * Rank Math puts a one-item "Home" BreadcrumbList in its @graph on every
+ * virtual route, so our pages carried two lists that disagreed. Where we print
+ * our own trail, drop Rank Math's and the WebPage pointer to it. Pure.
+ */
+function tit_breadcrumbs_strip_rank_math($data, $ours) {
+    if (!$ours || !is_array($data)) return $data;
+    foreach ($data as $k => $entity) {
+        if (!is_array($entity)) continue;
+        if (($entity['@type'] ?? '') === 'BreadcrumbList') { unset($data[$k]); continue; }
+        if (isset($entity['breadcrumb'])) unset($data[$k]['breadcrumb']);
+    }
+    return $data;
+}
+
+function tit_breadcrumbs_rank_math_filter($data) {
+    return tit_breadcrumbs_strip_rank_math($data, (bool) tit_breadcrumbs_current());
+}
+add_filter('rank_math/json_ld', 'tit_breadcrumbs_rank_math_filter', 99);
