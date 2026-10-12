@@ -116,13 +116,25 @@ function tit_board_series_panel($slug) {
           $trajectory = is_array($board['trajectory'] ?? null) ? $board['trajectory'] : array();
           $direction  = $trajectory['direction'] ?? 'unknown';
           $latest     = is_array($board['latest'] ?? null) ? $board['latest'] : array();
-          $series     = is_array($board['series'] ?? null) ? $board['series'] : array(); ?>
+          $series     = is_array($board['series'] ?? null) ? $board['series'] : array();
+          // A seed written before 1.93.0 carries no `current` field and keeps
+          // its number; a published payload that says a board has gone a week
+          // without a good reading loses the headline figure, because an old
+          // count is not "N open roles" today.
+          $is_current = !array_key_exists('current', $board) || !empty($board['current']);
+          $checked    = $board['last_checked'] ?? ($latest['date'] ?? ''); ?>
         <div class="tit-board tit-board-<?php echo esc_attr($direction); ?>">
           <div class="tit-board-head">
+            <?php if ($is_current) : ?>
             <span class="tit-n"><?php echo (int) ($latest['total'] ?? 0); ?></span>
             <span class="tit-l">
               open roles on <?php echo esc_html($latest['date'] ?? ''); ?>
             </span>
+            <?php else : // empty($board['current']) - a stale reading ?>
+            <span class="tit-l">
+              No reading since <?php echo esc_html($checked); ?>, so no current count is shown.
+            </span>
+            <?php endif; ?>
             <span class="tit-tag"><?php echo esc_html(tit_board_direction_label($direction)); ?></span>
           </div>
           <?php echo tit_board_sparkline($series); // phpcs:ignore — built above, already escaped ?>
@@ -132,6 +144,9 @@ function tit_board_series_panel($slug) {
             <a href="<?php echo esc_url($board['source_url'] ?? ''); ?>" rel="nofollow noopener" target="_blank"><?php
               echo esc_html($board['source_name'] ?: 'the employer job board'); ?></a>
             once a day since <?php echo esc_html($board['first_seen'] ?? ''); ?>.
+            <?php if (!empty($board['last_checked'])) : ?>
+            Last checked <?php echo esc_html($board['last_checked']); ?>.
+            <?php endif; ?>
           </p>
         </div>
       <?php endforeach; ?>

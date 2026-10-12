@@ -14,6 +14,30 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - live open-role counts per employer (1.93.0, pushed, NOT deployed)
+
+Owner-approved 2026-10-12. The count already existed: `ats_boards` reads ~286
+employer job boards (Greenhouse, Lever, Ashby) once a day and writes every
+reading to `data/ats_board_state.json`, and the company profile already had a
+panel for it. What did not exist was the hop to the page: `build_board_series.py
+--publish` had never been scheduled, so the panel rendered the shipped seed from
+2026-07-29 (37 employers, one reading each).
+
+- `collect-structured.yml` now runs `build_board_series.py --publish` after
+  every real ats_boards collection. No model, no spend, no extra request to any
+  board. Best-effort: a failed POST is a `::warning::`, because the state file
+  is already committed and a red collection would be the alarm crying wolf.
+- `build()` adds `last_checked` and `current` per board. A board with no good
+  reading for more than `STALE_DAYS` (7) keeps its date and loses its headline
+  number ("No reading since D"), because an old count is not "N open roles"
+  today. Unknown is omitted, never filled in. 13 of 286 boards are stale today.
+- The panel prints "Last checked D" beside the board link. A seed without the
+  new fields still renders its count.
+
+Guard: `tests/test_open_roles_live.py`. Plugin change needs the deploy, which is
+the session's call (`deploy-plugin.yml`), not this agent's.
+
+
 ## 2026-10-12 - bse_india RETIRED (owner ruling)
 
 **Class:** external dependency, closed by decision

@@ -445,6 +445,22 @@ jobs:
           exist only on the runner and are lost."
           exit 1
 
+      # Owner-approved 2026-10-12: the open-role count per employer goes live
+      # every day instead of freezing on the plugin's shipped seed (which sat
+      # at 2026-07-29 with 37 of ~280 boards because nothing ever ran this).
+      # Derived from the state file this run just wrote; no model, no spend,
+      # no extra request to any job board. BEST-EFFORT: the state file is the
+      # archive and is already committed above, so a failed POST is a warning
+      # and must never redden the collection.
+      - name: Publish open-role counts
+        if: ${{ !inputs.dry_run && !cancelled() && steps.pick.outputs.value == 'ats_boards' }}
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python build_board_series.py --publish --out "$RUNNER_TEMP/board_series.json" \
+            || echo "::warning::open-role counts were not published; the page keeps its previous copy"
+
   # The guardrail escalation on its own line, as in collect.yml (#185): an
   # overdue guardrail finding must not turn the collection red, or a real
   # collection failure hides behind it (google_news, 2026-09-17..21).

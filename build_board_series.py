@@ -22,9 +22,11 @@ Why a separate artefact rather than a column on a signal row:
   backs it and the rule the direction was decided by, per board. A number on a
   page with no source and no rule is exactly what this tracker exists not to be.
 
-Dormant on purpose: nothing schedules it and nothing publishes it automatically.
-The plugin reads the shipped file until somebody runs `--publish`, in the same
-shape the recall page uses.
+Published daily since 2026-10-12: `collect-structured.yml` runs `--publish`
+after every real ats_boards collection, best-effort (a failed publish is a
+warning; the state file is already committed). Until then it was dormant and
+the page froze on the July seed. The plugin still falls back to the shipped
+file when no published copy exists.
 """
 
 from __future__ import annotations
@@ -46,6 +48,13 @@ OUT_PATH = (REPO_ROOT / "wordpress-plugin" / "talent-intelligence-tracker"
 # a profile page draws a year at most, and the site copy is a single option
 # blob, so the export is bounded here rather than growing without limit.
 EXPORT_DAYS = 365
+
+# A count read more than this many days before the export is not shown as the
+# employer's current number. The collector reads every board daily, so a board
+# that has gone a week without a good reading is broken, withdrawn or blocked,
+# and its last number is history, not "N open roles". The page keeps the date
+# ("no reading since D") and drops the headline figure.
+STALE_DAYS = 7
 
 RULE = (
     "Each point is a count of the roles an employer had open on its own job "
@@ -127,6 +136,15 @@ def build(state: dict, *, today: str | None = None,
             "source_url": url,
             "first_seen": series[0][0],
             "latest": {"date": series[-1][0], "total": series[-1][1]},
+            # The date of the last good reading and whether it is recent
+            # enough to quote as the current count. A stale board keeps its
+            # date and loses its headline number on the page; nothing is
+            # filled in.
+            "last_checked": history[-1]["date"],
+            "current": (datetime.strptime(day, "%Y-%m-%d").toordinal()
+                        - datetime.strptime(history[-1]["date"],
+                                            "%Y-%m-%d").toordinal()
+                        ) <= STALE_DAYS,
             "trajectory": record.get("trajectory")
                           or ats_boards.trajectory(history, today=day),
             "series": series,
