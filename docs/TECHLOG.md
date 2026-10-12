@@ -14,6 +14,24 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - #228 tests red on a data-only commit: national_press tests read live state
+
+**Class:** flaky test (shared state) + latent non-determinism in production
+**Guard:** autouse `_isolated_health_ledger` fixture and
+`test_probe_stagger_is_the_same_in_every_process` in `tests/test_national_press.py`.
+
+Run 38111909254 (`tests`, bcc3848, a `data: spain_borme` commit) went red and
+the rerun of the same SHA 23 minutes later was green. Reproduced locally: the
+national_press tests called `collect()` without isolating `HEALTH_PATH`, so they
+read the committed `data/national_press_health.json`; whenever the nightly data
+commit marked a test feed (Globes) quiet, `due_this_run` rested it and the
+test read `resting` instead of `ok`. Two more leaks rode along: the per-origin
+`_ROBOTS_CACHE` carried one test's Disallow into the next under
+pytest-randomly's order, and `due_this_run` staggered quiet feeds with
+`hash()`, which is salted per process, so the probe run of a quiet feed moved
+on every job (production, not just tests). Fixed: tests point `HEALTH_PATH` at
+tmp and reset the robots cache; the stagger uses `zlib.crc32`.
+
 ## 2026-10-11 - Public trust tiers: verified / reported / measured (plugin 1.92.0)
 
 **Class:** feature (owner-approved labels shared with the AI Layoff Tracker)
