@@ -24,6 +24,7 @@ function esc_url($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); 
 function wp_json_encode($v, $f = 0){ return json_encode($v, $f); }
 function home_url($p = '/'){ return 'https://example.org/blog' . $p; }
 function add_action(){}
+function add_filter(){}
 """
 
 needs_php = pytest.mark.skipif(not shutil.which("php"), reason="UNKNOWN, NOT RUN: php not installed")
@@ -76,3 +77,53 @@ def test_pages_render_the_shared_trail():
 def test_crumb_list_wraps_on_a_phone():
     css = (PLUGIN / "assets" / "dashboard.css").read_text()
     assert re.search(r"\.tit-crumb-list\s*\{[^}]*flex-wrap:\s*wrap", css)
+
+
+# --- 2026-10-12 follow-up: every TIT route, and one BreadcrumbList only ------
+
+SECTION_PAGES = {
+    "press.php": "Press",
+    "recall.php": "Measured recall",
+    "sources.php": "Sources",
+    "corrections.php": "Corrections",
+}
+
+
+def test_section_pages_use_the_shared_trail():
+    """Press, recall, sources and corrections hand-built an unlabelled
+    <nav class="tit-crumb"> with no list, no aria-label, no aria-current and no
+    JSON-LD. They now print the shared trail like every other route."""
+    for f in SECTION_PAGES:
+        src = (PLUGIN / "includes" / f).read_text()
+        assert '<nav class="tit-crumb">' not in src, f
+        assert "tit_breadcrumbs_html(tit_breadcrumbs_section_trail(" in src, f
+
+
+@needs_php
+def test_section_trail_matches_jsonld():
+    t = "$t = tit_breadcrumbs_section_trail('Press', 'https://example.org/blog/talent-intelligence-tracker/press/');"
+    html = _php(t + "echo tit_breadcrumbs_html($t);")
+    ld = json.loads(re.search(r">(\{.*\})</script>", _php(t + "echo tit_breadcrumbs_jsonld($t);")).group(1))
+    assert [i["name"] for i in ld["itemListElement"]] == ["Talent Intelligence Tracker", "Press"]
+    assert '<span aria-current="page">Press</span>' in html
+
+
+@needs_php
+def test_rank_math_one_item_list_is_dropped_on_our_routes():
+    """Rank Math adds a one-item "Home" BreadcrumbList to every virtual route.
+    Where we print our own, its list goes, and the WebPage reference to it."""
+    data = ("$d = array('WebSite' => array('@type' => 'WebSite'),"
+            " 'BreadcrumbList' => array('@type' => 'BreadcrumbList', '@id' => 'x#breadcrumb'),"
+            " 'WebPage' => array('@type' => 'WebPage', 'breadcrumb' => array('@id' => 'x#breadcrumb')));")
+    out = json.loads(_php(data + "echo json_encode(tit_breadcrumbs_strip_rank_math($d, true));"))
+    assert "BreadcrumbList" not in out and "breadcrumb" not in out["WebPage"]
+    assert out["WebSite"]["@type"] == "WebSite"
+    kept = json.loads(_php(data + "echo json_encode(tit_breadcrumbs_strip_rank_math($d, false));"))
+    assert "BreadcrumbList" in kept
+
+
+def test_head_hook_covers_every_route():
+    src = MOD.read_text()
+    for qv in ("tit_press", "tit_recall", "tit_sources", "tit_corrections"):
+        assert f"'{qv}'" in src, qv
+    assert "rank_math/json_ld" in src

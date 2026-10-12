@@ -276,10 +276,7 @@ function tit_press_render(array $f) {
     };
     ?>
     <div class="tit-wrap tit-press" id="tit-press">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">&rsaquo;</span> Press
-      </nav>
+      <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Press', tit_press_url())); ?>
 
       <h1 data-tit-route-heading>Press and Media Kit</h1>
 

@@ -13,7 +13,7 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
-## 2026-10-12 - item language: ISO 639-1 code + confidence on every row, free and local (1.97.0, pushed, NOT deployed)
+## 2026-10-12 - item language: ISO 639-1 code + confidence on every row, free and local (1.98.0, pushed, NOT deployed)
 
 Owner-approved. The daily talent digest (ai-layoff-tracker
 `includes/digest-talent.php`) declined to label foreign headlines because we
@@ -33,10 +33,19 @@ rows (`backfill_language`, idempotent on `language_confidence IS NULL`) the
 next time a workflow opens the DB; `/enrich` carries the three columns onto
 rows already published. Plugin: columns in `db.php` + `tit_required_columns`,
 returned by `/query`, validated by `tit_language_value`.
-`REQUIRED_PLUGIN_VERSION` is 1.97.0, so publish refuses until the plugin is
+`REQUIRED_PLUGIN_VERSION` is 1.98.0, so publish refuses until the plugin is
 deployed: DEPLOY FIRST. `backup_check` excuses only `schema.DERIVED_ON_CONNECT`
 (the committed DB predates the columns). Guard: `tests/test_language.py`.
 
+## 2026-10-12 - breadcrumbs on every route, one BreadcrumbList each (1.97.0, pushed, NOT deployed)
+
+Follow-up to 1.96.0 after a live crawl. Press, recall, sources and
+corrections hand-built an unlabelled `<nav class="tit-crumb">` (no list, no
+aria-label, no aria-current, no JSON-LD); they now print the shared trail
+(`tit_breadcrumbs_section_trail`) and `tit_breadcrumbs_current()` emits its
+BreadcrumbList. Rank Math's one-item "Home" BreadcrumbList is dropped through
+`rank_math/json_ld` (and the WebPage pointer to it) wherever we print our own,
+so each route carries exactly one. Guard: `tests/test_breadcrumbs.py`.
 
 ## 2026-10-12 - breadcrumbs: one trail drives the visible nav and BreadcrumbList (1.96.0, pushed, NOT deployed)
 

@@ -226,7 +226,7 @@ def _config() -> tuple[str, str]:
 #: pointed at it. The fix for a schema the site has not got yet is a deploy,
 #: and a run that cannot have that should say so before it writes, not fail
 #: partway through a batch.
-REQUIRED_PLUGIN_VERSION = "1.97.0"
+REQUIRED_PLUGIN_VERSION = "1.98.0"
 
 
 class PluginTooOld(PublishError):
