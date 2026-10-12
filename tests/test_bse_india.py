@@ -276,11 +276,15 @@ class Configuration(_Base):
         import run_collect
         self.assertIs(run_collect.SOURCES["bse_india"], bse_india)
 
-    def test_india_is_structured_official_because_a_connector_runs(self):
+    def test_india_is_discovery_only_since_bse_india_was_retired(self):
+        """Retired 2026-10-12 (owner ruling, Akamai edge block): no structured
+        connector runs for India now, so it must not claim structured coverage."""
         import source_registry as registry
+        import staleness
         market = next(m for m in registry.MARKETS if m.iso2 == "IN")
-        self.assertEqual(market.status, registry.STRUCTURED_OFFICIAL)
-        self.assertIn("bse_india", market.live_sources)
+        self.assertEqual(market.status, registry.DISCOVERY_ONLY)
+        self.assertNotIn("bse_india", market.live_sources)
+        self.assertIn("bse_india", staleness.RETIRED_COLLECTORS)
 
 
 class _Resp:

@@ -310,6 +310,17 @@ class TestBenignStatuses(unittest.TestCase):
         self.assertEqual(buckets["stale"], [])
         self.assertEqual(buckets["ok"], ["gdelt"])
 
+    def test_a_retired_by_registry_collector_never_alarms(self):
+        """bse_india was retired 2026-10-12 while its last row said `error`;
+        that row ages for ever and must not page anyone. A live collector
+        with the same row still does."""
+        self.assertIn("bse_india", staleness.RETIRED_COLLECTORS)
+        buckets = health_digest.classify(
+            {"bse_india": entry(24 * 40, "error"),
+             "edinet_japan": entry(24 * 40, "error")}, NOW)
+        self.assertIn("bse_india", buckets["ok"])
+        self.assertEqual([r[0] for r in buckets["stale"]], ["edinet_japan"])
+
     def test_a_disabled_collector_is_never_stale(self):
         buckets = health_digest.classify(
             {"gdelt": entry(24 * 400, "disabled")}, NOW)

@@ -118,7 +118,9 @@ on:
     - cron: '0 9 * * *'      # every day: ATS boards, the perishable one
     - cron: '30 9 5 * *'     # 5th of the month: SEC exec comp, for late proxies
     - cron: '30 10 6 * *'    # 6th of the month: UK gender pay gap
-    - cron: '0 4 * * 1'      # Mondays: BSE India leadership filings
+    # Monday 04:00 was BSE India. RETIRED 2026-10-12 (owner ruling): bseindia.com
+    # has refused this runner's IPs at the Akamai edge since 2026-09-28, and
+    # evading that from another IP is not acceptable. See TECHLOG 2026-10-12.
     # TUESDAY, not Monday, and the day matters. Monday already carries the BSE
     # slot at 04:00, the link-hygiene ticket at 05:30 and the weekly digest at
     # 13:00, and every database writer shares the single `talent-collect` lock
@@ -175,7 +177,7 @@ on:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra, denmark_cvr]
+        options: [ats_boards, sec_execcomp, uk_paygap, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra, denmark_cvr]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -265,7 +267,6 @@ jobs:
           case "${{ github.event.schedule }}" in
             '30 9 5 * *')  scheduled=sec_execcomp ;;
             '30 10 6 * *') scheduled=uk_paygap ;;
-            '0 4 * * 1')   scheduled=bse_india ;;
             '0 4 * * 2')   scheduled=edinet_japan ;;
             '0 4 * * 3')   scheduled=opendart_korea ;;
             '0 4 * * 4')   scheduled=companies_house ;;
