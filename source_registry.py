@@ -1115,6 +1115,11 @@ SOURCES = (
            notes="Read straight from the filing, with no model in the path. Pay "
                  "figures are as disclosed and are never converted, estimated or "
                  "annualised by us."),
+    # Collector RETIRED 2026-10-12 (owner ruling): Akamai edge block on the
+    # runner IPs since 2026-09-28; evading it from another IP is not
+    # acceptable. Stays "live" here ON PURPOSE: the rows it already stored are
+    # still published and the sources page must keep naming their publisher
+    # (tests/test_sources_page.py). No new rows arrive; see staleness.RETIRED_COLLECTORS.
     Source("BSE corporate announcements (SEBI Regulation 30)",
            "https://www.bseindia.com/corporates/ann.html", "live",
            "Regulatory filings", ("Leadership change", "Board appointment"),
@@ -1128,7 +1133,9 @@ SOURCES = (
                  "States and the United Kingdom. Two limits worth knowing: it "
                  "carries no city, so Indian rows place at country level only, "
                  "and audit-firm appointments are excluded because an auditor is "
-                 "a firm rather than an employee."),
+                 "a firm rather than an employee. Collection stopped on 12 October "
+                 "2026, when the exchange began blocking automated access; the "
+                 "filings already collected remain."),
     Source("EDINET extraordinary reports (FSA Japan)",
            "https://disclosure2.edinet-fsa.go.jp/", "live",
            "Regulatory filings", ("Leadership change",),
@@ -2170,8 +2177,10 @@ MARKETS = (
     # category — the same kind of machine-readable label that Item 5.02 gives
     # US officer changes, and the thing nine other researched candidates turned
     # out to lack. See the triage note above candidate_official_sources below.
-    Market("IN", "India", STRUCTURED_OFFICIAL,
-           live_sources=("google_news", "bse_india"),
+    # bse_india RETIRED 2026-10-12, so India falls back to discovery: no
+    # structured connector runs for it any more.
+    Market("IN", "India", DISCOVERY_ONLY,
+           live_sources=("google_news",),
            candidate_official_sources=("Invest India press releases",),
            # Indian business press is English-first; the segment that earns
            # its keep is the GCC wave, phrased to avoid colliding with the

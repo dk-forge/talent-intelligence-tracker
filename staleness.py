@@ -284,6 +284,16 @@ MAX_AGE_HOURS = {
 DEFAULT_MAX_AGE_HOURS = 336
 
 
+# Collectors stopped on purpose. Their last health row ages for ever, so the
+# staleness leash, the status check and the never-ran check must not read that
+# as an outage. Historical rows stay; only the alarm stops.
+#   bse_india  retired 2026-10-12 (owner ruling): Akamai edge block on the
+#              runner IPs since 2026-09-28; evading it is not acceptable, and
+#              Indian leadership/M&A news still arrives via national_press,
+#              GDELT and google_news. TECHLOG 2026-10-12.
+RETIRED_COLLECTORS = frozenset({"bse_india"})
+
+
 def max_age_hours(collector: str) -> int:
     """The leash for one collector, by its own schedule."""
     return MAX_AGE_HOURS.get(collector, DEFAULT_MAX_AGE_HOURS)

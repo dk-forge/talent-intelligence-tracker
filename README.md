@@ -109,7 +109,6 @@ write.
 | `google_news` | `collect.yml` | daily at 22:00 UTC |
 | `sec_edgar` | `collect.yml` | daily at 22:00 UTC |
 | `sec_form_d` | `collect.yml` | daily at 22:00 UTC |
-| `bse_india` | `collect-structured.yml` | weekly, Mondays at 04:00 UTC |
 | `companies_house` | `collect-structured.yml` | weekly, Thursdays at 04:00 UTC |
 | `czechia_ares` | `collect-structured.yml` | weekly, Fridays at 04:00 UTC |
 | `edinet_japan` | `collect-structured.yml` | weekly, Tuesdays at 04:00 UTC |

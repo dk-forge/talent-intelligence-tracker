@@ -14,6 +14,36 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - bse_india RETIRED (owner ruling)
+
+**Class:** external dependency, closed by decision
+
+Owner ruling 2026-10-12, by unanimous 3-AI review. bseindia.com has refused the
+runner IPs at its Akamai edge since 2026-09-28 (entry below). Evading the block
+from another IP is not acceptable. Indian leadership and M&A news still arrives
+through national_press, GDELT and google_news, so the source is retired rather
+than worked around.
+
+- `collect-structured.yml`: the Monday 04:00 cron, its case line and the
+  dispatch option are removed. `collection_schedule.py` derives the configured
+  sources from those crons, so the never-ran check no longer expects it (the
+  same path `denmark_cvr` takes).
+- `staleness.RETIRED_COLLECTORS` = {bse_india}. `health_digest.classify` treats
+  it as deliberately stopped, and `ops_status` lists it as RETIRED, skipping
+  the stale and status alarms. The last `error` row would otherwise age into a
+  stale alert for ever.
+- `source_registry`: India drops to DISCOVERY_ONLY because no structured
+  connector runs for it now. The BSE `Source` stays `live`, with a dated note,
+  because its stored rows are still published and the sources page has to keep
+  naming their publisher (`test_sources_page.py`). The
+  `sources.json` and `country_sources.json` files are regenerated.
+- History is kept. Every bse_india row and health row stays in the database,
+  and `collectors/bse_india.py`, its tests and the backfill spec remain.
+  Re-arming it is an owner call (CLAUDE.md, arming is his).
+- Possible future source, **no code**: NSE's official RSS
+  (https://www.nseindia.com/rss-feed). Consider it only once its terms are
+  confirmed to allow automated polling.
+
 ## 2026-10-12 - bse_india (#231) and gdelt (#220) zero-store streaks: source side, not code
 
 **Class:** external dependency (not fixable from code)
