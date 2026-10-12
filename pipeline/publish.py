@@ -226,7 +226,7 @@ def _config() -> tuple[str, str]:
 #: pointed at it. The fix for a schema the site has not got yet is a deploy,
 #: and a run that cannot have that should say so before it writes, not fail
 #: partway through a batch.
-REQUIRED_PLUGIN_VERSION = "1.87.1"
+REQUIRED_PLUGIN_VERSION = "1.97.0"
 
 
 class PluginTooOld(PublishError):
@@ -313,6 +313,8 @@ FIELDS = (
     "discovery_url", "published_date", "effective_date", "captured_at",
     "as_of", "content_hash", "predicted_outcome", "check_after_date",
     "collector",
+    # The headline's language, decided locally at ingest (pipeline/language.py).
+    "language", "language_confidence", "summary_language",
 )
 
 
@@ -346,6 +348,10 @@ ENRICHABLE = (
     # is not source_url and can never become it, so a bug in archiving leaves a
     # row exactly as sourced as it already was.
     "archive_url",
+    # The headline's language: computed by us from text already sent, never
+    # stated by a source, so it is enrichable -- and /enrich is the only route
+    # by which rows published before 2026-10-12 receive it.
+    "language", "language_confidence", "summary_language",
 )
 
 

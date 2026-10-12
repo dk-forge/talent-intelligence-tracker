@@ -252,7 +252,17 @@ def publishable(columns: list[str]) -> tuple[str, str]:
         from pipeline import publish
     except Exception as e:                                    # noqa: BLE001
         return UNKNOWN, f"pipeline.publish could not be imported ({e})"
-    missing = [f for f in publish.FIELDS if f not in columns]
+    # A column schema.connect() both ADDS and RE-DERIVES from text the backup
+    # already holds is not lost with the backup: the first connect after a
+    # restore puts it back, value for value. Only those are excused; a column
+    # whose values came from a source or a model still fails here.
+    try:
+        from pipeline import schema
+        derived = set(getattr(schema, "DERIVED_ON_CONNECT", ()))
+    except Exception:                                          # noqa: BLE001
+        derived = set()
+    missing = [f for f in publish.FIELDS
+               if f not in columns and f not in derived]
     if missing:
         return FAIL, ("the restored schema is missing column(s) the republish "
                       f"path sends: {', '.join(missing)}")

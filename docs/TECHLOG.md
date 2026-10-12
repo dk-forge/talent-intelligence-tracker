@@ -13,6 +13,31 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-12 - item language: ISO 639-1 code + confidence on every row, free and local (1.97.0, pushed, NOT deployed)
+
+Owner-approved. The daily talent digest (ai-layoff-tracker
+`includes/digest-talent.php`) declined to label foreign headlines because we
+stored no language. New `pipeline/language.py`: Unicode script for non-Latin
+text, distinctive function words for 15 Latin-script languages, NO model call,
+no network, no dependency. Stores `language` (ISO 639-1) + `language_confidence`
+(0..1); below 0.75 or under two hits the code is NULL (examined, not sure).
+Unsupported Latin languages (Lithuanian, Latvian, Hungarian, Vietnamese...) are
+forced NULL rather than mislabelled. `summary_language` records whether the
+stored summary is English, which is the only English gist we have for free: no
+translation call was added (owner budget). Measured on the committed DB (40,435
+current rows): 15,202 en, ~2,000 confidently non-English, 23,328 NULL; for the
+non-English rows the summary is confidently English on ~75%.
+
+Path: `store.store/revise` stamp new rows; `schema.connect()` backfills old
+rows (`backfill_language`, idempotent on `language_confidence IS NULL`) the
+next time a workflow opens the DB; `/enrich` carries the three columns onto
+rows already published. Plugin: columns in `db.php` + `tit_required_columns`,
+returned by `/query`, validated by `tit_language_value`.
+`REQUIRED_PLUGIN_VERSION` is 1.97.0, so publish refuses until the plugin is
+deployed: DEPLOY FIRST. `backup_check` excuses only `schema.DERIVED_ON_CONNECT`
+(the committed DB predates the columns). Guard: `tests/test_language.py`.
+
+
 ## 2026-10-12 - breadcrumbs: one trail drives the visible nav and BreadcrumbList (1.96.0, pushed, NOT deployed)
 
 Owner request. City/country/industry pages, the places directory and company
