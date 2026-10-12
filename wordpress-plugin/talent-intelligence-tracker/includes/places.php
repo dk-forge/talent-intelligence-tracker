@@ -1352,16 +1352,11 @@ function tit_place_render($kind, $cell, $facts) {
         'mainEntity' => array(
             '@type'           => 'ItemList',
             'numberOfItems'   => count($listed),
-            'itemListElement' => array_map(function ($r) {
-                return array(
-                    '@type'         => 'NewsArticle',
-                    'headline'      => $r['headline'],
-                    'datePublished' => $r['published_date'],
-                    'url'           => $r['source_url'],
-                );
-            }, $listed),
+            'itemListElement' => array_map('tit_news_item_node', $listed),
         ),
-      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+        // The page is ours; the items are the outlets' (SEO audit 2026-10-12 #5).
+        'publisher' => tit_publisher_org(),
+      ) + tit_place_page_dates($listed), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
@@ -1563,7 +1558,9 @@ function tit_place_head() {
     $desc = implode('. ', $bits) . '.';
     // Search results cut a description around 160 characters; a sentence that
     // ends mid-figure is worse than a shorter one.
-    if (strlen($desc) > 300) $desc = rtrim(substr($desc, 0, 297)) . '...';
+    // Capped at 155 at a word boundary (SEO audit 2026-10-12 #10).
+    $desc = function_exists('tit_seo_cap_description') ? tit_seo_cap_description($desc)
+          : (strlen($desc) > 155 ? rtrim(substr($desc, 0, 152)) . '...' : $desc);
 
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="'
@@ -1581,15 +1578,31 @@ add_action('wp_head', 'tit_place_head', 1);
  * written to disk, so it cannot go stale, and a URL cannot be listed here while
  * the page it points at redirects or 404s.
  */
+/** PURE. datePublished/dateModified for a place page from the items it lists. */
+function tit_place_page_dates($listed) {
+    $dates = array();
+    foreach ((array) $listed as $r) {
+        $d = substr((string) ($r['published_date'] ?? ''), 0, 10);
+        if ($d === '') $d = substr((string) ($r['captured_at'] ?? ''), 0, 10);
+        if ($d !== '') $dates[] = $d;
+    }
+    return $dates ? array('datePublished' => min($dates), 'dateModified' => max($dates)) : array();
+}
+
 function tit_places_sitemap_entries() {
     $entries = array(array('loc' => tit_places_url(), 'lastmod' => ''));
+    $newest = '';
     foreach (tit_place_kinds() as $kind => $spec) {
         foreach (tit_place_published($kind) as $cell) {
             $url = tit_place_url($kind, $cell['key']);
             if ($url === '') continue;
             $entries[] = array('loc' => $url, 'lastmod' => $cell['lastmod']);
+            if ((string) $cell['lastmod'] > $newest) $newest = (string) $cell['lastmod'];
         }
     }
+    // The directory changes when any place does: its newest child's date,
+    // not "today" on every fetch (SEO audit 2026-10-12 #2).
+    $entries[0]['lastmod'] = $newest;
     return $entries;
 }
 

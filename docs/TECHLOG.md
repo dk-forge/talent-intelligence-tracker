@@ -13,6 +13,27 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-12 - SEO audit fixes: title-cased capped company titles, 155-char descriptions, dated news items, brand publisher (1.99.0, PR, NOT deployed)
+
+**Class:** novel (live SEO audit 2026-10-12, items 2, 3, 5, 10)
+**Guard:** `tests/test_seo_meta.py`
+
+Version 1.99.0 (1.98.0 is held by PR #242). New `includes/seo_meta.php`.
+#3: company titles title-case ALL-CAPS registry names, drop the legal suffix
+(LIMITED, LTD, INC, PLC, LLC, CORP, GMBH...) and fit in 60 chars (long form,
+then "Name: N tracked updates", then the name cut). The "<2 entries noindex"
+half was already true: the gate needs >= 3 documents and keeps the rest out
+of the sitemap. #10: company and place meta descriptions capped at 155 at a
+word boundary (was 300). #5: NewsArticle items carry datePublished +
+dateModified (no publisher: the item is the outlet's, and source_name is a
+feed id); the company page is a `@graph` of the employer + a WebPage and the
+place CollectionPage carries datePublished/dateModified, both published by
+the Organization "Ask The Recruiter". #2: both sitemaps already had lastmod;
+the places directory now takes its newest child's date instead of today.
+Baton: claimed and released by this agent on branch `seo-oct12-fixes`.
+
+---
+
 ## 2026-10-12 - item language: ISO 639-1 code + confidence on every row, free and local (1.98.0, pushed, NOT deployed)
 
 Owner-approved. The daily talent digest (ai-layoff-tracker
