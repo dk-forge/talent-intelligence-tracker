@@ -62,7 +62,7 @@ tmp and reset the robots cache; the stagger uses `zlib.crc32`.
 
 **Owner decision (2026-10-12):** the tracker serves BOTH recruiters and job hunters, not one of the two. This settles gap 1 of the 2026-09-24 competitive review. Build every page, alert and CTA for both readers. Do not ask again.
 
-Rivals scored: TrueUp (live open-jobs counts by company), Indeed Hiring Lab (open postings index by country and metro) and LinkedIn Economic Graph (hiring rate). Crunchbase, Tracxn and PitchBook were excluded because they serve sales and VC buyers. Rival figures and sources are in the private report.
+Rivals scored (anonymised; names and figures are in the private report): A, a live open-jobs count by company; B, an open postings index by country and metro; C, a professional-network hiring rate. Funding databases for sales and VC buyers were excluded as a different audience.
 
 Our figures were read live on 2026-10-12: 36,894 updates, 22,436 employers, records from 157 countries, $853B raised tracked, 20,671 filings, updated daily.
 
