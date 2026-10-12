@@ -157,6 +157,67 @@ function tit_board_series_panel($slug) {
 }
 
 /**
+ * Open roles listed in one city, summed over the current boards we track, or
+ * null. Keyed by the city name the collector placed postings in, which is the
+ * key the city pages use. Older payloads carry no `places` and answer null.
+ */
+function tit_board_series_city($city) {
+    $data = tit_board_series_data();
+    if (empty($data['places']) || !is_array($data['places'])) return null;
+    $cell = $data['places'][(string) $city] ?? null;
+    if (!is_array($cell) || (int) ($cell['open_roles'] ?? 0) <= 0) return null;
+    return $cell;
+}
+
+/**
+ * "Who is hiring here", for a city page. Returns HTML, or '' when we hold no
+ * current board with a posting in the city: no section is better than a zero
+ * that reads as "nobody is hiring".
+ */
+function tit_board_series_city_panel($city) {
+    $cell = tit_board_series_city($city);
+    if (!$cell) return '';
+    $employers = is_array($cell['employers'] ?? null) ? $cell['employers'] : array();
+    $count = (int) ($cell['employer_count'] ?? count($employers));
+
+    ob_start(); ?>
+    <section class="tit-board-volume tit-city-roles">
+      <h2 class="tit-place-h2">Open Roles On Employer Job Boards</h2>
+      <p class="tit-note">
+        <strong><?php echo esc_html(number_format_i18n((int) $cell['open_roles'])); ?></strong>
+        open roles listed in <?php echo esc_html($city); ?> on
+        <?php echo esc_html(sprintf(_n('the job board of %s employer we track', 'the job boards of %s employers we track', $count, 'tit'),
+                                    number_format_i18n($count))); ?>,
+        counted by us on <?php echo esc_html($cell['as_of'] ?? ''); ?>.
+        That is the employers we read every day, not every job in
+        <?php echo esc_html($city); ?>. Each name links to the board it was counted from.
+      </p>
+      <ul class="tit-place-list">
+        <?php foreach ($employers as $employer) :
+            $key = (string) ($employer['company_key'] ?? '');
+            $profile = ($key !== '' && function_exists('tit_company_servable_slug')
+                        && function_exists('tit_company_url') && tit_company_servable_slug($key))
+                       ? tit_company_url($key) : ''; ?>
+          <li>
+            <?php if ($profile) : ?>
+              <a href="<?php echo esc_url($profile); ?>"><?php echo esc_html($employer['company'] ?? ''); ?></a>
+            <?php else : ?>
+              <?php echo esc_html($employer['company'] ?? ''); ?>
+            <?php endif; ?>
+            <span class="tit-place-n">
+              <a href="<?php echo esc_url($employer['source_url'] ?? ''); ?>" rel="nofollow noopener" target="_blank"><?php
+                echo esc_html(sprintf(_n('%s open role', '%s open roles', (int) ($employer['open_roles'] ?? 0), 'tit'),
+                                      number_format_i18n((int) ($employer['open_roles'] ?? 0)))); ?></a>
+            </span>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </section>
+    <?php
+    return ob_get_clean();
+}
+
+/**
  * POST /talent/v1/board-series - keyed. How a collector run updates the panel
  * without a deploy.
  *

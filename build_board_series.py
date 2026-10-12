@@ -56,6 +56,49 @@ EXPORT_DAYS = 365
 # ("no reading since D") and drops the headline figure.
 STALE_DAYS = 7
 
+# How many employers a city page lists under "who is hiring here". The total
+# covers every current board; the list is the top of it.
+CITY_TOP_EMPLOYERS = 12
+
+
+def _city_rollup(entries: list[tuple[dict, dict]]) -> dict:
+    """Open roles per city, summed over CURRENT boards only.
+
+    `entries` pairs each exported board with its state record. A board's
+    `last.places` counts its postings per place ("city:London": 18) on the day
+    of its last good reading. The sum is "roles listed in this city on the job
+    boards of employers we track", never the city's whole market, and the page
+    says so.
+    """
+    cities: dict[str, dict] = {}
+    for board, record in entries:
+        if not board.get("current"):
+            continue
+        last = record.get("last") or {}
+        if last.get("date") != board["last_checked"]:
+            continue
+        for place, n in (last.get("places") or {}).items():
+            if not place.startswith("city:") or not isinstance(n, int) or n <= 0:
+                continue
+            city = place[len("city:"):].strip()
+            if not city:
+                continue
+            cell = cities.setdefault(city, {"open_roles": 0, "employers": [],
+                                            "as_of": board["last_checked"]})
+            cell["open_roles"] += n
+            cell["as_of"] = max(cell["as_of"], board["last_checked"])
+            cell["employers"].append({
+                "company": board["company"],
+                "company_key": board["company_key"],
+                "open_roles": n,
+                "source_url": board["source_url"],
+            })
+    for cell in cities.values():
+        cell["employers"].sort(key=lambda e: (-e["open_roles"], e["company"]))
+        cell["employer_count"] = len(cell["employers"])
+        cell["employers"] = cell["employers"][:CITY_TOP_EMPLOYERS]
+    return dict(sorted(cities.items()))
+
 RULE = (
     "Each point is a count of the roles an employer had open on its own job "
     "board on that date, taken once a day. The direction is decided by a fixed "
@@ -90,6 +133,7 @@ def build(state: dict, *, today: str | None = None,
     current = {f"{b['ats']}:{b['slug']}" for b in watchlist} if watchlist else None
 
     boards: dict[str, list[dict]] = {}
+    rollup_input: list[tuple[dict, dict]] = []
     for board_id, record in sorted((state.get("boards") or {}).items()):
         if current is not None and board_id not in current:
             continue
@@ -126,7 +170,7 @@ def build(state: dict, *, today: str | None = None,
         if not url:
             continue
 
-        boards.setdefault(key, []).append({
+        entry = {
             "company": company,
             "ats": ats,
             "source_name": (record.get("source_name")
@@ -148,7 +192,9 @@ def build(state: dict, *, today: str | None = None,
             "trajectory": record.get("trajectory")
                           or ats_boards.trajectory(history, today=day),
             "series": series,
-        })
+        }
+        boards.setdefault(key, []).append(entry)
+        rollup_input.append(({**entry, "company_key": key}, record))
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -157,6 +203,10 @@ def build(state: dict, *, today: str | None = None,
         "rule": RULE,
         "employers": len(boards),
         "boards": boards,
+        # Open roles per city for the "who's hiring in" pages, current boards
+        # only. Keyed by the city name the collector placed postings in, which
+        # is the same name the city pages are keyed by.
+        "places": _city_rollup(rollup_input),
     }
 
 
