@@ -67,6 +67,9 @@ function tit_create_or_update_table() {
         deal_type VARCHAR(32) NULL,
         money_basis VARCHAR(24) NULL,
         site_event VARCHAR(16) NULL,
+        language CHAR(2) NULL,
+        language_confidence DECIMAL(3,2) NULL,
+        summary_language CHAR(2) NULL,
         materiality VARCHAR(12) NULL,
         confidence VARCHAR(12) NOT NULL,
         source_url TEXT NOT NULL,
@@ -375,6 +378,11 @@ function tit_insert_signal(array $row, $flush = true) {
         // What the employer did with a place of work. An event type, never
         // a headcount claim: 'opened' does not mean the row is hiring.
         'site_event'         => !empty($row['site_event']) ? (string) $row['site_event'] : null,
+        // The headline's language, decided in Python with no model call
+        // (pipeline/language.py). NULL means "not sure", never "English".
+        'language'            => tit_language_value('language', $row['language'] ?? null),
+        'language_confidence' => tit_language_value('language_confidence', $row['language_confidence'] ?? null),
+        'summary_language'    => tit_language_value('summary_language', $row['summary_language'] ?? null),
         // Absent from an older pipeline's payload, and NULL is the right answer
         // when it is: "we have not judged this" is not "this is routine".
         'materiality'        => !empty($row['materiality']) ? (string) $row['materiality'] : null,

@@ -255,7 +255,8 @@ function tit_required_columns() {
                  // the column does not print a slightly worse number, it prints
                  // zero, and that is the right failure: no figure beats the
                  // wrong figure this column exists to stop.
-                 'deal_type', 'money_basis', 'site_event', 'materiality');
+                 'deal_type', 'money_basis', 'site_event', 'materiality',
+                 'language', 'language_confidence', 'summary_language');
 }
 
 /**

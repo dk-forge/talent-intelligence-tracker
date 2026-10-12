@@ -78,6 +78,13 @@ class Signal:
     # and schema.backfill_funding_usd must leave it alone. Bookkeeping, not a
     # fact about the story, and deliberately not in publish.FIELDS.
     funding_amount_usd_cleared: int = 0
+    # The headline's language, ISO 639-1, and the detector's confidence; the
+    # summary's language says whether it can stand as an English gist. Always
+    # filled by store.store/revise from pipeline/language.py (no model call),
+    # so no collector has to remember. NULL code = examined and not sure.
+    language: str | None = None
+    language_confidence: float | None = None
+    summary_language: str | None = None
 
 
 # A figure the model returns must appear in the source text. Matches 1,200 /
