@@ -1229,6 +1229,16 @@ function tit_company_head() {
     if ($p['leadership'] > 0) {
         $bits[] = $p['leadership'] . ($p['leadership'] === 1 ? ' leadership change' : ' leadership changes');
     }
+    // The current count from the employer's own job board, with the date we
+    // read it, when we have one (owner-approved 2026-10-12). board_series.php
+    // can land after this file mid-deploy, hence function_exists.
+    if (function_exists('tit_board_series_open_roles')) {
+        $roles = tit_board_series_open_roles(tit_company_legacy_slug($current['rows'][0]['company_key']));
+        if ($roles) {
+            $bits[] = sprintf('%s open roles on its job board on %s',
+                              number_format_i18n($roles[0]), $roles[1]);
+        }
+    }
     $status = tit_company_status_line($current['rows']);
     $desc = implode('. ', array_filter(array(
         implode(', ', $bits),
