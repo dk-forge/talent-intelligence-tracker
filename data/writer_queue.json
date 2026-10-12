@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-12T10:17:07Z",
-  "last_tick": "2026-10-12T10:17:07Z",
+  "last_dispatch": "2026-10-12T10:45:50Z",
+  "last_tick": "2026-10-12T10:45:50Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -252,6 +252,35 @@
     "ticket:20261012T100004Z-enrich": "2026-10-12T10:20:12Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-12T10:45:50Z",
+      "history": [
+        {
+          "at": "2026-10-12T10:45:46Z",
+          "detail": "owner ruling 2026-10-12: reject MDEC $44B amount (#180)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-12T10:45:50Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261012T104546Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "note": "Owner ruling 2026-10-12 (unanimous 3-AI review): primary source (MDEC via Malaysiakini, The Star, Bernama) says close to RM180 billion in digital investments SECURED from 1,000+ MD-status companies 2025-Aug 2026; e27 headline converted to US$44B. Not a raise or deal by MDEC; storing an exact USD amount invents a number.",
+        "reject_keys": "amount/440b7e16389d69399d5681257c6033e3"
+      },
+      "priority": 0,
+      "reason": "owner ruling 2026-10-12: reject MDEC $44B amount (#180)",
+      "requested_at": "2026-10-12T10:45:46Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-02T05:42:55Z",
