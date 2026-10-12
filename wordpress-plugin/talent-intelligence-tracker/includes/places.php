@@ -196,6 +196,8 @@ function tit_place_kinds() {
             // "placed in" is right for a place and wrong for an industry, which
             // is a classification we made rather than something a source said.
             'lede'       => 'Every update we hold that a source placed in %1$s',
+            'heading'    => '%s: Hiring, Funding And Leadership Signals',
+            'title'      => '%s: %s tracked %s on hiring, funding and leadership',
         ),
         'city' => array(
             'path'    => 'talent-intelligence-tracker/city',
@@ -211,6 +213,12 @@ function tit_place_kinds() {
             'cross_n'    => 3,
             'cross_head' => 'Countries This City Appears In',
             'lede'       => 'Every update we hold that a source placed in %1$s',
+            // A city page answers the question a job hunter or recruiter
+            // actually types (owner-approved 2026-10-12), and carries the open
+            // roles employers we track list there. Cities take no article.
+            'heading'    => "Who's Hiring In %s: Employers, Funding And Open Roles",
+            'title'      => "Who's hiring in %s: %s tracked %s, funding and open roles",
+            'open_roles' => true,
         ),
         'industry' => array(
             'path'    => 'talent-intelligence-tracker/industry',
@@ -229,6 +237,8 @@ function tit_place_kinds() {
             'cross_n'    => 8,
             'cross_head' => 'Countries In This Industry',
             'lede'       => 'Every update we hold from an employer we have filed under %1$s',
+            'heading'    => '%s: Hiring, Funding And Leadership Signals',
+            'title'      => '%s: %s tracked %s on hiring, funding and leadership',
         ),
     );
 }
@@ -938,7 +948,9 @@ add_action('template_redirect', 'tit_place_template');
  * a reader searched for at the front.
  */
 function tit_place_heading($kind, $cell) {
-    return sprintf('%s: Hiring, Funding And Leadership Signals', $cell['name']);
+    $kinds = tit_place_kinds();
+    $format = $kinds[$kind]['heading'] ?? '%s: Hiring, Funding And Leadership Signals';
+    return sprintf($format, $cell['name']);
 }
 
 /**
@@ -1141,6 +1153,17 @@ function tit_place_render($kind, $cell, $facts) {
           ))); ?>
         </p>
       <?php endif; ?>
+
+      <?php
+      // Open roles listed in this city on the job boards we read daily. Lives
+      // in board_series.php; function_exists because FTP can land this file
+      // first. Layoffs in the same metro are deliberately absent: the
+      // sibling's public API places a cut by country and state, never by
+      // city, and a country figure on a city page is a number about somewhere
+      // else (TECHLOG 2026-10-12).
+      if (!empty($spec['open_roles']) && function_exists('tit_board_series_city_panel')) {
+          echo tit_board_series_city_panel($cell['key']); // built and escaped there
+      } ?>
 
       <?php $city_note = tit_place_city_note($kind, $cell, $facts);
             if ($city_note) : ?>
@@ -1497,8 +1520,9 @@ function tit_place_title($title) {
     $current = tit_place_current();
     if (!$current) return $title;
     $facts = tit_place_facts($current['kind'], $current['cell']['key']);
+    $kinds = tit_place_kinds();
     return sprintf(
-        '%s: %s tracked %s on hiring, funding and leadership',
+        $kinds[$current['kind']]['title'] ?? '%s: %s tracked %s on hiring, funding and leadership',
         $current['cell']['name'],
         number_format_i18n($facts['records']),
         $facts['records'] === 1 ? 'update' : 'updates'
@@ -1531,6 +1555,15 @@ function tit_place_head() {
     ));
     if ($facts['funding']['usd'] > 0 && function_exists('tit_money_short')) {
         $bits[] = tit_money_short($facts['funding']['usd']) . ' disclosed funding';
+    }
+    $kinds = tit_place_kinds();
+    if (!empty($kinds[$current['kind']]['open_roles']) && function_exists('tit_board_series_city')) {
+        $roles = tit_board_series_city($cell['key']);
+        if ($roles) {
+            $bits[] = sprintf('%s open roles on the job boards of %s employers we track',
+                number_format_i18n((int) $roles['open_roles']),
+                number_format_i18n((int) ($roles['employer_count'] ?? 0)));
+        }
     }
     $bits[] = 'Each linked to the filing or report behind it';
     $desc = implode('. ', $bits) . '.';

@@ -14,6 +14,33 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - "Who's hiring in [city]": open roles on the city pages (1.94.0, pushed, NOT deployed)
+
+Owner-approved 2026-10-12 (item 2). The city pages already existed
+(`includes/places.php`: gated, server-rendered, unique title and description,
+canonical, `places-sitemap.xml`, CollectionPage JSON-LD), so this adds to them
+rather than building a second set of URLs that would compete with the first.
+
+- `build_board_series.build()` now carries `places`: per city, the open roles
+  listed there on CURRENT boards only (stale boards excluded), how many
+  employers, and the top 12 with the board each was counted from. Today 183
+  cities; San Francisco 2,866 across 74 employers, New York 1,825 / 113,
+  London 987 / 82. It travels in the same daily publish as item 1.
+- A city page heading and title now lead with the reader's question ("Who's
+  Hiring In London: ..."), and the page renders "Open Roles On Employer Job
+  Boards" with its basis in words: the employers we read every day, NOT every
+  job in the city. The description gains the figure. Country and industry pages
+  are unchanged; the differences are data in `tit_place_kinds()`, not branches.
+- **Layoffs in the same metro are NOT shown, on purpose.** The sibling's public
+  API (`layoffs/v1/query`) carries `country` and `state` per row and no city;
+  `?city=` is ignored (probed 2026-10-12: it returns the unfiltered 69,291).
+  A country figure on a city page would be a number about somewhere else. What
+  would unlock it: a city field in the sibling's public query, read-only, the
+  same way `cross_tracker.php` reads it.
+
+Guard: `tests/test_city_open_roles.py`.
+
+
 ## 2026-10-12 - live open-role counts per employer (1.93.0, pushed, NOT deployed)
 
 Owner-approved 2026-10-12. The count already existed: `ats_boards` reads ~286
