@@ -57,6 +57,25 @@ function tit_board_series_for($slug) {
     return array();
 }
 
+/**
+ * The current open-role count across one employer's boards, for a one-line
+ * mention (the profile's meta description): array(total, date), or null when
+ * no board has a current reading. Unknown is omitted, never a zero.
+ */
+function tit_board_series_open_roles($slug) {
+    $total = 0;
+    $date = '';
+    foreach (tit_board_series_for($slug) as $board) {
+        if (array_key_exists('current', $board) && empty($board['current'])) continue;
+        $latest = is_array($board['latest'] ?? null) ? $board['latest'] : array();
+        if (!isset($latest['total'], $latest['date'])) continue;
+        $total += (int) $latest['total'];
+        $date = max($date, (string) $latest['date']);
+    }
+    if ($date === '' || $total <= 0) return null;
+    return array($total, $date);
+}
+
 /** Reader-facing wording for each verdict the rule can reach. */
 function tit_board_direction_label($direction) {
     $map = array(

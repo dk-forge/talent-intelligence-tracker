@@ -14,6 +14,26 @@ REST namespace. Never write one repo's state into the other's docs.
 ---
 
 
+## 2026-10-12 - company pages: open roles in the description; both sitemaps in the index (1.95.0, pushed, NOT deployed)
+
+Owner-approved 2026-10-12 (item 3). Per-company pages already existed with the
+full SEO set (checked live: unique title and description, canonical, exactly
+one robots tag, JSON-LD, `company-sitemap.xml` with 1,371 URLs). Two gaps:
+
+- **Neither tracker sitemap was in the site's sitemap index.** `/blog/robots.txt`
+  names only `/blog/sitemap_index.xml`, which the SEO plugin builds, and it
+  listed the sibling's sitemaps and none of ours. New
+  `includes/sitemap_index.php` appends `company-sitemap.xml` and
+  `places-sitemap.xml` via the index filters of both plugins that build such a
+  file (append-only, never twice). It is the ONE file allowed to name an SEO
+  plugin; `company.php` still may not (its robots fix must hold whatever is
+  installed).
+- The company meta description now carries "N open roles on its job board on
+  D" when a current board reading exists. Omitted otherwise.
+
+Guard: `tests/test_company_seo_open_roles.py`.
+
+
 ## 2026-10-12 - "Who's hiring in [city]": open roles on the city pages (1.94.0, pushed, NOT deployed)
 
 Owner-approved 2026-10-12 (item 2). The city pages already existed
