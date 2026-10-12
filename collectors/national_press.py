@@ -86,6 +86,7 @@ import os
 import re
 import time
 import xml.etree.ElementTree as ET
+import zlib
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -398,7 +399,10 @@ def due_this_run(feed_name: str, previous: dict, run_number: int) -> bool:
     if quiet < QUIET_RUNS_BEFORE_PROBE:
         return True
     # Staggered by name so the quiet feeds do not all probe on the same run.
-    return (run_number + (hash(feed_name) % PROBE_EVERY)) % PROBE_EVERY == 0
+    # crc32, not hash(): hash() is salted per process, so the stagger moved on
+    # every job and a quiet feed's probe run was a coin toss (#228).
+    offset = zlib.crc32(feed_name.encode("utf-8")) % PROBE_EVERY
+    return (run_number + offset) % PROBE_EVERY == 0
 
 
 def load_feeds(path: Path | None = None) -> list[Feed]:

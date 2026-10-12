@@ -17,6 +17,35 @@ import requests
 from collectors import national_press as press
 from pipeline import validate
 
+
+@pytest.fixture(autouse=True)
+def _isolated_health_ledger(tmp_path, monkeypatch):
+    """Never read the committed data/national_press_health.json. collect()
+    rests feeds the PREVIOUS ledger marks quiet, so a test that read the live
+    ledger flipped to "resting" whenever the nightly data commit marked GLOBES
+    quiet -- issue #228, red on a data-only commit, green on the rerun."""
+    monkeypatch.setattr(press, "HEALTH_PATH", tmp_path / "press_health.json")
+    # The robots.txt verdict is cached per origin for the process; one test's
+    # Disallow must not leak into the next (order-dependent "robots" reds).
+    monkeypatch.setattr(press, "_ROBOTS_CACHE", {})
+
+
+def test_probe_stagger_is_the_same_in_every_process():
+    """due_this_run staggered quiet feeds with hash(), which Python salts per
+    process, so which run probed a quiet feed was a coin toss per job. The
+    verdict must be a function of (name, ledger, run number) alone."""
+    import subprocess
+    import sys
+    code = ("from collectors import national_press as p;"
+            "prev={'Globes':{'quiet_runs':99}};"
+            "print([p.due_this_run('Globes',prev,n) for n in range(40)])")
+    root = str(Path(__file__).resolve().parent.parent)
+    outs = {subprocess.run([sys.executable, "-c", code], cwd=root, text=True,
+                           capture_output=True, check=True,
+                           env={**__import__("os").environ, "PYTHONHASHSEED": str(seed)}
+                           ).stdout for seed in (1, 2, 3, 4, 5)}
+    assert len(outs) == 1, outs
+
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
