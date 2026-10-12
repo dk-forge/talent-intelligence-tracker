@@ -13,6 +13,33 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-12 - sentry-error-check self-heal issue #244: transient git-push race, not a code defect
+
+**Class:** self-heal triage (no code change)
+**Guard:** none needed — not a code defect; see reasoning below for why not.
+
+The sandbox's cross-repo self-heal watcher opened `claude-autofix` issue #244
+off one red `sentry-error-check` run (#560, 15:32 UTC, run
+38270988431). The job's own log shows the real failure: the step that
+commits `OPENROUTER_OPS_KEY` spend-ledger state hit `git push origin
+HEAD:main`, got rejected by a concurrent writer (this repo runs many
+small bot-authored commits per hour — queue drains, link-hygiene, wayback
+snapshots, auto-adjudicate), retried its 5 attempts (reset onto main,
+re-derive, sleep, retry) and still lost the race, so the step exited 1
+with `::error::Could not record the OPENROUTER_OPS_KEY spend ledger after
+5 attempts`. Nothing about Sentry itself, the gate, or any check failed —
+just the ledger-commit retry loop losing a push race under unusually
+heavy concurrent-commit load.
+
+Per "judge the latest completed run, not a window": the three
+`sentry-error-check` runs since (#562 17:29 UTC, #563 18:36 UTC, #564
+19:26 UTC) are all green, so this was already a resolved transient by the
+time the issue was read here (hourly ops-check, ~20:1x UTC). No fix
+pushed — there is no code defect to fix, the existing 5-attempt
+reset-and-retry loop is the designed mitigation for exactly this race and
+it is working (it only loses when 5 consecutive attempts all collide,
+which did not recur). Closed issue #244 with this entry's link.
+
 ## 2026-10-12 - SEO audit fixes: title-cased capped company titles, 155-char descriptions, dated news items, brand publisher (1.99.0, PR, NOT deployed)
 
 **Class:** novel (live SEO audit 2026-10-12, items 2, 3, 5, 10)
