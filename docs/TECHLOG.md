@@ -13,6 +13,18 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-12 - breadcrumbs: one trail drives the visible nav and BreadcrumbList (1.96.0, pushed, NOT deployed)
+
+Owner request. City/country/industry pages, the places directory and company
+pages already printed a `.tit-crumb` trail but no structured data, so Google
+saw only Rank Math's one-item "Home". New `includes/breadcrumbs.php` builds
+ONE trail per page; the visible `<nav aria-label="Breadcrumb">` (ordered list,
+current page `aria-current="page"`, wraps at 375px) and a BreadcrumbList in
+the head are both drawn from it. Company pages stay "Tracker > Company": no
+companies index exists to link. Guard: `tests/test_breadcrumbs.py`. The
+tracker hub (a WP page) gets Rank Math's visible trail from the ai-layoff-tracker
+plugin's blog breadcrumbs (ALT 2.20.237).
+
 
 ## 2026-10-12 - city and company alerts: DESIGN ONLY, not built
 
