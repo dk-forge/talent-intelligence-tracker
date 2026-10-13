@@ -278,6 +278,18 @@ check($wpdb->reads === 0,
 
 /* --------------------------------------------------- the page's own claims -- */
 
+// The embeddable chart: an iframe snippet whose own markup carries a visible
+// backlink, so the attribution survives even if the frame is blocked.
+list($embed_chart, $embed_caveat) = tit_embed_chart_parts();
+$embed_doc = tit_embed_document($embed_chart, $embed_caveat);
+check(strpos($embed_doc, 'tit-market-box') !== false
+      && (strpos($embed_doc, '<svg') !== false || strpos($embed_doc, 'tit-trend-none') !== false)
+      && strpos($embed_doc, 'Source: <a href="https://example.test/blog/talent-intelligence-tracker/"') !== false,
+      'the embed page draws the hub chart with a visible backlink');
+check(strpos($html, '&lt;iframe') !== false
+      && strpos($html, '/talent-intelligence-tracker/embed/market-trend/') !== false,
+      'the press page offers the embed snippet for the hub chart');
+
 /* The heading now carries data-tit-route-heading, which is what names this
    route's item in the site navigation. Asserted through tit_route_heading()
    rather than against a typed copy of the string, so the page, the menu and
@@ -285,7 +297,7 @@ check($wpdb->reads === 0,
 check(preg_match('#<h1[^>]*\bdata-tit-route-heading\b[^>]*>Press and Media Kit</h1>#', $html) === 1,
       'the press page has to render its heading, marked as the route heading');
 foreach (array('press-numbers', 'press-archive', 'press-limits', 'press-cite',
-               'press-contact') as $id) {
+               'press-embed', 'press-contact') as $id) {
     check(strpos($html, 'id="' . $id . '"') !== false,
           "the {$id} section is missing");
 }
