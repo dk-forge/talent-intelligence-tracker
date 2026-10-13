@@ -514,6 +514,9 @@ function tit_press_render(array $f) {
         <?php endif; ?>
       </p>
 
+      <?php // Embeddable hub chart, built and escaped in includes/embed.php.
+      if (function_exists('tit_embed_press_section')) echo tit_embed_press_section(); ?>
+
       <h2 id="press-contact">Press Contact</h2>
       <p class="tit-note">
         Questions, corrections and data requests go to

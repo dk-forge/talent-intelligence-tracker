@@ -91,6 +91,9 @@ function tit_breadcrumbs_current() {
         return tit_breadcrumbs_place_trail($kinds[$cur['kind']]['many'], tit_places_url(),
             $cur['cell']['name'], tit_place_url($cur['kind'], $cur['cell']['key']));
     }
+    if (get_query_var('tit_role') && function_exists('tit_role_trail') && ($t = tit_role_trail())) {
+        return $t;
+    }
     if (function_exists('tit_company_current') && ($cur = tit_company_current())) {
         return tit_breadcrumbs_company_trail($cur['profile']['name'],
             tit_company_url($cur['rows'][0]['company_key']));

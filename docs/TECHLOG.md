@@ -13,7 +13,7 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
-## 2026-10-13 - GLEIF LEI on company profiles (plugin 1.99.2, dormant until armed)
+## 2026-10-13 - GLEIF LEI on company profiles (plugin 1.103.1, was 1.99.2 before merging main; dormant until armed)
 
 **Class:** feature (owner-approved)
 **Guard:** `tests/test_lei.py`, `tests/test_company_lei_page.py`
@@ -37,6 +37,50 @@ read-only on the DB and outside the talent-collect lock. The plugin prints
 variable `GLEIF_LEI_WRITE=true` is set; `gh workflow run gleif-lei.yml -f
 write=true` writes once. Readers see it only after the next plugin deploy.
 GLEIF Level-2 parent roll-up is a later slice.
+## 2026-10-13 - Embeddable hub chart + snippet on the press page (1.103.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/test_embed_chart.py`, checks in `tests/php/render_press.php`
+
+New `includes/embed.php`: `/talent-intelligence-tracker/embed/market-trend/`, a
+bare framable document (no theme, no JS, `frame-ancestors *`, noindex +
+canonical to the hub) drawing the dashboard's OWN market trend
+(`tit_market_trend` under the hub's unfiltered clause), with a visible
+"Source: Talent Intelligence Tracker · CC BY 4.0" backlink. The press page gains
+"Embed the Chart" (`#press-embed`) with an iframe snippet whose backlink sits
+OUTSIDE the iframe so attribution survives a blocked frame. Press page query
+budget unchanged (5 cold, 0 warm): the snippet is static.
+
+## 2026-10-13 - "Who's hiring" role pages from `functions` (1.102.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/php/render_role_pages.php` (run in `tests.yml`), `tests/test_role_pages.py`
+
+New `includes/roles.php`: `/role/{role}/`, `/role/{role}/{city}/`, a `/roles/`
+directory and `roles-sitemap.xml` (every URL with `<lastmod>`, future dates
+clamped; listed in `sitemap_index.php`). The gate is the place gate, CALLED
+(`tit_place_meets_threshold`): below it there is no page, a 302 to the dashboard
+filtered by `function` (+ `city`), so nothing thin is indexable or in a sitemap.
+Membership is `INSTR(functions, '"token"')` (quoted token, like the API's filter;
+INSTR because `_` is a LIKE wildcard). Index: 2 queries for every role and role x
+city; page: 3. Canonical + meta description + visible breadcrumbs + BreadcrumbList
+(via `tit_breadcrumbs_current`). CTA "Check your fit for <role> jobs" to
+asktherecruiter.com with utm_campaign=whos_hiring. Pure code over existing rows,
+no model, no new collection. Routes are in `tit_route_modules()` so
+`tit_verify_routes()` repairs them after an FTP deploy.
+
+## 2026-10-13 - Visible "Last updated" + source count on company and place pages (1.101.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/test_freshness_line.py`, plus a check in `tests/php/render_place_pages.php`
+
+`dateModified` was in the JSON-LD but nowhere a reader could see it. New
+`includes/freshness.php` (`tit_freshness_line()`, pure) prints
+"Last updated <time> · N sources" under the h1 of every company and place page,
+from the rows the page already loaded: no new query (place budget still 7 cold),
+nothing stored. A future-dated row is clamped to today, the same rule the
+sitemaps apply to `<lastmod>`. Company profile gains `last_updated` (newest
+dated row). Sitemaps already carried `<lastmod>` (checked; no change).
 
 ## 2026-10-13 - Email redesign finish: this repo still sends no reader mail (guard added)
 
@@ -335,6 +379,30 @@ pytest-randomly's order, and `due_this_run` staggered quiet feeds with
 `hash()`, which is salted per process, so the probe run of a quiet feed moved
 on every job (production, not just tests). Fixed: tests point `HEALTH_PATH` at
 tmp and reset the robots cache; the stagger uses `zlib.crc32`.
+## 2026-10-12 - DECISION: audience is BOTH recruiters and job hunters; scored standing vs the top 3
+
+**Class:** decision + benchmark snapshot (docs only; issue dk-forge/asktherecruiter-sandbox#1725)
+**Guard:** none. This is a ruling plus a dated snapshot.
+
+**Owner decision (2026-10-12):** the tracker serves BOTH recruiters and job hunters, not one of the two. This settles gap 1 of the 2026-09-24 competitive review. Build every page, alert and CTA for both readers. Do not ask again.
+
+Rivals scored (anonymised; names and figures are in the private report): A, a live open-jobs count by company; B, an open postings index by country and metro; C, a professional-network hiring rate. Funding databases for sales and VC buyers were excluded as a different audience.
+
+Our figures were read live on 2026-10-12: 36,894 updates, 22,436 employers, records from 157 countries, $853B raised tracked, 20,671 filings, updated daily.
+
+| Axis | Our score | Our rank (of 4) |
+|---|---|---|
+| Coverage (no live job counts) | 7 | 4 |
+| Depth (pillars, tiers, API, funding, H-1B, digest; no city or company pages) | 7 | tied 2 |
+| Search (web-search proxy; absent from the top results for all 5 queries) | 1 | 4 |
+| Overall | 5.0 | 4 |
+
+Gaps for recruiters and job hunters, ranked by impact x effort:
+1. Per-metro pages, "Who's hiring in [city], [month]", combining funding, expansions, leadership moves and H-1B, with layoffs in the same metro alongside (High/M).
+2. Per-company pages: signals, Form D funding, H-1B, open-jobs link (High/M).
+3. Live job counts or links per employer from the ATS boards we already resolve, with a tailor-your-resume CTA (High/M).
+4. Per-city and per-company alerts (Med-high/M).
+5. A monthly net talent index per metro as a quotable press release (Med/S).
 
 ## 2026-10-11 - Public trust tiers: verified / reported / measured (plugin 1.92.0)
 

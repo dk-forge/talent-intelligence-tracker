@@ -1089,6 +1089,10 @@ function tit_place_render($kind, $cell, $facts) {
 
       <h1><?php echo esc_html($heading); ?></h1>
 
+      <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
+      if (function_exists('tit_freshness_line'))
+          echo tit_freshness_line($facts['span']['hi'], $facts['sources']); ?>
+
       <?php
       /*
         The lede says what the page IS and what its numbers MEAN, in that order,

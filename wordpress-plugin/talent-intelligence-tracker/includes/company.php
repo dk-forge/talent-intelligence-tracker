@@ -735,6 +735,7 @@ function tit_company_profile($rows) {
     $leadership = 0;
     $verified = 0;
     $tracked_since = '';
+    $last_updated = '';
     $latest_place = '';
 
     foreach ($rows as $r) {
@@ -774,6 +775,7 @@ function tit_company_profile($rows) {
         $dated = substr((string) ($r['published_date'] ?? ''), 0, 10);
         $seen = $dated !== '' ? $dated : substr((string) $r['captured_at'], 0, 10);
         if ($seen && ($tracked_since === '' || $seen < $tracked_since)) $tracked_since = $seen;
+        if ($seen && $seen > $last_updated) $last_updated = $seen;
 
         if ($latest_place === '') {
             $place = $r['city'] ?: $r['hq_city'];
@@ -794,6 +796,7 @@ function tit_company_profile($rows) {
         'leadership'    => $leadership,
         'verified'      => $verified,
         'tracked_since' => $tracked_since,
+        'last_updated'  => $last_updated,
         'place'         => $latest_place,
         'indexable'     => tit_company_meets_threshold($n_docs, $n_kinds)
                            && tit_company_servable_slug($rows ? $rows[0]['company_key'] : ''),
@@ -1010,6 +1013,10 @@ function tit_company_render($rows, $key, $profile) {
       <?php if ($status) : ?>
         <p class="tit-status"><?php echo esc_html($status); ?></p>
       <?php endif; ?>
+
+      <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
+      if (function_exists('tit_freshness_line'))
+          echo tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']); ?>
 
       <?php
       // Industry and headquarters, where the rows carry them. Printed as a
