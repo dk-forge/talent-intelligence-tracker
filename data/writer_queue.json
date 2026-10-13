@@ -246,74 +246,10 @@
       "workflow": "collect-structured"
     }
   ],
+  "red_marks": {
+    "ticket:20261013T164016Z-adjudicate-rows": "2026-10-13T17:07:58Z"
+  },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-13T17:06:53Z",
-      "history": [
-        {
-          "at": "2026-10-13T16:40:16Z",
-          "detail": "money figure contradictions (owner approved 2026-10-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-13T17:06:53Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261013T164016Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure",
-        "rows": "741b46d58bccad0199eaa7b62bcbe4c0"
-      },
-      "priority": 0,
-      "reason": "money figure contradictions (owner approved 2026-10-13)",
-      "requested_at": "2026-10-13T16:40:16Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-03T18:11:39Z",
-      "history": [
-        {
-          "at": "2026-10-03T17:38:14Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-03T18:11:39Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-03T18:38:09Z",
-          "detail": "run 37143283245",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-03T18:38:09Z",
-          "detail": "run 37143283245",
-          "event": "landed"
-        }
-      ],
-      "id": "20261003T173814Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-03T18:38:09Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-03T17:38:14Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "37143283245",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-04T02:32:03Z",
@@ -2560,6 +2496,45 @@
       "run_id": "38432424131",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-13T17:06:53Z",
+      "history": [
+        {
+          "at": "2026-10-13T16:40:16Z",
+          "detail": "money figure contradictions (owner approved 2026-10-13)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-13T17:06:53Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-13T17:07:58Z",
+          "detail": "run 38436026420",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-13T17:07:58Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20261013T164016Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure",
+        "rows": "741b46d58bccad0199eaa7b62bcbe4c0"
+      },
+      "priority": 0,
+      "reason": "money figure contradictions (owner approved 2026-10-13)",
+      "requested_at": "2026-10-13T16:40:16Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "38436026420",
+      "state": "failed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
