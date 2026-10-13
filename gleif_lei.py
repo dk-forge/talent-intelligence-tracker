@@ -37,7 +37,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pipeline import lei
+from pipeline import lei, provider_names
 
 LATEST_API = "https://goldencopy.gleif.org/api/v2/golden-copies/publishes/latest"
 OUT = (Path(__file__).parent / "wordpress-plugin" / "talent-intelligence-tracker"
@@ -113,7 +113,10 @@ def write_output(path: Path, matches: dict[str, str], golden_date: str) -> None:
             "rule": "unique normalised name and matching legal-address country",
         },
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "companies": dict(sorted(matches.items())),
+        # Never publish a banned data-provider name, even as an employer's
+        # own name (tests/test_no_provider_names.py, 2026-10-13).
+        "companies": dict(sorted((k, v) for k, v in matches.items()
+                                 if not provider_names.contains(k))),
     }
     path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 

@@ -208,6 +208,13 @@ def collect(queries=None, *, days_back: int = 7, max_per_phrase: int = 4) -> lis
             # One bad phrase must not lose the ones that already succeeded.
             continue
 
+        # EFTS orders hits by RELEVANCE, not date, so the first few of a
+        # rolling week are the same highly-ranked filings every day, all
+        # already seen, while today's filings sit further down (#247: three
+        # runs of found=11 already-seen=11, 2026-10-10..12). Newest first.
+        hits = sorted(hits, key=lambda h: str((h.get("_source") or {})
+                                              .get("file_date") or ""),
+                      reverse=True)
         for hit in hits[:max_per_phrase]:
             url = document_url(hit)
             if not url or url in seen:
