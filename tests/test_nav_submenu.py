@@ -258,7 +258,7 @@ def test_registering_twice_writes_once_and_leaves_one_item_per_route():
         "after two registrations the submenu holds %r" % (urls,))
     assert len(urls) == len(set(urls)), "a destination appears twice"
     assert r["item"]["block"] == "core/navigation-submenu"
-    assert r["synced"] == "test", (
+    assert r["synced"] == "test+nav2", (
         "the sync never verified, so it would rewrite the menu on every "
         "request forever")
 
@@ -291,7 +291,17 @@ def test_the_owners_view_item_stays_first():
            [k["label"] for k in kids]))
     assert [k["url"] for k in kids].count(PARENT) == 1
     assert [k["url"] for k in kids[1:]] == [PARENT + slug + "/" for slug, _f in ROUTES]
-    assert r["synced"] == "test", "the sync never verified with the view item present"
+    assert r["synced"] == "test+nav2", "the sync never verified with the view item present"
+
+
+@php_only
+def test_a_done_flag_stamped_by_an_older_nav_file_does_not_stop_the_reorder():
+    """Live 2026-10-13: 1.99.1 deployed but the View item stayed last. The FTP
+    mirror lands the main file (new TIT_VERSION) before includes/, so a request
+    mid-upload ran the OLD sync and stamped synced=TIT_VERSION. The flag must
+    be keyed to the nav logic too, or that stamp is final."""
+    kids = run_json("--stale-flag")["item"]["kids"]
+    assert kids[0]["url"] == PARENT, [k["label"] for k in kids]
 
 
 @php_only
