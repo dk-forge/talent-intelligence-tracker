@@ -613,7 +613,18 @@ function check($condition, $message) {
  * headroom on the usual basis. The next addition raises this number and writes
  * down why.
  */
-const TIT_DASH_BYTE_BUDGET = 189350;
+/*
+ * RAISED 189,350 -> 190,650 on 2026-10-13, for 1,306 measured bytes (render was
+ * 188,893, now 190,199 on the same pinned clock).
+ *
+ * The schema.org Dataset JSON-LD on the hub (1.100.0, SEO) plus the one visible
+ * line "At least X% of the N tracked records link a primary source". The JSON-LD
+ * is what lets Google list the tracker as a dataset; the line is the tracker's
+ * one claim paid rivals cannot match, computed from data already loaded. Both
+ * are the feature, not packaging. 451 of headroom on the usual basis. The next
+ * addition raises this number and writes down why.
+ */
+const TIT_DASH_BYTE_BUDGET = 190650;
 
 /*
  * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.

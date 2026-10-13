@@ -40,6 +40,7 @@ function tit_require($relative) {
 
 tit_require('includes/db.php');
 tit_require('includes/seo_meta.php');
+tit_require('includes/dataset_schema.php');
 tit_require('includes/breadcrumbs.php');
 tit_require('includes/freshness.php');
 tit_require('includes/tiers.php');

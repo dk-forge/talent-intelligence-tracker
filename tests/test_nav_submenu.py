@@ -258,7 +258,7 @@ def test_registering_twice_writes_once_and_leaves_one_item_per_route():
         "after two registrations the submenu holds %r" % (urls,))
     assert len(urls) == len(set(urls)), "a destination appears twice"
     assert r["item"]["block"] == "core/navigation-submenu"
-    assert r["synced"] == "test", (
+    assert r["synced"] == "test+nav2", (
         "the sync never verified, so it would rewrite the menu on every "
         "request forever")
 
@@ -276,6 +276,32 @@ def test_a_retired_route_loses_its_item_and_an_owners_child_survives():
         "deleted. This plugin manages the items below its own page, nothing else.")
     assert '"label":"AI Layoff Tracker"' in r["content"], (
         "the sibling tracker's menu item was lost; both plugins write this one post")
+
+
+@php_only
+def test_the_owners_view_item_stays_first():
+    """Owner report 2026-10-13: "View Talent Intelligence Tracker ->" kept
+    moving to the bottom of the dropdown. The sync kept it but appended it
+    after the four routes, on every deploy."""
+    r = run_json("--view-first")
+    kids = r["item"]["kids"]
+    assert kids[0]["url"] == PARENT, (
+        "the item that opens the tracker itself is at position %r, not first: %r"
+        % ([k["url"] for k in kids].index(PARENT) if PARENT in [k["url"] for k in kids] else None,
+           [k["label"] for k in kids]))
+    assert [k["url"] for k in kids].count(PARENT) == 1
+    assert [k["url"] for k in kids[1:]] == [PARENT + slug + "/" for slug, _f in ROUTES]
+    assert r["synced"] == "test+nav2", "the sync never verified with the view item present"
+
+
+@php_only
+def test_a_done_flag_stamped_by_an_older_nav_file_does_not_stop_the_reorder():
+    """Live 2026-10-13: 1.99.1 deployed but the View item stayed last. The FTP
+    mirror lands the main file (new TIT_VERSION) before includes/, so a request
+    mid-upload ran the OLD sync and stamped synced=TIT_VERSION. The flag must
+    be keyed to the nav logic too, or that stamp is final."""
+    kids = run_json("--stale-flag")["item"]["kids"]
+    assert kids[0]["url"] == PARENT, [k["label"] for k in kids]
 
 
 @php_only
