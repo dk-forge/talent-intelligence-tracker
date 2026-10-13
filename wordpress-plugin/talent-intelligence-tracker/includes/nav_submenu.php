@@ -194,6 +194,7 @@ function tit_nav_block_points_at($block, $url) {
  * this plugin has no standing to decide about it.
  */
 function tit_nav_rebuild_children($existing, $desired, $parent_url) {
+    $view = array();
     $kept = array();
     foreach ((array) $existing as $child) {
         $attrs = isset($child['attrs']) && is_array($child['attrs']) ? $child['attrs'] : array();
@@ -201,6 +202,12 @@ function tit_nav_rebuild_children($existing, $desired, $parent_url) {
         // Ours to manage: anything below the dashboard. Note the '/' so the
         // parent's own URL is not read as one of its own children.
         if ($url !== '' && $parent_url !== '' && strpos($url, $parent_url . '/') === 0) continue;
+        // An owner's item pointing AT the tracker itself ("View Talent
+        // Intelligence Tracker ->") is the way INTO the product: a dropdown
+        // parent opens the dropdown rather than navigating. It stays first.
+        // Before 2026-10-13 it was kept but appended after ours, so every
+        // deploy (the done-flag is TIT_VERSION) pushed it to the bottom again.
+        if ($url !== '' && $url === $parent_url) { $view[] = $child; continue; }
         $kept[] = $child;
     }
 
@@ -219,7 +226,7 @@ function tit_nav_rebuild_children($existing, $desired, $parent_url) {
             'innerContent' => array(),
         );
     }
-    return array_merge($mine, $kept);
+    return array_merge($view, $mine, $kept);
 }
 
 /**
