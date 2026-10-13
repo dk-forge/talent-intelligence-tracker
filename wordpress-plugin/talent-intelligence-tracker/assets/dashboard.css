@@ -733,6 +733,9 @@
 .tit-company h1 { font-size:32px; margin:6px 0 8px; color:var(--tit-fg); }
 .tit-crumb { font-size:14px; color:var(--tit-mut); margin:0 0 4px; }
 .tit-crumb span { margin:0 4px; }
+.tit-crumb-list { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; min-width:0; }
+.tit-crumb-list li { margin:0; padding:0; min-width:0; overflow-wrap:anywhere; }
+.tit-crumb span[aria-current] { margin:0; }
 
 /* The one line a reader glances at before deciding to read on, so it has to
    out-weigh the notes under it without becoming a second heading. Proportional

@@ -22,9 +22,11 @@ Why a separate artefact rather than a column on a signal row:
   backs it and the rule the direction was decided by, per board. A number on a
   page with no source and no rule is exactly what this tracker exists not to be.
 
-Dormant on purpose: nothing schedules it and nothing publishes it automatically.
-The plugin reads the shipped file until somebody runs `--publish`, in the same
-shape the recall page uses.
+Published daily since 2026-10-12: `collect-structured.yml` runs `--publish`
+after every real ats_boards collection, best-effort (a failed publish is a
+warning; the state file is already committed). Until then it was dormant and
+the page froze on the July seed. The plugin still falls back to the shipped
+file when no published copy exists.
 """
 
 from __future__ import annotations
@@ -46,6 +48,56 @@ OUT_PATH = (REPO_ROOT / "wordpress-plugin" / "talent-intelligence-tracker"
 # a profile page draws a year at most, and the site copy is a single option
 # blob, so the export is bounded here rather than growing without limit.
 EXPORT_DAYS = 365
+
+# A count read more than this many days before the export is not shown as the
+# employer's current number. The collector reads every board daily, so a board
+# that has gone a week without a good reading is broken, withdrawn or blocked,
+# and its last number is history, not "N open roles". The page keeps the date
+# ("no reading since D") and drops the headline figure.
+STALE_DAYS = 7
+
+# How many employers a city page lists under "who is hiring here". The total
+# covers every current board; the list is the top of it.
+CITY_TOP_EMPLOYERS = 12
+
+
+def _city_rollup(entries: list[tuple[dict, dict]]) -> dict:
+    """Open roles per city, summed over CURRENT boards only.
+
+    `entries` pairs each exported board with its state record. A board's
+    `last.places` counts its postings per place ("city:London": 18) on the day
+    of its last good reading. The sum is "roles listed in this city on the job
+    boards of employers we track", never the city's whole market, and the page
+    says so.
+    """
+    cities: dict[str, dict] = {}
+    for board, record in entries:
+        if not board.get("current"):
+            continue
+        last = record.get("last") or {}
+        if last.get("date") != board["last_checked"]:
+            continue
+        for place, n in (last.get("places") or {}).items():
+            if not place.startswith("city:") or not isinstance(n, int) or n <= 0:
+                continue
+            city = place[len("city:"):].strip()
+            if not city:
+                continue
+            cell = cities.setdefault(city, {"open_roles": 0, "employers": [],
+                                            "as_of": board["last_checked"]})
+            cell["open_roles"] += n
+            cell["as_of"] = max(cell["as_of"], board["last_checked"])
+            cell["employers"].append({
+                "company": board["company"],
+                "company_key": board["company_key"],
+                "open_roles": n,
+                "source_url": board["source_url"],
+            })
+    for cell in cities.values():
+        cell["employers"].sort(key=lambda e: (-e["open_roles"], e["company"]))
+        cell["employer_count"] = len(cell["employers"])
+        cell["employers"] = cell["employers"][:CITY_TOP_EMPLOYERS]
+    return dict(sorted(cities.items()))
 
 RULE = (
     "Each point is a count of the roles an employer had open on its own job "
@@ -81,6 +133,7 @@ def build(state: dict, *, today: str | None = None,
     current = {f"{b['ats']}:{b['slug']}" for b in watchlist} if watchlist else None
 
     boards: dict[str, list[dict]] = {}
+    rollup_input: list[tuple[dict, dict]] = []
     for board_id, record in sorted((state.get("boards") or {}).items()):
         if current is not None and board_id not in current:
             continue
@@ -117,7 +170,7 @@ def build(state: dict, *, today: str | None = None,
         if not url:
             continue
 
-        boards.setdefault(key, []).append({
+        entry = {
             "company": company,
             "ats": ats,
             "source_name": (record.get("source_name")
@@ -127,10 +180,21 @@ def build(state: dict, *, today: str | None = None,
             "source_url": url,
             "first_seen": series[0][0],
             "latest": {"date": series[-1][0], "total": series[-1][1]},
+            # The date of the last good reading and whether it is recent
+            # enough to quote as the current count. A stale board keeps its
+            # date and loses its headline number on the page; nothing is
+            # filled in.
+            "last_checked": history[-1]["date"],
+            "current": (datetime.strptime(day, "%Y-%m-%d").toordinal()
+                        - datetime.strptime(history[-1]["date"],
+                                            "%Y-%m-%d").toordinal()
+                        ) <= STALE_DAYS,
             "trajectory": record.get("trajectory")
                           or ats_boards.trajectory(history, today=day),
             "series": series,
-        })
+        }
+        boards.setdefault(key, []).append(entry)
+        rollup_input.append(({**entry, "company_key": key}, record))
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -139,6 +203,10 @@ def build(state: dict, *, today: str | None = None,
         "rule": RULE,
         "employers": len(boards),
         "boards": boards,
+        # Open roles per city for the "who's hiring in" pages, current boards
+        # only. Keyed by the city name the collector placed postings in, which
+        # is the same name the city pages are keyed by.
+        "places": _city_rollup(rollup_input),
     }
 
 

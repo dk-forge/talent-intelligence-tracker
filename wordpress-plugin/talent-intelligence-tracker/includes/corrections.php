@@ -377,10 +377,7 @@ function tit_corrections_render($entries) {
     foreach ($pending as $e) $pending_rows += (int) $e['rows'];
     ?>
     <div class="tit-wrap tit-corrections" id="tit-corrections">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">&rsaquo;</span> Corrections
-      </nav>
+      <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Corrections', tit_corrections_url())); ?>
 
       <h1>Corrections</h1>
 

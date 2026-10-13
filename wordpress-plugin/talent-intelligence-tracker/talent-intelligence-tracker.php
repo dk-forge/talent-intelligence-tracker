@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.92.0
+ * Version: 1.103.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.92.0');
+define('TIT_VERSION', '1.103.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -39,6 +39,10 @@ function tit_require($relative) {
 }
 
 tit_require('includes/db.php');
+tit_require('includes/seo_meta.php');
+tit_require('includes/dataset_schema.php');
+tit_require('includes/breadcrumbs.php');
+tit_require('includes/freshness.php');
 tit_require('includes/tiers.php');
 tit_require('includes/api.php');
 tit_require('includes/export.php');
@@ -55,6 +59,9 @@ tit_require('includes/company.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.
 tit_require('includes/places.php');
+tit_require('includes/roles.php');
+// Lists the company and places sitemaps in the SEO plugin's sitemap index.
+tit_require('includes/sitemap_index.php');
 tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
 tit_require('includes/recall.php');
@@ -62,6 +69,7 @@ tit_require('includes/recall.php');
 // tit_press_link()'s whitelist against what dashboard.js parses, so it is last
 // of the routed pages rather than first.
 tit_require('includes/press.php');
+tit_require('includes/embed.php');
 tit_require('includes/board_series.php');
 // A US job-postings macro backdrop from Indeed Hiring Lab (CC BY 4.0), shown as
 // external context beside the tracker's own signals. Self-contained like
@@ -251,7 +259,8 @@ function tit_required_columns() {
                  // the column does not print a slightly worse number, it prints
                  // zero, and that is the right failure: no figure beats the
                  // wrong figure this column exists to stop.
-                 'deal_type', 'money_basis', 'site_event', 'materiality');
+                 'deal_type', 'money_basis', 'site_event', 'materiality',
+                 'language', 'language_confidence', 'summary_language');
 }
 
 /**
@@ -336,7 +345,7 @@ function tit_verify_schema() {
  * returns the patterns themselves, so nothing here has to restate a route.
  */
 function tit_route_modules() {
-    return array('tit_company_rewrites', 'tit_places_rewrites');
+    return array('tit_company_rewrites', 'tit_places_rewrites', 'tit_roles_rewrites', 'tit_embed_rewrites');
 }
 
 /**

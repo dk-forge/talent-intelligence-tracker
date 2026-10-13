@@ -468,10 +468,15 @@ def test_structured_data_describes_only_what_is_on_the_page():
     assert "FAQPage" not in UI
     ld = COMPANY[COMPANY.index("application/ld+json"):]
     ld = ld[:ld.index("</script>")]
-    assert "'@type'    => 'Organization'" in ld
+    # Built by tit_company_jsonld() since 1.99.0 (SEO audit 2026-10-12 #5).
+    assert "tit_company_jsonld(" in ld
+    builder = COMPANY[COMPANY.index("function tit_company_jsonld"):]
+    builder = builder[:builder.index("\n}\n")]
+    assert "'@type' => 'Organization'" in builder
     # Every field asserted is rendered in the timeline above it.
-    assert "'headline'      => $r['headline']" in ld
-    assert "'url'           => $r['source_url']" in ld
+    meta = (PLUGIN / "includes" / "seo_meta.php").read_text()
+    item = meta[meta.index("function tit_news_item_node"):]
+    assert "$row['headline']" in item and "$row['source_url']" in item
     assert "$visible" in ld, "the markup must describe the rows actually printed"
 
 

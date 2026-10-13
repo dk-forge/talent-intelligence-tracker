@@ -261,10 +261,7 @@ function tit_sources_render($sources) {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-sources" id="tit-sources">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">›</span> Sources
-      </nav>
+      <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Sources', tit_sources_url())); ?>
 
       <h1 data-tit-route-heading>Where this data comes from</h1>
       <p class="tit-note">

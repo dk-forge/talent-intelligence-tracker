@@ -564,8 +564,11 @@ def test_structured_data_describes_only_what_is_on_the_page():
         "hold is on the page in words, and claiming it here would describe a "
         "list that is not present"
     )
-    assert "'headline'      => $r['headline']" in ld
-    assert "'url'           => $r['source_url']" in ld
+    # Items are built by tit_news_item_node() since 1.99.0 (SEO audit 2026-10-12 #5).
+    assert "array_map('tit_news_item_node', $listed)" in ld
+    meta = (PLUGIN / "includes" / "seo_meta.php").read_text()
+    item = meta[meta.index("function tit_news_item_node"):]
+    assert "$row['headline']" in item and "$row['source_url']" in item
 
 
 def test_an_industry_is_not_marked_up_as_a_place():

@@ -124,6 +124,9 @@ CREATE TABLE IF NOT EXISTS signals (
     -- not 'displacement' unless the source states the roles. city/country
     -- carry the where, as they do for every other row.
     site_event        TEXT,
+    language          TEXT,
+    language_confidence REAL,
+    summary_language  TEXT,
 
     -- How much this row is worth a recruiter's attention: high | medium |
     -- routine. Computed deterministically in Python (validate.compute_
@@ -528,6 +531,14 @@ MIGRATIONS = (
     # write path calls rather than from a list somebody typed.
     ("signals", "money_basis", "TEXT"),
     ("signals", "site_event", "TEXT"),
+    # THE HEADLINE'S LANGUAGE (owner-approved 2026-10-12), decided by
+    # pipeline/language.py with no model call. A NULL code with a confidence
+    # set means "examined, not sure"; both NULL means "never examined", which
+    # is what backfill_language reads. summary_language says whether the
+    # stored summary can serve as an English gist under a foreign headline.
+    ("signals", "language", "TEXT"),
+    ("signals", "language_confidence", "REAL"),
+    ("signals", "summary_language", "TEXT"),
     # Per-run cost accounting on the health ledger. The committed database has
     # thousands of health rows already, and they stay NULL here forever: no
     # model is going to re-read a run that finished in July. That is the honest
@@ -685,6 +696,42 @@ def backfill_funding_usd(conn: sqlite3.Connection) -> int:
         conn.executemany(
             "UPDATE signals SET funding_amount_usd = ? WHERE row_id = ?", updates
         )
+    return len(updates)
+
+
+# Columns connect() adds AND fills from text already on the row, with no model
+# and no network: a backup that predates them is restored whole by the first
+# connect(). backup_check.publishable reads this, and only this, as excusable.
+DERIVED_ON_CONNECT = ("language", "language_confidence", "summary_language")
+
+
+def backfill_language(conn: sqlite3.Connection) -> int:
+    """Fill the language columns on rows that predate them.
+
+    Same contract as backfill_funding_usd: a pure function of text already on
+    the row (pipeline/language.py), no model call, no refetch, no network.
+    Idempotent on `language_confidence IS NULL`, which the detector sets on
+    every headline it examines -- including the ones it declines to name -- so
+    an undecidable row is read once, not on every connect().
+    """
+    from . import language
+
+    rows = conn.execute(
+        """SELECT row_id, headline, summary FROM signals
+            WHERE language_confidence IS NULL
+              AND headline IS NOT NULL AND headline != ''"""
+    ).fetchall()
+    updates = []
+    for row in rows:
+        cols = language.columns(row["headline"])
+        if cols["language_confidence"] is None:
+            continue
+        updates.append((cols["language"], cols["language_confidence"],
+                        language.detect(row["summary"])[0], row["row_id"]))
+    if updates:
+        conn.executemany(
+            "UPDATE signals SET language = ?, language_confidence = ?, "
+            "summary_language = ? WHERE row_id = ?", updates)
     return len(updates)
 
 
@@ -984,6 +1031,7 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
         mark_clears_that_predate_the_column(conn)
         backfill_funding_usd(conn)
         backfill_materiality(conn)
+        backfill_language(conn)
     except sqlite3.OperationalError:
         pass
 

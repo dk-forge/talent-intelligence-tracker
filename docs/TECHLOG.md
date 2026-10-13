@@ -13,6 +13,306 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-13 - Embeddable hub chart + snippet on the press page (1.103.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/test_embed_chart.py`, checks in `tests/php/render_press.php`
+
+New `includes/embed.php`: `/talent-intelligence-tracker/embed/market-trend/`, a
+bare framable document (no theme, no JS, `frame-ancestors *`, noindex +
+canonical to the hub) drawing the dashboard's OWN market trend
+(`tit_market_trend` under the hub's unfiltered clause), with a visible
+"Source: Talent Intelligence Tracker · CC BY 4.0" backlink. The press page gains
+"Embed the Chart" (`#press-embed`) with an iframe snippet whose backlink sits
+OUTSIDE the iframe so attribution survives a blocked frame. Press page query
+budget unchanged (5 cold, 0 warm): the snippet is static.
+
+## 2026-10-13 - "Who's hiring" role pages from `functions` (1.102.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/php/render_role_pages.php` (run in `tests.yml`), `tests/test_role_pages.py`
+
+New `includes/roles.php`: `/role/{role}/`, `/role/{role}/{city}/`, a `/roles/`
+directory and `roles-sitemap.xml` (every URL with `<lastmod>`, future dates
+clamped; listed in `sitemap_index.php`). The gate is the place gate, CALLED
+(`tit_place_meets_threshold`): below it there is no page, a 302 to the dashboard
+filtered by `function` (+ `city`), so nothing thin is indexable or in a sitemap.
+Membership is `INSTR(functions, '"token"')` (quoted token, like the API's filter;
+INSTR because `_` is a LIKE wildcard). Index: 2 queries for every role and role x
+city; page: 3. Canonical + meta description + visible breadcrumbs + BreadcrumbList
+(via `tit_breadcrumbs_current`). CTA "Check your fit for <role> jobs" to
+asktherecruiter.com with utm_campaign=whos_hiring. Pure code over existing rows,
+no model, no new collection. Routes are in `tit_route_modules()` so
+`tit_verify_routes()` repairs them after an FTP deploy.
+
+## 2026-10-13 - Visible "Last updated" + source count on company and place pages (1.101.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/test_freshness_line.py`, plus a check in `tests/php/render_place_pages.php`
+
+`dateModified` was in the JSON-LD but nowhere a reader could see it. New
+`includes/freshness.php` (`tit_freshness_line()`, pure) prints
+"Last updated <time> · N sources" under the h1 of every company and place page,
+from the rows the page already loaded: no new query (place budget still 7 cold),
+nothing stored. A future-dated row is clamped to today, the same rule the
+sitemaps apply to `<lastmod>`. Company profile gains `last_updated` (newest
+dated row). Sitemaps already carried `<lastmod>` (checked; no change).
+
+## 2026-10-13 - Email redesign finish: this repo still sends no reader mail (guard added)
+
+**Class:** contract-drift (record only + guard)
+**Guard:** `tests/test_no_reader_mail_here.py`
+
+Board item "Finish tracker email redesign (both trackers)". Inventory here:
+no subscriber email is sent from this repo. The talent section of the digest
+(daily/weekly/monthly) and the confirm/welcome/preferences emails are composed
+and rendered in ai-layoff-tracker (the confirm/welcome emails moved to the
+design in its 2.20.246, PR on branch `claude/email-redesign-finish`). The only
+mail here is owner-only ops mail (`/alert` in api.php, `opsmail.py`), plain
+text by design. The new test fails if a reader email appears here (it must
+use the sibling's design and footer) or if `#E313` appears in any mail source.
+
+## 2026-10-12 - sentry-error-check self-heal issue #244: transient git-push race, not a code defect
+
+**Class:** self-heal triage (no code change)
+**Guard:** none needed — not a code defect; see reasoning below for why not.
+
+The sandbox's cross-repo self-heal watcher opened `claude-autofix` issue #244
+off one red `sentry-error-check` run (#560, 15:32 UTC, run
+38270988431). The job's own log shows the real failure: the step that
+commits `OPENROUTER_OPS_KEY` spend-ledger state hit `git push origin
+HEAD:main`, got rejected by a concurrent writer (this repo runs many
+small bot-authored commits per hour — queue drains, link-hygiene, wayback
+snapshots, auto-adjudicate), retried its 5 attempts (reset onto main,
+re-derive, sleep, retry) and still lost the race, so the step exited 1
+with `::error::Could not record the OPENROUTER_OPS_KEY spend ledger after
+5 attempts`. Nothing about Sentry itself, the gate, or any check failed —
+just the ledger-commit retry loop losing a push race under unusually
+heavy concurrent-commit load.
+
+Per "judge the latest completed run, not a window": the three
+`sentry-error-check` runs since (#562 17:29 UTC, #563 18:36 UTC, #564
+19:26 UTC) are all green, so this was already a resolved transient by the
+time the issue was read here (hourly ops-check, ~20:1x UTC). No fix
+pushed — there is no code defect to fix, the existing 5-attempt
+reset-and-retry loop is the designed mitigation for exactly this race and
+it is working (it only loses when 5 consecutive attempts all collide,
+which did not recur). Closed issue #244 with this entry's link.
+
+## 2026-10-12 - SEO audit fixes: title-cased capped company titles, 155-char descriptions, dated news items, brand publisher (1.99.0, PR, NOT deployed)
+
+**Class:** novel (live SEO audit 2026-10-12, items 2, 3, 5, 10)
+**Guard:** `tests/test_seo_meta.py`
+
+Version 1.99.0 (1.98.0 is held by PR #242). New `includes/seo_meta.php`.
+#3: company titles title-case ALL-CAPS registry names, drop the legal suffix
+(LIMITED, LTD, INC, PLC, LLC, CORP, GMBH...) and fit in 60 chars (long form,
+then "Name: N tracked updates", then the name cut). The "<2 entries noindex"
+half was already true: the gate needs >= 3 documents and keeps the rest out
+of the sitemap. #10: company and place meta descriptions capped at 155 at a
+word boundary (was 300). #5: NewsArticle items carry datePublished +
+dateModified (no publisher: the item is the outlet's, and source_name is a
+feed id); the company page is a `@graph` of the employer + a WebPage and the
+place CollectionPage carries datePublished/dateModified, both published by
+the Organization "Ask The Recruiter". #2: both sitemaps already had lastmod;
+the places directory now takes its newest child's date instead of today.
+Baton: claimed and released by this agent on branch `seo-oct12-fixes`.
+
+---
+
+## 2026-10-12 - item language: ISO 639-1 code + confidence on every row, free and local (1.98.0, pushed, NOT deployed)
+
+Owner-approved. The daily talent digest (ai-layoff-tracker
+`includes/digest-talent.php`) declined to label foreign headlines because we
+stored no language. New `pipeline/language.py`: Unicode script for non-Latin
+text, distinctive function words for 15 Latin-script languages, NO model call,
+no network, no dependency. Stores `language` (ISO 639-1) + `language_confidence`
+(0..1); below 0.75 or under two hits the code is NULL (examined, not sure).
+Unsupported Latin languages (Lithuanian, Latvian, Hungarian, Vietnamese...) are
+forced NULL rather than mislabelled. `summary_language` records whether the
+stored summary is English, which is the only English gist we have for free: no
+translation call was added (owner budget). Measured on the committed DB (40,435
+current rows): 15,202 en, ~2,000 confidently non-English, 23,328 NULL; for the
+non-English rows the summary is confidently English on ~75%.
+
+Path: `store.store/revise` stamp new rows; `schema.connect()` backfills old
+rows (`backfill_language`, idempotent on `language_confidence IS NULL`) the
+next time a workflow opens the DB; `/enrich` carries the three columns onto
+rows already published. Plugin: columns in `db.php` + `tit_required_columns`,
+returned by `/query`, validated by `tit_language_value`.
+`REQUIRED_PLUGIN_VERSION` is 1.98.0, so publish refuses until the plugin is
+deployed: DEPLOY FIRST. `backup_check` excuses only `schema.DERIVED_ON_CONNECT`
+(the committed DB predates the columns). Guard: `tests/test_language.py`.
+
+## 2026-10-12 - breadcrumbs on every route, one BreadcrumbList each (1.97.0, pushed, NOT deployed)
+
+Follow-up to 1.96.0 after a live crawl. Press, recall, sources and
+corrections hand-built an unlabelled `<nav class="tit-crumb">` (no list, no
+aria-label, no aria-current, no JSON-LD); they now print the shared trail
+(`tit_breadcrumbs_section_trail`) and `tit_breadcrumbs_current()` emits its
+BreadcrumbList. Rank Math's one-item "Home" BreadcrumbList is dropped through
+`rank_math/json_ld` (and the WebPage pointer to it) wherever we print our own,
+so each route carries exactly one. Guard: `tests/test_breadcrumbs.py`.
+
+## 2026-10-12 - breadcrumbs: one trail drives the visible nav and BreadcrumbList (1.96.0, pushed, NOT deployed)
+
+Owner request. City/country/industry pages, the places directory and company
+pages already printed a `.tit-crumb` trail but no structured data, so Google
+saw only Rank Math's one-item "Home". New `includes/breadcrumbs.php` builds
+ONE trail per page; the visible `<nav aria-label="Breadcrumb">` (ordered list,
+current page `aria-current="page"`, wraps at 375px) and a BreadcrumbList in
+the head are both drawn from it. Company pages stay "Tracker > Company": no
+companies index exists to link. Guard: `tests/test_breadcrumbs.py`. The
+tracker hub (a WP page) gets Rank Math's visible trail from the ai-layoff-tracker
+plugin's blog breadcrumbs (ALT 2.20.237).
+
+
+## 2026-10-12 - city and company alerts: DESIGN ONLY, not built
+
+Owner-approved 2026-10-12 (item 4) with the condition "only if an email/digest
+mechanism already exists in this repo". **It does not.** The digest signup on
+the dashboard calls `alt_digest_subscribe_form('talent')`, and the subscriber
+store, consent flow and sender all live in the SIBLING plugin
+(`includes/subscribe.php` in the layoff tracker's repo). This repo writes only
+the digest CONTENT (`daily_digest.py`, offline, read-only) and the ops mail
+(`opsmail.py`, owner-only, never readers). The subscriber list is personal
+data that must never reach this public repo (RECOVERY.md). So nothing was
+built; this is the design for whoever picks it up.
+
+**What already exists and does most of the work.** `GET talent/v1/feed` is RSS
+of any filtered view: it calls `tit_build_where()`, which already accepts
+`city=` and `company=`, caches per filter, and every item links to the source
+document. A per-city or per-company alert is therefore a URL that exists
+today, e.g. `.../wp-json/talent/v1/feed?city=London`.
+
+**Step 1, this repo only, no personal data (smallest useful slice).** Print a
+"Follow updates for {city}/{employer} (RSS)" link on the city and company
+pages, pointing at the filtered feed, plus `<link rel="alternate"
+type="application/rss+xml">` in their heads. No email, no store, no consent
+question. Test: the link carries exactly the page's own filter and the feed
+route accepts it.
+
+**Step 2, needs the sibling's subscriber store (the owner's call, two repos).**
+Email alerts per city/company:
+- Store: one extra column on the sibling's subscriber record, `talent_follows`
+  (a short list of `city:<name>` / `company:<company_key>`, capped at ~10),
+  set only through the existing double-opt-in flow. Unsubscribe and "manage
+  follows" ride on the existing token links. Nothing about followers is ever
+  written to this repo or its database.
+- Content: this repo exposes `GET talent/v1/follow-digest?since=D&follow=...`
+  (public, cached, no personal data in or out: it answers "what changed for
+  these keys since D"), built from `daily_digest.py`'s rules so a headcount is
+  only a "roles" figure when `count_meaning` says it is, plus the open-role
+  count change from `board_series` when a board moved under the rising rule.
+  Falling boards are never phrased as cuts.
+- Send: the sibling's existing daily send loop groups subscribers by follow
+  key, fetches one digest per key (so 1,000 London followers cost one request),
+  and skips any key with nothing new. Reader mail stays on the sibling's
+  provider and budget, never `opsmail.py`.
+- Cadence: daily at most, weekly default; a key with nothing new sends nothing.
+
+Owner decisions this needs before step 2: whether the sibling's list may hold
+follow preferences, and the default cadence.
+## 2026-10-12 - company pages: open roles in the description; both sitemaps in the index (1.95.0, pushed, NOT deployed)
+
+Owner-approved 2026-10-12 (item 3). Per-company pages already existed with the
+full SEO set (checked live: unique title and description, canonical, exactly
+one robots tag, JSON-LD, `company-sitemap.xml` with 1,371 URLs). Two gaps:
+
+- **Neither tracker sitemap was in the site's sitemap index.** `/blog/robots.txt`
+  names only `/blog/sitemap_index.xml`, which the SEO plugin builds, and it
+  listed the sibling's sitemaps and none of ours. New
+  `includes/sitemap_index.php` appends `company-sitemap.xml` and
+  `places-sitemap.xml` via the index filters of both plugins that build such a
+  file (append-only, never twice). It is the ONE file allowed to name an SEO
+  plugin; `company.php` still may not (its robots fix must hold whatever is
+  installed).
+- The company meta description now carries "N open roles on its job board on
+  D" when a current board reading exists. Omitted otherwise.
+
+Guard: `tests/test_company_seo_open_roles.py`.
+
+
+## 2026-10-12 - "Who's hiring in [city]": open roles on the city pages (1.94.0, pushed, NOT deployed)
+
+Owner-approved 2026-10-12 (item 2). The city pages already existed
+(`includes/places.php`: gated, server-rendered, unique title and description,
+canonical, `places-sitemap.xml`, CollectionPage JSON-LD), so this adds to them
+rather than building a second set of URLs that would compete with the first.
+
+- `build_board_series.build()` now carries `places`: per city, the open roles
+  listed there on CURRENT boards only (stale boards excluded), how many
+  employers, and the top 12 with the board each was counted from. Today 183
+  cities; San Francisco 2,866 across 74 employers, New York 1,825 / 113,
+  London 987 / 82. It travels in the same daily publish as item 1.
+- A city page heading and title now lead with the reader's question ("Who's
+  Hiring In London: ..."), and the page renders "Open Roles On Employer Job
+  Boards" with its basis in words: the employers we read every day, NOT every
+  job in the city. The description gains the figure. Country and industry pages
+  are unchanged; the differences are data in `tit_place_kinds()`, not branches.
+- **Layoffs in the same metro are NOT shown, on purpose.** The sibling's public
+  API (`layoffs/v1/query`) carries `country` and `state` per row and no city;
+  `?city=` is ignored (probed 2026-10-12: it returns the unfiltered 69,291).
+  A country figure on a city page would be a number about somewhere else. What
+  would unlock it: a city field in the sibling's public query, read-only, the
+  same way `cross_tracker.php` reads it.
+
+Guard: `tests/test_city_open_roles.py`.
+
+
+## 2026-10-12 - live open-role counts per employer (1.93.0, pushed, NOT deployed)
+
+Owner-approved 2026-10-12. The count already existed: `ats_boards` reads ~286
+employer job boards (Greenhouse, Lever, Ashby) once a day and writes every
+reading to `data/ats_board_state.json`, and the company profile already had a
+panel for it. What did not exist was the hop to the page: `build_board_series.py
+--publish` had never been scheduled, so the panel rendered the shipped seed from
+2026-07-29 (37 employers, one reading each).
+
+- `collect-structured.yml` now runs `build_board_series.py --publish` after
+  every real ats_boards collection. No model, no spend, no extra request to any
+  board. Best-effort: a failed POST is a `::warning::`, because the state file
+  is already committed and a red collection would be the alarm crying wolf.
+- `build()` adds `last_checked` and `current` per board. A board with no good
+  reading for more than `STALE_DAYS` (7) keeps its date and loses its headline
+  number ("No reading since D"), because an old count is not "N open roles"
+  today. Unknown is omitted, never filled in. 13 of 286 boards are stale today.
+- The panel prints "Last checked D" beside the board link. A seed without the
+  new fields still renders its count.
+
+Guard: `tests/test_open_roles_live.py`. Plugin change needs the deploy, which is
+the session's call (`deploy-plugin.yml`), not this agent's.
+
+
+## 2026-10-12 - bse_india RETIRED (owner ruling)
+
+**Class:** external dependency, closed by decision
+
+Owner ruling 2026-10-12, by unanimous 3-AI review. bseindia.com has refused the
+runner IPs at its Akamai edge since 2026-09-28 (entry below). Evading the block
+from another IP is not acceptable. Indian leadership and M&A news still arrives
+through national_press, GDELT and google_news, so the source is retired rather
+than worked around.
+
+- `collect-structured.yml`: the Monday 04:00 cron, its case line and the
+  dispatch option are removed. `collection_schedule.py` derives the configured
+  sources from those crons, so the never-ran check no longer expects it (the
+  same path `denmark_cvr` takes).
+- `staleness.RETIRED_COLLECTORS` = {bse_india}. `health_digest.classify` treats
+  it as deliberately stopped, and `ops_status` lists it as RETIRED, skipping
+  the stale and status alarms. The last `error` row would otherwise age into a
+  stale alert for ever.
+- `source_registry`: India drops to DISCOVERY_ONLY because no structured
+  connector runs for it now. The BSE `Source` stays `live`, with a dated note,
+  because its stored rows are still published and the sources page has to keep
+  naming their publisher (`test_sources_page.py`). The
+  `sources.json` and `country_sources.json` files are regenerated.
+- History is kept. Every bse_india row and health row stays in the database,
+  and `collectors/bse_india.py`, its tests and the backfill spec remain.
+  Re-arming it is an owner call (CLAUDE.md, arming is his).
+- Possible future source, **no code**: NSE's official RSS
+  (https://www.nseindia.com/rss-feed). Consider it only once its terms are
+  confirmed to allow automated polling.
 
 ## 2026-10-12 - bse_india (#231) and gdelt (#220) zero-store streaks: source side, not code
 

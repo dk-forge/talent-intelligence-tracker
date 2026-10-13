@@ -118,7 +118,9 @@ on:
     - cron: '0 9 * * *'      # every day: ATS boards, the perishable one
     - cron: '30 9 5 * *'     # 5th of the month: SEC exec comp, for late proxies
     - cron: '30 10 6 * *'    # 6th of the month: UK gender pay gap
-    - cron: '0 4 * * 1'      # Mondays: BSE India leadership filings
+    # Monday 04:00 was BSE India. RETIRED 2026-10-12 (owner ruling): bseindia.com
+    # has refused this runner's IPs at the Akamai edge since 2026-09-28, and
+    # evading that from another IP is not acceptable. See TECHLOG 2026-10-12.
     # TUESDAY, not Monday, and the day matters. Monday already carries the BSE
     # slot at 04:00, the link-hygiene ticket at 05:30 and the weekly digest at
     # 13:00, and every database writer shares the single `talent-collect` lock
@@ -175,7 +177,7 @@ on:
       source:
         description: 'Collector to run'
         type: choice
-        options: [ats_boards, sec_execcomp, uk_paygap, bse_india, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra, denmark_cvr]
+        options: [ats_boards, sec_execcomp, uk_paygap, edinet_japan, opendart_korea, companies_house, czechia_ares, estonia_ariregister, spain_borme, israel_registrar, singapore_acra, denmark_cvr]
         default: ats_boards
       years:
         description: 'Backfill years, comma separated. Exec comp: 2022..2025. Pay gap: 2017..2025. Blank = the last complete year.'
@@ -265,7 +267,6 @@ jobs:
           case "${{ github.event.schedule }}" in
             '30 9 5 * *')  scheduled=sec_execcomp ;;
             '30 10 6 * *') scheduled=uk_paygap ;;
-            '0 4 * * 1')   scheduled=bse_india ;;
             '0 4 * * 2')   scheduled=edinet_japan ;;
             '0 4 * * 3')   scheduled=opendart_korea ;;
             '0 4 * * 4')   scheduled=companies_house ;;
@@ -443,6 +444,22 @@ jobs:
           echo "::error::Could not push after 5 attempts. This run's records \
           exist only on the runner and are lost."
           exit 1
+
+      # Owner-approved 2026-10-12: the open-role count per employer goes live
+      # every day instead of freezing on the plugin's shipped seed (which sat
+      # at 2026-07-29 with 37 of ~280 boards because nothing ever ran this).
+      # Derived from the state file this run just wrote; no model, no spend,
+      # no extra request to any job board. BEST-EFFORT: the state file is the
+      # archive and is already committed above, so a failed POST is a warning
+      # and must never redden the collection.
+      - name: Publish open-role counts
+        if: ${{ !inputs.dry_run && !cancelled() && steps.pick.outputs.value == 'ats_boards' }}
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python build_board_series.py --publish --out "$RUNNER_TEMP/board_series.json" \
+            || echo "::warning::open-role counts were not published; the page keeps its previous copy"
 
   # The guardrail escalation on its own line, as in collect.yml (#185): an
   # overdue guardrail finding must not turn the collection red, or a real

@@ -196,6 +196,8 @@ function tit_place_kinds() {
             // "placed in" is right for a place and wrong for an industry, which
             // is a classification we made rather than something a source said.
             'lede'       => 'Every update we hold that a source placed in %1$s',
+            'heading'    => '%s: Hiring, Funding And Leadership Signals',
+            'title'      => '%s: %s tracked %s on hiring, funding and leadership',
         ),
         'city' => array(
             'path'    => 'talent-intelligence-tracker/city',
@@ -211,6 +213,12 @@ function tit_place_kinds() {
             'cross_n'    => 3,
             'cross_head' => 'Countries This City Appears In',
             'lede'       => 'Every update we hold that a source placed in %1$s',
+            // A city page answers the question a job hunter or recruiter
+            // actually types (owner-approved 2026-10-12), and carries the open
+            // roles employers we track list there. Cities take no article.
+            'heading'    => "Who's Hiring In %s: Employers, Funding And Open Roles",
+            'title'      => "Who's hiring in %s: %s tracked %s, funding and open roles",
+            'open_roles' => true,
         ),
         'industry' => array(
             'path'    => 'talent-intelligence-tracker/industry',
@@ -229,6 +237,8 @@ function tit_place_kinds() {
             'cross_n'    => 8,
             'cross_head' => 'Countries In This Industry',
             'lede'       => 'Every update we hold from an employer we have filed under %1$s',
+            'heading'    => '%s: Hiring, Funding And Leadership Signals',
+            'title'      => '%s: %s tracked %s on hiring, funding and leadership',
         ),
     );
 }
@@ -938,7 +948,9 @@ add_action('template_redirect', 'tit_place_template');
  * a reader searched for at the front.
  */
 function tit_place_heading($kind, $cell) {
-    return sprintf('%s: Hiring, Funding And Leadership Signals', $cell['name']);
+    $kinds = tit_place_kinds();
+    $format = $kinds[$kind]['heading'] ?? '%s: Hiring, Funding And Leadership Signals';
+    return sprintf($format, $cell['name']);
 }
 
 /**
@@ -1071,14 +1083,15 @@ function tit_place_render($kind, $cell, $facts) {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-place">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">&rsaquo;</span>
-        <a href="<?php echo esc_url(tit_places_url()); ?>"><?php echo esc_html($spec['many']); ?></a>
-        <span aria-hidden="true">&rsaquo;</span> <?php echo esc_html($cell['name']); ?>
-      </nav>
+      <?php // Same trail as the BreadcrumbList in the head (includes/breadcrumbs.php).
+      if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_place_trail(
+          $spec['many'], tit_places_url(), $cell['name'], tit_place_url($kind, $cell['key']))); ?>
 
       <h1><?php echo esc_html($heading); ?></h1>
+
+      <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
+      if (function_exists('tit_freshness_line'))
+          echo tit_freshness_line($facts['span']['hi'], $facts['sources']); ?>
 
       <?php
       /*
@@ -1141,6 +1154,17 @@ function tit_place_render($kind, $cell, $facts) {
           ))); ?>
         </p>
       <?php endif; ?>
+
+      <?php
+      // Open roles listed in this city on the job boards we read daily. Lives
+      // in board_series.php; function_exists because FTP can land this file
+      // first. Layoffs in the same metro are deliberately absent: the
+      // sibling's public API places a cut by country and state, never by
+      // city, and a country figure on a city page is a number about somewhere
+      // else (TECHLOG 2026-10-12).
+      if (!empty($spec['open_roles']) && function_exists('tit_board_series_city_panel')) {
+          echo tit_board_series_city_panel($cell['key']); // built and escaped there
+      } ?>
 
       <?php $city_note = tit_place_city_note($kind, $cell, $facts);
             if ($city_note) : ?>
@@ -1332,16 +1356,11 @@ function tit_place_render($kind, $cell, $facts) {
         'mainEntity' => array(
             '@type'           => 'ItemList',
             'numberOfItems'   => count($listed),
-            'itemListElement' => array_map(function ($r) {
-                return array(
-                    '@type'         => 'NewsArticle',
-                    'headline'      => $r['headline'],
-                    'datePublished' => $r['published_date'],
-                    'url'           => $r['source_url'],
-                );
-            }, $listed),
+            'itemListElement' => array_map('tit_news_item_node', $listed),
         ),
-      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+        // The page is ours; the items are the outlets' (SEO audit 2026-10-12 #5).
+        'publisher' => tit_publisher_org(),
+      ) + tit_place_page_dates($listed), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
@@ -1384,10 +1403,7 @@ function tit_places_render() {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-place tit-directory">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">&rsaquo;</span> Countries, Cities And Industries
-      </nav>
+      <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_places_trail(tit_places_url())); ?>
 
       <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
       <p class="tit-note">
@@ -1497,8 +1513,9 @@ function tit_place_title($title) {
     $current = tit_place_current();
     if (!$current) return $title;
     $facts = tit_place_facts($current['kind'], $current['cell']['key']);
+    $kinds = tit_place_kinds();
     return sprintf(
-        '%s: %s tracked %s on hiring, funding and leadership',
+        $kinds[$current['kind']]['title'] ?? '%s: %s tracked %s on hiring, funding and leadership',
         $current['cell']['name'],
         number_format_i18n($facts['records']),
         $facts['records'] === 1 ? 'update' : 'updates'
@@ -1532,11 +1549,22 @@ function tit_place_head() {
     if ($facts['funding']['usd'] > 0 && function_exists('tit_money_short')) {
         $bits[] = tit_money_short($facts['funding']['usd']) . ' disclosed funding';
     }
+    $kinds = tit_place_kinds();
+    if (!empty($kinds[$current['kind']]['open_roles']) && function_exists('tit_board_series_city')) {
+        $roles = tit_board_series_city($cell['key']);
+        if ($roles) {
+            $bits[] = sprintf('%s open roles on the job boards of %s employers we track',
+                number_format_i18n((int) $roles['open_roles']),
+                number_format_i18n((int) ($roles['employer_count'] ?? 0)));
+        }
+    }
     $bits[] = 'Each linked to the filing or report behind it';
     $desc = implode('. ', $bits) . '.';
     // Search results cut a description around 160 characters; a sentence that
     // ends mid-figure is worse than a shorter one.
-    if (strlen($desc) > 300) $desc = rtrim(substr($desc, 0, 297)) . '...';
+    // Capped at 155 at a word boundary (SEO audit 2026-10-12 #10).
+    $desc = function_exists('tit_seo_cap_description') ? tit_seo_cap_description($desc)
+          : (strlen($desc) > 155 ? rtrim(substr($desc, 0, 152)) . '...' : $desc);
 
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="'
@@ -1554,15 +1582,31 @@ add_action('wp_head', 'tit_place_head', 1);
  * written to disk, so it cannot go stale, and a URL cannot be listed here while
  * the page it points at redirects or 404s.
  */
+/** PURE. datePublished/dateModified for a place page from the items it lists. */
+function tit_place_page_dates($listed) {
+    $dates = array();
+    foreach ((array) $listed as $r) {
+        $d = substr((string) ($r['published_date'] ?? ''), 0, 10);
+        if ($d === '') $d = substr((string) ($r['captured_at'] ?? ''), 0, 10);
+        if ($d !== '') $dates[] = $d;
+    }
+    return $dates ? array('datePublished' => min($dates), 'dateModified' => max($dates)) : array();
+}
+
 function tit_places_sitemap_entries() {
     $entries = array(array('loc' => tit_places_url(), 'lastmod' => ''));
+    $newest = '';
     foreach (tit_place_kinds() as $kind => $spec) {
         foreach (tit_place_published($kind) as $cell) {
             $url = tit_place_url($kind, $cell['key']);
             if ($url === '') continue;
             $entries[] = array('loc' => $url, 'lastmod' => $cell['lastmod']);
+            if ((string) $cell['lastmod'] > $newest) $newest = (string) $cell['lastmod'];
         }
     }
+    // The directory changes when any place does: its newest child's date,
+    // not "today" on every fetch (SEO audit 2026-10-12 #2).
+    $entries[0]['lastmod'] = $newest;
     return $entries;
 }
 

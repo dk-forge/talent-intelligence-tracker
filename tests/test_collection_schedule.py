@@ -32,7 +32,7 @@ def _ago(hours):
 def test_every_configured_source_is_enumerated_from_the_workflows():
     srcs = cs.configured_sources()
     for name in ("google_news", "gdelt", "sec_edgar", "sec_form_d", "national_press",
-                 "ats_boards", "bse_india", "edinet_japan", "opendart_korea",
+                 "ats_boards", "edinet_japan", "opendart_korea",
                  "companies_house", "czechia_ares", "estonia_ariregister",
                  "spain_borme", "sec_execcomp", "uk_paygap", "singapore_acra"):
         assert name in srcs, name
@@ -43,6 +43,8 @@ def test_every_configured_source_is_enumerated_from_the_workflows():
     assert srcs["google_news"].workflow == "collect.yml"
     # Dormant by design: no cron, so not configured, so never a false alarm.
     assert "denmark_cvr" not in srcs and "israel_registrar" not in srcs
+    # Retired 2026-10-12 (owner ruling): its cron is gone, so never "never ran".
+    assert "bse_india" not in srcs
 
 
 def test_cadence_is_read_from_the_cron_shape():

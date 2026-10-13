@@ -1023,6 +1023,7 @@ function tit_api_query(WP_REST_Request $req) {
                         state, functions, industry, headcount, headcount_scope,
                         funding_amount, funding_amount_usd, funding_stage, work_mode,
                         deal_type, money_basis, site_event,
+                        language, language_confidence, summary_language,
                         predicted_outcome, check_after_date, outcome_observed, archive_url,
                         collector,
                         materiality, confidence, source_url, source_name,
@@ -1939,7 +1940,27 @@ function tit_enrichable_columns() {
         // it was. That is why the snapshot lives in its own column rather than
         // being written over a link that died.
         'archive_url',
+        // The headline's language (pipeline/language.py): computed by us, no
+        // model, never stated by a source. Validated by tit_language_value.
+        'language', 'language_confidence', 'summary_language',
     );
+}
+
+/**
+ * Normalise one language column, or NULL. A code is two lowercase letters
+ * (ISO 639-1); a confidence is a number in [0, 1]. Anything else is dropped
+ * rather than stored, because a malformed tag is a claim the digest would
+ * print.
+ */
+function tit_language_value($col, $value) {
+    if ($value === null || $value === '') return null;
+    if ($col === 'language_confidence') {
+        if (!is_numeric($value)) return null;
+        $f = (float) $value;
+        return ($f >= 0 && $f <= 1) ? round($f, 2) : null;
+    }
+    $code = strtolower(trim((string) $value));
+    return preg_match('/^[a-z]{2}$/', $code) ? $code : null;
 }
 
 /**
@@ -2018,6 +2039,10 @@ function tit_api_enrich(WP_REST_Request $req) {
             // there.
             if (array_key_exists($col, $row) && $row[$col] !== null && $row[$col] !== '') {
                 $data[$col] = $row[$col];
+                if (in_array($col, array('language', 'language_confidence', 'summary_language'), true)) {
+                    $data[$col] = tit_language_value($col, $row[$col]);
+                    if ($data[$col] === null) unset($data[$col]);
+                }
             }
         }
 

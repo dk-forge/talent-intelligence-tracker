@@ -23,7 +23,7 @@ import source_registry as registry
 # The global 36h this replaced called a five-day-old monthly source stale
 # while the digest called the same row healthy. staleness.py is stdlib-only,
 # which is the property this file's "no deps, no keys" promise rests on.
-from staleness import (PRIMARY_COLLECTORS, ZERO_STORE_STREAK_DAYS,
+from staleness import (PRIMARY_COLLECTORS, RETIRED_COLLECTORS, ZERO_STORE_STREAK_DAYS,
                        max_age_hours, zero_store_streak_days)
 # For cache_path_for and connect_ro ONLY. pipeline/schema.py is stdlib-only
 # (it imports pipeline.vocab, which is re and unicodedata), so this does not
@@ -675,6 +675,9 @@ def _report_health(conn) -> list[str]:
 
     now = datetime.now(timezone.utc)
     for row in rows:
+        if row["collector"] in RETIRED_COLLECTORS:
+            print(f"    RETIRED  {row['collector']:<16} (stopped on purpose; history kept)")
+            continue
         age = ""
         try:
             last = datetime.fromisoformat(row["run_at"])

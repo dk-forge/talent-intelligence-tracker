@@ -735,6 +735,7 @@ function tit_company_profile($rows) {
     $leadership = 0;
     $verified = 0;
     $tracked_since = '';
+    $last_updated = '';
     $latest_place = '';
 
     foreach ($rows as $r) {
@@ -774,6 +775,7 @@ function tit_company_profile($rows) {
         $dated = substr((string) ($r['published_date'] ?? ''), 0, 10);
         $seen = $dated !== '' ? $dated : substr((string) $r['captured_at'], 0, 10);
         if ($seen && ($tracked_since === '' || $seen < $tracked_since)) $tracked_since = $seen;
+        if ($seen && $seen > $last_updated) $last_updated = $seen;
 
         if ($latest_place === '') {
             $place = $r['city'] ?: $r['hq_city'];
@@ -794,6 +796,7 @@ function tit_company_profile($rows) {
         'leadership'    => $leadership,
         'verified'      => $verified,
         'tracked_since' => $tracked_since,
+        'last_updated'  => $last_updated,
         'place'         => $latest_place,
         'indexable'     => tit_company_meets_threshold($n_docs, $n_kinds)
                            && tit_company_servable_slug($rows ? $rows[0]['company_key'] : ''),
@@ -1001,16 +1004,19 @@ function tit_company_render($rows, $key, $profile) {
     if (function_exists('tit_render_header')) tit_render_header(); else get_header();
     ?>
     <div class="tit-wrap tit-company">
-      <nav class="tit-crumb">
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Talent Intelligence Tracker</a>
-        <span aria-hidden="true">›</span> <?php echo esc_html($name); ?>
-      </nav>
+      <?php // Same trail as the BreadcrumbList in the head (includes/breadcrumbs.php).
+      if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(
+          tit_breadcrumbs_company_trail($name, tit_company_url($company_key))); ?>
 
       <h1><?php echo esc_html($name); ?></h1>
 
       <?php if ($status) : ?>
         <p class="tit-status"><?php echo esc_html($status); ?></p>
       <?php endif; ?>
+
+      <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
+      if (function_exists('tit_freshness_line'))
+          echo tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']); ?>
 
       <?php
       // Industry and headquarters, where the rows carry them. Printed as a
@@ -1163,23 +1169,33 @@ function tit_company_render($rows, $key, $profile) {
     if ($profile['indexable']) : ?>
     <script type="application/ld+json"><?php
       $visible = array_slice($rows, 0, 10);
-      echo wp_json_encode(array(
-        '@context' => 'https://schema.org',
-        '@type'    => 'Organization',
-        'name'     => $name,
-        'url'      => tit_company_url($company_key),
-        'subjectOf' => array_map(function ($r) {
-            return array(
-                '@type'         => 'NewsArticle',
-                'headline'      => $r['headline'],
-                'datePublished' => $r['published_date'],
-                'url'           => $r['source_url'],
-            );
-        }, $visible),
-      ), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+      echo wp_json_encode(tit_company_jsonld($name, tit_company_url($company_key), $visible),
+                          JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php endif;
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+}
+
+/**
+ * PURE apart from tit_publisher_org(). The employer (with the news items it
+ * is the subject of, each dated) plus the page itself, published by the
+ * Organization "Ask The Recruiter" (SEO audit 2026-10-12 #5).
+ */
+function tit_company_jsonld($name, $url, $visible) {
+    $items = array_map('tit_news_item_node', (array) $visible);
+    $dates = array();
+    foreach ($items as $it) if (!empty($it['dateModified'])) $dates[] = $it['dateModified'];
+    $page = array('@type' => 'WebPage', 'url' => $url, 'name' => tit_company_display_name($name),
+                  'about' => array('@id' => $url . '#employer'), 'publisher' => tit_publisher_org());
+    if ($dates) $page['dateModified'] = max($dates);
+    return array(
+        '@context' => 'https://schema.org',
+        '@graph'   => array(
+            array('@type' => 'Organization', '@id' => $url . '#employer', 'name' => $name,
+                  'url' => $url, 'subjectOf' => $items),
+            $page,
+        ),
+    );
 }
 
 /**
@@ -1192,6 +1208,9 @@ function tit_company_title($title) {
     $current = tit_company_current();
     if (!$current) return $title;
     $p = $current['profile'];
+    // Title-cased, legal suffix dropped, at most 60 characters (SEO audit
+    // 2026-10-12 #3): registry names arrive as "2 SISTERS FOOD GROUP LIMITED".
+    if (function_exists('tit_company_seo_title')) return tit_company_seo_title($p['name'], $p['updates']);
     return sprintf(
         '%s: %s tracked %s on hiring, funding and leadership',
         $p['name'],
@@ -1229,6 +1248,16 @@ function tit_company_head() {
     if ($p['leadership'] > 0) {
         $bits[] = $p['leadership'] . ($p['leadership'] === 1 ? ' leadership change' : ' leadership changes');
     }
+    // The current count from the employer's own job board, with the date we
+    // read it, when we have one (owner-approved 2026-10-12). board_series.php
+    // can land after this file mid-deploy, hence function_exists.
+    if (function_exists('tit_board_series_open_roles')) {
+        $roles = tit_board_series_open_roles(tit_company_legacy_slug($current['rows'][0]['company_key']));
+        if ($roles) {
+            $bits[] = sprintf('%s open roles on its job board on %s',
+                              number_format_i18n($roles[0]), $roles[1]);
+        }
+    }
     $status = tit_company_status_line($current['rows']);
     $desc = implode('. ', array_filter(array(
         implode(', ', $bits),
@@ -1237,7 +1266,9 @@ function tit_company_head() {
     ))) . '.';
     // Search results cut a description around 160 characters; a sentence that
     // ends mid-figure is worse than a shorter one.
-    if (strlen($desc) > 300) $desc = rtrim(substr($desc, 0, 297)) . '...';
+    // Capped at 155 at a word boundary (SEO audit 2026-10-12 #10).
+    $desc = function_exists('tit_seo_cap_description') ? tit_seo_cap_description($desc)
+          : (strlen($desc) > 155 ? rtrim(substr($desc, 0, 152)) . '...' : $desc);
 
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['rows'][0]['company_key'])) . '" />' . "\n";

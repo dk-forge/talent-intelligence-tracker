@@ -95,7 +95,7 @@ DELIBERATELY_STOPPED = {"retired", "disabled"}
 # digest — and when each carried its own numbers they disagreed about every
 # collector that was not on the 2x/day cron. Re-exported here so existing
 # callers of health_digest.MAX_AGE_HOURS keep reading the shared truth.
-from staleness import DEFAULT_MAX_AGE_HOURS, MAX_AGE_HOURS  # noqa: E402
+from staleness import DEFAULT_MAX_AGE_HOURS, MAX_AGE_HOURS, RETIRED_COLLECTORS  # noqa: E402
 
 # The loudest check. If the NEWEST successful collect anywhere is older than
 # this, the pipeline itself has stopped, which is the failure mode that
@@ -318,7 +318,7 @@ def classify(collectors: dict, now: datetime) -> dict:
         limit = MAX_AGE_HOURS.get(name, DEFAULT_MAX_AGE_HOURS)
         age = age_hours(info.get("run_at") or info.get("checked_at"), now)
 
-        if status in DELIBERATELY_STOPPED:
+        if status in DELIBERATELY_STOPPED or name in RETIRED_COLLECTORS:
             result["ok"].append(name)
         elif age is None:
             result["unknown_age"].append((name, status))

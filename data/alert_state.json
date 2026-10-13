@@ -15,21 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-national-press:main:3824a06556f3cd16": {
-      "first": 1791589477,
-      "last": 1791589477,
-      "subject": "CI RED: collect national press: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect-press job. Answer them: python3 guardrails.py"
-    },
-    "collect-structured:main:5557a57358d8df84": {
-      "first": 1791779220,
-      "last": 1791779220,
-      "subject": "CI RED: collect-structured: [guardrail] 1 finding(s) are past their grace window. This run exits non-zero AFTER publishing the clean rows."
-    },
-    "collect-structured:main:f5702fb48050491a": {
-      "first": 1791605572,
-      "last": 1791605572,
-      "subject": "CI RED: collect-structured: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
-    },
     "collect:main:471e7ce8c5895ce1": {
       "first": 1791672426,
       "last": 1791672426,
@@ -39,16 +24,6 @@
       "first": 1791586682,
       "last": 1791586682,
       "subject": "CI RED: collect: [publish] sent=2 stored=2 duplicate=0 errors=0"
-    },
-    "drain-writers:main:2e81661ce7c364f0": {
-      "first": 1791626119,
-      "last": 1791626119,
-      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
-    },
-    "enrich:main:cd0f1a58933504d7": {
-      "first": 1791626083,
-      "last": 1791626083,
-      "subject": "CI RED: enrich: pipeline.publish.PublishError: 1 guardrail finding(s) have been open longer than their grace window (oldest 202h). 40147 clean row(s) WERE published; the flagged on"
     },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
@@ -71,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-12T04:27:01+00:00",
+  "updated_at": "2026-10-13T10:20:33+00:00",
   "version": 1
 }

@@ -113,6 +113,14 @@ def duplicate_verdict(conn: sqlite3.Connection, signal) -> str | None:
     return None
 
 
+def _with_language(data: dict) -> None:
+    """Stamp the headline's language at ingest (free, local; see language.py)."""
+    from . import language
+
+    data.update(language.columns(data.get("headline")))
+    data["summary_language"] = language.detect(data.get("summary"))[0]
+
+
 def store(conn: sqlite3.Connection, signal) -> str:
     """Insert a signal. Returns 'stored', 'duplicate' or 'retracted'.
 
@@ -124,6 +132,7 @@ def store(conn: sqlite3.Connection, signal) -> str:
         return verdict
 
     data = asdict(signal)
+    _with_language(data)
     columns = ", ".join(data)
     placeholders = ", ".join("?" for _ in data)
     conn.execute(
@@ -149,6 +158,7 @@ def revise(conn: sqlite3.Connection, signal_id: str, new_signal, note: str) -> N
     conn.execute("UPDATE signals SET is_current = 0 WHERE row_id = ?", (current["row_id"],))
 
     data = asdict(new_signal)
+    _with_language(data)
     data["signal_id"] = signal_id
     data["revision"] = current["revision"] + 1
     data["is_current"] = 1

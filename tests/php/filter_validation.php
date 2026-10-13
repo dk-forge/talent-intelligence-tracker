@@ -158,6 +158,7 @@ class FilterHarnessDb {
                 headcount INTEGER, headcount_scope TEXT,
                 funding_amount TEXT, funding_amount_usd INTEGER, funding_stage TEXT, money_basis TEXT,
                 work_mode TEXT, deal_type TEXT, site_event TEXT,
+                language TEXT, language_confidence REAL, summary_language TEXT,
                 predicted_outcome TEXT, check_after_date TEXT, outcome_observed TEXT,
                 archive_url TEXT, materiality TEXT, confidence TEXT DEFAULT "reported",
                 collector TEXT DEFAULT "google_news",
