@@ -13,6 +13,20 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-13 - Email redesign finish: this repo still sends no reader mail (guard added)
+
+**Class:** contract-drift (record only + guard)
+**Guard:** `tests/test_no_reader_mail_here.py`
+
+Board item "Finish tracker email redesign (both trackers)". Inventory here:
+no subscriber email is sent from this repo. The talent section of the digest
+(daily/weekly/monthly) and the confirm/welcome/preferences emails are composed
+and rendered in ai-layoff-tracker (the confirm/welcome emails moved to the
+design in its 2.20.246, PR on branch `claude/email-redesign-finish`). The only
+mail here is owner-only ops mail (`/alert` in api.php, `opsmail.py`), plain
+text by design. The new test fails if a reader email appears here (it must
+use the sibling's design and footer) or if `#E313` appears in any mail source.
+
 ## 2026-10-12 - sentry-error-check self-heal issue #244: transient git-push race, not a code defect
 
 **Class:** self-heal triage (no code change)
