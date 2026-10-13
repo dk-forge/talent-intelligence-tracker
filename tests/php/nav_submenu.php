@@ -279,6 +279,42 @@ if ($arg === '--retired') {
     exit(0);
 }
 
+if ($arg === '--view-first') {
+    // The owner's "View ... ->" item pointing AT the tracker, sitting LAST,
+    // which is where every deploy before the fix left it.
+    $menu = str_replace(
+        '"url":"' . $PARENT . '","kind":"custom","isTopLevelLink":true} /-->',
+        '"url":"' . $PARENT . '","kind":"custom","isTopLevelItem":true} -->'
+        . '<!-- wp:navigation-link {"label":"Sources","type":"custom","url":"' . $PARENT . 'sources/","kind":"custom"} /-->'
+        . '<!-- wp:navigation-link {"label":"View Talent Intelligence Tracker \\u2192","type":"custom","url":"' . $PARENT . '","kind":"custom"} /-->'
+        . '<!-- /wp:navigation-submenu -->',
+        tit_test_menu($PARENT));
+    tit_test_reset($menu);
+    tit_test_sync();
+    echo json_encode(array('item' => tit_test_children(),
+                           'synced' => get_option('tit_nav_submenu_synced')));
+    exit(0);
+}
+
+if ($arg === '--stale-flag') {
+    // A deploy race: the new TIT_VERSION landed while the OLD nav_submenu.php
+    // (no view-first rule) was still on disk. A request in that window ran the
+    // old sync, found nothing to change, and stamped the flag with the new
+    // version. The new file must not trust that stamp.
+    $menu = str_replace(
+        '"url":"' . $PARENT . '","kind":"custom","isTopLevelLink":true} /-->',
+        '"url":"' . $PARENT . '","kind":"custom","isTopLevelItem":true} -->'
+        . '<!-- wp:navigation-link {"label":"Sources","type":"custom","url":"' . $PARENT . 'sources/","kind":"custom"} /-->'
+        . '<!-- wp:navigation-link {"label":"View Talent Intelligence Tracker","type":"custom","url":"' . $PARENT . '","kind":"custom"} /-->'
+        . '<!-- /wp:navigation-submenu -->',
+        tit_test_menu($PARENT));
+    tit_test_reset($menu);
+    $GLOBALS['tit_options']['tit_nav_submenu_synced'] = TIT_VERSION;   // the old file's stamp
+    tit_nav_submenu_sync();
+    echo json_encode(array('item' => tit_test_children()));
+    exit(0);
+}
+
 if ($arg === '--not-in-any-menu') {
     tit_test_reset('<!-- wp:navigation-link {"label":"Pricing","type":"custom","url":"/pricing","kind":"custom"} /-->');
     tit_test_sync();

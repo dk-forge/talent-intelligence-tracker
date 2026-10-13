@@ -455,6 +455,10 @@ function render($kind, $slug) {
 }
 
 check(route('country', 'united-kingdom')['action'] === 'render', 'a gated cell renders');
+$uk_page = render('country', 'united-kingdom');
+check(strpos($uk_page, 'class="tit-freshness') !== false
+      && strpos($uk_page, 'Last updated') !== false,
+      'a place page states, visibly, when it was last updated and from how many sources');
 
 $thin = route('country', 'israel');
 check($thin['action'] === 'redirect', 'a below-threshold cell does not render');

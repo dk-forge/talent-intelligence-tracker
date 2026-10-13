@@ -31,6 +31,19 @@ asktherecruiter.com with utm_campaign=whos_hiring. Pure code over existing rows,
 no model, no new collection. Routes are in `tit_route_modules()` so
 `tit_verify_routes()` repairs them after an FTP deploy.
 
+## 2026-10-13 - Visible "Last updated" + source count on company and place pages (1.101.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/test_freshness_line.py`, plus a check in `tests/php/render_place_pages.php`
+
+`dateModified` was in the JSON-LD but nowhere a reader could see it. New
+`includes/freshness.php` (`tit_freshness_line()`, pure) prints
+"Last updated <time> · N sources" under the h1 of every company and place page,
+from the rows the page already loaded: no new query (place budget still 7 cold),
+nothing stored. A future-dated row is clamped to today, the same rule the
+sitemaps apply to `<lastmod>`. Company profile gains `last_updated` (newest
+dated row). Sitemaps already carried `<lastmod>` (checked; no change).
+
 ## 2026-10-13 - Email redesign finish: this repo still sends no reader mail (guard added)
 
 **Class:** contract-drift (record only + guard)
