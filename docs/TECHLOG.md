@@ -13,6 +13,30 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-13 - GLEIF LEI on company profiles (plugin 1.103.1, was 1.99.2 before merging main; dormant until armed)
+
+**Class:** feature (owner-approved)
+**Guard:** `tests/test_lei.py`, `tests/test_company_lei_page.py`
+
+`gleif_lei.py` streams the GLEIF golden copy (CC0 1.0, no key, no model) and
+attaches an LEI only on a UNIQUE normalised-name match (case, accents,
+punctuation, trailing legal forms) whose legal-address country equals the
+employer's ONE known country (hq_country, else event country). Ambiguous, no
+country, or two countries: nothing. Country is required because the probe
+matched "Hook Media, Inc." (US) to "HÖÖK media AB" (SE). Only ACTIVE entities
+with a live registration (ISSUED/LAPSED/PENDING_*).
+
+Measured locally against the 2026-10-13 08:00 golden copy: 7,426 of 24,377
+employers (30.5%); a 25-row spot check was all correct. Output is the
+committed plugin file `data/company_lei.json`, NOT the database: the job is
+read-only on the DB and outside the talent-collect lock. The plugin prints
+"LEI: <code>" linked to search.gleif.org with a GLEIF attribution and adds
+`leiCode` + an `identifier` PropertyValue to the Organization JSON-LD.
+
+`gleif-lei.yml` runs Sundays 05:20 UTC as a DRY RUN until the repository
+variable `GLEIF_LEI_WRITE=true` is set; `gh workflow run gleif-lei.yml -f
+write=true` writes once. Readers see it only after the next plugin deploy.
+GLEIF Level-2 parent roll-up is a later slice.
 ## 2026-10-13 - Embeddable hub chart + snippet on the press page (1.103.0, PR, NOT deployed)
 
 **Class:** novel (owner-approved SEO work)

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.103.0
+ * Version: 1.103.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.103.0');
+define('TIT_VERSION', '1.103.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -56,6 +56,7 @@ tit_require('includes/page.php');
 // for the head link). Same FTP-race degradation as everything else.
 tit_require('includes/feed.php');
 tit_require('includes/company.php');
+tit_require('includes/company_lei.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.
 tit_require('includes/places.php');
