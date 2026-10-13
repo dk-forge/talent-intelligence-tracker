@@ -13,7 +13,7 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
-## 2026-10-13 - Tech-debt sweep: GDELT and SEC stored nothing (#246, #247), contrast audit off the box, deploy state, stray branch, Amazon $1B (no plugin change)
+## 2026-10-13 - Tech-debt sweep: GDELT and SEC stored nothing (#246, #247), contrast audit off the box, deploy state, stray branch, Amazon $1B (plugin 1.103.2)
 
 **Class:** collection outage x2 (root-caused), ops hygiene
 **Guard:** `tests/test_sec_edgar_newest_first.py`, `tests/test_collect_gdelt_off_the_box.py` (4 tests, all red on the old tree)
@@ -46,9 +46,18 @@ public site. This closes the 2026-09-23 entry below (the box lost its browser);
 the after-deploy check in `deploy-plugin.yml` still runs on the box, where
 Chrome is present again (green on 2026-10-13).
 
+**Main was red: a banned provider name in `company_lei.json`.** The first
+GLEIF refresh (eb324dc) wrote one employer whose own name contains a banned
+data-provider name into the plugin's public data file, so
+`test_no_provider_names` failed on main and on every PR. `gleif_lei.write_output`
+now drops any key `provider_names.contains()` flags, the entry is removed
+(7,426 -> 7,425), guard `tests/test_gleif_no_provider_names.py`. Because the
+file ships with the plugin and the live copy carried it, this bumps 1.103.2 and
+deploys.
+
 **"Releases waiting to deploy": none.** Live `talent/v1/source-health` reports
 `plugin_version` 1.103.1 and the page's assets load `?ver=1.103.1`, equal to
-`TIT_VERSION` on main. Nothing pending; this change touches no plugin file.
+`TIT_VERSION` on main. Nothing was pending before this change; 1.103.2 is deployed by it.
 
 **The stray branch that blanked the log, NOT deleted (owner decides):**
 `claude/ops-log-2026-10-05-money-basis` at `25c74373f`. It overwrote
