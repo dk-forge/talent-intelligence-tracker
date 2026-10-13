@@ -118,6 +118,11 @@ jobs:
       - name: Render the place pages and count their queries
         run: php tests/php/render_place_pages.php
 
+      # "Who's hiring" role pages reuse the place gate; what a thin cell answers
+      # (302, never a thin indexable page) is run against real SQL here.
+      - name: Render the role pages
+        run: php tests/php/render_role_pages.php
+
       # The dashboard is the page every reader lands on, and what it costs is
       # not visible in a diff: the shortcode runs a dozen aggregates over the
       # whole table, and what turns that into a slow page is one innocent query

@@ -40,7 +40,9 @@ function tit_require($relative) {
 
 tit_require('includes/db.php');
 tit_require('includes/seo_meta.php');
+tit_require('includes/dataset_schema.php');
 tit_require('includes/breadcrumbs.php');
+tit_require('includes/freshness.php');
 tit_require('includes/tiers.php');
 tit_require('includes/api.php');
 tit_require('includes/export.php');
@@ -57,6 +59,7 @@ tit_require('includes/company.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.
 tit_require('includes/places.php');
+tit_require('includes/roles.php');
 // Lists the company and places sitemaps in the SEO plugin's sitemap index.
 tit_require('includes/sitemap_index.php');
 tit_require('includes/sources.php');
@@ -342,7 +345,7 @@ function tit_verify_schema() {
  * returns the patterns themselves, so nothing here has to restate a route.
  */
 function tit_route_modules() {
-    return array('tit_company_rewrites', 'tit_places_rewrites', 'tit_embed_rewrites');
+    return array('tit_company_rewrites', 'tit_places_rewrites', 'tit_roles_rewrites', 'tit_embed_rewrites');
 }
 
 /**

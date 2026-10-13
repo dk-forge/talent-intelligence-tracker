@@ -907,6 +907,10 @@ function tit_dashboard_html() {
               ));
             ?></div>
             <span class="tit-fine-say">No figure appears unless its source states it.</span>
+            <?php if (function_exists('tit_primary_source_line_html')) {
+                echo tit_primary_source_line_html($facts);
+                echo tit_dataset_jsonld_html($facts);
+            } ?>
             <div class="tit-roo-row"><?php tit_roo($newest_run); ?></div>
           </div>
         </div>
