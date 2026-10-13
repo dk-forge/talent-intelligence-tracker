@@ -13,6 +13,20 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-13 - Embeddable hub chart + snippet on the press page (1.103.0, PR, NOT deployed)
+
+**Class:** novel (owner-approved SEO work)
+**Guard:** `tests/test_embed_chart.py`, checks in `tests/php/render_press.php`
+
+New `includes/embed.php`: `/talent-intelligence-tracker/embed/market-trend/`, a
+bare framable document (no theme, no JS, `frame-ancestors *`, noindex +
+canonical to the hub) drawing the dashboard's OWN market trend
+(`tit_market_trend` under the hub's unfiltered clause), with a visible
+"Source: Talent Intelligence Tracker · CC BY 4.0" backlink. The press page gains
+"Embed the Chart" (`#press-embed`) with an iframe snippet whose backlink sits
+OUTSIDE the iframe so attribution survives a blocked frame. Press page query
+budget unchanged (5 cold, 0 warm): the snippet is static.
+
 ## 2026-10-13 - Email redesign finish: this repo still sends no reader mail (guard added)
 
 **Class:** contract-drift (record only + guard)
