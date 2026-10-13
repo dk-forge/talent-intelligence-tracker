@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.99.0
+ * Version: 1.102.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.99.0');
+define('TIT_VERSION', '1.102.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -57,6 +57,7 @@ tit_require('includes/company.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.
 tit_require('includes/places.php');
+tit_require('includes/roles.php');
 // Lists the company and places sitemaps in the SEO plugin's sitemap index.
 tit_require('includes/sitemap_index.php');
 tit_require('includes/sources.php');
@@ -341,7 +342,7 @@ function tit_verify_schema() {
  * returns the patterns themselves, so nothing here has to restate a route.
  */
 function tit_route_modules() {
-    return array('tit_company_rewrites', 'tit_places_rewrites');
+    return array('tit_company_rewrites', 'tit_places_rewrites', 'tit_roles_rewrites');
 }
 
 /**
