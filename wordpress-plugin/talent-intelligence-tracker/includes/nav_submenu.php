@@ -68,6 +68,20 @@ const TIT_NAV_LOCK_TTL    = 60;
 const TIT_NAV_RETRY_EVERY = 300;
 
 /**
+ * THE DONE-FLAG IS KEYED TO THIS FILE'S LOGIC, NOT ONLY TO TIT_VERSION.
+ * The FTP mirror uploads the main plugin file (the new TIT_VERSION) before
+ * includes/, so a request mid-deploy can run the OLD copy of this file, find
+ * nothing it considers wrong, and stamp the flag with the new version. That is
+ * what kept "View Talent Intelligence Tracker" last after 1.99.1 (2026-10-13).
+ * Bump TIT_NAV_REV whenever the rebuild rule changes.
+ */
+const TIT_NAV_REV = 2;
+
+function tit_nav_done_key() {
+    return TIT_VERSION . '+nav' . TIT_NAV_REV;
+}
+
+/**
  * THE FOUR, IN THE ORDER A READER NEEDS THEM.
  *
  * Where did this come from, what does it cover, how much does it miss, what
@@ -194,6 +208,7 @@ function tit_nav_block_points_at($block, $url) {
  * this plugin has no standing to decide about it.
  */
 function tit_nav_rebuild_children($existing, $desired, $parent_url) {
+    $view = array();
     $kept = array();
     foreach ((array) $existing as $child) {
         $attrs = isset($child['attrs']) && is_array($child['attrs']) ? $child['attrs'] : array();
@@ -201,6 +216,12 @@ function tit_nav_rebuild_children($existing, $desired, $parent_url) {
         // Ours to manage: anything below the dashboard. Note the '/' so the
         // parent's own URL is not read as one of its own children.
         if ($url !== '' && $parent_url !== '' && strpos($url, $parent_url . '/') === 0) continue;
+        // An owner's item pointing AT the tracker itself ("View Talent
+        // Intelligence Tracker ->") is the way INTO the product: a dropdown
+        // parent opens the dropdown rather than navigating. It stays first.
+        // Before 2026-10-13 it was kept but appended after ours, so every
+        // deploy (the done-flag is TIT_VERSION) pushed it to the bottom again.
+        if ($url !== '' && $url === $parent_url) { $view[] = $child; continue; }
         $kept[] = $child;
     }
 
@@ -219,7 +240,7 @@ function tit_nav_rebuild_children($existing, $desired, $parent_url) {
             'innerContent' => array(),
         );
     }
-    return array_merge($mine, $kept);
+    return array_merge($view, $mine, $kept);
 }
 
 /**
@@ -380,9 +401,11 @@ function tit_nav_verify($parent_url, $desired) {
         $seen = true;
         if ($item['blockName'] !== 'core/navigation-submenu') return false;
         $got = array();
-        foreach ((array) $item['innerBlocks'] as $child) {
+        foreach ((array) $item['innerBlocks'] as $pos => $child) {
             $attrs = isset($child['attrs']) && is_array($child['attrs']) ? $child['attrs'] : array();
             $url = isset($attrs['url']) ? tit_nav_normalize_url($attrs['url']) : '';
+            // An item pointing at the tracker itself must be first.
+            if ($url !== '' && $url === $parent_url && $pos !== 0) return false;
             if ($url !== '' && strpos($url, $parent_url . '/') === 0) {
                 $got[$url] = isset($attrs['label']) ? $attrs['label'] : '';
             }
@@ -400,7 +423,7 @@ function tit_nav_verify($parent_url, $desired) {
  * re-checks, which is what carries a renamed heading into the menu.
  */
 function tit_nav_submenu_sync() {
-    if (get_option('tit_nav_submenu_synced') === TIT_VERSION) return;
+    if (get_option('tit_nav_submenu_synced') === tit_nav_done_key()) return;
 
     $last = (int) get_option('tit_nav_submenu_last_try', 0);
     if ($last && (time() - $last) < TIT_NAV_RETRY_EVERY) return;
@@ -445,7 +468,7 @@ function tit_nav_submenu_sync() {
         if (!$found_anywhere) return;
 
         if (tit_nav_verify($parent_url, $desired)) {
-            update_option('tit_nav_submenu_synced', TIT_VERSION, false);
+            update_option('tit_nav_submenu_synced', tit_nav_done_key(), false);
         }
     } finally {
         tit_nav_unlock();
