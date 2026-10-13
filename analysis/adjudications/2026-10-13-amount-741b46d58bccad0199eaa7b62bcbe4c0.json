@@ -1,0 +1,44 @@
+{
+ "key": "amount/741b46d58bccad0199eaa7b62bcbe4c0",
+ "label": "Amazon $1,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Amazon",
+  "headline": "Amazon pledges $1B to data center communities, warns that local opposition threatens U.S. AI lead",
+  "summary": "Amazon will spend over $1 billion over five years on community college, job training, and other programs in US communities that host its data centers. This initiative is a response to growing backlash that AWS CEO Matt Garman states threatens the country's lead in AI.",
+  "funding_amount": "$1B",
+  "funding_amount_usd": 1000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.geekwire.com/2026/amazon-pledges-1b-to-data-center-communities-warns-that-local-opposition-threatens-u-s-ai-lead/",
+  "source_name": "GeekWire",
+  "published_date": "2026-10-02",
+  "collector": "national_press",
+  "city": null,
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": "Seattle",
+  "hq_country": "US",
+  "published_at": "2026-10-04 23:39:21"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://www.geekwire.com/2026/amazon-pledges-1b-to-data-center-communities-warns-that-local-opposition-threatens-u-s-ai-lead/",
+ "evidence_chars": 10254,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-10-13T17:07:19+00:00"
+}
