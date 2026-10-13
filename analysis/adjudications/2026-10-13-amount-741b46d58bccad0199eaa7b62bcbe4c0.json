@@ -1,14 +1,30 @@
 {
  "key": "amount/741b46d58bccad0199eaa7b62bcbe4c0",
  "label": "Amazon $1,000,000,000",
- "status": "unknown",
+ "status": "agree-dry-run",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
  ],
  "verdicts": {
-  "anthropic/claude-sonnet-4.5": null,
-  "openai/gpt-4o": null
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "outbound_investment",
+   "recommended": "edit",
+   "corrected_amount": 1000000000,
+   "corrected_basis": "outbound_investment",
+   "confidence": 95,
+   "reasoning": "The source states \"Amazon says it will spend more than $1 billion over five years in the U.S. communities where it builds and operates data centers\" for community programs. This is Amazon spending money outward on community initiatives, not raising capital from investors. The text explicitly says Amazon \"will spend\" and describes it as funding for colleges, training, and local projects. This is outbound_investment, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "pledge",
+   "recommended": "edit",
+   "corrected_amount": null,
+   "corrected_basis": "pledge",
+   "confidence": 100,
+   "reasoning": "The source states, 'Amazon says it will spend more than $1 billion over five years in the U.S. communities where it builds and operates data centers.' This is a pledge, not a company raise, as it refers to future spending commitments rather than new capital received."
+  }
  },
  "row": {
   "company": "Amazon",
@@ -31,14 +47,19 @@
   "hq_country": "US",
   "published_at": "2026-10-04 23:39:21"
  },
- "cost_usd": 0.0,
+ "cost_usd": 0.022171,
  "cost_by_referee": {
-  "anthropic/claude-sonnet-4.5": 0.0,
-  "openai/gpt-4o": 0.0
+  "anthropic/claude-sonnet-4.5": 0.013149,
+  "openai/gpt-4o": 0.009022499999999998
  },
  "evidence_url": "https://www.geekwire.com/2026/amazon-pledges-1b-to-data-center-communities-warns-that-local-opposition-threatens-u-s-ai-lead/",
  "evidence_chars": 10254,
- "action": "keep",
- "correction": null,
- "written_at": "2026-10-13T17:07:19+00:00"
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "pledge"
+ },
+ "note": "two-model adjudication of amount/741b46d58bccad0199eaa7b62bcbe4c0, both referees say edit. corrected_amount=None corrected_basis=pledge. anthropic/claude-sonnet-4.5: The source states \"Amazon says it will spend more than $1 billion over five years in the U.S. communities where it builds and operates data centers\" for community programs. This is Amazon spending money outward on commun; openai/gpt-4o: The source states, 'Amazon says it will spend more than $1 billion over five years in the U.S. communities where it builds and operates data centers.' This is a pledge, not a company raise, as it refers to future spendin",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-13T18:31:50+00:00"
 }
