@@ -279,6 +279,22 @@ def test_a_retired_route_loses_its_item_and_an_owners_child_survives():
 
 
 @php_only
+def test_the_owners_view_item_stays_first():
+    """Owner report 2026-10-13: "View Talent Intelligence Tracker ->" kept
+    moving to the bottom of the dropdown. The sync kept it but appended it
+    after the four routes, on every deploy."""
+    r = run_json("--view-first")
+    kids = r["item"]["kids"]
+    assert kids[0]["url"] == PARENT, (
+        "the item that opens the tracker itself is at position %r, not first: %r"
+        % ([k["url"] for k in kids].index(PARENT) if PARENT in [k["url"] for k in kids] else None,
+           [k["label"] for k in kids]))
+    assert [k["url"] for k in kids].count(PARENT) == 1
+    assert [k["url"] for k in kids[1:]] == [PARENT + slug + "/" for slug, _f in ROUTES]
+    assert r["synced"] == "test", "the sync never verified with the view item present"
+
+
+@php_only
 def test_a_tracker_in_no_menu_writes_nothing():
     r = run_json("--not-in-any-menu")
     assert r["writes"] == 0, (
