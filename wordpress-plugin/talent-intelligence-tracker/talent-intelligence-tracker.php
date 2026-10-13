@@ -54,6 +54,7 @@ tit_require('includes/page.php');
 // for the head link). Same FTP-race degradation as everything else.
 tit_require('includes/feed.php');
 tit_require('includes/company.php');
+tit_require('includes/company_lei.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.
 tit_require('includes/places.php');

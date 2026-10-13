@@ -1031,6 +1031,10 @@ function tit_company_render($rows, $key, $profile) {
         <p class="tit-note"><?php echo esc_html(implode(' · ', $subhead)); ?></p>
       <?php endif; ?>
 
+      <?php // GLEIF LEI, only on a unique name + country match (includes/company_lei.php).
+      $lei = function_exists('tit_company_lei') ? tit_company_lei($company_key) : '';
+      if ($lei !== '') echo tit_company_lei_html($lei);  // built and escaped there ?>
+
       <p class="tit-note">
         Everything we hold on <?php echo esc_html($name); ?>, newest first.
         Every line links to the filing or report it came from.
@@ -1162,7 +1166,7 @@ function tit_company_render($rows, $key, $profile) {
     if ($profile['indexable']) : ?>
     <script type="application/ld+json"><?php
       $visible = array_slice($rows, 0, 10);
-      echo wp_json_encode(tit_company_jsonld($name, tit_company_url($company_key), $visible),
+      echo wp_json_encode(tit_company_jsonld($name, tit_company_url($company_key), $visible, $lei),
                           JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php endif;
@@ -1174,18 +1178,23 @@ function tit_company_render($rows, $key, $profile) {
  * is the subject of, each dated) plus the page itself, published by the
  * Organization "Ask The Recruiter" (SEO audit 2026-10-12 #5).
  */
-function tit_company_jsonld($name, $url, $visible) {
+function tit_company_jsonld($name, $url, $visible, $lei = '') {
     $items = array_map('tit_news_item_node', (array) $visible);
     $dates = array();
     foreach ($items as $it) if (!empty($it['dateModified'])) $dates[] = $it['dateModified'];
     $page = array('@type' => 'WebPage', 'url' => $url, 'name' => tit_company_display_name($name),
                   'about' => array('@id' => $url . '#employer'), 'publisher' => tit_publisher_org());
     if ($dates) $page['dateModified'] = max($dates);
+    $org = array('@type' => 'Organization', '@id' => $url . '#employer', 'name' => $name,
+                 'url' => $url, 'subjectOf' => $items);
+    // LEI only when one was asserted (GLEIF, unique name + country match).
+    if ($lei !== '' && function_exists('tit_company_lei_jsonld')) {
+        $org = array_merge($org, tit_company_lei_jsonld($lei));
+    }
     return array(
         '@context' => 'https://schema.org',
         '@graph'   => array(
-            array('@type' => 'Organization', '@id' => $url . '#employer', 'name' => $name,
-                  'url' => $url, 'subjectOf' => $items),
+            $org,
             $page,
         ),
     );

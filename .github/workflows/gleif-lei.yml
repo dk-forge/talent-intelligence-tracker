@@ -1,0 +1,88 @@
+name: gleif lei
+
+# Attach GLEIF Legal Entity Identifiers to employers (gleif_lei.py).
+#
+# WEEKLY, Sundays 05:20 UTC. The golden copy is republished three times a day,
+# but an employer's LEI almost never changes, so weekly is plenty.
+#
+# DRY RUN BY DEFAULT. The scheduled run only downloads, matches and prints the
+# coverage until the owner arms it by setting the repository variable
+# GLEIF_LEI_WRITE to 'true' (Settings > Secrets and variables > Actions >
+# Variables). A dispatch can write once with `-f write=true`:
+#
+#   gh workflow run gleif-lei.yml -R dk-forge/talent-intelligence-tracker -f write=true
+#
+# A write commits ONE generated file, the plugin's data/company_lei.json. It
+# then reaches readers on the next plugin deploy, which stays a human step.
+#
+# NOT A DATABASE WRITER. It opens the committed database read-only and never
+# names it here (tests/test_workflows.py classifies writers by that literal),
+# so it is outside the talent-collect lock and the drain-writers queue.
+# Free: GLEIF data is CC0, no key, no model.
+
+on:
+  schedule:
+    - cron: '20 5 * * 0'      # Sundays 05:20 UTC
+  workflow_dispatch:
+    inputs:
+      write:
+        description: "Commit company_lei.json (false = dry run)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: talent-gleif-lei
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  gleif-lei:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Match
+        env:
+          WRITE: ${{ inputs.write == true || (github.event_name == 'schedule' && vars.GLEIF_LEI_WRITE == 'true') }}
+        run: |
+          if [ "$WRITE" = "true" ]; then
+            python gleif_lei.py --write
+          else
+            python gleif_lei.py
+          fi
+
+      - name: Commit company_lei.json
+        if: ${{ inputs.write == true || (github.event_name == 'schedule' && vars.GLEIF_LEI_WRITE == 'true') }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          path=wordpress-plugin/talent-intelligence-tracker/data/company_lei.json
+          cp "$path" "$RUNNER_TEMP/company_lei.json"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/company_lei.json" "$path"
+            git add "$path"
+            if git diff --staged --quiet; then
+              echo "No change to commit."
+              exit 0
+            fi
+            git commit -q -m "gleif: refresh company LEIs $(date -u +%Y-%m-%d)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), replaying onto current main."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not push company_lei.json after 5 attempts."
+          exit 1
