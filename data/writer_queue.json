@@ -252,71 +252,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-13T19:41:32Z",
-      "history": [
-        {
-          "at": "2026-10-13T19:41:27Z",
-          "detail": "push Amazon 741b46d5 money_basis pledge revision live (owner ruling E 2026-10-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-13T19:41:32Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261013T194127Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "push Amazon 741b46d5 money_basis pledge revision live (owner ruling E 2026-10-13)",
-      "requested_at": "2026-10-13T19:41:27Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-04T11:00:33Z",
-      "history": [
-        {
-          "at": "2026-10-04T10:26:36Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-04T11:00:33Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-04T11:17:09Z",
-          "detail": "run 37197248557",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-04T11:27:49Z",
-          "detail": "run 37197248557",
-          "event": "landed"
-        }
-      ],
-      "id": "20261004T102636Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-04T11:27:49Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-04T10:26:36Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "37197248557",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-04T11:27:49Z",
       "history": [
         {
@@ -2562,6 +2497,44 @@
       "requested_at": "2026-10-13T19:33:31Z",
       "requested_by": "dakotta-labs",
       "run_id": "38455807126",
+      "state": "landed",
+      "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-13T19:41:32Z",
+      "history": [
+        {
+          "at": "2026-10-13T19:41:27Z",
+          "detail": "push Amazon 741b46d5 money_basis pledge revision live (owner ruling E 2026-10-13)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-13T19:41:32Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-13T19:44:38Z",
+          "detail": "run 38456856662",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-13T19:44:38Z",
+          "detail": "run 38456856662",
+          "event": "landed"
+        }
+      ],
+      "id": "20261013T194127Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-13T19:44:38Z",
+      "priority": 0,
+      "reason": "push Amazon 741b46d5 money_basis pledge revision live (owner ruling E 2026-10-13)",
+      "requested_at": "2026-10-13T19:41:27Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "38456856662",
       "state": "landed",
       "workflow": "enrich.yml"
     }
