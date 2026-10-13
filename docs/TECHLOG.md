@@ -13,6 +13,85 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-13 - Tech-debt sweep: GDELT and SEC stored nothing (#246, #247), contrast audit off the box, deploy state, stray branch, Amazon $1B (no plugin change)
+
+**Class:** collection outage x2 (root-caused), ops hygiene
+**Guard:** `tests/test_sec_edgar_newest_first.py`, `tests/test_collect_gdelt_off_the_box.py` (4 tests, all red on the old tree)
+
+**#247 sec_edgar stored 0 on three runs (2026-10-10..12).** Every run read
+`found=11 ... already-seen=11`. EFTS orders hits by RELEVANCE, not date
+(measured live today: the first hits of a 7-day "item 5.02" window ran
+10-07, 10-07, 10-07, 10-09, 10-06 ...), and `collect()` kept the first four per
+phrase, so the same highly ranked, already-seen filings came back every day
+while that day's filings sat further down the page. `collectors/sec_edgar.py`
+now sorts each phrase's hits by `file_date`, newest first, before the cap. No
+filter, cap or spend changed.
+
+**#246 gdelt stored 0 from 2026-10-05.** Ten queries took 14 minutes and
+fetched nothing, with no query rejected: every one was throttled out (429).
+The sibling tracker's daily ingest moved onto the same Contabo box on
+2026-10-05 (`ingest-cron-vps.yml`, 22:00 UTC), and when its BigQuery quota runs
+out it walks the same GDELT DOC API ("GDELT 429 (attempt 5/5)" in its own
+22:00 log on 10-12). GDELT throttles by IP, so from 10-05 on our 22:00 run met
+an address GDELT had already throttled. `source_health` shows the cliff: 64-143
+found per run up to 10-04, 0-1 every run since. Fix: on the box the Collect
+loop skips gdelt, and a new `collect-gdelt` job runs it on `ubuntu-latest`
+(own egress) after `collect`, under the same workflow lock and the same
+merge-and-push commit. GDELT needs no whitelisted address. Revert by deleting
+the job and the `continue` in the loop. First proof is the next 22:00 run.
+
+**Contrast audit off the self-hosted box.** `contrast-audit.yml` now runs on
+`ubuntu-latest` (ships Chrome; public repo, free minutes). It only reads the
+public site. This closes the 2026-09-23 entry below (the box lost its browser);
+the after-deploy check in `deploy-plugin.yml` still runs on the box, where
+Chrome is present again (green on 2026-10-13).
+
+**"Releases waiting to deploy": none.** Live `talent/v1/source-health` reports
+`plugin_version` 1.103.1 and the page's assets load `?ver=1.103.1`, equal to
+`TIT_VERSION` on main. Nothing pending; this change touches no plugin file.
+
+**The stray branch that blanked the log, NOT deleted (owner decides):**
+`claude/ops-log-2026-10-05-money-basis` at `25c74373f`. It overwrote
+`docs/TECHLOG.md` to 91 bytes, was never merged, and main's log is intact. The
+note it left (`docs/TECHLOG_PENDING_2026-10-05.md`) is folded in below and the
+file removed. Delete with
+`git push origin --delete claude/ops-log-2026-10-05-money-basis` if wanted.
+
+**Amazon $1B, still open, owner decision, data untouched.** Row
+`741b46d58bccad0199eaa7b62bcbe4c0`, "Amazon pledges $1B to data center
+communities" (geekwire), pillar `company_development`, `funding_amount_usd`
+1,000,000,000. `money-basis-check.yml` has been red on it daily (latest run
+38360693964, 2026-10-13). The owner must choose: queue the two-referee
+adjudication (command in the 2026-10-05 entry below) so it stops being summed
+as a raise, or rule that it stays.
+
+## 2026-10-05 - ops check: `money-basis-check.yml` FAIL (figure contradiction), reported only
+
+**Class:** data-integrity live FAIL (figure), human adjudication required
+**Guard:** none new — `correct_money_basis.py --check` is the existing guard; this is its designed FAIL output, not a code defect
+
+Found by the hourly ops check (07:3x UTC run). `money-basis-check.yml`'s latest
+completed run (run 37277006785, 2026-10-05 07:18 UTC) went red on its own
+built-in `FAIL figure` case, after the prior run (39, 2026-10-04 08:44 UTC) was
+green — this is new since the last check.
+
+Exact output: 1 published row is summed at a figure the text attributes to
+something other than a raise ("Amazon pledges $1B to data center communities")
+— `project cost`, not a raise, for $1.00bn. Row key `741b46d58bccad0199eaa7b62bcbe4c0`.
+The check itself names the fix: two referees must adjudicate, which this
+routine cannot do per CLAUDE.md ("Never apply a correction spec. An open
+data-integrity FAIL is closed by a human; report it, do not touch it."):
+
+```
+gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
+  -f inputs_json='{"rows":"741b46d58bccad0199eaa7b62bcbe4c0","reason":"stored amount is a valuation, project cost, purchase price or revenue figure","dry_run":"false"}' \
+  -f reason='money figure contradictions'
+```
+
+No code pushed, no workflow dispatched. Reported in the same run's
+asktherecruiter-sandbox#1259 comment; needs Dakotta to queue the
+`adjudicate-rows.yml` ticket above (or rule otherwise).
+
 ## 2026-10-13 - GLEIF LEI on company profiles (plugin 1.103.1, was 1.99.2 before merging main; dormant until armed)
 
 **Class:** feature (owner-approved)

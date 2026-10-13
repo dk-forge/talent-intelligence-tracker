@@ -59,7 +59,12 @@ permissions:
 
 jobs:
   audit:
-    runs-on: [self-hosted, linux, contabo]
+    # GitHub-hosted since 2026-10-13. The audit reads only the public site, so
+    # it needs no whitelisted address, and the self-hosted box lost its
+    # browser once already (2026-09-23: "Confirm a browser exists" failed and
+    # the guard went dark until someone reinstalled Chrome). ubuntu-latest
+    # ships google-chrome; this repository is public, so the minutes are free.
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
