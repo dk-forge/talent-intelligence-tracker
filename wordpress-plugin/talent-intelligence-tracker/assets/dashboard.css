@@ -4012,6 +4012,48 @@ html:has(.tit-main), body:has(.tit-main) {
   }
 }
 
+/* 1.105.1: the intro paragraph (1.105.0) is inserted after the page's </h1>
+   and the FAQ section and Related row just inside the last </main>, all of
+   them OUTSIDE .tit-wrap, so the block above never reached them. The deploy
+   verifier measured `p.tit-page-intro rgb(42,42,42) on rgb(20,22,27) =
+   1.26:1` on the dark dashboard (run 38556449188, 2026-10-14). Same shape
+   of fix: the site rule's own scope plus OUR class, one class more specific,
+   never wider. Light untouched. */
+:root[data-theme="dark"] .entry-content .tit-page-intro,
+:root[data-theme="dark"] .entry-content .tit-page-faq p,
+:root[data-theme="dark"] .entry-content .tit-page-faq h2,
+:root[data-theme="dark"] .entry-content .tit-page-faq h3,
+:root[data-theme="dark"] .entry-content .tit-related p,
+:root[data-theme="dark"] .wp-block-post-content .tit-page-intro,
+:root[data-theme="dark"] .wp-block-post-content .tit-page-faq p,
+:root[data-theme="dark"] .wp-block-post-content .tit-page-faq h2,
+:root[data-theme="dark"] .wp-block-post-content .tit-page-faq h3,
+:root[data-theme="dark"] .wp-block-post-content .tit-related p {
+  color: var(--tit-ink) !important;
+}
+:root[data-theme="dark"] .entry-content .tit-page-faq h2,
+:root[data-theme="dark"] .wp-block-post-content .tit-page-faq h2 {
+  border-bottom-color: var(--tit-line) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .entry-content .tit-page-intro,
+  :root:not([data-theme="light"]) .entry-content .tit-page-faq p,
+  :root:not([data-theme="light"]) .entry-content .tit-page-faq h2,
+  :root:not([data-theme="light"]) .entry-content .tit-page-faq h3,
+  :root:not([data-theme="light"]) .entry-content .tit-related p,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-page-intro,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-page-faq p,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-page-faq h2,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-page-faq h3,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-related p {
+    color: var(--tit-ink) !important;
+  }
+  :root:not([data-theme="light"]) .entry-content .tit-page-faq h2,
+  :root:not([data-theme="light"]) .wp-block-post-content .tit-page-faq h2 {
+    border-bottom-color: var(--tit-line) !important;
+  }
+}
+
 /* The same rule draws a 2px line under every h2 and declares that line's
    colour as a literal too. On the dark page #eef3ee is a near-white band
    under every section heading. It is the same defect as the ink and it was

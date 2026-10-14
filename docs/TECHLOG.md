@@ -1,3 +1,12 @@
+## 2026-10-14 - Dark theme: the intro paragraph rendered #2a2a2a on #14161b (1.105.1)
+
+**Class:** wrong scope (the 2026-08 override of the site snippet is scoped to `.tit-wrap`; the 1.105.0 intro, FAQ and Related row render outside it)
+**Guard:** the deploy's "Check what the deployed page renders as" step, which caught it (run 38556449188: `p.tit-page-intro rgb(42,42,42) on rgb(20,22,27) = 1.26:1`, need 4.5, dashboard dark at 1280 and 375), plus `tests/test_rendered_contrast.py` (scope guard: no bare `.entry-content p`).
+
+The site snippet sets `.entry-content p { color:#2a2a2a !important }`; the plugin beats it in dark only inside `.tit-wrap`. `page_faq.php` inserts the intro after `</h1>` and the FAQ inside the last `</main>`, `related_links.php` likewise - outside the wrapper. 1.105.1 adds the same shape of rule for `.tit-page-intro`, `.tit-page-faq p/h2/h3` (and the h2 border) and `.tit-related p`. Light untouched. Same defect, same day, same fix as ai-layoff-tracker 2.20.257.
+
+**Version 1.105.1 reserved here** (this repo has no HANDOFF baton; 1.105.0 shipped in #263).
+
 # Tech Log — Talent Intelligence Tracker
 
 Chronological record of what was built, why, what broke, and how it was fixed.
