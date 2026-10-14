@@ -113,7 +113,7 @@ def test_a_syndicated_copy_is_dropped_before_anything_is_paid(monkeypatch):
     monkeypatch.setattr(gdelt, "fetch", lambda *a, **k: gdelt.parse(payload(ARTICLE, mirror)))
 
     gdelt.reset_stats()
-    items = gdelt.collect(["q"])
+    items = gdelt.collect_doc(["q"])
     assert len(items) == 1
     assert gdelt.STATS["syndicated"] == 1
 
@@ -124,8 +124,8 @@ def test_de_duplication_can_be_carried_across_windows(monkeypatch):
     monkeypatch.setattr(gdelt, "fetch", lambda *a, **k: gdelt.parse(payload(ARTICLE)))
 
     urls, titles = set(), set()
-    first = gdelt.collect(["q"], seen_urls=urls, seen_titles=titles)
-    second = gdelt.collect(["q"], seen_urls=urls, seen_titles=titles)
+    first = gdelt.collect_doc(["q"], seen_urls=urls, seen_titles=titles)
+    second = gdelt.collect_doc(["q"], seen_urls=urls, seen_titles=titles)
     assert len(first) == 1 and second == []
 
 
@@ -184,7 +184,7 @@ def test_windows_are_one_day_and_cover_the_last_day_inclusive():
 def test_a_month_of_world_news_that_came_back_empty_exits_non_zero(monkeypatch, tmp_path):
     """The first SEC backfill dispatch exited 0 after five silent 403s and
     looked exactly like a successful run that found nothing."""
-    monkeypatch.setattr(backfill.gdelt, "collect", lambda *a, **k: [])
+    monkeypatch.setattr(backfill.gdelt, "collect_doc", lambda *a, **k: [])
     monkeypatch.setattr(backfill.schema, "connect",
                         lambda *a, **k: __import__("sqlite3").connect(":memory:"))
     monkeypatch.setattr(backfill.publish, "publish", lambda *a, **k: None)
