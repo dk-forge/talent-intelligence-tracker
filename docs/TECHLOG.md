@@ -13,6 +13,41 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-14 - Zero-store issues: sec_edgar false merge fixed (#258), gdelt is external throttling, not fixed (#257)
+
+**Class:** collection outage x2 (one root-caused and fixed, one external)
+**Guard:** `tests/test_collector_and_store.py::test_a_later_8k_by_the_same_filer_is_not_a_near_identical_rewrite` (red on the old tree), plus `...inside_the_same_event_window_still_collapses` pinning that the 14-day rule did not loosen
+
+**#258 sec_edgar.** The #247 newest-first sort worked: the 2026-10-13 run read
+4 filings nobody had seen and bought 4 reads. All 4 were then stored as
+`duplicate` (`seen_urls` outcome). One was real: Harmony Biosciences' CEO 8-K,
+already held from google_news on 10-12. At least one was a false merge. XMax
+Inc.'s 2026-10-09 8-K was dropped against its 2026-07-06 8-K. The collector
+stamps one templated headline, "<Company> 8-K filing (Item 5.02): officer or
+director change", on every filing, so `dedupe.fuzzy_duplicate`'s 400-day
+near-identical-headline test (Jaccard >= 0.85) scored two filings by one filer
+at 1.0, whatever they report. Fix in the owning layer (`pipeline/dedupe.py`):
+when both headlines are an "8-K filing" template, the near-identical test does
+not apply. The 14-day same-event window is unchanged, so an 8-K and its 8-K/A
+still collapse. Changing the headline instead (for example, by adding the date)
+was rejected: Jaccard on a long filer name plus a one-token difference still
+crosses 0.85. EFTS, the User-Agent and the date window all checked live and
+fine today (HTTP 200, 127 hits for "item 5.02" in 7 days).
+
+**#257 gdelt: NOT fixed. No code fix exists.** The #246 move to a hosted
+runner did not help. The first `collect-gdelt` job (2026-10-13 22:44, ubuntu-latest)
+also logged `found=0` and exited 1. I measured from a third, unrelated egress
+on 2026-10-14. Through `gdelt.fetch`'s own ladder, 12 of 12 attempts across 3
+production queries returned 429 ("Please limit requests to one every 5
+seconds"). With curl at 20-30 s spacing, 8 of 9 returned 429, and the one 200
+was `{}`. GDELT is throttling from the self-hosted box, from GitHub-hosted
+runners and from an unrelated address. That is GDELT's side. Options are owner
+calls: wait it out, ask GDELT for higher-volume access (the 429 body names a
+contact), or move discovery to the GDELT BigQuery/ngrams datasets. Also open:
+a fully throttled run's health row reads "0 dup, 0 rejected, 0 deferred" and
+does not say that the reason was 429. `gdelt.STATS["throttled_out"]` is counted
+but never reported.
+
 ## 2026-10-13 - Tech-debt sweep: GDELT and SEC stored nothing (#246, #247), contrast audit off the box, deploy state, stray branch, Amazon $1B (plugin 1.103.2)
 
 **Class:** collection outage x2 (root-caused), ops hygiene
