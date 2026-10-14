@@ -58,7 +58,8 @@ or directly with
   - *Everything filtered.* A new query term that the prefilter does not know. Pillar phrases are shared with the gate, and `tests/test_pillar_vocabulary.py` enforces that. Other new terms need a prefilter entry.
 
 ### `gdelt`, `sec_edgar`, `sec_form_d` (collect.yml sweep, daily 22:00 UTC)
-- **gdelt:** `found = 0` for days in a row on the box (09-17..20) is suspected egress blocking. Try `TIT_RUNNER=hosted` for one run and compare.
+- **gdelt (since 2026-10-14, #257):** discovery reads the newest English GKG 15-minute files from `data.gdeltproject.org/gdeltv2/` (no rate limit), not the DOC API. `GDELT_RAW_FILES` (default 4, cap 12) sets how many. The health detail leads with `GDELT THROTTLED: n` or `GDELT FILES FAILED: n` when a run lost files; a `FETCH FAILED ... lastupdate.txt` error means the index itself was unreachable. Check `curl -sS https://data.gdeltproject.org/gdeltv2/lastupdate.txt`.
+- **gdelt (before 2026-10-14):** `found = 0` for days in a row on the box (09-17..20) is suspected egress blocking. Try `TIT_RUNNER=hosted` for one run and compare.
 - **sec_edgar** (8-K 5.02) and **sec_form_d:** these need a descriptive User-Agent, which is set in the collector. `403` from SEC means the UA or the rate. A thin row count (single digits a week) is normal.
 - One source failing does not stop the others in the loop. The step goes red at the end.
 
