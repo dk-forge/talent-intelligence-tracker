@@ -4147,3 +4147,15 @@ html:has(.tit-main), body:has(.tit-main) {
   --alt-crit: var(--tit-cutting);
   --alt-crit-border: var(--tit-red-ring);
 }
+
+/* SEO route B (1.104.0, ai-layoff-tracker#446). The weekly totals under the
+   market chart scroll inside their own box at 375px; the Related row wraps. */
+.tit-market-totals { margin-top: 12px; }
+.tit-market-totals-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.tit-market-totals-table caption { text-align: left; padding: 6px 0; }
+.tit-market-totals-table th, .tit-market-totals-table td { padding: 4px 8px; text-align: right; white-space: nowrap; }
+.tit-market-totals-table th[scope="row"], .tit-market-totals-table thead th:first-child { text-align: left; font-weight: 400; }
+.tit-related { margin: 24px 0 8px; }
+.tit-related-h { font-size: 1rem; margin: 0 0 6px; }
+.tit-related-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.tit-related-list a { overflow-wrap: anywhere; }

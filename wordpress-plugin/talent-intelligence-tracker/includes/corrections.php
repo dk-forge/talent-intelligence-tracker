@@ -543,7 +543,7 @@ function tit_corrections_render($entries) {
       </p>
     </div>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('corrections'); else get_footer();
 }
 
 function tit_corrections_title($title) {

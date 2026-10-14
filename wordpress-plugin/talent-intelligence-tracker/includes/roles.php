@@ -398,7 +398,7 @@ function tit_role_render($current) {
     ) + ($facts['hi'] && $facts['hi'] <= gmdate('Y-m-d') ? array('dateModified' => $facts['hi']) : array()),
       JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP); ?></script>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('role'); else get_footer();
 }
 
 /* --- directory, head, sitemap ------------------------------------------- */
@@ -420,7 +420,7 @@ function tit_roles_directory_template() {
       </ul>
     </div>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('roles'); else get_footer();
     exit;
 }
 add_action('template_redirect', 'tit_roles_directory_template');

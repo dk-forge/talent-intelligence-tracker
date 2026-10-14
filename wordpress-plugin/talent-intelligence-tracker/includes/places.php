@@ -1208,7 +1208,7 @@ function tit_place_render($kind, $cell, $facts) {
       $pillars = array_filter($facts['pillars']);
       if ($pillars) : arsort($pillars); $pillar_max = max($pillars); ?>
         <h2 class="tit-place-h2">What The Updates Are About</h2>
-        <div class="tit-pillars">
+        <div class="tit-pillars" role="group" aria-label="What the updates are about">
           <?php foreach ($pillars as $pillar => $n) : ?>
             <div class="tit-pillar">
               <div class="tit-pillar-head">
@@ -1363,7 +1363,7 @@ function tit_place_render($kind, $cell, $facts) {
       ) + tit_place_page_dates($listed), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('place'); else get_footer();
 }
 
 /*
@@ -1486,7 +1486,7 @@ function tit_places_render() {
       </p>
     </div>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('places'); else get_footer();
 }
 
 /*

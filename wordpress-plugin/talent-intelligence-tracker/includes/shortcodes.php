@@ -2013,6 +2013,7 @@ function tit_dashboard_html() {
                aria-describedby="<?php echo esc_attr(tit_chart_note_id('market')); ?>">
             <?php echo tit_market_trend_html($market); ?>
           </div>
+          <?php if (function_exists('tit_market_totals_table_html')) echo tit_market_totals_table_html($market); ?>
         </div>
       </div>
 
@@ -2476,6 +2477,7 @@ function tit_dashboard_html() {
                  leave unreachable. */ ?>
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/press/')); ?>">Press</a>
       </p>
+      <?php if (function_exists('tit_related_links_html')) echo tit_related_links_html('dashboard'); ?>
     </div>
     <?php
     return ob_get_clean();
