@@ -330,3 +330,48 @@ def test_duplicate_verdict_and_store_cannot_disagree(conn, signal):
 
     assert store.duplicate_verdict(conn, signal) == "duplicate"
     assert store.store(conn, signal) == "duplicate"
+
+
+def _sec_502(date, accession):
+    """A record as collectors/sec_edgar.py builds it when the read-through
+    keeps the collector's own templated headline (Sidus, Global Arena, XMax)."""
+    return validate.build_signal(
+        {
+            "company": "XMax Inc.", "pillar": "leadership_change",
+            "signal_direction": "neutral", "country": "United States",
+            "confidence": "verified",
+            "headline": "XMax Inc. 8-K filing (Item 5.02): officer or director change",
+            "summary": "XMax Inc. reported an officer change.",
+            "talent_readthrough": "Officer change.",
+        },
+        {
+            "raw_text": "XMax Inc. 8-K filing (Item 5.02)",
+            "source_url": ("https://www.sec.gov/Archives/edgar/data/1473334/"
+                           f"{accession}/form8-k.htm"),
+            "source_name": "SEC EDGAR",
+            "published_date": date,
+        },
+        "sec_edgar",
+    )
+
+
+def test_a_later_8k_by_the_same_filer_is_not_a_near_identical_rewrite(conn):
+    """#258: sec_edgar stored 0 rows on 3 runs. The collector stamps ONE
+    templated headline on every Item 5.02 filing, so the 400-day
+    near-identical-headline test (Jaccard >= 0.85) read a filer's October 8-K
+    as a rewrite of its July one: XMax Inc.'s 2026-10-09 filing was dropped as
+    a duplicate of its 2026-07-06 filing, three months and one event apart.
+    A template says nothing about the event, so it cannot be the evidence that
+    two filings are one event. The 14-day same-event window still applies."""
+    assert store.store(conn, _sec_502("2026-07-06", "000149315226032173")) == "stored"
+    october = _sec_502("2026-10-09", "000149315226046838")
+    assert dedupe.fuzzy_duplicate(conn, october) is None
+    assert store.store(conn, october) == "stored"
+
+
+def test_a_templated_8k_inside_the_same_event_window_still_collapses(conn):
+    """The fix above must not loosen the 14-day rule: an 8-K and its 8-K/A
+    four days apart are one development."""
+    store.store(conn, _sec_502("2026-10-05", "000149315226046028"))
+    assert dedupe.fuzzy_duplicate(
+        conn, _sec_502("2026-10-09", "000149315226046139")) is not None

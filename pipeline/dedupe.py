@@ -18,6 +18,17 @@ SAME_EVENT_DAYS = 14
 # later, so a near-identical headline gets a much wider window.
 NEAR_IDENTICAL_DAYS = 400
 
+# A headline a COLLECTOR wrote, not one anybody published. sec_edgar stamps
+# "<Company> 8-K filing (Item 5.02): officer or director change" on every
+# filing it fetches (benchmark_chase "<Company> 8-K filing"), so two of them
+# from one filer are word-for-word identical whatever they report. The
+# near-identical test reads headline overlap as "one story, re-reported", and on
+# a template that is no evidence at all: it dropped every second 5.02 filing a
+# company made within 400 days (#258, 2026-10-14: XMax Inc.'s October 8-K read
+# as a rewrite of its July one, and sec_edgar stored 0 on 3 runs). The 14-day
+# same-event window above it is untouched: an 8-K and its 8-K/A still collapse.
+_FILING_TEMPLATE = re.compile(r"\b8-K filing\b", re.I)
+
 
 def exact_duplicate(conn: sqlite3.Connection, content_hash: str) -> str | None:
     """Return why this hash is already known, or None.
@@ -127,6 +138,9 @@ def fuzzy_duplicate(conn: sqlite3.Connection, signal) -> str | None:
         (signal.company_key, signal.pillar, wide_start, wide_end),
     ).fetchall()
 
+    if _FILING_TEMPLATE.search(signal.headline or ""):
+        candidates = [row for row in candidates
+                      if not _FILING_TEMPLATE.search(row["headline"] or "")]
     for row in candidates:
         if _token_overlap(row["headline"], signal.headline) >= 0.85:
             return row["signal_id"]
