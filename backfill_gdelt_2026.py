@@ -361,7 +361,7 @@ def main() -> int:
         windows += 1
         errors_before = (gdelt.STATS["throttled_out"]
                          + gdelt.STATS["rejected_queries"])
-        items = gdelt.collect(queries, startdatetime=lo, enddatetime=hi,
+        items = gdelt.collect_doc(queries, startdatetime=lo, enddatetime=hi,
                               seen_urls=seen_urls, seen_titles=seen_titles)
         fetched += len(items)
         window_errors = (gdelt.STATS["throttled_out"]

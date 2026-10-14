@@ -191,6 +191,23 @@ def free_gate(item: dict, *, skip_prefilter: bool = False) -> tuple[bool, str]:
     return prefilter.passes(item.get("raw_text", ""))
 
 
+def source_markers(source: str) -> str:
+    """Collector-specific health markers, placed with the others at the FRONT
+    of the detail (ops_status prints only its first 70 characters).
+
+    gdelt: a run throttled out by GDELT read "0 dup, 0 rejected, 0 deferred"
+    and named no cause for weeks (#257), although the collector counted every
+    429 in STATS["throttled_out"]. Now the count reaches the health row."""
+    if source != "gdelt":
+        return ""
+    note = ""
+    if gdelt.STATS.get("throttled_out"):
+        note += f"GDELT THROTTLED: {gdelt.STATS['throttled_out']} | "
+    if gdelt.STATS.get("files_failed"):
+        note += f"GDELT FILES FAILED: {gdelt.STATS['files_failed']} | "
+    return note
+
+
 def build_queries(run_index: int, source: str = "google_news") -> list[str]:
     """Layer 1 broad sweep + a rotating slice of the segment matrix, plus the
     standalone euphemism queries that must never be AND-ed with the base
@@ -1260,6 +1277,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     if deadline_stopped:
         markers += f"DEADLINE: {deadline_stopped} unread | "
     markers += resolve_note
+    markers += source_markers(source)
     if throttled_slots:
         markers += f"THROTTLED: {throttled_slots} | "
 

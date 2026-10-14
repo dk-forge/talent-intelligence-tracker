@@ -29,6 +29,28 @@ REST namespace. Never write one repo's state into the other's docs.
 **Related map:** Dashboard -> Places, Who's Hiring, Measured Recall, Data Sources. Sources -> Tracker, Measured Recall, Corrections. Press -> Tracker, Places, Corrections, Data Sources. Recall -> Tracker, Corrections, Data Sources. Corrections -> Tracker, Measured Recall, Data Sources. Places directory -> Tracker, Who's Hiring, Data Sources. Place -> Places, Tracker, Data Sources. Roles directory -> Tracker, Places, Data Sources. Role -> Who's Hiring, Tracker, Data Sources. Company -> Tracker, Places, Data Sources.
 
 Not deployed: the session that merges runs `deploy-plugin.yml`.
+## 2026-10-14 - gdelt discovery moved to GDELT's raw 15-minute files (#257)
+
+**Class:** collection outage (external throttling), fixed by changing source
+**Guard:** `tests/test_gdelt_raw_files.py` (12 tests, red on the old tree)
+
+The DOC 2.0 API 429s from every network we tried (entry below), so the daily
+`collect()` no longer calls it. It downloads the newest English GKG 2.0 files
+listed by `lastupdate.txt` (default 4 = one hour, `GDELT_RAW_FILES`, hard cap
+12, sequential, 2 s apart). Static files, no key, no rate limit. An article is
+selected when its title or URL slug carries a quoted phrase of `GDELT_QUERIES`,
+or when GDELT tagged it with a signal theme (RECRUITMENT, APPOINTMENT,
+RESIGNATION, job creation, CEO/CxO, wages, funding) and its title passes the
+free employment prefilter. Items keep the old shape, so classify, validate
+and store are unchanged. Live run today: 4 of 4 files, 4,465 articles
+scanned, 112 selected after title dedup (Tesco hiring 28,000, Aegean's new
+CEO, a Series A). The phrases alone matched 0 titles: DOC matched article
+bodies, and GKG gives only the title, which is why themes carry the selection.
+Known trade: GKG has no outlet country, so the dateline hint is domain only.
+The 2026 backfill still needs DOC's date-ranged archive and now calls
+`gdelt.collect_doc()`. The health row now leads with `GDELT THROTTLED: n` /
+`GDELT FILES FAILED: n` (`run_collect.source_markers`), closing the "three
+zeroes, no cause" gap the entry below names.
 
 ## 2026-10-14 - Zero-store issues: sec_edgar false merge fixed (#258), gdelt is external throttling, not fixed (#257)
 
