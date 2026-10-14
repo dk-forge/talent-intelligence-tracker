@@ -151,6 +151,24 @@ def test_empty_content_renders_nothing():
     assert _php("echo tit_page_faq_intro_html(null) . tit_page_faq_section_html(null);") == ""
 
 
+@needs_php
+def test_dashboard_intro_lands_inside_tit_wrap():
+    # Every other route echoes tit_page_faq_intro() INSIDE its own <div
+    # class="tit-wrap">; the dashboard is composed afterwards by
+    # tit_page_faq_wrap_html(), which must put the intro in the same place.
+    # dashboard.css only themes `.tit-wrap p` for dark mode (the site's own
+    # `.entry-content p { color:#2a2a2a !important }` wins otherwise), so an
+    # intro sitting ahead of the wrapper renders unreadable in dark mode even
+    # though every other page's intro is fine.
+    out = _php(
+        "$html = '<div class=\"tit-wrap\" id=\"tit-dashboard\"><p>inner</p></div>';"
+        "echo tit_page_faq_wrap_html($html, '<p class=\"tit-page-intro\">hi</p>', '');"
+    )
+    wrap_at = out.index('<div class="tit-wrap"')
+    intro_at = out.index('<p class="tit-page-intro">')
+    assert intro_at > wrap_at, "intro must be inside .tit-wrap, not ahead of it: " + out
+
+
 def test_wired_into_every_route_and_the_dashboard():
     main = (PLUGIN / "talent-intelligence-tracker.php").read_text(encoding="utf-8")
     assert "includes/page_faq.php" in main

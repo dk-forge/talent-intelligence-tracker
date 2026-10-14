@@ -221,13 +221,28 @@ function tit_page_faq_section($key) {
     return tit_page_faq_section_html(tit_page_faq_content($key, tit_page_faq_facts(), tit_page_faq_urls()));
 }
 
-/** Pure: intro first, section inside the dashboard's last closing </div>. */
+/**
+ * Pure: intro just inside the dashboard's opening <div class="tit-wrap">,
+ * section inside its last closing </div>.
+ *
+ * The intro used to be prepended ahead of $html entirely, which put it
+ * outside .tit-wrap. dashboard.css only re-inks `.tit-wrap p` for dark mode
+ * (the site's own `.entry-content p { color:#2a2a2a !important }` wins
+ * everywhere else), so that intro rendered at a 1.26 contrast ratio in dark
+ * mode while every other route's intro -- echoed INSIDE its own .tit-wrap --
+ * was fine. tests/test_page_faq.py::test_dashboard_intro_lands_inside_tit_wrap
+ * pins the placement.
+ */
 function tit_page_faq_wrap_html($html, $intro, $section) {
     if ($section !== '') {
         $at = strrpos($html, '</div>');
         $html = $at === false ? $html . $section : substr($html, 0, $at) . $section . substr($html, $at);
     }
-    return $intro . $html;
+    if ($intro !== '') {
+        $at = strpos($html, '>');
+        $html = $at === false ? $intro . $html : substr($html, 0, $at + 1) . $intro . substr($html, $at + 1);
+    }
+    return $html;
 }
 
 /** Runtime: the dashboard shortcode's output with its intro and FAQ. */
