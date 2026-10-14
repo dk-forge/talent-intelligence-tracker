@@ -578,6 +578,11 @@ def around_run(label="collect"):
     def decorate(fn):
         @functools.wraps(fn)
         def wrapper(*args, **kwargs):
+            # The dry-run flag is per-run state like the buffer, so it must not
+            # outlive the run: a dry run that left DRY_RUN=True behind made every
+            # later flush() in the same process silently write nothing (it made
+            # test_provider_names fail whenever a dry run_collect test ran first).
+            previous_dry_run = DRY_RUN
             reset()
             # A rehearsal buffers and counts but writes nothing. A caller that
             # only learns its own dry-run flag later (the backfills parse it
@@ -587,7 +592,10 @@ def around_run(label="collect"):
             try:
                 return fn(*args, **kwargs)
             finally:
-                written = flush()
+                try:
+                    written = flush()
+                finally:
+                    set_dry_run(previous_dry_run)
                 if written:
                     name = label(kwargs) if callable(label) else label
                     print(f"[{name}] gate labels: {written} decision(s) "

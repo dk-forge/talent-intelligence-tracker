@@ -454,6 +454,21 @@ def test_around_run_starts_each_entry_point_from_an_empty_buffer(ledger):
     assert len(_lines(ledger)) == 2      # one line per run, not one then two
 
 
+def test_a_dry_run_does_not_leave_the_process_in_dry_run(ledger):
+    """A dry run used to leave DRY_RUN=True behind, so every later flush in
+    the same process wrote nothing and said only "dry run". The flag is
+    per-run state; after the run the caller's value must be back."""
+    @gate_ledger.around_run("rehearsal")
+    def rehearse(*, dry_run):
+        gate_ledger.record(PRESS, "national_press", gate_ledger.YES)
+
+    rehearse(dry_run=True)
+    assert gate_ledger.DRY_RUN is False
+    assert not list(ledger.iterdir())    # the rehearsal wrote nothing
+    gate_ledger.record(PRESS, "national_press", gate_ledger.YES)
+    assert gate_ledger.flush() == 1
+
+
 def test_every_entry_point_that_classifies_also_flushes():
     """The invariant behind the bug, asserted so it cannot come back.
 
