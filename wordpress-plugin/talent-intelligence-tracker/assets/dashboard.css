@@ -1019,6 +1019,12 @@
      off. They opt back in by name rather than by :has(), so the rule holds in
      any browser that renders the chart at all. */
   .tit-chart-scroll { overflow-x:auto; }
+  /* The weekly market-totals table (route B, 1.104.0) is a wide numeric
+     table that does NOT become cards: it keeps its columns, so like the
+     charts it opts back into its own scroll box by name. Without this it
+     painted 29..663px on a 375px phone with nothing to scroll
+     (test_control_boundaries, CI on #260). */
+  .tit-market-totals { overflow-x:auto; }
   /* .tit-wrap on purpose: `.tit-sources .tit-table` sets min-width:720px and
      at equal specificity would keep the sources table 720px wide inside a
      375px phone, side-scrolling with its header row hidden. */
