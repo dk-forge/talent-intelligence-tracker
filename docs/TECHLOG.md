@@ -70,6 +70,18 @@ The 2026 backfill still needs DOC's date-ranged archive and now calls
 `gdelt.collect_doc()`. The health row now leads with `GDELT THROTTLED: n` /
 `GDELT FILES FAILED: n` (`run_collect.source_markers`), closing the "three
 zeroes, no cause" gap the entry below names.
+## 2026-10-14 - Intro + FAQ + FAQPage JSON-LD on the tracker page and the static routes (1.105.0, ai-layoff-tracker#446 items 2-3)
+
+**Class:** novel (owner ruling 2026-10-14: Claude writes the wording, the owner edits it in the PR)
+**Guard:** `tests/test_page_faq.py` (32 tests, red before `includes/page_faq.php` existed): 2-3 sentence intro, a Title Case H2 and exactly 3 questions per page; figures and the year from the render-time facts; an unreadable figure drops its sentence; JSON-LD strings equal the visible ones and sit in the same `<section>`; no em/en dash; an update is never called a job opening; Data Sources and Measured Recall linked; no sentence over 30 words; every route and the dashboard wired.
+
+**Version 1.105.0 reserved here** (1.104.0 is held by PR #260, `claude/tit-seo-route-b`; this repo has no HANDOFF baton, so the reservation lives in this entry and the PR).
+
+`includes/page_faq.php` holds ONE map, page key -> intro, H2, 3 Q/A, for the dashboard and six static routes: sources, press, recall, corrections, places directory, roles directory. Each route echoes `tit_page_faq_intro()` after its H1 and `tit_page_faq_section()` before its footer; the dashboard shortcode wraps its output (intro first, section inside the closing wrapper). Figures come from `tit_press_facts()` (the press page's bundle: this year's updates, employers and filings, all-time totals, top country and industry) plus `tit_ingest_cadence_phrase()` and `current_time('Y')`. Not covered on purpose: company, place and role pages (thousands of near-identical FAQs is the sibling's 2026-07-28 warning) and the embed. The dashboard's existing 8-question "Questions" tab is untouched and still has no JSON-LD; the new 3-question block is separate. This product has no Methodology page, so method is linked as Data Sources and Measured Recall. style_check scorer on the copy: grade 5.7, 3 of 96 sentences passive.
+
+Tests: full suite 5774 passed, 53 skipped, 2 failed, both pre-existing on main: `test_offline_suite_is_offline.py::ProbeIsLive::test_the_probe_records_a_request_that_is_actually_made` and the order-dependent `test_provider_names.py::test_gate_ledger_cannot_write_a_banned_name`. PHP render scripts all pass, including `render_press.php`'s Title Case heading check.
+
+---
 
 ## 2026-10-14 - Zero-store issues: sec_edgar false merge fixed (#258), gdelt is external throttling, not fixed (#257)
 

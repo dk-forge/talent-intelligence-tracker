@@ -1406,6 +1406,7 @@ function tit_places_render() {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_places_trail(tit_places_url())); ?>
 
       <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
+      <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('places'); ?>
       <p class="tit-note">
         <?php printf(
           esc_html('%1$s of the %2$s we hold updates for have a page of their own.'),
@@ -1486,6 +1487,7 @@ function tit_places_render() {
       </p>
     </div>
     <?php
+    if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('places');
     if (function_exists('tit_render_footer')) tit_render_footer('places'); else get_footer();
 }
 

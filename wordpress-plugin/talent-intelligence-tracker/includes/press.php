@@ -279,6 +279,7 @@ function tit_press_render(array $f) {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Press', tit_press_url())); ?>
 
       <h1 data-tit-route-heading>Press and Media Kit</h1>
+      <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('press'); ?>
 
       <p class="tit-note">
         We compute every figure on this page when you request it. Every one
@@ -536,6 +537,7 @@ function tit_press_render(array $f) {
       </p>
     </div>
     <?php
+    if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('press');
     if (function_exists('tit_render_footer')) tit_render_footer('press'); else get_footer();
 }
 

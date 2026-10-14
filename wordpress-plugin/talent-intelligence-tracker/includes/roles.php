@@ -412,6 +412,7 @@ function tit_roles_directory_template() {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(array(
           tit_breadcrumbs_hub(), array('name' => "Who's Hiring", 'url' => tit_roles_url()))); ?>
       <h1>Who's Hiring, By Role</h1>
+      <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('roles'); ?>
       <p class="tit-note">A role, or a role in a city, gets a page once we hold enough source documents, employers and sources on it, the same bar a city page has to clear.</p>
       <ul class="tit-place-list">
         <?php foreach ($index['roles'] as $r) : if (!$r['gated']) continue; ?>
@@ -420,6 +421,7 @@ function tit_roles_directory_template() {
       </ul>
     </div>
     <?php
+    if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('roles');
     if (function_exists('tit_render_footer')) tit_render_footer('roles'); else get_footer();
     exit;
 }
