@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.103.2
+ * Version: 1.105.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.103.2');
+define('TIT_VERSION', '1.105.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -70,6 +70,9 @@ tit_require('includes/recall.php');
 // tit_press_link()'s whitelist against what dashboard.js parses, so it is last
 // of the routed pages rather than first.
 tit_require('includes/press.php');
+// Intro + FAQ + FAQPage JSON-LD on the tracker page and the static routes
+// (1.105.0, ai-layoff-tracker#446 items 2-3). Callers check function_exists.
+tit_require('includes/page_faq.php');
 tit_require('includes/embed.php');
 tit_require('includes/board_series.php');
 // A US job-postings macro backdrop from Indeed Hiring Lab (CC BY 4.0), shown as

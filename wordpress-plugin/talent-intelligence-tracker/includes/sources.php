@@ -264,6 +264,7 @@ function tit_sources_render($sources) {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Sources', tit_sources_url())); ?>
 
       <h1 data-tit-route-heading>Where this data comes from</h1>
+      <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('sources'); ?>
       <p class="tit-note">
         <?php
         // Lead with what is READ versus merely researched. "160 sources" was
@@ -572,6 +573,7 @@ function tit_sources_render($sources) {
     })();
     </script>
     <?php
+    if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('sources');
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
 }
 

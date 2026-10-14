@@ -380,6 +380,7 @@ function tit_corrections_render($entries) {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Corrections', tit_corrections_url())); ?>
 
       <h1>Corrections</h1>
+      <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('corrections'); ?>
 
       <?php
       // A reader landing on a list of corrections with no framing reads it as
@@ -543,6 +544,7 @@ function tit_corrections_render($entries) {
       </p>
     </div>
     <?php
+    if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('corrections');
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
 }
 

@@ -933,6 +933,7 @@ function tit_recall_render($data) {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_section_trail('Measured recall', tit_recall_url())); ?>
 
       <h1 data-tit-route-heading>How much do we miss?</h1>
+      <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('recall'); ?>
 
       <p class="tit-note">
         Every tracker claims to be comprehensive. This one publishes the test.
@@ -1329,5 +1330,6 @@ function tit_recall_render($data) {
     })();
     </script>
     <?php
+    if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('recall');
     if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
 }

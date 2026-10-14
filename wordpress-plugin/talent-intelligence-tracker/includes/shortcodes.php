@@ -121,7 +121,9 @@ function tit_dashboard_shortcode() {
     static $rendered = false;
     if ($rendered) return '';
     $rendered = true;
-    return tit_dashboard_html();
+    $html = tit_dashboard_html();
+    // Intro + FAQ (ai-layoff-tracker#446 items 2-3), copy in includes/page_faq.php.
+    return function_exists('tit_page_faq_wrap_dashboard') ? tit_page_faq_wrap_dashboard($html) : $html;
 }
 
 /**
