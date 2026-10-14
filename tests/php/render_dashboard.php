@@ -624,7 +624,19 @@ function check($condition, $message) {
  * are the feature, not packaging. 451 of headroom on the usual basis. The next
  * addition raises this number and writes down why.
  */
-const TIT_DASH_BYTE_BUDGET = 190650;
+/*
+ * RAISED 190,650 -> 192,800 on 2026-10-14, for 1,674 measured bytes (render
+ * fit under 190,650 before, 192,324 now, on the same pinned clock).
+ *
+ * SEO route B (1.104.0, ai-layoff-tracker#446): the weekly totals table under
+ * the market chart (twelve rows, the SAME tit_market_trend() array the chart
+ * draws, so crawlers read the figures that otherwise live only in an SVG
+ * aria-label) and the four-link Related row. Both are the feature: the table
+ * is the crawlable copy of the chart, the row is internal linking. 476 of
+ * headroom on the usual basis. The next addition raises this number and writes
+ * down why.
+ */
+const TIT_DASH_BYTE_BUDGET = 192800;
 
 /*
  * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.

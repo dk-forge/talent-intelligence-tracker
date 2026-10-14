@@ -69,7 +69,7 @@ function tit_embed_document($chart_html, $caveat) {
          . '</head><body><div class="tit-wrap tit-embed">'
          . '<h2 class="tit-place-h2">' . esc_html(TIT_EMBED_TITLE) . '</h2>'
          . ($caveat !== '' ? '<p class="tit-chart-caveat">' . esc_html($caveat) . '</p>' : '')
-         . '<div class="tit-market-box">' . $chart_html . '</div>'
+         . '<div class="tit-market-box" role="group" aria-label="Weekly updates by stated headcount direction">' . $chart_html . '</div>'
          . '<p class="tit-cite">Source: <a href="' . esc_url($hub)
          . '" target="_blank" rel="noopener">Talent Intelligence Tracker</a>'
          . ' · data licensed CC BY 4.0 · every update links to the document behind it.</p>'

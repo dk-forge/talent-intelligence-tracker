@@ -13,6 +13,41 @@ REST namespace. Never write one repo's state into the other's docs.
 
 ---
 
+## 2026-10-14 - SEO route B: weekly totals table, Related link row, chart labels (1.104.0, ai-layoff-tracker#446)
+
+**Class:** novel (owner ruling 2026-10-14: apply the sibling's route B here, intro/FAQ excluded)
+**Guard:** `tests/test_seo_route_b.py` (written first, 9 red): the table's rows and figures equal the chart's `tit_market_trend()` weeks newest first, its caption names the basis (panel counts or all-source shares), no chart means no table; every page key links Data Sources except Sources; every `tit_render_footer()` call passes a mapped key; every SVG drawing is `role="img"` + `aria-label` and every bar-list chart `role="group"` + `aria-label`; and the real shortcode rendered through `tests/php/render_dashboard.php` carries both.
+
+**How this plugin publishes pages.** ONE WordPress page (the dashboard, `[talent_intelligence_dashboard]`) and everything else as virtual rewrite routes (sources, press, recall, corrections, places directory, place, roles directory, role, company, embed) that each render through `tit_render_header()` / `tit_render_footer()`. So the Related row is printed by `tit_render_footer($key)` for the routes and appended inside the shortcode for the dashboard; the map is `includes/related_links.php`. The embed route gets no row (it is an iframe document).
+
+**Item 1.** The charts here are already server-rendered (bar lists in HTML, SVG in PHP), so crawlers read every ranking. The one exception was the weekly market chart, whose figures sat only in an SVG `aria-label` and `<title>`s. `includes/market_totals.php` prints the same array as a table under it.
+
+**Item 5.** All SVG drawings already had `role="img"` + `aria-label`. Bar lists hold buttons, so they are `role="group"` + `aria-label` (role="img" would hide the buttons). Two were unnamed and are fixed: the place page's "What The Updates Are About" bars and the embed's market box.
+
+**Byte budget** raised 190,650 -> 192,800 for 1,674 measured bytes, reason written beside the constant.
+
+**Related map:** Dashboard -> Places, Who's Hiring, Measured Recall, Data Sources. Sources -> Tracker, Measured Recall, Corrections. Press -> Tracker, Places, Corrections, Data Sources. Recall -> Tracker, Corrections, Data Sources. Corrections -> Tracker, Measured Recall, Data Sources. Places directory -> Tracker, Who's Hiring, Data Sources. Place -> Places, Tracker, Data Sources. Roles directory -> Tracker, Places, Data Sources. Role -> Who's Hiring, Tracker, Data Sources. Company -> Tracker, Places, Data Sources.
+
+Not deployed: the session that merges runs `deploy-plugin.yml`.
+## 2026-10-14 - Order-dependent CI red: a dry run left gate_ledger in dry-run mode
+
+**Class:** test pollution from leaked per-run module state (CI red on PRs such as #260, and on main)
+**Guard:** `tests/test_gate_ledger.py::test_a_dry_run_does_not_leave_the_process_in_dry_run` (red on the old tree)
+
+`tests/test_provider_names.py::test_gate_ledger_cannot_write_a_banned_name`
+passed alone and failed in the full run under some pytest-randomly seeds
+(`assert gate_ledger.flush() == 1`, got 0). The polluter was
+`tests/test_candidate_rank.py::test_run_collect_ranks_without_changing_what_it_stores`,
+which calls `run_collect.run(dry_run=True, ...)`. `gate_ledger.around_run` set
+the module-global `DRY_RUN` from the run's kwargs and never put it back, so every
+later `flush()` in the process printed "dry run" and wrote nothing. Fix in the
+owning layer (`pipeline/gate_ledger.around_run`): remember `DRY_RUN` before the
+run and restore it after the flush, in a `finally`. Production is a real bug too,
+not only a test one: a process that ran a dry run then a real run lost the real
+run's labels. Verified with seeds 2, 22 and 33 (2 and 33 failed before): full
+suite green apart from the deselected network-only offline test.
+
+---
 ## 2026-10-14 - gdelt discovery moved to GDELT's raw 15-minute files (#257)
 
 **Class:** collection outage (external throttling), fixed by changing source

@@ -913,7 +913,7 @@ function tit_recall_render($data) {
             complete.</p>
         </div>
         <?php
-        if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+        if (function_exists('tit_render_footer')) tit_render_footer('recall'); else get_footer();
         return;
     }
 
@@ -1331,5 +1331,5 @@ function tit_recall_render($data) {
     </script>
     <?php
     if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('recall');
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('recall'); else get_footer();
 }
