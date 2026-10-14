@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.103.2
+ * Version: 1.104.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.103.2');
+define('TIT_VERSION', '1.104.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -51,6 +51,10 @@ tit_require('includes/export.php');
 // not landed export.php yet.
 tit_require('includes/export_crm.php');
 tit_require('includes/shortcodes.php');
+// SEO route B (1.104.0, ai-layoff-tracker#446): the weekly totals table under
+// the market chart and the Related link row. Callers check function_exists.
+tit_require('includes/market_totals.php');
+tit_require('includes/related_links.php');
 tit_require('includes/page.php');
 // After api.php (tit_build_where, tit_cache_key) and page.php (TIT_PAGE_SLUG
 // for the head link). Same FTP-race degradation as everything else.
@@ -209,7 +213,12 @@ function tit_cite_box_html($name, $url) {
         . esc_html(tit_cite_line($name, $url)) . '</code></div>';
 }
 
-function tit_render_footer() {
+function tit_render_footer($related = '') {
+    // Related link row (#446 item 4), keyed by the page that is closing.
+    if ($related !== '' && function_exists('tit_related_links_html')) {
+        $row = tit_related_links_html($related);
+        if ($row !== '') echo '<div class="tit-wrap tit-related-wrap">' . $row . '</div>';
+    }
     if (!tit_block_shell()) {
         get_footer();
         return;

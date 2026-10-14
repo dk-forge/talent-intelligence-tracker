@@ -536,7 +536,7 @@ function tit_press_render(array $f) {
       </p>
     </div>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('press'); else get_footer();
 }
 
 function tit_press_title($title) {

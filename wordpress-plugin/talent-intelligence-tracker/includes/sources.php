@@ -572,7 +572,7 @@ function tit_sources_render($sources) {
     })();
     </script>
     <?php
-    if (function_exists('tit_render_footer')) tit_render_footer(); else get_footer();
+    if (function_exists('tit_render_footer')) tit_render_footer('sources'); else get_footer();
 }
 
 function tit_sources_title($title) {

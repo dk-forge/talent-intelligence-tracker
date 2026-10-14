@@ -1019,6 +1019,12 @@
      off. They opt back in by name rather than by :has(), so the rule holds in
      any browser that renders the chart at all. */
   .tit-chart-scroll { overflow-x:auto; }
+  /* The weekly market-totals table (route B, 1.104.0) is a wide numeric
+     table that does NOT become cards: it keeps its columns, so like the
+     charts it opts back into its own scroll box by name. Without this it
+     painted 29..663px on a 375px phone with nothing to scroll
+     (test_control_boundaries, CI on #260). */
+  .tit-market-totals { overflow-x:auto; }
   /* .tit-wrap on purpose: `.tit-sources .tit-table` sets min-width:720px and
      at equal specificity would keep the sources table 720px wide inside a
      375px phone, side-scrolling with its header row hidden. */
@@ -4147,3 +4153,15 @@ html:has(.tit-main), body:has(.tit-main) {
   --alt-crit: var(--tit-cutting);
   --alt-crit-border: var(--tit-red-ring);
 }
+
+/* SEO route B (1.104.0, ai-layoff-tracker#446). The weekly totals under the
+   market chart scroll inside their own box at 375px; the Related row wraps. */
+.tit-market-totals { margin-top: 12px; }
+.tit-market-totals-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.tit-market-totals-table caption { text-align: left; padding: 6px 0; }
+.tit-market-totals-table th, .tit-market-totals-table td { padding: 4px 8px; text-align: right; white-space: nowrap; }
+.tit-market-totals-table th[scope="row"], .tit-market-totals-table thead th:first-child { text-align: left; font-weight: 400; }
+.tit-related { margin: 24px 0 8px; }
+.tit-related-h { font-size: 1rem; margin: 0 0 6px; }
+.tit-related-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.tit-related-list a { overflow-wrap: anywhere; }
