@@ -1,4 +1,40 @@
-"""GDELT DOC 2.0 collector.
+"""GDELT collector: raw 15-minute GKG files first, DOC 2.0 for the archive.
+
+---------------------------------------------------------------------------
+2026-10-14 (#257): discovery moved off the DOC API onto the raw files
+---------------------------------------------------------------------------
+The DOC 2.0 API answered 429 ("limit requests to one every 5 seconds") on
+almost every request from the self-hosted box, a GitHub-hosted runner and an
+unrelated third network, so every daily run stored 0. That throttling is
+GDELT's side and no pacing fixed it.
+
+GDELT also publishes everything it indexes as static files every 15 minutes
+(http://data.gdeltproject.org/gdeltv2/lastupdate.txt names the newest). They
+are plain downloads with no request-rate limit and no key. `collect()` now
+reads the newest few English GKG 2.0 files (sequentially, `DEFAULT_FILES`,
+hard-capped at `MAX_FILES`) and selects an article when EITHER
+
+  * its title or URL slug contains one of the quoted phrases of the production
+    `GDELT_QUERIES` (the old query vocabulary, unchanged), or
+  * GDELT tagged it with a signal theme (`SIGNAL_THEME`: RECRUITMENT,
+    APPOINTMENT, RESIGNATION, job creation, CEO/CxO, wages, funding ...) AND its
+    title passes the same free employment prefilter the pipeline runs anyway.
+
+Measured on three live files (2026-10-14 09:45-10:15 UTC, 3,390 articles): the
+phrases alone matched 0 titles (DOC matched article bodies; GKG gives only the
+title), theme + prefilter selected 115, among them "Tesco announce plans to
+hire 28,000 extra Christmas staff", "Aegean Airlines appoints ... as new CEO"
+and "HydRegen Raises $8M Series A". Items keep the exact shape parse() builds,
+so the downstream pipeline is untouched. GKG carries no outlet country, so
+`source_country` is empty on this path.
+
+`collect_doc()` below is the old DOC 2.0 path, kept because the 2026 backfill
+needs DOC's date-ranged archive. `collect()` delegates to it when given
+explicit dates.
+
+---------------------------------------------------------------------------
+The DOC 2.0 notes, kept for the backfill path
+---------------------------------------------------------------------------
 
 Free, keyless, worldwide, machine-translated from 65 languages before indexing.
 
@@ -63,10 +99,14 @@ backfill at all. Recorded here so the next person does not re-discover it.
 
 from __future__ import annotations
 
+import html
+import io
+import os
 import re
 import time
 import urllib.parse
-from datetime import date, datetime, timezone
+import zipfile
+from datetime import date, datetime, timedelta, timezone
 
 import requests
 from collectors import capped_fetch
@@ -91,7 +131,8 @@ MAX_ATTEMPTS = 4
 
 # Run-level counters, read by the backfill for its report. reset_stats() first.
 STATS = {"queries": 0, "throttled_out": 0, "rejected_queries": 0,
-         "articles": 0, "duplicate_url": 0, "syndicated": 0, "truncated": 0}
+         "articles": 0, "duplicate_url": 0, "syndicated": 0, "truncated": 0,
+         "files_read": 0, "files_failed": 0, "rows_scanned": 0}
 
 
 def reset_stats() -> None:
@@ -258,7 +299,7 @@ def title_key(title: str) -> str:
     return _PUNCT.sub("", (title or "").lower())[:90]
 
 
-def collect(queries: list[str], *, timespan: str = "3d", pause: float = MIN_PAUSE,
+def collect_doc(queries: list[str], *, timespan: str = "3d", pause: float = MIN_PAUSE,
             startdatetime=None, enddatetime=None, seen_urls: set | None = None,
             seen_titles: set | None = None) -> list[dict]:
     """Fetch every query, de-duplicating by URL AND by title within the run.
@@ -319,3 +360,219 @@ def _parse_seendate(value) -> str | None:
         except ValueError:
             continue
     return None
+
+
+# ---------------------------------------------------------------------------
+# Raw 15-minute GKG files (#257). See the module docstring.
+# ---------------------------------------------------------------------------
+
+RAW_BASE = "https://data.gdeltproject.org/gdeltv2/"
+LASTUPDATE_URL = RAW_BASE + "lastupdate.txt"
+
+#: Files read per run: one hour of world news. Each English GKG file is ~4-6 MB
+#: zipped and ~1,100-1,300 articles; measured theme+prefilter yield is ~40 per
+#: file before title dedup. `GDELT_RAW_FILES` overrides, never above MAX_FILES.
+DEFAULT_FILES = 4
+MAX_FILES = 12
+
+#: Zipped GKG files run ~4-6 MB; 40 MB is room for a busy quarter hour, not
+#: for a surprise. The unzipped member is capped separately.
+GKG_ZIP_BYTES = 40_000_000
+GKG_CSV_BYTES = 150_000_000
+
+#: Courtesy gap between sequential downloads. No limit is documented for the
+#: raw files; this keeps the run a polite single reader anyway.
+FILE_PAUSE = 2.0
+
+#: GKG V2Themes that mark a talent signal. A theme alone is not enough (an
+#: article on Iraqi health policy carries WB_2670_JOBS), so match() also asks
+#: the title to pass the free employment prefilter.
+SIGNAL_THEME = re.compile(
+    r"^(?:RECRUITMENT|APPOINTMENT|RESIGNATION|TAKE_OFFICE"
+    r"|WB_1170_JOB_CREATION\w*|WB_2670_JOBS|UNGP_JOB_OPPORTUNITIES\w*"
+    r"|WB_2748_EMPLOYMENT|WB_2704_EMPLOYER"
+    r"|TAX_FNCACT_(?:CEO|CHIEF_\w*OFFICER|EXECUTIVE_OFFICER|EMPLOYEES?|INVESTOR)"
+    r"|WB_856_WAGES|WB_2737_EMPLOYEE_BENEFITS|WB_380_FUNDING_INNOVATION"
+    r"|ECON_FOREIGNINVEST)$")
+
+_TITLE = re.compile(r"<PAGE_TITLE>(.*?)</PAGE_TITLE>", re.S)
+_WORDS = re.compile(r"[^\w]+", re.UNICODE)
+
+
+class RawFilesUnavailable(RuntimeError):
+    """lastupdate.txt could not be read. Raised, not swallowed: an index we
+    cannot read must not look like a quiet news day."""
+
+
+def _get(url: str) -> tuple[int, bytes]:
+    resp, body = capped_fetch.capped_get(
+        url, headers={"User-Agent": USER_AGENT}, timeout=60,
+        max_bytes=GKG_ZIP_BYTES)
+    return resp.status_code, body
+
+
+def _norm(text: str) -> str:
+    return " ".join(_WORDS.sub(" ", (text or "").lower()).split())
+
+
+def query_phrases(queries) -> list[str]:
+    """The quoted phrases of the DOC-syntax production queries, normalised."""
+    out = []
+    for query in queries:
+        for phrase in re.findall(r'"([^"]+)"', query):
+            norm = _norm(phrase)
+            if norm and norm not in out:
+                out.append(norm)
+    return out
+
+
+def update_urls(latest: str, n: int) -> list[str]:
+    """English GKG file URLs, newest first, walking back 15 minutes a file."""
+    n = max(1, min(int(n), MAX_FILES))
+    t = datetime.strptime(latest, "%Y%m%d%H%M%S")
+    return [f"{RAW_BASE}{(t - timedelta(minutes=15 * k)):%Y%m%d%H%M%S}.gkg.csv.zip"
+            for k in range(n)]
+
+
+def latest_stamp() -> str:
+    status, body = _get(LASTUPDATE_URL)
+    if status != 200:
+        raise RawFilesUnavailable(f"lastupdate.txt answered HTTP {status}")
+    found = re.search(rb"/(\d{14})\.gkg\.csv\.zip", body)
+    if not found:
+        raise RawFilesUnavailable("lastupdate.txt names no GKG file")
+    return found.group(1).decode()
+
+
+def parse_gkg(payload: bytes) -> list[dict]:
+    """Rows of one zipped GKG 2.0 file: url, title, domain, date, themes.
+    Rows with no title are skipped: the classifier has nothing to read."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(payload)) as z:
+            member = z.infolist()[0]
+            if member.file_size > GKG_CSV_BYTES:
+                raise ValueError(f"GKG member is {member.file_size} bytes")
+            text = z.read(member).decode("utf8", "replace")
+    except (zipfile.BadZipFile, IndexError) as exc:
+        raise ValueError(f"not a GKG zip: {exc}") from exc
+
+    rows = []
+    for line in text.split("\n"):
+        cols = line.split("\t")
+        if len(cols) < 27 or not cols[4].startswith("http"):
+            continue
+        found = _TITLE.search(cols[26])
+        title = html.unescape(found.group(1)).strip() if found else ""
+        if not title:
+            continue
+        themes = {t.split(",")[0] for t in cols[8].split(";") if t}
+        if not themes:
+            themes = {t for t in cols[7].split(";") if t}
+        rows.append({
+            "url": cols[4].strip(),
+            "title": title,
+            "domain": cols[3].strip(),
+            "date": _parse_seendate(cols[1]),
+            "themes": themes,
+        })
+    return rows
+
+
+def match(row: dict, phrases: list[str]) -> str | None:
+    """Why `row` is a candidate, or None. Phrases first, then theme+title."""
+    slug = urllib.parse.urlparse(row["url"]).path
+    hay = f" {_norm(row['title'])} {_norm(slug)} "
+    for phrase in phrases:
+        if f" {phrase} " in hay:
+            return f'"{phrase}"'
+    themes = [t for t in row["themes"] if SIGNAL_THEME.match(t)]
+    if themes:
+        from pipeline import prefilter
+        ok, _ = prefilter.passes(row["title"])
+        if ok:
+            return f"theme:{sorted(themes)[0]}"
+    return None
+
+
+def _configured_files() -> int:
+    try:
+        return int(os.environ.get("GDELT_RAW_FILES", DEFAULT_FILES))
+    except ValueError:
+        return DEFAULT_FILES
+
+
+def collect(queries: list[str], *, files: int | None = None,
+            pause: float = FILE_PAUSE, startdatetime=None, enddatetime=None,
+            **doc_kwargs) -> list[dict]:
+    """Discovery for the daily run, from the raw GKG files.
+
+    Explicit dates mean an archive window, which only DOC 2.0 serves, so that
+    call goes to collect_doc() unchanged.
+    """
+    if startdatetime or enddatetime:
+        return collect_doc(queries, startdatetime=startdatetime,
+                           enddatetime=enddatetime, **doc_kwargs)
+    reset_stats()
+    phrases = query_phrases(queries)
+    urls = update_urls(latest_stamp(), files or _configured_files())
+    seen: set[str] = set()
+    titles: set[str] = set()
+    out: list[dict] = []
+    fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+    for i, url in enumerate(urls):
+        if i:
+            time.sleep(pause)
+        try:
+            status, body = _get(url)
+        except requests.RequestException as exc:
+            print(f"  [gdelt] file unreadable ({exc.__class__.__name__}): {url}")
+            STATS["files_failed"] += 1
+            continue
+        if status == 429:
+            STATS["throttled_out"] += 1
+            continue
+        if status != 200:
+            print(f"  [gdelt] file HTTP {status}: {url}")
+            STATS["files_failed"] += 1
+            continue
+        try:
+            rows = parse_gkg(body)
+        except ValueError as exc:
+            print(f"  [gdelt] file unparseable ({exc}): {url}")
+            STATS["files_failed"] += 1
+            continue
+        STATS["files_read"] += 1
+        STATS["rows_scanned"] += len(rows)
+
+        for row in rows:
+            why = match(row, phrases)
+            if not why:
+                continue
+            if row["url"] in seen:
+                STATS["duplicate_url"] += 1
+                continue
+            seen.add(row["url"])
+            key = title_key(row["title"])
+            if key and key in titles:
+                STATS["syndicated"] += 1
+                continue
+            titles.add(key)
+            out.append({
+                "raw_text": _with_dateline(row["title"], row["domain"], "", "English"),
+                "headline": row["title"],
+                "source_url": row["url"],
+                "source_name": row["domain"],
+                "discovery_url": row["url"],
+                "published_date": row["date"],
+                "language": "English",
+                "source_country": "",
+                "query": why,
+                "collector": COLLECTOR,
+                "fetched_at": fetched_at,
+            })
+
+    STATS["articles"] += len(out)
+    print(f"  [gdelt] raw GKG: {STATS['files_read']}/{len(urls)} files, "
+          f"{STATS['rows_scanned']} articles scanned, {len(out)} selected")
+    return out
