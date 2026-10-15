@@ -1,0 +1,363 @@
+{
+ "ran_at": "2026-10-15T09:31:43+02:00",
+ "ran_on": "2026-10-15",
+ "plan": {
+  "cycle": 576,
+  "planned_on": "2026-10-15",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-10-12 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "IE",
+    "name": "Ireland",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "KR",
+    "name": "South Korea",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "MX",
+    "name": "Mexico",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "BR",
+    "name": "Brazil",
+    "tier": "weak",
+    "measured": {
+     "total": 3,
+     "held": 1,
+     "held_pct": 33.3
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "IE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "KR",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "MX",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "BR",
+   "tier": "weak",
+   "measured": {
+    "total": 3,
+    "held": 1,
+    "held_pct": 33.3
+   }
+  }
+ ],
+ "counts": {
+  "leads": 8,
+  "held": 5,
+  "missing": 3,
+  "unusable": 0,
+  "usable": 8
+ },
+ "by_country": {
+  "BR": {
+   "leads": 4,
+   "held": 2,
+   "missing": 2,
+   "unusable": 0
+  },
+  "KR": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "IE": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  },
+  "MX": {
+   "leads": 2,
+   "held": 2,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0219,
+  "queries": 4,
+  "usd_per_query": 0.0055,
+  "usd_per_lead": 0.0027,
+  "usd_per_candidate_miss": 0.0073,
+  "lifetime_usd": 0.6244,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:IE",
+   "leads": 1,
+   "usd": 0.00541,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 80,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:KR",
+   "leads": 1,
+   "usd": 0.00541,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 78,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:MX",
+   "leads": 2,
+   "usd": 0.00548,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 145,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:BR",
+   "leads": 4,
+   "usd": 0.0056,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 262,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "IE",
+   "dimension_tier": "zero",
+   "claimed_company": "JLL",
+   "claimed_country": "IE",
+   "claimed_city": "Dublin",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "JLL",
+   "claimed_url": "https://www.jll.com/en-us/newsroom/jll-announces-leadership-succession-plans-for-ireland",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "1fd6b3265e1c751ad5fab04b98dc0203",
+    "company": "JLL",
+    "pillar": "leadership_change",
+    "country": "IE",
+    "published_date": "2026-10-03",
+    "source_url": "https://www.irishexaminer.com/business/companies/arid-41919013.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "KR",
+   "dimension_tier": "zero",
+   "claimed_company": "SK Horizon",
+   "claimed_country": "KR",
+   "claimed_city": "Seoul",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-08",
+   "claimed_amount": "KRW3.08 trillion",
+   "claimed_stage": "",
+   "claimed_outlet": "Law.asia",
+   "claimed_url": "https://law.asia/sk-horizon-usd2-2bn-investment/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "MX",
+   "dimension_tier": "zero",
+   "claimed_company": "Plata",
+   "claimed_country": "MX",
+   "claimed_city": "Mexico City",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "$125m",
+   "claimed_stage": "",
+   "claimed_outlet": "Fintech Futures",
+   "claimed_url": "https://www.fintechfutures.com/keyword/mexico",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "eb2ae41a88812d1b364dbef349da9835",
+    "company": "Plata",
+    "pillar": "leadership_change",
+    "country": "PL",
+    "published_date": "2026-09-24",
+    "source_url": "https://muratordom.pl/ludzie-i-firmy/europejski-gigant-instalacji-wchodzi-do-polski-lukasz-plata-nowym-prezesem-zarzadu-aa-kKvg-azp2-1bJ7.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "MX",
+   "dimension_tier": "zero",
+   "claimed_company": "Primero",
+   "claimed_country": "MX",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-15",
+   "claimed_amount": "$12 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Ground News",
+   "claimed_url": "https://ground.news/article/mexicos-primero-raises-12-million-seed-to-bring-ai-to-latin-american-blue-chips",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a7a170e572fad1c79ef33dab48a298cb",
+    "company": "Primero",
+    "pillar": "company_development",
+    "country": "MX",
+    "published_date": "2026-08-25",
+    "source_url": "https://wtvbam.com/2026/08/25/mexicos-primero-raises-12-million-seed-to-bring-ai-to-latin-american-blue-chips/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "BR",
+   "dimension_tier": "weak",
+   "claimed_company": "BioLinker",
+   "claimed_country": "BR",
+   "claimed_city": "Manaus",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-11",
+   "claimed_amount": "R$ 8,4 milh\u00f5es",
+   "claimed_stage": "",
+   "claimed_outlet": "Startupz",
+   "claimed_url": "https://www.startupz.com.br/categoria/funding",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "7afeb82946188ab1e8119da62305b365",
+    "company": "BioLinker",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-06",
+    "source_url": "https://latamlist.com/biolinker-raises-1-7m-to-build-automated-biotech-lab-in-the-amazon/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "BR",
+   "dimension_tier": "weak",
+   "claimed_company": "Nyoka AI",
+   "claimed_country": "BR",
+   "claimed_city": "S\u00e3o Paulo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-10",
+   "claimed_amount": "R$ 2 milh\u00f5es",
+   "claimed_stage": "",
+   "claimed_outlet": "Startupz",
+   "claimed_url": "https://www.startupz.com.br/categoria/funding",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "BR",
+   "dimension_tier": "weak",
+   "claimed_company": "Bull",
+   "claimed_country": "BR",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-10",
+   "claimed_amount": "R$ 20 milh\u00f5es",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Startupz",
+   "claimed_url": "https://www.startupz.com.br/categoria/funding",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3d5492496527a368328eeda72aa19939",
+    "company": "Bull",
+    "pillar": "how_we_work",
+    "country": null,
+    "published_date": "2026-08-25",
+    "source_url": "https://www.infosyvelines.fr/articles/les-clayes-sous-bois-bull-500-recrutements-2026"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "BR",
+   "dimension_tier": "weak",
+   "claimed_company": "Bossa Invest",
+   "claimed_country": "BR",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-09-25",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "SpaceMoney",
+   "claimed_url": "https://www.spacemoney.com.br/noticias/bossa-invest-antonio-patrus-ceo/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
