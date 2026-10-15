@@ -1,0 +1,73 @@
+{
+ "key": "amount/2fac4ce0d9d8aaf7e481ae8394802839",
+ "label": "BlackRock $205,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "fund_raise",
+   "recommended": "edit",
+   "corrected_amount": 205000000000,
+   "corrected_basis": "fund_raise",
+   "confidence": 95,
+   "reasoning": "The source states 'BlackRock attracted $205 billion in total inflows in the third quarter' and 'drew $205-billion in client funds.' This is not capital raised by BlackRock as a company, but rather client money flowing into BlackRock's investment funds and ETFs that BlackRock manages. The article describes BlackRock as an asset manager receiving client inflows. This is fund_raise (an investor closing its own fund/vehicle), not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'BlackRock drew $205-billion in client funds,' which refers to inflows and not a company raise. The term 'inflows' indicates funds managed or attracted, not new capital raised from private investors or venture lenders. Therefore, the basis 'company_raise' is incorrect, and no funding amount is stated for a company raise event."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states \"BlackRock drew $205-billion in client funds\", and \"BlackRock drew $205-billion in client funds as quarterly profit beats estimates\". The money_basis is \"company_raise\" in the stored row, but the source text describes \"client funds\" and \"total inflows\", not new capital that arrived at BlackRock from private investors or venture lenders. This is not a company_raise."
+  }
+ },
+ "row": {
+  "company": "BlackRock",
+  "headline": "BlackRock draws $205-billion in client funds as quarterly profit beats estimates",
+  "summary": "BlackRock drew $205-billion in client funds, and its quarterly profit exceeded estimates. CEO Larry Fink stated that market fundamentals are strong and well supported.",
+  "funding_amount": "$205-billion",
+  "funding_amount_usd": 205000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.theglobeandmail.com/investing/article-blackrock-third-quarter-results-inflows/",
+  "source_name": "The Globe and Mail",
+  "published_date": "2026-10-14",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "New York",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.019268,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.011427,
+  "openai/gpt-4o": 0.007505000000000001,
+  "google/gemini-2.5-flash-lite": 0.0003359000000000001
+ },
+ "evidence_url": "https://www.theglobeandmail.com/investing/article-blackrock-third-quarter-results-inflows/",
+ "evidence_chars": 6754,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/2fac4ce0d9d8aaf7e481ae8394802839, two of three referees say reject. anthropic/claude-sonnet-4.5: The source states 'BlackRock attracted $205 billion in total inflows in the third quarter' and 'drew $205-billion in client funds.' This is not capital raised by BlackRock as a company, but rather client money flowing in; openai/gpt-4o: The source text states 'BlackRock drew $205-billion in client funds,' which refers to inflows and not a company raise. The term 'inflows' indicates funds managed or attracted, not new capital raised from private investor; google/gemini-2.5-flash-lite: The source text states \"BlackRock drew $205-billion in client funds\", and \"BlackRock drew $205-billion in client funds as quarterly profit beats estimates\". The money_basis is \"company_raise\" in the stored row, but the s",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-15T00:50:59+00:00"
+}
