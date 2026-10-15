@@ -1,3 +1,19 @@
+## 2026-10-15 - money-basis-check FAIL: a new row, not the Amazon pledge (hourly ops-check)
+
+**Class:** data-integrity FAIL, adjudication only (owner/referees decide, never this routine).
+
+`money-basis-check.yml`'s latest completed run (07:00:49 UTC, run 38695936450) reports `VERDICT: FAIL`, same shape as the 2026-10-05/06 incident but a **different row**: key `784dcf8e6dbe6020efbfb6bdfb11579f` is summed into `money_raised` at a figure ($0.01bn) the row's own text attributes to a valuation, not a company raise. The job prints the exact ticket:
+
+```
+gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
+  -f inputs_json='{"rows":"784dcf8e6dbe6020efbfb6bdfb11579f","reason":"stored amount is a valuation, project cost, purchase price or revenue figure","dry_run":"false"}' \
+  -f reason='money figure contradictions'
+```
+
+Not queued by this session — two referees decide a figure contradiction, not the hourly checker (same precedent as the 2026-10-06 entry above). The prior incident's row (the Amazon pledge, `741b46d5...`) is already resolved (`enrich.yml` pushed its `money_basis` revision live 2026-10-13); this is a fresh, unrelated row. Flagging for Dakotta / the adjudication path.
+
+---
+
 ## 2026-10-15 - Language tag on every rendered item (1.106.0)
 
 **Class:** novel (owner ruling 2026-10-14: finish the roadmap item "language tag on every item")
