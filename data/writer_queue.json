@@ -252,74 +252,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-15T10:01:26Z",
-      "history": [
-        {
-          "at": "2026-10-15T10:01:22Z",
-          "detail": "issue 180 CTO Realty ruling",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-15T10:01:26Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261015T100122Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "note": "Two independent checks agree: reject. Source (investing.com BR, and the company release on finviz) states CTO Realty Growth (NYSE: CTO), a REIT, bought the Summit Woods Crossing shopping center in Lees Summit, MO for US$103.0 million. That is a property purchase price, not a raise or a company deal, and carries no talent readthrough. Row never published.",
-        "reason": "issue 180 CTO Realty ruling",
-        "reject_keys": "vehicle_name/4d6c598cfe8cbddf0333a688337df5ba"
-      },
-      "priority": 0,
-      "reason": "issue 180 CTO Realty ruling",
-      "requested_at": "2026-10-15T10:01:22Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-06T08:44:18Z",
-      "history": [
-        {
-          "at": "2026-10-06T08:40:07Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-06T08:44:18Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-06T08:57:18Z",
-          "detail": "run 37438124345",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-06T09:11:08Z",
-          "detail": "run 37438124345",
-          "event": "landed"
-        }
-      ],
-      "id": "20261006T084007Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-06T09:11:08Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-06T08:40:07Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "37438124345",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-06T09:51:55Z",
       "history": [
         {
@@ -2569,6 +2501,47 @@
       "run_id": "38716334134",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-15T10:01:26Z",
+      "history": [
+        {
+          "at": "2026-10-15T10:01:22Z",
+          "detail": "issue 180 CTO Realty ruling",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-15T10:01:26Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-15T10:02:36Z",
+          "detail": "run 38717268253",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-15T10:02:36Z",
+          "detail": "run 38717268253",
+          "event": "landed"
+        }
+      ],
+      "id": "20261015T100122Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "note": "Two independent checks agree: reject. Source (investing.com BR, and the company release on finviz) states CTO Realty Growth (NYSE: CTO), a REIT, bought the Summit Woods Crossing shopping center in Lees Summit, MO for US$103.0 million. That is a property purchase price, not a raise or a company deal, and carries no talent readthrough. Row never published.",
+        "reason": "issue 180 CTO Realty ruling",
+        "reject_keys": "vehicle_name/4d6c598cfe8cbddf0333a688337df5ba"
+      },
+      "landed_at": "2026-10-15T10:02:36Z",
+      "priority": 0,
+      "reason": "issue 180 CTO Realty ruling",
+      "requested_at": "2026-10-15T10:01:22Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "38717268253",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
