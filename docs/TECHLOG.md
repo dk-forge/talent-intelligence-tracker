@@ -10,7 +10,7 @@ gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
   -f reason='money figure contradictions'
 ```
 
-Not queued by this session — two referees decide a figure contradiction, not the hourly checker (same precedent as the 2026-10-06 entry above). The prior incident's row (the Amazon pledge, `741b46d5...`) is already resolved (`enrich.yml` pushed its `money_basis` revision live 2026-10-13); this is a fresh, unrelated row. Flagging for Dakotta / the adjudication path.
+Not queued by this session — two referees decide a figure contradiction, not the hourly checker (same precedent as the 2026-10-06 entry above). The prior incident's row (the Amazon pledge, `741b46d5...`) is already resolved (`enrich.yml` pushed its `money_basis` revision live 2026-10-13); this is a fresh, unrelated row. Flagging for the owner / the adjudication path.
 ## 2026-10-15 - Indexation audit: one FAQPage, no empty page node, Open Graph, IndexNow (1.107.0)
 
 **Class:** novel (owner ruling 2026-10-15: fix search reach)
@@ -46,7 +46,7 @@ gets an entry with root cause and the guard added, so the next session inherits
 the reasoning and not just the diff.
 
 This file is for the **Talent Intelligence Tracker only**. The sibling AI Layoff
-Tracker has its own at `/Users/dakotta/Projects/atr-layoff-tracker/docs/TECHLOG.md`.
+Tracker has its own at `~/Projects/atr-layoff-tracker/docs/TECHLOG.md`.
 They share a WordPress install and nothing else — different repo, different
 plugin constant (`TIT_VERSION` vs `ALT_VERSION`), different tables, different
 REST namespace. Never write one repo's state into the other's docs.
@@ -243,7 +243,7 @@ gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
 ```
 
 No code pushed, no workflow dispatched. Reported in the same run's
-asktherecruiter-sandbox#1259 comment; needs Dakotta to queue the
+asktherecruiter-sandbox#1259 comment; needs the owner to queue the
 `adjudicate-rows.yml` ticket above (or rule otherwise).
 
 ## 2026-10-13 - GLEIF LEI on company profiles (plugin 1.103.1, was 1.99.2 before merging main; dormant until armed)
@@ -14763,7 +14763,7 @@ here and would not be for a prose source.
 
 ### The sibling's OpenDART retirement does not transfer
 
-`/Users/dakotta/Projects/atr-layoff-tracker` holds `railway/sources/opendart.py`,
+`~/Projects/atr-layoff-tracker` holds `railway/sources/opendart.py`,
 retired on 2026-07-24 in commit `aead15e` with the reason "**0 layoff rows ever**
 came from EDINET(JP)/OpenDART(KR)/CVM(BR)". Read read-only; nothing imported,
 nothing copied. **That is outcome 2 of the three the coordinator named, and it is
@@ -14824,7 +14824,7 @@ it says so.
 
 ### The sibling had already built and retired this. That result does not transfer
 
-`/Users/dakotta/Projects/atr-layoff-tracker/railway/sources/edinet.py`, wired to
+`~/Projects/atr-layoff-tracker/railway/sources/edinet.py`, wired to
 `foreign-filings.yml`, retired in commit `aead15e` on 2026-07-24: *"0 layoff rows
 ever came from EDINET(JP)/OpenDART(KR)/CVM(BR). Those regulatory filings
 essentially never announce layoffs"*. Read read-only; nothing imported, nothing
@@ -17708,7 +17708,7 @@ tracker DB is only READ (for the name join).
 Found by the hourly ops-check, reported on asktherecruiter-sandbox#1259,
 written here per CLAUDE.md's "adjudication is the owner's" rule. Neither
 corrected; both need `python3 guardrails.py` / the adjudicate-rows referees,
-which only Dakotta can run.
+which only the owner can run.
 
 1. **Guardrail quarantine, not overdue.** `python3 guardrails.py` (read-only,
    run from this session) shows one open finding:
