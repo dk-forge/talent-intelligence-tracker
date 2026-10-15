@@ -145,8 +145,8 @@ class ACallThatRaisesStillAlerts(_Env):
 class RedactionRemovesSecretsBeforeThePrompt(unittest.TestCase):
 
     def test_removes_an_email_address(self):
-        out = sea.redact("please contact dak@dakotta.com about this")
-        self.assertNotIn("dak@dakotta.com", out)
+        out = sea.redact("please contact jane.doe@example.com about this")
+        self.assertNotIn("jane.doe@example.com", out)
         self.assertIn("<redacted-email>", out)
 
     def test_removes_a_bearer_token(self):
@@ -241,9 +241,9 @@ class TheGateIsMeteredAroundExactlyOneRequest(unittest.TestCase):
             seen_text["text"] = text
             return "s", 0.001
 
-        sea.summarize("email me at dak@dakotta.com", api_key="k",
+        sea.summarize("email me at jane.doe@example.com", api_key="k",
                      spend_path=self.spend_path, call=capture)
-        self.assertNotIn("dak@dakotta.com", seen_text["text"])
+        self.assertNotIn("jane.doe@example.com", seen_text["text"])
 
 
 class TheRequestGoesToTheRegionAndOrgThatActuallyExist(unittest.TestCase):

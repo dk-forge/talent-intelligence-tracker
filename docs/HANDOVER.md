@@ -3439,7 +3439,7 @@ coverage priced honestly".
 | Live page | https://asktherecruiter.com/blog/talent-intelligence-tracker/ |
 | REST API | `https://asktherecruiter.com/blog/wp-json/talent/v1/` |
 | Sibling (do not touch) | `dk-forge/ai-layoff-tracker` — live product on the same host |
-| Local checkout | `/Users/dakotta/Projects/AI Talent Intelligence Dashboard` |
+| Local checkout | `~/Projects/AI Talent Intelligence Dashboard` |
 
 Run `python3 ops_status.py` first, every session. No deps, no keys.
 
