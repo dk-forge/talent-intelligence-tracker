@@ -698,7 +698,7 @@ function tit_company_rows($slug) {
                 city, region, country, hq_city, hq_country, state, functions, industry,
                 headcount, funding_amount, funding_amount_usd, funding_stage, money_basis,
                 confidence, source_url, source_name, archive_url,
-                published_date, captured_at, collector";
+                published_date, captured_at, collector, language";
     $order = "ORDER BY COALESCE(published_date, DATE(captured_at)) DESC";
 
     $rows = $wpdb->get_results($wpdb->prepare(
@@ -1103,7 +1103,7 @@ function tit_company_render($rows, $key, $profile) {
                 <?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?>
               </span>
               <span class="tit-tag"><?php echo esc_html($labels[$r['pillar']] ?? $r['pillar']); ?></span>
-              <h2 class="tit-h"><?php echo esc_html($r['headline']); ?></h2>
+              <h2 class="tit-h"<?php echo tit_lang_attr($r); ?>><?php echo esc_html($r['headline']); ?></h2>
               <p class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></p>
               <p class="tit-event-meta">
                 <?php if ($where) : ?><?php echo esc_html($where); ?> · <?php endif; ?>
@@ -1124,7 +1124,7 @@ function tit_company_render($rows, $key, $profile) {
                 <span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
                   $conf_labels = function_exists('tit_confidence_labels') ? tit_confidence_labels() : array();
                   echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
-                · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a>
+                · <a href="<?php echo esc_url($r['source_url']); ?>"<?php echo tit_hreflang_attr($r); ?> rel="nofollow noopener" target="_blank"><?php echo esc_html($r['source_name']); ?></a>
                 <?php /* Three states, one vocabulary with the dashboard cards:
                          a snapshot link when the Internet Archive holds a copy,
                          the derived we-re-check-by sentence when this row's

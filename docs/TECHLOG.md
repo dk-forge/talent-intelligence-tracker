@@ -1,3 +1,12 @@
+## 2026-10-15 - Language tag on every rendered item (1.106.0)
+
+**Class:** novel (owner ruling 2026-10-14: finish the roadmap item "language tag on every item")
+**Guard:** `tests/test_item_language_tag.py` (runs the JS renderer under node; pins every PHP headline site and the SELECT feeding it) and new checks in `tests/php/render_role_pages.php` (a real route render: `es` tagged, NULL and malformed untagged; mutation-proved by removing the attribute from roles.php, which fails two checks).
+
+#242 (1.97.0) stored `language` per row and returned it from `/query`, but no renderer read it, so the item never carried its tag. Now every headline (dashboard cards and table in `dashboard.js`, the server-painted cards in `shortcodes.php`, company, place and role pages) carries `lang="xx"`, and its source link `hreflang="xx"`, from `tit_lang_attr()` / `tit_hreflang_attr()` in `api.php` (validated through `tit_language_value()`) and `langAttr()` in JS. NULL renders nothing: "not sure" is never "English". The read-through stays untagged because it is our English text. No new class, so `docs/card-contract.json` is untouched. Deploy needed after merge (not dispatched by the agent).
+
+---
+
 ## 2026-10-14 - Dark theme: the intro paragraph rendered #2a2a2a on #14161b (1.105.1)
 
 **Class:** wrong scope (the 2026-08 override of the site snippet is scoped to `.tit-wrap`; the 1.105.0 intro, FAQ and Related row render outside it)

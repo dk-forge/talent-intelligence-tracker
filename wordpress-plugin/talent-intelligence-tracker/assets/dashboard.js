@@ -652,11 +652,29 @@
   // one from doing it a third way. A row whose URL fails the scheme check
   // still shows its publisher, as plain text: dropping the name would hide
   // that we hold the record at all, which is a worse answer than a dead link.
+  // The headline's language tag (pipeline/language.py: ISO 639-1, NULL when
+  // the detector is not sure). Emitted as an HTML lang attribute on the
+  // headline, and as hreflang on the source link, because the headline is the
+  // source's own words in the source's own language. Nothing when unknown:
+  // NULL means "not sure", never "English", and a wrong lang makes a screen
+  // reader pronounce the line in the wrong voice. Mirrors tit_lang_attr().
+  function langCode(r) {
+    var c = String((r && r.language) || '').trim().toLowerCase();
+    return /^[a-z]{2}$/.test(c) ? c : '';
+  }
+
+  function langAttr(r) {
+    var c = langCode(r);
+    return c ? ' lang="' + c + '"' : '';
+  }
+
   function srcAnchor(r) {
     var href = escUrl(r.source_url);
     var name = esc(r.source_name);
     if (!href) return '<span class="tit-card-src-name">' + name + '</span>';
-    return '<a href="' + href + '" rel="nofollow noopener" target="_blank">' +
+    var hl = langCode(r);
+    return '<a href="' + href + '"' + (hl ? ' hreflang="' + hl + '"' : '') +
+      ' rel="nofollow noopener" target="_blank">' +
       name + '</a>';
   }
 
@@ -757,7 +775,7 @@
             esc(CONFIDENCE_LABEL[r.confidence] || r.confidence) + '</span>' +
           amount +
         '</div>' +
-        '<span class="tit-card-h tit-h">' + esc(r.headline) + '</span>' +
+        '<span class="tit-card-h tit-h"' + langAttr(r) + '>' + esc(r.headline) + '</span>' +
         (r.talent_readthrough &&
          BOILERPLATE_RT.indexOf(String(r.talent_readthrough).trim()) === -1
           ? '<p class="tit-card-rt tit-rt">' + esc(r.talent_readthrough) + '</p>' : '') +
@@ -3697,7 +3715,7 @@
     return '<tr data-employer="' + esc(String(r.company || '').trim()) + '">' +
       '<td class="tit-ut-when">' + utWhen(r) + '</td>' +
       '<td class="tit-ut-emp">' + esc(r.company) + '</td>' +
-      '<td class="tit-ut-signal">' + esc(r.headline) + '</td>' +
+      '<td class="tit-ut-signal"' + langAttr(r) + '>' + esc(r.headline) + '</td>' +
       '<td><span class="tit-tag ' + (DIRECTION_CLASS[r.signal_direction] || 'tit-neutral') + '">' +
         esc(DIRECTION_LABEL[r.signal_direction] || r.signal_direction) + '</span></td>' +
       '<td class="tit-ut-amt">' + (usd > 0 ? esc(moneyShort(usd)) : '') + '</td>' +

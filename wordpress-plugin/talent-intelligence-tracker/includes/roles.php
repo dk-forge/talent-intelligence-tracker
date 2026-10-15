@@ -277,7 +277,7 @@ function tit_role_facts($token, $city) {
            FROM {$table} WHERE {$where} GROUP BY company_key
           ORDER BY n DESC, company_key ASC LIMIT " . (int) TIT_ROLE_TOP_EMPLOYERS), ARRAY_A) ?: array();
     $recent = $wpdb->get_results($q("SELECT headline, company, company_key, city, hq_city,
-                source_url, source_name, published_date, captured_at
+                source_url, source_name, published_date, captured_at, language
            FROM {$table} WHERE {$where}
           ORDER BY COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC
           LIMIT " . (int) TIT_ROLE_RECENT), ARRAY_A) ?: array();
@@ -378,9 +378,9 @@ function tit_role_render($current) {
         <?php foreach ($facts['recent'] as $r) : ?>
           <li class="tit-event"><div class="tit-event-when"><?php
             echo esc_html($r['published_date'] ?: substr((string) $r['captured_at'], 0, 10)); ?></div>
-            <div class="tit-event-body"><h3 class="tit-h"><?php echo esc_html($r['headline']); ?></h3>
+            <div class="tit-event-body"><h3 class="tit-h"<?php echo tit_lang_attr($r); ?>><?php echo esc_html($r['headline']); ?></h3>
               <p class="tit-event-meta"><?php echo esc_html($r['company']); ?> ·
-                <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php
+                <a href="<?php echo esc_url($r['source_url']); ?>"<?php echo tit_hreflang_attr($r); ?> rel="nofollow noopener" target="_blank"><?php
                   echo esc_html($r['source_name']); ?></a></p></div></li>
         <?php endforeach; ?>
       </ol>

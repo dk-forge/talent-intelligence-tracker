@@ -594,7 +594,7 @@ function tit_place_facts($kind, $key) {
                 signal_direction, city, country, hq_city, hq_country, headcount,
                 funding_amount, funding_amount_usd, confidence, source_url,
                 source_name, archive_url,
-                collector, published_date, captured_at
+                collector, published_date, captured_at, language
            FROM {$table} WHERE {$where}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
@@ -1273,7 +1273,7 @@ function tit_place_render($kind, $cell, $facts) {
               </span>
               <span class="tit-tag"><?php
                 echo esc_html($pillar_labels[$r['pillar']] ?? $r['pillar']); ?></span>
-              <h3 class="tit-h"><?php echo esc_html($r['headline']); ?></h3>
+              <h3 class="tit-h"<?php echo tit_lang_attr($r); ?>><?php echo esc_html($r['headline']); ?></h3>
               <p class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></p>
               <p class="tit-event-meta">
                 <?php if ($employer_url) : ?>
@@ -1294,7 +1294,7 @@ function tit_place_render($kind, $cell, $facts) {
                        if ($tit_raised) : ?><?php echo $tit_raised; ?> · <?php endif; ?>
                 <span class="tit-conf tit-c-<?php echo esc_attr($r['confidence']); ?>"><?php
                   echo esc_html($conf_labels[$r['confidence']] ?? $r['confidence']); ?></span>
-                · <a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php
+                · <a href="<?php echo esc_url($r['source_url']); ?>"<?php echo tit_hreflang_attr($r); ?> rel="nofollow noopener" target="_blank"><?php
                   echo esc_html($r['source_name']); ?></a>
                 <?php /* Same three archive states as the dashboard cards and
                          the company profiles; the pending sentence and its

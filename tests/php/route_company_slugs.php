@@ -116,6 +116,7 @@ class HarnessDb {
                 revision INTEGER NOT NULL DEFAULT 1,
                 is_current INTEGER NOT NULL DEFAULT 1,
                 headline TEXT NOT NULL DEFAULT "",
+                language TEXT,
                 summary TEXT NOT NULL DEFAULT "",
                 talent_readthrough TEXT NOT NULL DEFAULT "",
                 company TEXT NOT NULL DEFAULT "",

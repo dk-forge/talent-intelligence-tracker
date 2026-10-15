@@ -443,7 +443,7 @@ function tit_dashboard_facts($table) {
         // repaint. See docs/card-contract.json.
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
-                archive_url, collector, published_date, industry, funding_amount_usd
+                archive_url, collector, published_date, industry, funding_amount_usd, language
            FROM {$table} WHERE {$base}
           ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
@@ -4907,7 +4907,7 @@ function tit_card_html($r) {
           class="tit-card-amt-unit"> raised</span></span>
       <?php endif; ?>
     </div>
-    <span class="tit-card-h tit-h"><?php echo esc_html($r['headline']); ?></span>
+    <span class="tit-card-h tit-h"<?php echo tit_lang_attr($r); ?>><?php echo esc_html($r['headline']); ?></span>
     <?php /* A read-through stamped verbatim on every automated board reading
              is boilerplate, not a read of THIS record, so the page prints it
              once (the About Job Board Readings note over the cards) rather
@@ -4931,7 +4931,7 @@ function tit_card_html($r) {
           echo '<span class="tit-card-when tit-card-nowhere">Date not stated</span>';
       }
       ?>
-      <span class="tit-card-src"><a href="<?php echo esc_url($r['source_url']); ?>" rel="nofollow noopener" target="_blank"><?php
+      <span class="tit-card-src"><a href="<?php echo esc_url($r['source_url']); ?>"<?php echo tit_hreflang_attr($r); ?> rel="nofollow noopener" target="_blank"><?php
         echo esc_html($r['source_name']); ?></a><?php
         // The fallback, and only ever a SECOND link. Publishers unpublish,
         // rewrite their URL schemes and let domains lapse, and when that
