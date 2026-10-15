@@ -196,7 +196,7 @@ function tit_page_faq_intro_html($c) {
 }
 
 /** Pure: the FAQ section with its FAQPage JSON-LD, '' without content. */
-function tit_page_faq_section_html($c) {
+function tit_page_faq_section_html($c, $jsonld = true) {
     if (!$c) return '';
     $node = array('@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => array());
     $items = '';
@@ -205,10 +205,11 @@ function tit_page_faq_section_html($c) {
         $node['mainEntity'][] = array('@type' => 'Question', 'name' => $qa[0],
             'acceptedAnswer' => array('@type' => 'Answer', 'text' => $qa[1]));
     }
-    return '<section class="tit-page-faq" aria-label="Common questions"><h2>' . esc_html($c['h2']) . '</h2>' . $items
-        . '<script type="application/ld+json">'
+    $ld = !$jsonld ? '' : '<script type="application/ld+json">'
         . wp_json_encode($node, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG)
-        . '</script></section>';
+        . '</script>';
+    return '<section class="tit-page-faq" aria-label="Common questions"><h2>' . esc_html($c['h2']) . '</h2>' . $items
+        . $ld . '</section>';
 }
 
 /** Runtime: the intro for a page key. */
@@ -233,5 +234,10 @@ function tit_page_faq_wrap_html($html, $intro, $section) {
 /** Runtime: the dashboard shortcode's output with its intro and FAQ. */
 function tit_page_faq_wrap_dashboard($html) {
     if ($html === '') return $html;
-    return tit_page_faq_wrap_html($html, tit_page_faq_intro('dashboard'), tit_page_faq_section('dashboard'));
+    // ONE FAQPage per page (SEO audit 2026-10-15): the dashboard shortcode
+    // already prints a FAQPage block for its Questions tab, and two FAQPage
+    // nodes on one URL is the "Duplicate field FAQPage" error in Search
+    // Console. This section stays visible; it just carries no second block.
+    $c = tit_page_faq_content('dashboard', tit_page_faq_facts(), tit_page_faq_urls());
+    return tit_page_faq_wrap_html($html, tit_page_faq_intro_html($c), tit_page_faq_section_html($c, false));
 }

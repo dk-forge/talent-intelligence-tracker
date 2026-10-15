@@ -11,6 +11,12 @@ gh workflow run drain-writers.yml -f enqueue=adjudicate-rows.yml \
 ```
 
 Not queued by this session — two referees decide a figure contradiction, not the hourly checker (same precedent as the 2026-10-06 entry above). The prior incident's row (the Amazon pledge, `741b46d5...`) is already resolved (`enrich.yml` pushed its `money_basis` revision live 2026-10-13); this is a fresh, unrelated row. Flagging for Dakotta / the adjudication path.
+## 2026-10-15 - Indexation audit: one FAQPage, no empty page node, Open Graph, IndexNow (1.107.0)
+
+**Class:** novel (owner ruling 2026-10-15: fix search reach)
+**Guard:** `tests/test_seo_audit_2026_10_15.py`.
+
+Paced live audit, full table in `docs/SEO_AUDIT_2026-10-15.md`. Robots, sitemaps, canonicals, redirects, 404s and server rendering all pass. Four defects fixed: the dashboard printed two FAQPage blocks (the shortcode's Questions tab and the 1.105.0 section), so the section is now visible without its own block; Rank Math's `{"@id":"#webpage","url":""}` page node is dropped on routes that print their own; company, place and role pages gain og/twitter title, description and url; and `includes/indexnow.php` queues stored company keys on `/add` and `/bulk`, then a single event ten minutes later pushes the publishable ones (sitemap set) plus the hubs once a day through the sibling's `alt_indexnow_submit_urls()` and its `/blog/` key. No key is minted here. Deploy needed after merge (not dispatched by the agent).
 
 ---
 

@@ -1281,6 +1281,7 @@ function tit_company_head() {
 
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['rows'][0]['company_key'])) . '" />' . "\n";
+    if (function_exists('tit_seo_og_echo')) tit_seo_og_echo($desc, tit_company_url($current['rows'][0]['company_key']));
 
     // The robots directive is NOT printed here. See tit_company_head_close().
 }

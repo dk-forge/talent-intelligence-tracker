@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.106.0
+ * Version: 1.107.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.106.0');
+define('TIT_VERSION', '1.107.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -67,6 +67,8 @@ tit_require('includes/places.php');
 tit_require('includes/roles.php');
 // Lists the company and places sitemaps in the SEO plugin's sitemap index.
 tit_require('includes/sitemap_index.php');
+// IndexNow on publish through the sibling's /blog key (SEO audit 2026-10-15).
+tit_require('includes/indexnow.php');
 tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
 tit_require('includes/recall.php');
