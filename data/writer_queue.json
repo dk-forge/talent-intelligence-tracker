@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-15T09:53:53Z",
-  "last_tick": "2026-10-15T09:53:53Z",
+  "last_dispatch": "2026-10-15T10:01:26Z",
+  "last_tick": "2026-10-15T10:01:26Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -250,6 +250,36 @@
     "ticket:20261013T164016Z-adjudicate-rows": "2026-10-14T17:12:05Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-15T10:01:26Z",
+      "history": [
+        {
+          "at": "2026-10-15T10:01:22Z",
+          "detail": "issue 180 CTO Realty ruling",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-15T10:01:26Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261015T100122Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "note": "Two independent checks agree: reject. Source (investing.com BR, and the company release on finviz) states CTO Realty Growth (NYSE: CTO), a REIT, bought the Summit Woods Crossing shopping center in Lees Summit, MO for US$103.0 million. That is a property purchase price, not a raise or a company deal, and carries no talent readthrough. Row never published.",
+        "reason": "issue 180 CTO Realty ruling",
+        "reject_keys": "vehicle_name/4d6c598cfe8cbddf0333a688337df5ba"
+      },
+      "priority": 0,
+      "reason": "issue 180 CTO Realty ruling",
+      "requested_at": "2026-10-15T10:01:22Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-06T08:44:18Z",
