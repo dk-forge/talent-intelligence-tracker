@@ -121,6 +121,7 @@ class PlaceHarnessDb {
                 revision INTEGER NOT NULL DEFAULT 1,
                 is_current INTEGER NOT NULL DEFAULT 1,
                 headline TEXT NOT NULL DEFAULT "",
+                language TEXT,
                 summary TEXT NOT NULL DEFAULT "",
                 talent_readthrough TEXT NOT NULL DEFAULT "",
                 company TEXT NOT NULL DEFAULT "",
@@ -296,7 +297,33 @@ function role_render($role, $city = '') {
     tit_role_render(tit_role_current());
     return ob_get_clean();
 }
+// The language tag (1.106.0). A headline is the source's own words, so it
+// carries the source's language as an HTML lang attribute, and the source link
+// carries it as hreflang. A row whose language is unknown (NULL) or malformed
+// gets NO attribute: "not sure" must never render as "English".
+$wpdb->insert_row(array('functions' => '["engineering"]', 'city' => 'London', 'country' => 'GB',
+    'company' => 'Lon Employer 0', 'company_key' => 'lon employer 0',
+    'headline' => 'Contratamos ingenieros en Londres', 'language' => 'es',
+    'source_url' => 'https://example.test/lang/es', 'published_date' => '2026-07-30'));
+$wpdb->insert_row(array('functions' => '["engineering"]', 'city' => 'London', 'country' => 'GB',
+    'company' => 'Lon Employer 1', 'company_key' => 'lon employer 1',
+    'headline' => 'Untagged headline here', 'language' => null,
+    'source_url' => 'https://example.test/lang/none', 'published_date' => '2026-07-29'));
+$wpdb->insert_row(array('functions' => '["engineering"]', 'city' => 'London', 'country' => 'GB',
+    'company' => 'Lon Employer 2', 'company_key' => 'lon employer 2',
+    'headline' => 'Malformed tag headline', 'language' => 'e"s',
+    'source_url' => 'https://example.test/lang/bad', 'published_date' => '2026-07-28'));
 $page = role_render('engineering', 'london');
+check(strpos($page, ' lang="es">Contratamos ingenieros en Londres') !== false,
+      'a tagged headline carries its language as an HTML lang attribute');
+check(preg_match('#href="https://example.test/lang/es" hreflang="es" #', $page) === 1,
+      'its source link carries the same tag as hreflang');
+check(preg_match('#<h3 class="tit-h">Untagged headline here#', $page) === 1,
+      'an untagged headline carries no lang attribute');
+check(preg_match('#<h3 class="tit-h">Malformed tag headline#', $page) === 1,
+      'a malformed tag never reaches an attribute');
+check(strpos($page, 'href="https://example.test/lang/none" rel=') !== false,
+      'an untagged source link carries no hreflang');
 check(strpos($page, 'Check your fit for Engineering jobs') !== false, 'the CTA names the role');
 check(strpos($page, 'https://asktherecruiter.com/?utm_source=tit&amp;utm_medium=seo&amp;utm_campaign=whos_hiring') !== false,
       'the CTA carries the agreed UTM link');

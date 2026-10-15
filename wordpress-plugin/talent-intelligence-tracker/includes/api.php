@@ -1964,6 +1964,28 @@ function tit_language_value($col, $value) {
 }
 
 /**
+ * The language tag on one rendered item: ` lang="xx"` on the headline, or ''.
+ *
+ * The headline is the source's own words, so it carries the source's language
+ * (pipeline/language.py, ISO 639-1, NULL when the detector is not sure). The
+ * page itself is English; without this a screen reader reads a Spanish
+ * headline in an English voice and a crawler files it as English. NULL renders
+ * NOTHING: "not sure" is never "English". Mirrors langAttr() in dashboard.js,
+ * and validates through tit_language_value() so a malformed code cannot reach
+ * an attribute.
+ */
+function tit_lang_attr($row) {
+    $code = tit_language_value('language', is_array($row) ? ($row['language'] ?? null) : $row);
+    return $code === null ? '' : ' lang="' . $code . '"';
+}
+
+/** The same tag as hreflang on the source link, or ''. */
+function tit_hreflang_attr($row) {
+    $code = tit_language_value('language', is_array($row) ? ($row['language'] ?? null) : $row);
+    return $code === null ? '' : ' hreflang="' . $code . '"';
+}
+
+/**
  * Columns /enrich may set back to NULL, when the caller says so EXPLICITLY.
  *
  * /enrich ignores an absent or empty field on purpose: absent means "we still do
