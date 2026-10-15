@@ -449,6 +449,7 @@ function tit_role_head() {
     if (function_exists('tit_seo_cap_description')) $desc = tit_seo_cap_description($desc);
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="' . esc_url(tit_role_url($current['role']['key'], $ckey)) . '" />' . "\n";
+    if (function_exists('tit_seo_og_echo')) tit_seo_og_echo($desc, tit_role_url($current['role']['key'], $ckey));
 }
 add_action('wp_head', 'tit_role_head', 1);
 

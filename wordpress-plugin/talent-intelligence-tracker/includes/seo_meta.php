@@ -102,3 +102,33 @@ function tit_news_item_node($row) {
     if ($d !== '') { $node['datePublished'] = $d; $node['dateModified'] = $d; }
     return $node;
 }
+
+/**
+ * PURE. Open Graph + Twitter title/description/url for a virtual route
+ * (SEO audit 2026-10-15). Measured live: company, place and role pages carried
+ * only the site-wide og:image and og:type from the SEO plugin, no og:title,
+ * og:description or og:url, so every share of a company page previewed as the
+ * blog home. Empty values print nothing.
+ */
+function tit_seo_og_html($title, $desc, $url) {
+    $out = '';
+    $title = trim(html_entity_decode((string) $title, ENT_QUOTES, 'UTF-8'));
+    $desc = trim((string) $desc);
+    $url = trim((string) $url);
+    if ($title !== '') {
+        $out .= '<meta property="og:title" content="' . esc_attr($title) . '" />' . "\n";
+        $out .= '<meta name="twitter:title" content="' . esc_attr($title) . '" />' . "\n";
+    }
+    if ($desc !== '') {
+        $out .= '<meta property="og:description" content="' . esc_attr($desc) . '" />' . "\n";
+        $out .= '<meta name="twitter:description" content="' . esc_attr($desc) . '" />' . "\n";
+    }
+    if ($url !== '') $out .= '<meta property="og:url" content="' . esc_url($url) . '" />' . "\n";
+    return $out;
+}
+
+/** Runtime: the og block for the current document title. */
+function tit_seo_og_echo($desc, $url) {
+    $title = function_exists('wp_get_document_title') ? wp_get_document_title() : '';
+    echo tit_seo_og_html($title, $desc, $url);
+}

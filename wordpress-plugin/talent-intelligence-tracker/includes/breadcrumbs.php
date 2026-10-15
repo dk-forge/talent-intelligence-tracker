@@ -117,6 +117,12 @@ function tit_breadcrumbs_strip_rank_math($data, $ours) {
     foreach ($data as $k => $entity) {
         if (!is_array($entity)) continue;
         if (($entity['@type'] ?? '') === 'BreadcrumbList') { unset($data[$k]); continue; }
+        // Rank Math's own page node on a virtual route is {"@id":"#webpage","url":""}:
+        // an empty URL beside our full CollectionPage/WebPage, so every place,
+        // role and company page carried two page entities, one invalid
+        // (SEO audit 2026-10-15). Ours is the one that names the page.
+        if (in_array($entity['@type'] ?? '', array('WebPage', 'CollectionPage'), true)
+            && array_key_exists('url', $entity) && (string) $entity['url'] === '') { unset($data[$k]); continue; }
         if (isset($entity['breadcrumb'])) unset($data[$k]['breadcrumb']);
     }
     return $data;

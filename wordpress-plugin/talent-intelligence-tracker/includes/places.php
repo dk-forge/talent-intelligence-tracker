@@ -1571,6 +1571,7 @@ function tit_place_head() {
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="'
        . esc_url(tit_place_url($current['kind'], $cell['key'])) . '" />' . "\n";
+    if (function_exists('tit_seo_og_echo')) tit_seo_og_echo($desc, tit_place_url($current['kind'], $cell['key']));
 }
 add_action('wp_head', 'tit_place_head', 1);
 

@@ -1576,6 +1576,9 @@ function tit_api_add(WP_REST_Request $req) {
     }
     $result = tit_insert_signal($row);
     if (is_wp_error($result)) return $result;
+    if ($result === 'stored' && !empty($row['company_key']) && function_exists('tit_indexnow_after_write')) {
+        tit_indexnow_after_write(array((string) $row['company_key']));
+    }
     return rest_ensure_response(array('result' => $result));
 }
 
@@ -2125,7 +2128,7 @@ function tit_api_bulk(WP_REST_Request $req) {
         return new WP_Error('tit_bad_body', 'Expected {"rows": [...]}', array('status' => 400));
     }
 
-    $stored = 0; $duplicate = 0; $retracted = 0; $errors = array();
+    $stored = 0; $duplicate = 0; $retracted = 0; $errors = array(); $touched = array();
     foreach ($rows as $i => $row) {
         // $flush = false: one flush after the loop, not one per inserted row.
         $result = tit_insert_signal(is_array($row) ? $row : array(), false);
@@ -2133,6 +2136,7 @@ function tit_api_bulk(WP_REST_Request $req) {
             $errors[] = array('index' => $i, 'error' => $result->get_error_message());
         } elseif ($result === 'stored') {
             $stored++;
+            if (!empty($row['company_key'])) $touched[] = (string) $row['company_key'];
         } elseif ($result === 'retracted') {
             // Counted with duplicates for the caller's totals (additive key
             // below says how many), because a retracted story re-arriving is
@@ -2148,6 +2152,8 @@ function tit_api_bulk(WP_REST_Request $req) {
     // Flushing inside the loop purged the page cache once per stored row.
     if ($stored > 0) {
         tit_flush_caches();
+        // Queue the changed company pages for IndexNow; never blocks (indexnow.php).
+        if (function_exists('tit_indexnow_after_write')) tit_indexnow_after_write($touched);
     }
 
     // Fail loud: a batch with any failure returns 207 so the caller's
