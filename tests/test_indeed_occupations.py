@@ -129,8 +129,10 @@ def test_compact_keeps_the_country_trend_and_drops_category_weeklies():
 
 def test_freshness_flags_a_stalled_collector_and_a_stalled_source(tmp_path):
     agg, sec = _inputs()
-    io_.store(io_.build(agg, sec), tmp_path)
-    now = datetime.now(timezone.utc)
+    # Pinned: the fixtures are frozen at 2026-09-25, so a live clock turns this
+    # test red once they are 21 days old (it did on 2026-10-17).
+    now = datetime(2026, 10, 5, tzinfo=timezone.utc)
+    io_.store(io_.build(agg, sec, now=now), tmp_path)
     spec = {"indeed_occupations": reference_freshness.SPECS["indeed_occupations"]}
     rows = reference_freshness.check(tmp_path, now, spec)
     assert rows[0]["source"] == "indeed_occupations" and not rows[0]["problems"]
