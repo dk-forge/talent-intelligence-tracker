@@ -1,3 +1,7 @@
+## 2026-10-17 - tests red on main: a freshness test read the live clock (ops watch)
+
+`tests/test_indeed_occupations.py::test_freshness_flags_a_stalled_collector_and_a_stalled_source` compared frozen fixtures (newest period 2026-09-25) with `datetime.now()`, so it went red once they were 21 days old ("source newest period 2026-09-25 is 22d old (limit 21d)"). Not a regression in the collector. The test now pins `now` to the fixture recording date (2026-10-05) for both the build and the freshness check. 16 passed locally.
+
 ## 2026-10-15 - money-basis-check FAIL: a new row, not the Amazon pledge (hourly ops-check)
 
 **Class:** data-integrity FAIL, adjudication only (owner/referees decide, never this routine).
