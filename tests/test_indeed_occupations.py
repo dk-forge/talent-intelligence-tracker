@@ -130,7 +130,10 @@ def test_compact_keeps_the_country_trend_and_drops_category_weeklies():
 def test_freshness_flags_a_stalled_collector_and_a_stalled_source(tmp_path):
     agg, sec = _inputs()
     io_.store(io_.build(agg, sec), tmp_path)
-    now = datetime.now(timezone.utc)
+    # Fixed, not datetime.now(): the fixture's as_of (2026-09-25) and the
+    # 21d source limit are both frozen, so a wall-clock "now" goes stale on
+    # its own as real time passes the fixture's recording date (2026-10-05).
+    now = datetime(2026, 10, 5, tzinfo=timezone.utc)
     spec = {"indeed_occupations": reference_freshness.SPECS["indeed_occupations"]}
     rows = reference_freshness.check(tmp_path, now, spec)
     assert rows[0]["source"] == "indeed_occupations" and not rows[0]["problems"]
