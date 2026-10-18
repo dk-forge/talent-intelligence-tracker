@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-structured:main:afcc9e6c816154c7": {
-      "first": 1792296889,
-      "last": 1792296889,
-      "subject": "CI RED: collect-structured: [spain_borme] FETCH FAILED: 4 publication day(s) produced 2 consejero delegado acts, against a measured 64 a day. That is the act headings, the office a"
-    },
     "collect:main:ff39486b701e7338": {
       "first": 1792276355,
       "last": 1792276355,
@@ -56,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-18T04:14:50+00:00",
+  "updated_at": "2026-10-18T09:15:44+00:00",
   "version": 1
 }
