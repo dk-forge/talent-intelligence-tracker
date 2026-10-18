@@ -1016,7 +1016,11 @@ function tit_company_render($rows, $key, $profile) {
 
       <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
       if (function_exists('tit_freshness_line'))
-          echo tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']); ?>
+          echo tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']);
+      // Follow this employer by RSS (includes/feed.php); guarded for the FTP race.
+      if (function_exists('tit_feed_follow_url'))
+          echo tit_feed_follow_html($name, tit_feed_follow_url('company', $company_key));
+      if (function_exists('tit_follow_form')) echo tit_follow_form('company', $company_key, $name); ?>
 
       <?php
       // Industry and headquarters, where the rows carry them. Printed as a
@@ -1282,6 +1286,9 @@ function tit_company_head() {
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="' . esc_url(tit_company_url($current['rows'][0]['company_key'])) . '" />' . "\n";
     if (function_exists('tit_seo_og_echo')) tit_seo_og_echo($desc, tit_company_url($current['rows'][0]['company_key']));
+    // Follow this employer by RSS (includes/feed.php); guarded for the FTP race.
+    if (function_exists('tit_feed_follow_url'))
+        tit_feed_follow_link($p['name'], tit_feed_follow_url('company', $current['rows'][0]['company_key']));
 
     // The robots directive is NOT printed here. See tit_company_head_close().
 }

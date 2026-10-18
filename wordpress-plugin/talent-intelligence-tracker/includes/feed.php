@@ -217,3 +217,30 @@ function tit_feed_head_link() {
         esc_url(rest_url('talent/v1/feed')));
 }
 add_action('wp_head', 'tit_feed_head_link');
+
+/**
+ * FOLLOW A PAGE BY RSS (city and company alerts, step 1; TECHLOG 2026-10-12).
+ *
+ * The feed above already takes /query's filters, so following a city, a
+ * country, an industry or an employer is a URL that exists today. These print
+ * it. No email, no store, no consent question, no personal data: email follows
+ * need the sibling plugin's subscriber store and an owner ruling.
+ *
+ * $param is the same querystring key the dashboard and tit_build_where() read,
+ * $value the page's own resolved key, never the requested slug.
+ */
+function tit_feed_follow_url($param, $value) {
+    return rest_url('talent/v1/feed') . '?' . rawurlencode((string) $param) . '=' . rawurlencode((string) $value);
+}
+
+/** The head tag a feed reader discovers when pointed at the page URL. */
+function tit_feed_follow_link($name, $url) {
+    printf('<link rel="alternate" type="application/rss+xml" title="%s" href="%s" />' . "\n",
+        esc_attr('Talent Intelligence Tracker updates for ' . $name), esc_url($url));
+}
+
+/** The visible link on the page. */
+function tit_feed_follow_html($name, $url) {
+    return '<p class="tit-note tit-follow"><a href="' . esc_url($url) . '" type="application/rss+xml">'
+         . esc_html('Follow updates for ' . $name . ' (RSS)') . '</a></p>' . "\n";
+}
