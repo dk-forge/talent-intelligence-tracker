@@ -56,3 +56,18 @@ def test_guarded_for_the_ftp_race():
     for src, fn in ((COMPANY, "tit_company_head"), (COMPANY, "tit_company_render"),
                     (PLACES, "tit_place_head"), (PLACES, "tit_place_render")):
         assert "function_exists('tit_feed_follow_url')" in _fn(src, fn), fn
+
+
+FOLLOW = (PLUGIN / "includes" / "follow.php").read_text()
+
+
+def test_email_follows_store_nobody_here():
+    # The sibling owns subscribers; this plugin must never write a follower.
+    assert "INSERT" not in FOLLOW.upper().replace("INSERTED", "")
+    assert "email" not in re.sub(r"/\*.*?\*/", "", FOLLOW, flags=re.S).lower()
+    assert "function_exists('alt_follow_form_html')" in FOLLOW
+
+
+def test_email_form_only_on_city_and_company_pages():
+    assert "$kind === 'city' && function_exists('tit_follow_form')" in _fn(PLACES, "tit_place_render")
+    assert "tit_follow_form('company', $company_key, $name)" in _fn(COMPANY, "tit_company_render")

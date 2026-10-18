@@ -1019,7 +1019,8 @@ function tit_company_render($rows, $key, $profile) {
           echo tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']);
       // Follow this employer by RSS (includes/feed.php); guarded for the FTP race.
       if (function_exists('tit_feed_follow_url'))
-          echo tit_feed_follow_html($name, tit_feed_follow_url('company', $company_key)); ?>
+          echo tit_feed_follow_html($name, tit_feed_follow_url('company', $company_key));
+      if (function_exists('tit_follow_form')) echo tit_follow_form('company', $company_key, $name); ?>
 
       <?php
       // Industry and headquarters, where the rows carry them. Printed as a

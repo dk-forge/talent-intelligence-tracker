@@ -1094,7 +1094,10 @@ function tit_place_render($kind, $cell, $facts) {
           echo tit_freshness_line($facts['span']['hi'], $facts['sources']);
       // Follow this cell by RSS (includes/feed.php); feed.php can land later mid-upload.
       if (function_exists('tit_feed_follow_url'))
-          echo tit_feed_follow_html($cell['name'], tit_feed_follow_url($spec['param'], $cell['key'])); ?>
+          echo tit_feed_follow_html($cell['name'], tit_feed_follow_url($spec['param'], $cell['key']));
+      // Email follows ride the sibling's digest (includes/follow.php); cities only.
+      if ($kind === 'city' && function_exists('tit_follow_form'))
+          echo tit_follow_form('city', $cell['key'], $cell['name']); ?>
 
       <?php
       /*

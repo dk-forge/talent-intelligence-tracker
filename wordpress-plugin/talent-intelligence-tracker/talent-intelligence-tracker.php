@@ -64,6 +64,8 @@ tit_require('includes/company_lei.php');
 // After company.php: places.php uses its slug canonicaliser and its collision
 // refusal, and degrades to no pages at all rather than fatalling without them.
 tit_require('includes/places.php');
+// Email follows: answers the sibling's questions, stores nobody.
+tit_require('includes/follow.php');
 tit_require('includes/roles.php');
 // Lists the company and places sitemaps in the SEO plugin's sitemap index.
 tit_require('includes/sitemap_index.php');

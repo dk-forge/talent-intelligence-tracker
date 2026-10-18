@@ -594,6 +594,29 @@ check(substr_count($austin, 'class="tit-archive-wait"') === 1
       'the publisher-sourced row without a snapshot says the pending sentence '
       . 'with its derived date, exactly once on this page: ' . $place_note);
 
+// EMAIL FOLLOWS (owner ruling 2026-10-18: the sibling's subscriber list may
+// hold talent follows; weekly default, daily optional). This plugin only
+// answers "what is this key" and "what is new for it"; it stores nobody.
+$lon = tit_follow_resolve('city', 'London');
+check(is_array($lon) && $lon[0] === 'London' && strpos($lon[1], '/city/london/') !== false,
+      'a gated city resolves to its name and its own page');
+check(tit_follow_resolve('city', 'Leeds') === null,
+      'a city without a page cannot be followed: there is nothing to land on');
+check(tit_follow_resolve('city', 'Nowhere') === null && tit_follow_resolve('planet', 'London') === null,
+      'unknown keys and kinds resolve to nothing');
+$co = tit_follow_resolve('company', 'austin employer 0');
+check(is_array($co) && $co[0] === 'Austin Employer 0', 'a stored employer resolves by its key');
+$lon_rows = tit_follow_rows('city', 'London', '2000-01-01', gmdate('Y-m-d'));
+check(count($lon_rows) > 0 && count($lon_rows) <= TIT_FOLLOW_MAX_ROWS,
+      'new rows for a followed city, capped: got ' . count($lon_rows));
+check(isset($lon_rows[0]['headline'], $lon_rows[0]['source_url'], $lon_rows[0]['date'], $lon_rows[0]['company']),
+      'each row carries the source document it came from');
+check(tit_follow_rows('city', 'London', '1990-01-01', '1990-12-31') === array(),
+      'nothing in the window means nothing to send');
+$uk_follow_form = render('city', 'london');
+check(!function_exists('alt_follow_form_html') && strpos($uk_follow_form, 'alt_follow') === false,
+      'without the sibling plugin no email form renders (RSS only)');
+
 // SEO furniture.
 $GLOBALS['tit_query_vars'] = array('tit_place_kind' => 'country', 'tit_place' => 'united-kingdom');
 tit_place_forget();

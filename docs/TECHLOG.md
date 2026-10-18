@@ -1,4 +1,4 @@
-## 2026-10-18 - city and company alerts, step 1: follow a page by RSS (1.108.0, pushed, NOT deployed)
+## 2026-10-18 - city and company alerts: follow a page by RSS, and by email through the sibling's digest (1.108.0, pushed, NOT deployed)
 
 **Class:** feature (board item "City and company alerts"; step 1 of the TECHLOG 2026-10-12 design)
 
@@ -6,7 +6,7 @@ Every country, city and industry page and every company profile now prints "Foll
 
 Guard: `tests/php/render_place_pages.php` (the rendered UK page and head carry `feed?country=GB`), `tests/test_follow_feeds.py` (company head and page use the resolved key, one helper, rawurlencode, RSS copy with no email promise, FTP-race guards).
 
-Step 2 (email follows) is NOT built and needs the owner: may the sibling plugin's subscriber list hold talent follow preferences, and the default cadence.
+**Step 2, email follows, built in the same release** (owner ruling 2026-10-18: the sibling's subscriber list may hold talent follow preferences; weekly default, daily optional). New `includes/follow.php` answers the sibling in-process: `tit_follow_resolve('city'|'company', key)` (a city only when it has a gated page, an employer only when it has current rows) and `tit_follow_rows(kind, key, from, to)` (current rows dated in the window, newest first, at most 10, headline + source document, no figure of ours). City pages and company profiles print the SIBLING's own follow form (`alt_follow_form_html('talent_city'|'talent_company', ...)`) when it is installed, and nothing when it is not. Subscriber, consent, follow rows, stop links and the send all live in ai-layoff-tracker (`includes/follows.php`, 2.20.272); nothing about a follower is stored, logged or committed here. The public `follow-digest` REST route from the design was not built: both plugins share one install, so the in-process call is one fewer public surface. Guard: `tests/php/render_place_pages.php` (resolve, gate, window, cap, no form without the sibling) and `tests/test_follow_feeds.py`.
 
 ## 2026-10-17 - tests red on main: a freshness test read the live clock (ops watch)
 
