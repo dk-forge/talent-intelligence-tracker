@@ -1,3 +1,13 @@
+## 2026-10-18 - city and company alerts, step 1: follow a page by RSS (1.108.0, pushed, NOT deployed)
+
+**Class:** feature (board item "City and company alerts"; step 1 of the TECHLOG 2026-10-12 design)
+
+Every country, city and industry page and every company profile now prints "Follow updates for {name} (RSS)" and a `<link rel="alternate" type="application/rss+xml">` in its head, both pointing at `talent/v1/feed` filtered by the page's own key (`country=GB`, `city=London`, `company=<company_key>`), built by one helper, `tit_feed_follow_url()` in `includes/feed.php`, and guarded with `function_exists` for the FTP race. No email, no store, no consent question, no personal data. The company filter is `/query`'s own word-boundary match on `company_key`, so the feed holds exactly what the dashboard filtered to that employer holds.
+
+Guard: `tests/php/render_place_pages.php` (the rendered UK page and head carry `feed?country=GB`), `tests/test_follow_feeds.py` (company head and page use the resolved key, one helper, rawurlencode, RSS copy with no email promise, FTP-race guards).
+
+Step 2 (email follows) is NOT built and needs the owner: may the sibling plugin's subscriber list hold talent follow preferences, and the default cadence.
+
 ## 2026-10-17 - tests red on main: a freshness test read the live clock (ops watch)
 
 `tests/test_indeed_occupations.py::test_freshness_flags_a_stalled_collector_and_a_stalled_source` compared frozen fixtures (newest period 2026-09-25) with `datetime.now()`, so it went red once they were 21 days old ("source newest period 2026-09-25 is 22d old (limit 21d)"). Not a regression in the collector. The test now pins `now` to the fixture recording date (2026-10-05) for both the build and the freshness check. 16 passed locally.

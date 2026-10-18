@@ -1091,7 +1091,10 @@ function tit_place_render($kind, $cell, $facts) {
 
       <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
       if (function_exists('tit_freshness_line'))
-          echo tit_freshness_line($facts['span']['hi'], $facts['sources']); ?>
+          echo tit_freshness_line($facts['span']['hi'], $facts['sources']);
+      // Follow this cell by RSS (includes/feed.php); feed.php can land later mid-upload.
+      if (function_exists('tit_feed_follow_url'))
+          echo tit_feed_follow_html($cell['name'], tit_feed_follow_url($spec['param'], $cell['key'])); ?>
 
       <?php
       /*
@@ -1571,6 +1574,8 @@ function tit_place_head() {
     echo "\n" . '<meta name="description" content="' . esc_attr($desc) . '" />' . "\n";
     echo '<link rel="canonical" href="'
        . esc_url(tit_place_url($current['kind'], $cell['key'])) . '" />' . "\n";
+    if (function_exists('tit_feed_follow_url'))
+        tit_feed_follow_link($cell['name'], tit_feed_follow_url($kinds[$current['kind']]['param'], $cell['key']));
     if (function_exists('tit_seo_og_echo')) tit_seo_og_echo($desc, tit_place_url($current['kind'], $cell['key']));
 }
 add_action('wp_head', 'tit_place_head', 1);

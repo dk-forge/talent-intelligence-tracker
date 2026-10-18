@@ -457,6 +457,15 @@ function render($kind, $slug) {
 
 check(route('country', 'united-kingdom')['action'] === 'render', 'a gated cell renders');
 $uk_page = render('country', 'united-kingdom');
+// Follow: a filtered RSS feed of exactly this page's cell (TECHLOG 2026-10-12,
+// city and company alerts step 1). No email, no store, no personal data.
+$uk_feed = 'https://example.test/blog/wp-json/talent/v1/feed?country=GB';
+check(strpos($uk_page, 'Follow updates for United Kingdom (RSS)') !== false
+      && strpos($uk_page, 'href="' . $uk_feed . '"') !== false,
+      'a place page links its own filtered feed, carrying exactly its own filter');
+check(strpos(render('city', 'london'), 'talent/v1/feed?city=London') !== false
+      || route('city', 'london')['action'] !== 'render',
+      'a city page follows the city filter, not the country one');
 check(strpos($uk_page, 'class="tit-freshness') !== false
       && strpos($uk_page, 'Last updated') !== false,
       'a place page states, visibly, when it was last updated and from how many sources');
@@ -592,6 +601,9 @@ ob_start(); tit_place_head(); $head = ob_get_clean();
 check(strpos($head, 'name="description"') !== false, 'a meta description');
 check(strpos($head, 'rel="canonical"') !== false, 'a canonical');
 check(strpos($head, '/country/united-kingdom/') !== false, 'pointing at the canonical URL');
+check(strpos($head, '<link rel="alternate" type="application/rss+xml"') !== false
+      && strpos($head, 'href="https://example.test/blog/wp-json/talent/v1/feed?country=GB"') !== false,
+      'the head advertises the same filtered feed to feed readers');
 check(strpos($head, 'name="robots"') === false,
       'and NO robots tag: every place page that exists is indexable, so a tag '
       . 'saying so could only duplicate or contradict the site default');
