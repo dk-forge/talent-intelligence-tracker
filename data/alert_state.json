@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect:main:ff39486b701e7338": {
-      "first": 1792276355,
-      "last": 1792276355,
-      "subject": "CI RED: collect: [publish] sent=0 stored=0 duplicate=0 errors=0"
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1791911313,
       "last": 1791911313,
@@ -46,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-18T17:50:40+00:00",
+  "updated_at": "2026-10-18T22:38:47+00:00",
   "version": 1
 }
