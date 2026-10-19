@@ -489,7 +489,10 @@ def _report_employer_keys(conn) -> list[str]:
     undecided = {slug: owners for slug, owners in collisions.items()
                  if slug not in distinct and slug not in unnameable
                  and slug not in homonym
-                 and not any(vocab.EMPLOYER_KEY_ALIASES.get(o) in owners for o in owners)}
+                 and not any(vocab.EMPLOYER_KEY_ALIASES.get(o) in owners for o in owners)
+                 # Every owner aliased onto ONE survivor neither of them is
+                 # spelled as ('e & r' and 'e&r' -> 'e and r'): also merged.
+                 and len({vocab.company_key(o) for o in owners}) != 1}
 
     if collisions:
         print(f"    {len(collisions)} slug(s) claimed by two keys, so neither "
@@ -646,7 +649,9 @@ def _auto_disambiguated(owners: list[str]) -> bool:
     today; only '日본ibm' vs 'ibm' qualifies.
     """
     lossy = [o for o in owners if _drops_script(o)]
-    return len(lossy) == len(owners) - 1 and len(owners) - len(lossy) == 1
+    # At most one clean owner: one clean keeps the slug, and with NONE clean
+    # ('sk 海力士' vs 'sk 电信', 2026-10-19) every owner gets its own URL.
+    return len(owners) - len(lossy) <= 1
 
 
 #: A status that is not an incident. `skipped` is the interesting one: the

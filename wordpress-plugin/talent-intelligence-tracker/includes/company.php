@@ -484,7 +484,12 @@ function tit_company_slug_index() {
             }
         }
 
-        if ($clean === 1 && count($lossy) === count($owners) - 1) {
+        // ...and the same when NO owner is clean: every owner reached this
+        // slug only because a script was deleted ('sk 海力士' SK Hynix and
+        // 'sk 电信' SK Telecom both fold to 'sk'). Nobody's own spelling is
+        // 'sk', so nobody keeps it; each gets its own percent-encoded URL
+        // rather than both being refused (ops_status [1c], 2026-10-19).
+        if ($clean <= 1) {
             $ok = true;
             $fallbacks = array();
             foreach ($lossy as $owner) {
