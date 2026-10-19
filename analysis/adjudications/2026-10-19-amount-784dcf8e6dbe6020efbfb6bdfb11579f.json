@@ -1,0 +1,44 @@
+{
+ "key": "amount/784dcf8e6dbe6020efbfb6bdfb11579f",
+ "label": "Mobge $10,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Mobge",
+  "headline": "İzmir merkezli mobil oyun stüdyosu Mobge, 10 milyon dolar değerleme üzerinden yatırım aldı",
+  "summary": "Mobge, an İzmir-based mobile game studio, has received investment at a valuation of $10 million.",
+  "funding_amount": "$10 million",
+  "funding_amount_usd": 10000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://egirisim.com/2026/10/06/izmir-merkezli-mobil-oyun-studyosu-mobge-10-milyon-dolar-degerleme-uzerinden-yatirim-aldi/",
+  "source_name": "egirişim",
+  "published_date": "2026-10-06",
+  "collector": "google_news",
+  "city": "Izmir",
+  "region": "Middle East",
+  "state": null,
+  "country": "TR",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-10-08 22:40:50"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://egirisim.com/2026/10/06/izmir-merkezli-mobil-oyun-studyosu-mobge-10-milyon-dolar-degerleme-uzerinden-yatirim-aldi/",
+ "evidence_chars": 2392,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-10-19T09:33:20+00:00"
+}
