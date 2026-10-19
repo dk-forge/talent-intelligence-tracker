@@ -4277,3 +4277,9 @@ html:has(.tit-main), body:has(.tit-main) {
   .tit-wrap .tit-geo-bar { gap:8px; }
   .tit-wrap .tit-geo-view { padding:6px 9px; }
 }
+/* WCAG 2.5.5: the location view bar, period select and copy/show-all buttons
+   clear the 44px thumb floor on phones (tests/test_control_boundaries.py). */
+@media (max-width: 767px) {
+  .tit-wrap .tit-geo-view, .tit-wrap .tit-geo-period,
+  .tit-wrap .tit-geo-copy, .tit-wrap .tit-geo-more { min-height:44px; }
+}
