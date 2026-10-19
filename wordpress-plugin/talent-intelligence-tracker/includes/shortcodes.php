@@ -2476,7 +2476,9 @@ function tit_dashboard_html() {
 
       <p class="tit-cite">
         Data licensed CC BY 4.0. Cite as: Talent Intelligence Tracker,
-        asktherecruiter.com. Layoff and redundancy data is not collected here;
+        asktherecruiter.com, DOI
+        <a href="https://doi.org/10.5281/zenodo.23482651">10.5281/zenodo.23482651</a>.
+        Layoff and redundancy data is not collected here;
         see the
         <a href="/blog/ai-layoff-tracker/">AI Layoff Tracker</a>.
         <?php /* In the footer, not buried: a corrections log nobody can find

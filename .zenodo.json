@@ -1,0 +1,30 @@
+{
+  "title": "Talent Intelligence Tracker",
+  "description": "A continuously updated, source-linked dataset of hiring-side talent market signals, segmented by city, region and country. Every record links to a primary source.",
+  "upload_type": "dataset",
+  "creators": [
+    {
+      "name": "AskTheRecruiter"
+    }
+  ],
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "talent market",
+    "hiring",
+    "labor market",
+    "funding",
+    "leadership changes"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://asktherecruiter.com/blog/talent-intelligence-tracker/",
+      "relation": "isDocumentedBy",
+      "resource_type": "other"
+    },
+    {
+      "identifier": "https://github.com/dk-forge/talent-intelligence-tracker",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ]
+}
