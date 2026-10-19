@@ -164,7 +164,7 @@ EXTRACT_PREFIX = 2509
 MODELS = {
     "gate": os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite"),
     "extract": os.environ.get("TIT_MODEL", "google/gemini-2.5-flash-lite"),
-    "read": os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5"),
+    "read": os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5.5"),
 }
 
 # Candidate swaps priced beside the incumbent. Nothing here is switched on by

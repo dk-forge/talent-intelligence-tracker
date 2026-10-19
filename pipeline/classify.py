@@ -69,7 +69,7 @@ GATE_MODEL = os.environ.get("TIT_GATE_MODEL", "google/gemini-2.5-flash-lite")
 # TIT_READ_MODEL=off falls back to the fused behaviour: extraction's own
 # talent_readthrough ships, exactly as it did before this split. That is the
 # one-line revert if the interpretation model is unavailable for a whole run.
-READ_MODEL = os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5")
+READ_MODEL = os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5.5")
 
 # ~60 tokens of sentence, with headroom for a second sentence and for a model
 # that opens with a brace and a key. Low enough that a runaway generation is

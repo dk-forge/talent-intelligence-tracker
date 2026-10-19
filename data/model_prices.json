@@ -194,6 +194,16 @@
   "completion": 1e-05,
   "prompt": 2e-06
  },
+ "anthropic/claude-sonnet-5.5": {
+  "cache_read": 1e-07,
+  "completion": 1e-05,
+  "prompt": 2e-06
+ },
+ "anthropic/claude-sonnet-5.5:batch": {
+  "cache_read": 5e-08,
+  "completion": 5e-06,
+  "prompt": 1e-06
+ },
  "anthropic/claude-sonnet-5:batch": {
   "cache_read": 1e-07,
   "completion": 5e-06,

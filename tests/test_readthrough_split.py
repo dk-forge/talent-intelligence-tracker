@@ -96,7 +96,7 @@ def test_extraction_keeps_its_prompt_and_stays_off_the_read_model():
 
 
 def test_the_read_through_has_its_own_model_and_env_var():
-    assert classify.READ_MODEL == "anthropic/claude-sonnet-5"
+    assert classify.READ_MODEL == "anthropic/claude-sonnet-5.5"
     assert classify.read_enabled()
 
 
@@ -240,7 +240,7 @@ def test_the_wire_request_is_the_small_one(monkeypatch, stats):
     monkeypatch.setattr(classify, "requests", _Requests)
 
     assert classify.interpret(EXTRACTED, RAW) == GOOD
-    assert sent["model"] == "anthropic/claude-sonnet-5"
+    assert sent["model"] == "anthropic/claude-sonnet-5.5"
     assert sent["max_tokens"] == classify.READ_MAX_TOKENS
     assert "response_format" not in sent   # Anthropic on OpenRouter 404s with it
     body = sent["messages"][1]["content"]
