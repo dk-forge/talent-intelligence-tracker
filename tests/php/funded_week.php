@@ -86,9 +86,16 @@ class WP_Error {
     }
     public function get_error_message() { return $this->message; }
 }
+/* The REAL constructor signature: ($method, $route, $attributes). WordPress
+   calls strtoupper($method), which fatals on an array in PHP 8; 1.111.0 shipped
+   exactly that and returned HTTP 500. This stub refuses the same way. */
 class WP_REST_Request {
-    private $params;
-    public function __construct($params = array()) { $this->params = $params; }
+    private $params = array();
+    public function __construct($method = '', $route = '', $attributes = array()) {
+        if (!is_string($method)) throw new TypeError('WP_REST_Request method must be a string');
+        strtoupper($method);
+    }
+    public function set_param($k, $v) { $this->params[$k] = $v; }
     public function get_param($n) { return $this->params[$n] ?? null; }
     public function get_params() { return $this->params; }
 }

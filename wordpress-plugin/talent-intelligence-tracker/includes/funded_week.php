@@ -110,7 +110,10 @@ function tit_funded_week_facts($table, $monday) {
     // The dashboard's own default view: the same clause /aggregate builds for
     // a request with no filters, so this page and the card count the same rows.
     $params = array();
-    $where = tit_build_where(new WP_REST_Request(array()), $params);
+    // WP_REST_Request's first argument is the HTTP METHOD, a string. 1.111.0
+    // passed array() here and real WordPress fataled (strtoupper on an array);
+    // tests/php/funded_week.php now stubs the real signature.
+    $where = tit_build_where(new WP_REST_Request('GET'), $params);
     $money = tit_money_where();
     $date_expr = tit_signal_date_expr();
 
