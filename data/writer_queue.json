@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-19T08:59:10Z",
-  "last_tick": "2026-10-19T09:29:48Z",
+  "last_dispatch": "2026-10-19T09:32:54Z",
+  "last_tick": "2026-10-19T09:32:54Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -252,12 +252,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-10-19T09:32:54Z",
       "history": [
         {
           "at": "2026-10-19T09:12:44Z",
           "detail": "owner ruling 2026-10-19: exclude both valuation figures",
           "event": "queued"
+        },
+        {
+          "at": "2026-10-19T09:32:54Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20261019T091244Z-adjudicate-rows",
@@ -271,7 +276,7 @@
       "requested_at": "2026-10-19T09:12:44Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "adjudicate-rows.yml"
     },
     {
