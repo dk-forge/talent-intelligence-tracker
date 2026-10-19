@@ -4034,7 +4034,7 @@
     // money, a link to their tracker page and a link to their jobs. "See jobs"
     // only for the employer's own board (jobs_kind 'board'); a name search is
     // labelled "Search jobs" so it never reads as their careers page.
-    var h = '<p class="tit-tr-sub">Recently funded, now hiring: where the money went, and where to apply.</p><ol class="tit-tr-list">';
+    var h = '<p class="tit-tr-sub">Recently funded, now hiring: where the money went, and where to apply.' + (TR_WEEK ? ' <a class="tit-tr-week" href="' + TR_WEEK + '">This week\'s roundup</a>' : '') + '</p><ol class="tit-tr-list">';
     list.forEach(function (r, i) {
       var place = [r.city, r.country ? countryLabel(r.country) : ''].filter(Boolean).join(', ');
       var href = escUrl(r.source_url);
@@ -4063,6 +4063,9 @@
     });
   }
   var TR_FIRST = 10;
+  // The weekly roundup page (includes/funded_week.php), derived from the API
+  // base so no markup byte is spent on it: .../blog/wp-json/talent/v1/ -> .../blog/.
+  var TR_WEEK = escUrl(String(TIT.api || '').replace(/wp-json\/.*$/, '') + 'talent-intelligence-tracker/funded-this-week/');
   // Owner-approved 2026-10-19. Quick Draft reads no company param today, so
   // this carries attribution only; a prefill needs a small app change.
   var TR_TAILOR = 'https://asktherecruiter.com/quick-draft?utm_source=talent-tracker&amp;utm_medium=funded-card&amp;utm_campaign=tailor';

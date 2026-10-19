@@ -63,7 +63,7 @@ function tit_indexnow_url_list($hubs, $pending, $publishable, $url_for, $cap = T
 /** The tracker's hub pages whose content changes whenever rows land. */
 function tit_indexnow_hubs() {
     $hubs = array(home_url('/talent-intelligence-tracker/'));
-    foreach (array('tit_places_url', 'tit_roles_url', 'tit_press_url', 'tit_net_index_url') as $fn) {
+    foreach (array('tit_places_url', 'tit_roles_url', 'tit_press_url', 'tit_net_index_url', 'tit_funded_week_url') as $fn) {
         if (function_exists($fn)) $hubs[] = (string) $fn();
     }
     return $hubs;

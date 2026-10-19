@@ -126,18 +126,35 @@ function tit_by_location($table, $where, array $params, $level, $period_key) {
  * fund close can never top this list. Every row carries its source link.
  */
 function tit_top_rounds($table, $where, array $params, $period_key, $limit = 10) {
-    global $wpdb;
     $period = tit_geo_period($period_key);
+    return tit_raises_between($table, $where, $params, $period[1], '', $limit);
+}
+
+/**
+ * Company raises dated from $since (and to $until, inclusive, when given),
+ * largest first, each with its source, company page and jobs link. The one
+ * query behind the dashboard's top-rounds card AND the weekly roundup
+ * (includes/funded_week.php), so the two can never rank raises two ways.
+ */
+function tit_raises_between($table, $where, array $params, $since, $until, $limit) {
+    global $wpdb;
     $date_expr = tit_signal_date_expr();
     $money = tit_money_where();
+    $bounds = array($since);
+    $until_sql = '';
+    if ((string) $until !== '') {
+        $until_sql = " AND {$date_expr} <= %s";
+        $bounds[] = (string) $until;
+    }
+    $bounds[] = (int) $limit;
     $sql = "SELECT company, company_key, funding_amount_usd AS amount,
                    " . tit_city_expr() . " AS city, " . tit_country_expr() . " AS country,
                    {$date_expr} AS d, source_url
               FROM {$table}
              WHERE {$where} AND {$money} AND funding_amount_usd IS NOT NULL
-               AND funding_amount_usd > 0 AND {$date_expr} >= %s
+               AND funding_amount_usd > 0 AND {$date_expr} >= %s{$until_sql}
              ORDER BY funding_amount_usd DESC, d DESC LIMIT %d";
-    $res = $wpdb->get_results($wpdb->prepare($sql, array_merge($params, array($period[1], (int) $limit))), ARRAY_A) ?: array();
+    $res = $wpdb->get_results($wpdb->prepare($sql, array_merge($params, $bounds)), ARRAY_A) ?: array();
     $out = array();
     foreach ($res as $r) {
         $out[] = array(

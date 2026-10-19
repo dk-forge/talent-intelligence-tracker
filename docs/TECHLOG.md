@@ -1,3 +1,32 @@
+## 2026-10-19 - plugin 1.111.0: "Funded This Week, Now Hiring" weekly roundup (no spend, no writer, no mail)
+
+Owner approved "go roundup". New read-only route, `includes/funded_week.php`:
+
+- `/talent-intelligence-tracker/funded-this-week/` shows the last COMPLETED Monday-Sunday week (UTC);
+  `/funded-this-week/YYYY-MM-DD/` is that week's archive by its Monday. Not a Monday, before
+  2026-07-06, or the unfinished current week: 404. The dated URL is canonical, so a link shared on a
+  Monday still means the same list later. An empty week is `noindex, follow`.
+- Rows come from `tit_raises_between()`, extracted from `tit_top_rounds()` so the dashboard card and
+  the roundup are ONE query (company_raise only, by name, through `tit_money_where()`); each row's
+  company page and jobs link come from `tit_funded_links()` unchanged. Up to 50 rows, largest first;
+  the intro's counts and totals cover every row and are computed, never written by a model.
+- Article JSON-LD with an ItemList as `mainEntity`, no JobPosting. `datePublished` is the week's end;
+  `dateModified` is the newest `captured_at` of the week's rows, never earlier than the week's end.
+- The dashboard card links it ("This week's roundup"), built in JS from the API base so the markup
+  budget is untouched (192,563 bytes, unchanged).
+
+**No scheduled job, on purpose.** The page renders live, so the calendar alone rolls it at 00:00 UTC
+Monday. A job could only add something by storing a snapshot, which would make it a DB writer and
+would preserve figures we have since corrected. `tests/test_funded_week.py` pins that no workflow names it.
+The stable URL is added to `tit_indexnow_hubs()`, so it is pinged whenever rows land.
+
+**No reader email.** There is no subscriber relay in this repo and reader mail must never ride the ops
+channel. Newsletter delivery of the roundup is a follow-up that needs an owner decision (provider, list,
+consent).
+
+Proven by mutation: dropping the money clause from `tit_raises_between()` puts a $900M divestiture at
+the top of the roundup and the PHP harness fails; breaking the week arithmetic fails it too.
+
 ## 2026-10-19 - owner rulings: five rows out of "money raised", 31 drifted citations re-pointed (no spend)
 
 **OWNER RULINGS, given in chat 2026-10-19, recorded here and in the specs that apply them.**
