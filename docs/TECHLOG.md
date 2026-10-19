@@ -1,3 +1,9 @@
+## 2026-10-19 - data faults: BORME space-padded dates, 12 slug collisions, all-lossy slug fallback (1.108.1, pushed, NOT deployed)
+
+**spain_borme ERROR (2 acts over 4 publication days vs 64/day).** Not a URL or markup change: summaries and documents parsed fine (7,405 entries over 3 days). BORME prints the inscription date in `Datos registrales` with a SPACE-padded day, `( 8.10.26)`, and `_INSCRIBED` demanded `\d{2}`, so every act inscribed on the 1st-9th was declined as undated. Mid-month windows hit almost nothing else. Fixed the pattern; a live read-only replay of 2026-10-14..16 stores 127 acts with 0 undated. Guard: `tests/test_spain_borme.py::test_a_space_padded_single_digit_day_is_still_a_date` (verbatim line from BORME-A 2026-10-16).
+
+**Slug collisions.** Ten one-employer pairs aliased in `vocab.EMPLOYER_KEY_ALIASES` (rows read one by one), including the Vietnamese pair onto `giay thuong dinh` now that both slugifiers fold đ. `kcu npl 대부` has no ASCII spelling in any source, so it is the first non-ASCII survivor, listed in `NON_ASCII_ALIAS_SURVIVORS` and reached through the slug index. SK Hynix (`sk 海力士`) and SK Telecom (`sk 电信`) are two employers; `tit_company_slug_index()` now gives every owner its own percent-encoded URL when NO owner is clean (it did so only when exactly one was), mirrored in `ops_status._auto_disambiguated`. `tests/test_identity.py`'s alias rule now folds atomic letters (æ, đ) the way WordPress does. Guards: `tests/php/route_company_slugs.php` phase `disambiguated-all-lossy`, `tests/test_slug_collisions_2026_10_19.py`. The rows move only when `correct-company-key.yml` is queued (dry run first).
+
 ## 2026-10-18 - city and company alerts: follow a page by RSS, and by email through the sibling's digest (1.108.0, pushed, NOT deployed)
 
 **Class:** feature (board item "City and company alerts"; step 1 of the TECHLOG 2026-10-12 design)

@@ -1522,7 +1522,42 @@ EMPLOYER_KEY_ALIASES = {
     # OpenAI-backed Thrive Holdings double count in company_key's docstring,
     # arriving through a diacritic instead of a backer prefix.
     'félix': 'felix',
+    # --- 2026-10-19 slug-collision review -----------------------------------
+    # ops_status [1c] flagged 12 slugs. Each pair below was read row by row and
+    # is ONE employer (same company, same event, two outlets' spellings); the
+    # survivor is the ASCII-clean plainer form, as above.
+    'dangote petroleum refinery & petrochemicals fze':
+        'dangote petroleum refinery and petrochemicals fze',
+    # E&R Engineering Corp.: Portland office (US) and Malaysia plant, one firm.
+    'e & r engineering': 'e and r engineering',
+    'e&r engineering': 'e and r engineering',
+    'figeac aéro': 'figeac aero',
+    'flæ robotics': 'flae robotics',      # one Czech startup's €1M+ round
+    'kpmg austrália': 'kpmg australia',  # Portuguese outlet, same scandal
+    'l oréal': 'l oreal',
+    'mærsk': 'maersk',
+    'santé': 'sante',                     # one $15M Series A, two outlets
+    't - mobile': 't-mobile',             # one CEO appointment
+    # Vietnamese without diacritics is the ordinary ASCII spelling of the name,
+    # the same rule as 'formosa hà tĩnh' -> 'formosa ha tinh' above. The 2026-09
+    # blocker (the two slugifiers disagreeing on đ) is gone: U+0111 is in
+    # _ATOMIC_FOLDS and both now read 'giay-thuong-dinh'.
+    'giày thượng đình': 'giay thuong dinh',
+    'giầy thượng đình': 'giay thuong dinh',
+    # One employer whose every source spelling is Hangul. No ASCII survivor
+    # exists and inventing one is refused, so the survivor is the spaced Hangul
+    # form and is listed in NON_ASCII_ALIAS_SURVIVORS: it is reachable through
+    # the slug index at /company/kcu-npl-daebu/ once the collision is gone.
+    'kcu npl대부': 'kcu npl 대부',
 }
+
+# Alias survivors exempt from the "slugifies to itself" rule, because no
+# spelling any source uses is ASCII. Each one is served through the precomputed
+# slug index (tit_company_slug_index), which needs the collision gone, which is
+# what the merge does. Keep this list tiny and justified per entry.
+NON_ASCII_ALIAS_SURVIVORS = frozenset({
+    'kcu npl 대부',
+})
 
 
 # One employer, two spellings, and NEITHER can be the survivor: this map
@@ -1569,14 +1604,15 @@ SAME_EMPLOYER_NO_ASCII_KEY = {
     # tests/test_employer_homonyms.py::test_every_reviewed_collision_key_is_a
     # _slug_something_actually_claims is the guard, and it fails on a key no
     # live employer produces rather than waiting for the next review.
-    'giay-thuong-dinh': ('giày thượng đình', 'giầy thượng đình'),
+    # 'giay-thuong-dinh' was here; merged 2026-10-19 (see EMPLOYER_KEY_ALIASES).
     # 대부 ("daebu", lending) with and without the space before it, from
     # Ajunews and thedailyeconomy.kr covering one event: Lee Jong-seong's
     # inauguration as 대표이사 of the Shinhyup asset-management subsidiary.
     # One employer, and NEITHER spelling can survive: the alias map needs a
     # key that slugifies to itself, and 'kcu npl daebu' is a romanisation no
     # source uses. Recording it beats inventing a name.
-    'kcu-npl-daebu': ('kcu npl 대부', 'kcu npl대부'),
+    # 'kcu-npl-daebu' was here; merged 2026-10-19 onto a Hangul survivor
+    # (EMPLOYER_KEY_ALIASES, NON_ASCII_ALIAS_SURVIVORS).
 }
 
 

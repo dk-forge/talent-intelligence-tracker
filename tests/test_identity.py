@@ -963,9 +963,15 @@ def test_an_alias_may_only_merge_two_spellings_of_one_name():
 
     from pipeline import vocab
 
+    # Atomic letters (æ, đ, ø...) do not decompose under NFKD, so a bare fold
+    # DELETED them and called 'flæ robotics' and 'flae robotics' two names when
+    # WordPress (remove_accents) and ops_status both fold them to ae / d.
+    from ops_status import _ATOMIC_FOLDS
+
     def slug(key):
         folded = unicodedata.normalize("NFKD", key.lower())
         folded = "".join(c for c in folded if not unicodedata.combining(c))
+        folded = "".join(_ATOMIC_FOLDS.get(c, c) for c in folded)
         return re.sub(r"[^a-z0-9]+", "-", folded.replace("&", " and ")).strip("-")
 
     for variant, survivor in vocab.EMPLOYER_KEY_ALIASES.items():

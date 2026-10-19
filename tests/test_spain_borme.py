@@ -189,6 +189,22 @@ class TheOfficeFilter(unittest.TestCase):
 
 
 class TheInscriptionDate(unittest.TestCase):
+    def test_a_space_padded_single_digit_day_is_still_a_date(self):
+        """BORME prints `( 8.10.26)`, a SPACE where the leading zero was.
+
+        Captured verbatim from BORME-A 2026-10-16. A two-digit-only pattern
+        read every act inscribed on days 1-9 as undated and declined it, so
+        2026-10 runs stored 2 acts over 4 publication days against ~64 a day.
+        """
+        self.assertEqual(
+            es.inscribed_on("Datos registrales. S 8 , H VI 23203, I/A 2 ( 8.10.26).",
+                            published=date(2026, 10, 16)),
+            date(2026, 10, 8))
+        self.assertEqual(
+            es.inscribed_on("Datos registrales. S 8 , H M 1, I/A 5 (8.10.26).",
+                            published=date(2026, 10, 16)),
+            date(2026, 10, 8))
+
     def test_the_two_digit_year_pivots_on_the_publication_date(self):
         """`(03.02.97)` is 1997. Read as 2097 it is a date 71 years out."""
         self.assertEqual(

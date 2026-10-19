@@ -197,6 +197,8 @@ def test_the_surviving_spelling_is_the_one_sql_can_find_without_the_index():
     import unicodedata
 
     for variant, survivor in vocab.EMPLOYER_KEY_ALIASES.items():
+        if survivor in vocab.NON_ASCII_ALIAS_SURVIVORS:
+            continue
         legacy = survivor.replace(" ", "-")
         folded = unicodedata.normalize("NFKD", survivor.lower())
         folded = "".join(c for c in folded if not unicodedata.combining(c))
