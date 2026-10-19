@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-10-19T08:59:10Z",
-  "last_tick": "2026-10-19T08:59:10Z",
+  "last_tick": "2026-10-19T09:12:49Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -263,6 +263,11 @@
           "at": "2026-10-19T08:59:10Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T09:12:49Z",
+          "detail": "run 39226688914",
+          "event": "bound"
         }
       ],
       "id": "20261019T084451Z-archive-sources",
@@ -273,9 +278,33 @@
       "reason": "scheduled link hygiene (20 */8 * * *)",
       "requested_at": "2026-10-19T08:44:51Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "39226688914",
       "state": "dispatched",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-10-19T09:12:44Z",
+          "detail": "owner ruling 2026-10-19: exclude both valuation figures",
+          "event": "queued"
+        }
+      ],
+      "id": "20261019T091244Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "owner ruling 2026-10-19: stored amount is a valuation, not a raise",
+        "rows": "784dcf8e6dbe6020efbfb6bdfb11579f,b9e7be50f744766bf1717f2f87052595"
+      },
+      "priority": 0,
+      "reason": "owner ruling 2026-10-19: exclude both valuation figures",
+      "requested_at": "2026-10-19T09:12:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "adjudicate-rows.yml"
     },
     {
       "attempts": 0,
