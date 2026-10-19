@@ -1,0 +1,66 @@
+{
+ "key": "amount/fb71dbd7e544df3f29ec5571b1007841",
+ "label": "Raytheon $30,700,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "state_funding",
+   "recommended": "edit",
+   "corrected_amount": 30700000000,
+   "corrected_basis": "state_funding",
+   "confidence": 95,
+   "reasoning": "The source states: \"Raytheon has received two contracts with the Department of Defense\" totaling $30.7B ($24.4B + $6.3B). These are Pentagon/DOD contracts to produce missiles, not a private investment raise. Per the rules, this is state_funding (\"a subsidy, grant or appropriation\"), not an acquisition. The stored basis \"acquisition\" is incorrect; this should be \"state_funding\" and excluded from company_raise totals."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "state_funding",
+   "recommended": "edit",
+   "corrected_amount": 30700000000,
+   "corrected_basis": "state_funding",
+   "confidence": 95,
+   "reasoning": "The source states: 'Raytheon has received two contracts with the Department of Defense to accelerate production of two Standard Missile interceptor models.' This indicates state funding, not acquisition, as the money comes from government contracts."
+  }
+ },
+ "row": {
+  "company": "Raytheon",
+  "headline": "Raytheon secures 2 Pentagon contracts worth $30.7B combined",
+  "summary": "Raytheon has secured two Pentagon contracts totaling $30.7 billion to increase production of Standard Missile-3 Block IB and Standard Missile-6 interceptors at its facilities in Alabama and Arizona.",
+  "funding_amount": "$30.7B",
+  "funding_amount_usd": 30700000000,
+  "funding_stage": "other",
+  "deal_type": "acquisition",
+  "money_basis": "acquisition",
+  "source_url": "https://www.manufacturingdive.com/news/rtx-raytheon-dod-defense-war-sm3-ib-sm-6-missile-interceptors/832760/",
+  "source_name": "Manufacturing Dive",
+  "published_date": "2026-10-13",
+  "collector": "national_press",
+  "city": null,
+  "region": "North America",
+  "state": null,
+  "country": "US",
+  "hq_city": null,
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.023779,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.014361,
+  "openai/gpt-4o": 0.0094175
+ },
+ "evidence_url": "https://www.manufacturingdive.com/news/rtx-raytheon-dod-defense-war-sm3-ib-sm-6-missile-interceptors/832760/",
+ "evidence_chars": 10570,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 30700000000,
+  "corrected_basis": "state_funding"
+ },
+ "note": "two-model adjudication of amount/fb71dbd7e544df3f29ec5571b1007841, both referees say edit. corrected_amount=30700000000 corrected_basis=state_funding. anthropic/claude-sonnet-4.5: The source states: \"Raytheon has received two contracts with the Department of Defense\" totaling $30.7B ($24.4B + $6.3B). These are Pentagon/DOD contracts to produce missiles, not a private investment raise. Per the rule; openai/gpt-4o: The source states: 'Raytheon has received two contracts with the Department of Defense to accelerate production of two Standard Missile interceptor models.' This indicates state funding, not acquisition, as the money com",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-19T00:57:15+00:00"
+}
