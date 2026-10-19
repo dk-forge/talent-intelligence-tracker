@@ -224,7 +224,8 @@ $phase = $argv[1] ?? '';
 if ($phase === '') {
     $rc = 0;
     foreach (array('before', 'after', 'ambiguous', 'romanised', 'romanised-live-key',
-                      'romanised-refused-collision', 'disambiguated-script-drop') as $each) {
+                      'romanised-refused-collision', 'disambiguated-script-drop',
+                      'disambiguated-all-lossy') as $each) {
         $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' ' . escapeshellarg($each);
         passthru($command, $status);
         if ($status !== 0) $rc = 1;
@@ -549,6 +550,42 @@ if ($phase === 'disambiguated-script-drop') {
     check(rawurldecode(tit_company_canonical_slug('日本ibm')) === $requested_path,
         'visiting the published URL for IBM Japan must not trigger a further '
         . 'redirect');
+}
+
+// --------------------------------------------------------------------------
+if ($phase === 'disambiguated-all-lossy') {
+// --------------------------------------------------------------------------
+    // THE LIVE DEFECT (ops_status [1c], 2026-10-19, /company/sk/): SK Hynix
+    // ('sk 海力士') and SK Telecom ('sk 电信') are two DIFFERENT employers
+    // whose Han suffixes are both deleted by the plain fold, so both claimed
+    // 'sk' and BOTH were refused: two unpublishable employers. The escape hatch
+    // above only fired when exactly one owner was clean. When NO owner's own
+    // spelling produced the slug, every owner lost a script, and each gets its
+    // own percent-encoded URL (its own bytes, never a guessed reading).
+    $wpdb->insert_signal('skh1', 'SK 海力士', 'sk 海力士',
+                         array('published_date' => '2026-04-01'));
+    $wpdb->insert_signal('skt1', 'SK 电信', 'sk 电信',
+                         array('published_date' => '2026-04-02'));
+    check(tit_company_slug('sk 海力士') === 'sk' && tit_company_slug('sk 电信') === 'sk',
+        'sanity: both plain folds must still collide on sk');
+
+    $index = tit_company_slug_index();
+    check(isset($index['disambiguated']['sk 海力士']) && isset($index['disambiguated']['sk 电信']),
+        'both script-dropping owners must get their own URL rather than be refused together');
+    $prefix = home_url('/' . TIT_COMPANY_BASE . '/');
+    $seen = array();
+    foreach (array('sk 海力士', 'sk 电信') as $key) {
+        $url = tit_company_url($key);
+        check($url !== $prefix . 'sk/', "{$key} must not be published at the bare /sk/ URL");
+        check(tit_company_servable_slug($key) === true, "{$key} must be servable");
+        $path = rawurldecode(rtrim(substr($url, strlen($prefix)), '/'));
+        $rows = tit_company_rows($path);
+        check(count($rows) === 1 && $rows[0]['company_key'] === $key,
+            "the URL published for {$key} must resolve back to it");
+        $seen[$url] = true;
+    }
+    check(count($seen) === 2, 'the two employers must get two different URLs');
+    check(resolves_to('sk') === '', 'nobody owns the bare sk slug, so it must not serve either');
 }
 
 if ($failures) {

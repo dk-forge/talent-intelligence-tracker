@@ -304,7 +304,9 @@ _TAG = re.compile(r"<[^>]+>")
 _ENTITIES = (("&amp;", "&"), ("&nbsp;", " "), ("&quot;", '"'), ("&#39;", "'"),
              ("&lt;", "<"), ("&gt;", ">"), ("\xa0", " "))
 _COMPANY = re.compile(r"^(\d+)\s*-\s*(.+?)\.?$")
-_INSCRIBED = re.compile(r"\((\d{2})\.(\d{2})\.(\d{2})\)")
+# The day (and in principle the month) is SPACE-padded, `( 8.10.26)`, not
+# zero-padded: a `\d{2}` day read every act inscribed on the 1st-9th as undated.
+_INSCRIBED = re.compile(r"\(\s*(\d{1,2})\.\s*(\d{1,2})\.(\d{2})\)")
 _ACT = re.compile(
     r"(?:(?<=^)|(?<=[.\s]))("
     + "|".join(re.escape(a) for a in sorted(ACT_HEADINGS, key=len, reverse=True))

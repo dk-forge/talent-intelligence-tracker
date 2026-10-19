@@ -1,0 +1,44 @@
+{
+ "key": "amount/b9e7be50f744766bf1717f2f87052595",
+ "label": "Ramaswamy Nuclear Startup $1,900,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": null,
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Ramaswamy Nuclear Startup",
+  "headline": "Ramaswamy Nuclear Startup Raises Funds at $1.9 Billion Value",
+  "summary": "Ramaswamy Nuclear Startup has raised funds at a valuation of $1.9 billion. The specific funding stage was not disclosed.",
+  "funding_amount": "$1.9 Billion",
+  "funding_amount_usd": 1900000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://news.bloomberglaw.com/private-equity/vivek-ramaswamys-nuclear-startup-raises-at-1-9-billion-value",
+  "source_name": "Bloomberg Law News",
+  "published_date": "2026-10-09",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-10-18 23:37:17"
+ },
+ "cost_usd": 0.0,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.0,
+  "openai/gpt-4o": 0.0
+ },
+ "evidence_url": "https://web.archive.org/web/20261012232822/https://news.bloomberglaw.com/private-equity/vivek-ramaswamys-nuclear-startup-raises-at-1-9-billion-value",
+ "evidence_chars": 1184,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-10-19T09:33:23+00:00"
+}

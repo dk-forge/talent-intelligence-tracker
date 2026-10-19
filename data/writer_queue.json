@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-19T08:59:10Z",
-  "last_tick": "2026-10-19T09:12:49Z",
+  "last_dispatch": "2026-10-19T09:40:07Z",
+  "last_tick": "2026-10-19T09:40:07Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,178 +247,31 @@
     }
   ],
   "red_marks": {
-    "ticket:20261013T164016Z-adjudicate-rows": "2026-10-18T17:48:10Z"
+    "ticket:20261013T164016Z-adjudicate-rows": "2026-10-18T17:48:10Z",
+    "ticket:20261019T091244Z-adjudicate-rows": "2026-10-19T09:34:06Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-19T08:59:10Z",
-      "history": [
-        {
-          "at": "2026-10-19T08:44:51Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-19T08:59:10Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-19T09:12:49Z",
-          "detail": "run 39226688914",
-          "event": "bound"
-        }
-      ],
-      "id": "20261019T084451Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-19T08:44:51Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "39226688914",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": null,
       "history": [
         {
-          "at": "2026-10-19T09:12:44Z",
-          "detail": "owner ruling 2026-10-19: exclude both valuation figures",
+          "at": "2026-10-19T09:53:13Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
           "event": "queued"
         }
       ],
-      "id": "20261019T091244Z-adjudicate-rows",
+      "id": "20261019T095313Z-enrich",
       "inputs": {
-        "dry_run": "false",
-        "reason": "owner ruling 2026-10-19: stored amount is a valuation, not a raise",
-        "rows": "784dcf8e6dbe6020efbfb6bdfb11579f,b9e7be50f744766bf1717f2f87052595"
+        "dry_run": "false"
       },
       "priority": 0,
-      "reason": "owner ruling 2026-10-19: exclude both valuation figures",
-      "requested_at": "2026-10-19T09:12:44Z",
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-10-19T09:53:13Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
       "state": "queued",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-10T01:15:22Z",
-      "history": [
-        {
-          "at": "2026-10-10T01:10:37Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-10T01:15:22Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-10T01:41:59Z",
-          "detail": "run 38012464511",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-10T01:41:59Z",
-          "detail": "run 38012464511",
-          "event": "landed"
-        }
-      ],
-      "id": "20261010T011037Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-10T01:41:59Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-10T01:10:37Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38012464511",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-10T05:42:40Z",
-      "history": [
-        {
-          "at": "2026-10-10T05:37:49Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-10T05:42:40Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-10T05:48:22Z",
-          "detail": "run 38028431667",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-10T05:48:22Z",
-          "detail": "run 38028431667",
-          "event": "landed"
-        }
-      ],
-      "id": "20261010T053749Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-10T05:48:22Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-10T05:37:49Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38028431667",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-10T08:52:58Z",
-      "history": [
-        {
-          "at": "2026-10-10T08:37:25Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-10T08:52:58Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-10T09:08:32Z",
-          "detail": "run 38039424290",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-10T09:19:31Z",
-          "detail": "run 38039424290",
-          "event": "landed"
-        }
-      ],
-      "id": "20261010T083725Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-10T09:19:31Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-10T08:37:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38039424290",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
+      "workflow": "enrich.yml"
     },
     {
       "attempts": 0,
@@ -2596,6 +2449,121 @@
       "run_id": "39217456008",
       "state": "landed",
       "workflow": "tripwire.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T08:59:10Z",
+      "history": [
+        {
+          "at": "2026-10-19T08:44:51Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T08:59:10Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T09:12:49Z",
+          "detail": "run 39226688914",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-19T09:26:59Z",
+          "detail": "run 39226688914",
+          "event": "landed"
+        }
+      ],
+      "id": "20261019T084451Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-19T09:26:59Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-10-19T08:44:51Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39226688914",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T09:32:54Z",
+      "history": [
+        {
+          "at": "2026-10-19T09:12:44Z",
+          "detail": "owner ruling 2026-10-19: exclude both valuation figures",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T09:32:54Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T09:34:06Z",
+          "detail": "run 39230901446",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-19T09:34:06Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20261019T091244Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "owner ruling 2026-10-19: stored amount is a valuation, not a raise",
+        "rows": "784dcf8e6dbe6020efbfb6bdfb11579f,b9e7be50f744766bf1717f2f87052595"
+      },
+      "priority": 0,
+      "reason": "owner ruling 2026-10-19: exclude both valuation figures",
+      "requested_at": "2026-10-19T09:12:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39230901446",
+      "state": "failed",
+      "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T09:40:07Z",
+      "history": [
+        {
+          "at": "2026-10-19T09:39:59Z",
+          "detail": "dry run: move rows onto the 11 new employer aliases (PR #277)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T09:40:07Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T09:41:09Z",
+          "detail": "run 39231793629",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-19T09:41:09Z",
+          "detail": "run 39231793629",
+          "event": "landed"
+        }
+      ],
+      "id": "20261019T093959Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "landed_at": "2026-10-19T09:41:09Z",
+      "priority": 0,
+      "reason": "dry run: move rows onto the 11 new employer aliases (PR #277)",
+      "requested_at": "2026-10-19T09:39:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39231793629",
+      "state": "landed",
+      "workflow": "correct-company-key.yml"
     }
   ],
   "version": 1
