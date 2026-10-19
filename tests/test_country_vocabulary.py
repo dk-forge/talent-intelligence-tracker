@@ -94,8 +94,11 @@ def _region_tabs():
     # Anchor on the function under test, then let the brackets say where its
     # region list ends. The only literal either step depends on is the name of
     # the thing being asserted about.
-    body = php[php.index("function tit_regions"):]
-    defs = balanced_block(body, "$defs = array(", what="the region list in tit_regions")
+    # The list itself moved into tit_region_defs() (1.109.0) so the By
+    # location table folds countries into exactly the strip's regions.
+    assert "$defs = tit_region_defs();" in php[php.index("function tit_regions"):]
+    body = php[php.index("function tit_region_defs"):]
+    defs = balanced_block(body, "return array(", what="the region list in tit_region_defs")
 
     regions = {}
     # array('Name', 'AA,BB' . 'CC,DD') — the code lists are split across several

@@ -61,7 +61,11 @@ def _region_function() -> str:
     )
     head = src[src.index("function tit_regions"):]
     body = balanced_block(head, head[:head.index("{") + 1], what="tit_regions body")
-    return head[:head.index("{")] + "{" + body + "}"
+    fn = head[:head.index("{")] + "{" + body + "}"
+    # The list lives in tit_region_defs() since 1.109.0; carry it along.
+    dhead = src[src.index("function tit_region_defs"):]
+    dbody = balanced_block(dhead, dhead[:dhead.index("{") + 1], what="tit_region_defs body")
+    return dhead[:dhead.index("{")] + "{" + dbody + "}\n" + fn
 
 
 class RegionBadgesEqualTheirOwnFilter(unittest.TestCase):

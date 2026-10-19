@@ -1120,9 +1120,17 @@ function tit_dashboard_html() {
                      would be a control that visibly does nothing. */ ?>
             <button type="button" class="tit-dg-copy" id="tit-dg-copy" hidden>Copy as Post</button>
           </div>
+          <?php /* THE VIEW SWITCH (owner-approved 2026-10-19). Time is the
+                   board as it always was and stays the default and the
+                   server render; Region / Country / City swap the board for
+                   the By location table, which dashboard.js fetches through
+                   /aggregate?include=geo. Rendered hidden: without JavaScript
+                   the switch could only offer views it cannot paint. */ ?>
+          <div class="tit-geo-bar" id="tit-geo-bar" hidden></div>
           <div class="tit-glance" id="tit-glance">
             <?php echo tit_glance_matrix_html($glance); ?>
           </div>
+          <div class="tit-geo" id="tit-geo" hidden aria-live="polite"></div>
           <?php /* WHAT A ROW IS, UNDER THE BOARD THAT COUNTS THEM.
 
                    The sibling layoff tracker learned this the hard way: the
@@ -1147,6 +1155,11 @@ function tit_dashboard_html() {
                    tests/test_reader_copy_says_entries.py. */ ?>
           <p class="tit-board-def" id="tit-board-def">An entry is one update about one employer. Total Raised counts dollars, and every other row counts entries.</p>
         </div>
+        <?php /* TOP ROUNDS: the ten largest company raises (money_basis =
+                 company_raise, tit_money_where) in the selected period and
+                 place, each with its source. Filled by dashboard.js from the
+                 same include=geo call as the By location table. */ ?>
+        <section class="tit-top-rounds" id="tit-top-rounds" hidden></section>
 
       </div>
 
@@ -2830,6 +2843,23 @@ function tit_signal_defs() {
 }
 
 /**
+ * THE FOUR WINDOWS, from one place. The time board's columns and the "By
+ * location" table's period selector (includes/by_location.php) are the same
+ * four windows, so a location row for "This quarter" and the board's quarter
+ * column cannot start on different days. Quarter start stays derived.
+ */
+function tit_glance_periods($today = null) {
+    $today = $today ?: current_time('Y-m-d');
+    $q_month = (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1;
+    return array(
+        array('This week',    date('Y-m-d', strtotime($today . ' -6 days'))),
+        array('This month',   date('Y-m-01', strtotime($today))),
+        array('This quarter', sprintf('%s-%02d-01', date('Y', strtotime($today)), $q_month)),
+        array(date('Y', strtotime($today)) . ' YTD', date('Y-01-01', strtotime($today))),
+    );
+}
+
+/**
  * The at-a-glance matrix: signals down the side, periods across the top.
  *
  * This replaced five period tiles that each printed the same sentence shape.
@@ -2871,7 +2901,6 @@ function tit_signal_defs() {
 function tit_glance_matrix($table, $where = 'is_current = 1', array $params = array()) {
     global $wpdb;
     $today = current_time('Y-m-d');
-    $q_month = (intdiv((int) date('n', strtotime($today)) - 1, 3) * 3) + 1;
     /*
       No "Today" column.
 
@@ -2885,12 +2914,7 @@ function tit_glance_matrix($table, $where = 'is_current = 1', array $params = ar
       "YTD" rather than "so far", which the owner asked for; the year itself is
       still computed, never typed.
     */
-    $periods = array(
-        array('This week',    date('Y-m-d', strtotime($today . ' -6 days'))),
-        array('This month',   date('Y-m-01', strtotime($today))),
-        array('This quarter', sprintf('%s-%02d-01', date('Y', strtotime($today)), $q_month)),
-        array(date('Y', strtotime($today)) . ' YTD', date('Y-01-01', strtotime($today))),
-    );
+    $periods = tit_glance_periods($today);
 
     // The rows, their labels and their SQL, from the one place that holds them.
     $defs = tit_signal_defs();
@@ -5474,6 +5498,31 @@ function tit_flag($cc) {
     return mb_chr(127397 + ord($cc[0]), 'UTF-8') . mb_chr(127397 + ord($cc[1]), 'UTF-8');
 }
 
+/**
+ * The region taxonomy alone: [name, comma-separated ISO codes]. Read by the
+ * region strip (tit_regions) and by the By location table, so a region row and
+ * the region tab it filters to are the same list of countries.
+ */
+function tit_region_defs() {
+    return array(
+        array('World', ''),
+        array('Americas', 'US,CA,MX,BR,AR,CL,CO,PE,UY,CR,EC,BO,PY,VE,GT,HN,SV,NI,PA,DO,'
+                        . 'CU,JM,TT,HT,BZ,GY,SR,BS,BB,AG,DM,GD,KN,LC,VC,PR,VI,VG,KY,BM,'
+                        . 'AI,MS,TC,AW,CW,SX,BQ,MF,BL,GP,MQ,GF,PM,GL,FK,GS'),
+        array('Europe',  'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,CZ,GR,RO,HU,'
+                        . 'LV,LT,EE,SK,SI,HR,BG,RS,UA,IS,LU,MT,CY,AL,BA,ME,MK,MD,BY,MC,'
+                        . 'LI,AD,SM,VA,XK,RU,FO,GG,JE,IM,AX,SJ,GI'),
+        array('Middle East', 'AE,SA,IL,QA,KW,BH,OM,TR,JO,LB,IQ,IR,SY,YE,PS'),
+        array('Africa',  'ZA,NG,KE,EG,MA,GH,ET,NA,TZ,UG,ZM,ZW,BW,MZ,AO,SN,CI,CM,DZ,TN,'
+                        . 'LY,SD,SS,RW,MW,MU,MG,CD,CG,GA,BJ,BF,ML,NE,TD,SO,SL,LR,GM,BI,'
+                        . 'CF,CV,DJ,ER,GN,GQ,GW,KM,LS,MR,SC,SH,ST,SZ,TG,EH,YT,RE'),
+        array('Asia',    'IN,SG,JP,CN,HK,KR,MY,PH,ID,TH,VN,TW,PK,BD,LK,NP,MM,KH,LA,MN,'
+                        . 'MO,BN,MV,KZ,UZ,GE,AM,AZ,KG,TJ,TM,AF,BT,KP,TL,IO,CC,CX'),
+        array('Oceania', 'AU,NZ,FJ,PG,SB,VU,NC,PF,WS,TO,KI,FM,MH,NR,PW,TV,CK,NU,TK,WF,'
+                        . 'AS,GU,MP,NF,PN,UM,AQ,BV,HM,TF'),
+    );
+}
+
 function tit_regions(array $counts, $view_total) {
     /*
       ONE taxonomy, exhaustive and non-overlapping.
@@ -5506,23 +5555,7 @@ function tit_regions(array $counts, $view_total) {
       Latvian employer once fell outside "Europe" because LV was missing, which
       is a filter quietly lying about its own name.
     */
-    $defs = array(
-        array('World', ''),
-        array('Americas', 'US,CA,MX,BR,AR,CL,CO,PE,UY,CR,EC,BO,PY,VE,GT,HN,SV,NI,PA,DO,'
-                        . 'CU,JM,TT,HT,BZ,GY,SR,BS,BB,AG,DM,GD,KN,LC,VC,PR,VI,VG,KY,BM,'
-                        . 'AI,MS,TC,AW,CW,SX,BQ,MF,BL,GP,MQ,GF,PM,GL,FK,GS'),
-        array('Europe',  'GB,IE,DE,FR,NL,ES,IT,SE,PL,CH,BE,DK,NO,FI,AT,PT,CZ,GR,RO,HU,'
-                        . 'LV,LT,EE,SK,SI,HR,BG,RS,UA,IS,LU,MT,CY,AL,BA,ME,MK,MD,BY,MC,'
-                        . 'LI,AD,SM,VA,XK,RU,FO,GG,JE,IM,AX,SJ,GI'),
-        array('Middle East', 'AE,SA,IL,QA,KW,BH,OM,TR,JO,LB,IQ,IR,SY,YE,PS'),
-        array('Africa',  'ZA,NG,KE,EG,MA,GH,ET,NA,TZ,UG,ZM,ZW,BW,MZ,AO,SN,CI,CM,DZ,TN,'
-                        . 'LY,SD,SS,RW,MW,MU,MG,CD,CG,GA,BJ,BF,ML,NE,TD,SO,SL,LR,GM,BI,'
-                        . 'CF,CV,DJ,ER,GN,GQ,GW,KM,LS,MR,SC,SH,ST,SZ,TG,EH,YT,RE'),
-        array('Asia',    'IN,SG,JP,CN,HK,KR,MY,PH,ID,TH,VN,TW,PK,BD,LK,NP,MM,KH,LA,MN,'
-                        . 'MO,BN,MV,KZ,UZ,GE,AM,AZ,KG,TJ,TM,AF,BT,KP,TL,IO,CC,CX'),
-        array('Oceania', 'AU,NZ,FJ,PG,SB,VU,NC,PF,WS,TO,KI,FM,MH,NR,PW,TV,CK,NU,TK,WF,'
-                        . 'AS,GU,MP,NF,PN,UM,AQ,BV,HM,TF'),
-    );
+    $defs = tit_region_defs();
 
     /*
       EVERY BADGE IS THE COUNT ITS OWN TAB RETURNS.
