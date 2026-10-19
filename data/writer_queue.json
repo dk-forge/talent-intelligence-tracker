@@ -253,70 +253,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-19T18:28:20Z",
-      "history": [
-        {
-          "at": "2026-10-19T18:28:16Z",
-          "detail": "push owner-ruled money_basis changes (PR #278) to the live site",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-19T18:28:20Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261019T182816Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "push owner-ruled money_basis changes (PR #278) to the live site",
-      "requested_at": "2026-10-19T18:28:16Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-11T09:53:15Z",
-      "history": [
-        {
-          "at": "2026-10-11T09:47:34Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-11T09:53:15Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-11T09:56:12Z",
-          "detail": "run 38129966513",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-11T09:56:12Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        }
-      ],
-      "id": "20261011T094734Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-10-11T09:47:34Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38129966513",
-      "state": "failed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-11T16:44:08Z",
       "history": [
         {
@@ -2574,6 +2510,44 @@
       "run_id": "39301380680",
       "state": "landed",
       "workflow": "correct-drifted-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T18:28:20Z",
+      "history": [
+        {
+          "at": "2026-10-19T18:28:16Z",
+          "detail": "push owner-ruled money_basis changes (PR #278) to the live site",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T18:28:20Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T18:31:36Z",
+          "detail": "run 39302793396",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-19T18:31:36Z",
+          "detail": "run 39302793396",
+          "event": "landed"
+        }
+      ],
+      "id": "20261019T182816Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-19T18:31:36Z",
+      "priority": 0,
+      "reason": "push owner-ruled money_basis changes (PR #278) to the live site",
+      "requested_at": "2026-10-19T18:28:16Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39302793396",
+      "state": "landed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
