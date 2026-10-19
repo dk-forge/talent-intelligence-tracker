@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-10-12T10:40:23+02:00",
- "measured_on": "2026-10-12",
+ "generated_at": "2026-10-19T10:29:39+02:00",
+ "measured_on": "2026-10-19",
  "goldset_version": "2026-06-us-v1",
  "gold_events": 51,
- "misses": 28,
+ "misses": 29,
  "feed_backlog_days": 3,
  "catalogue_rows": 1333,
  "feeds_swept": 650,
@@ -47,7 +47,7 @@
   "stored_not_current": 0,
   "fetched_then_dropped": 1,
   "outside_our_history": 0,
-  "walked_never_read": 27,
+  "walked_never_read": 28,
   "feed_read_item_missed": 0,
   "publisher_not_wired": 0,
   "publisher_unknown": 0
@@ -66,34 +66,34 @@
   "filter": 1,
   "source": 0,
   "history": 0,
-  "budget": 27,
+  "budget": 28,
   "neither": 0
  },
  "sensitivity_to_feed_backlog_days": {
   "1": {
    "outside_our_history": 0,
-   "walked_never_read": 27,
+   "walked_never_read": 28,
    "feed_read_item_missed": 0,
    "publisher_not_wired": 0,
    "publisher_unknown": 0
   },
   "3": {
    "outside_our_history": 0,
-   "walked_never_read": 27,
+   "walked_never_read": 28,
    "feed_read_item_missed": 0,
    "publisher_not_wired": 0,
    "publisher_unknown": 0
   },
   "7": {
    "outside_our_history": 0,
-   "walked_never_read": 27,
+   "walked_never_read": 28,
    "feed_read_item_missed": 0,
    "publisher_not_wired": 0,
    "publisher_unknown": 0
   },
   "14": {
    "outside_our_history": 0,
-   "walked_never_read": 23,
+   "walked_never_read": 24,
    "feed_read_item_missed": 1,
    "publisher_not_wired": 3,
    "publisher_unknown": 0
@@ -101,7 +101,7 @@
  },
  "by_country": {
   "US": {
-   "walked_never_read": 27,
+   "walked_never_read": 28,
    "fetched_then_dropped": 1
   }
  },
@@ -114,7 +114,7 @@
    "walked_never_read": 8
   },
   "Rest of US": {
-   "walked_never_read": 6,
+   "walked_never_read": 7,
    "fetched_then_dropped": 1
   },
   "San Francisco": {
@@ -133,7 +133,7 @@
    "domain": "fortune.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 146,
+   "urls_fetched_from_this_domain": 169,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -154,7 +154,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 172,
+   "urls_fetched_from_this_domain": 193,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -195,7 +195,7 @@
    "domain": "biospace.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 9,
+   "urls_fetched_from_this_domain": 11,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -215,7 +215,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 172,
+   "urls_fetched_from_this_domain": 193,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -236,7 +236,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 172,
+   "urls_fetched_from_this_domain": 193,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -257,7 +257,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 172,
+   "urls_fetched_from_this_domain": 193,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -298,7 +298,7 @@
    "domain": "techcrunch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 172,
+   "urls_fetched_from_this_domain": 193,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -318,7 +318,7 @@
    "domain": "pulse2.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 382,
+   "urls_fetched_from_this_domain": 408,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news"
@@ -337,7 +337,7 @@
    "domain": "fortune.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 146,
+   "urls_fetched_from_this_domain": 169,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -358,7 +358,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -378,7 +378,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -436,7 +436,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -456,7 +456,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -476,7 +476,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -516,7 +516,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -576,7 +576,7 @@
    "domain": "refreshmiami.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 43,
+   "urls_fetched_from_this_domain": 47,
    "live_routes": [],
    "walkers_past_this_date": [
     "gdelt",
@@ -618,7 +618,7 @@
    "domain": "geekwire.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 75,
+   "urls_fetched_from_this_domain": 81,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -638,7 +638,27 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 186,
+   "urls_fetched_from_this_domain": 198,
+   "live_routes": [],
+   "walkers_past_this_date": [
+    "google_news",
+    "press_archive"
+   ],
+   "stage": "walked_never_read",
+   "earliest_reachable": "2026-07-20",
+   "widest_route": "google_news",
+   "cell": "Rest of US"
+  },
+  {
+   "id": "rest_funding-07-brinc-drones",
+   "country": "US",
+   "signal_type": "funding",
+   "event_date": "2026-07-14",
+   "publisher": "GeekWire",
+   "domain": "geekwire.com",
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 81,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -658,7 +678,7 @@
    "domain": "geekwire.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 75,
+   "urls_fetched_from_this_domain": 81,
    "live_routes": [],
    "walkers_past_this_date": [
     "google_news",
@@ -685,7 +705,7 @@
    "cell": "Rest of US"
   }
  ],
- "verdict": "BUDGET, not sources: 27 of 28 misses fall on days a historical walker has already finished, so the event was available to us and the ration did not reach it. Only 0 are publishers no collector reads and only 0 predate every route. HIGH confidence that the day was walked, since a cursor is a fact on disk. MEDIUM that a deeper walk would hold the event: nothing records which candidates a rationed day left behind, so this names the stage and not the outcome.",
+ "verdict": "BUDGET, not sources: 28 of 29 misses fall on days a historical walker has already finished, so the event was available to us and the ration did not reach it. Only 0 are publishers no collector reads and only 0 predate every route. HIGH confidence that the day was walked, since a cursor is a fact on disk. MEDIUM that a deeper walk would hold the event: nothing records which candidates a rationed day left behind, so this names the stage and not the outcome.",
  "limits": [
   "A fetched-and-dropped item can be attributed only as far back as 2026-08-01, when pipeline/gate_ledger.py began recording a per-candidate outcome. Before that seen_urls holds a URL and the word 'rejected', and the keyword gate, the gate model, extraction, validate and dedupe all write exactly that.",
   "Nothing records the items a feed carried and a run did not reach, so 'feed_read_item_missed' is inferred from the publisher being swept, not observed.",

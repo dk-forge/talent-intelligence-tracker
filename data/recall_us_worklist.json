@@ -1,27 +1,33 @@
 {
- "generated_at": "2026-10-12T10:39:34+02:00",
- "measured_on": "2026-10-12",
+ "generated_at": "2026-10-19T10:28:38+02:00",
+ "measured_on": "2026-10-19",
  "goldset_version": "2026-06-us-v1",
  "overall": {
   "total": 51,
   "found": 5,
-  "found_partial": 18,
-  "missed": 28,
-  "held": 23,
-  "held_pct": 45.1,
+  "found_partial": 17,
+  "missed": 29,
+  "held": 22,
+  "held_pct": 43.1,
   "clean_pct": 9.8,
   "held_interval": {
-   "pct": 45.1,
-   "low_pct": 32.3,
-   "high_pct": 58.6,
-   "width_pct": 26.3,
-   "successes": 23,
+   "pct": 43.1,
+   "low_pct": 30.5,
+   "high_pct": 56.7,
+   "width_pct": 26.2,
+   "successes": 22,
    "total": 51
   }
  },
  "spread_group": "by_metro",
  "zero_countries": [],
  "weak_countries": [
+  {
+   "key": "Rest of US",
+   "total": 14,
+   "held": 6,
+   "held_pct": 42.9
+  },
   {
    "key": "San Francisco",
    "total": 13,
@@ -39,8 +45,8 @@
   {
    "key": "trade_press",
    "total": 24,
-   "held": 11,
-   "held_pct": 45.8
+   "held": 10,
+   "held_pct": 41.7
   },
   {
    "key": "national_news",
@@ -53,12 +59,12 @@
   {
    "key": "US funding",
    "total": 51,
-   "held": 23,
-   "held_pct": 45.1
+   "held": 22,
+   "held_pct": 43.1
   }
  ],
  "field_defects": {
-  "country_missing": 14,
+  "country_missing": 13,
   "country_wrong": 3,
   "amount_mismatch": 1
  },
@@ -272,6 +278,14 @@
    "event_date": "2026-07-14"
   },
   {
+   "company": "Brinc Drones",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "GeekWire",
+   "source_url": "https://www.geekwire.com/2026/motorola-leads-125m-round-for-brinc-fueling-911-drone-expansion-amid-u-s-import-crackdown/",
+   "event_date": "2026-07-14"
+  },
+  {
    "company": "logcat.ai",
    "country": "US",
    "signal_type": "funding",
@@ -288,10 +302,10 @@
    "event_date": "2026-07-28"
   }
  ],
- "missed_total": 28,
+ "missed_total": 29,
  "next_goldset": {
   "due": true,
-  "reason": "the current set covers a window that closed 73 days ago, so it no longer describes what we reach today",
+  "reason": "the current set covers a window that closed 80 days ago, so it no longer describes what we reach today",
   "suggested_window": {
    "start": "2026-09-01",
    "end": "2026-09-30"
