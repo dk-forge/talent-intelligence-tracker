@@ -51,15 +51,15 @@
   }
  },
  "last_run": {
-  "at": "2026-10-19T12:34:04+00:00",
+  "at": "2026-10-19T18:28:06+00:00",
   "referee_answers": {
    "budget_stop": 0,
    "low_confidence": 0,
    "no_answer": 0,
    "parse_failure": 0,
-   "verdict": 4
+   "verdict": 0
   },
-  "spent_usd": 0.027067
+  "spent_usd": 0.0
  },
  "months": {
   "2026-09": 0.0,
