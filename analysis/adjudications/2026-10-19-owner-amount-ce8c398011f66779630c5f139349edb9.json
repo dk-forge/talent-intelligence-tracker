@@ -1,0 +1,14 @@
+{
+ "key": "amount/ce8c398011f66779630c5f139349edb9",
+ "label": "NVIDIA $6,000,000,000",
+ "status": "owner-ruled",
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "outbound_investment"
+ },
+ "ruled_by": "owner, 2026-10-19 (in chat)",
+ "ruling": "NVIDIA's $6 billion is a payment to license Poolside's AI models (news.futunn.com): an outbound spend, not a raise. Row stays published, figure kept, excluded from the total.",
+ "note": "owner ruling 2026-10-19: excluded from money raised. NVIDIA's $6 billion is a payment to license Poolside's AI models (news.futunn.com): an outbound spend, not a raise. Row stays published, figure kept, excluded from the total.",
+ "written_at": "2026-10-19T18:00:00+00:00",
+ "open_finding": true
+}

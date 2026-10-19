@@ -1,0 +1,14 @@
+{
+ "key": "amount/5122dcae9a5f0a5d712625a29a0fe6ba",
+ "label": "Nvidia $150,000,000,000",
+ "status": "owner-ruled",
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "outbound_investment"
+ },
+ "ruled_by": "owner, 2026-10-19 (in chat)",
+ "ruling": "Nvidia's $150 billion is a stock BUYBACK authorisation (businesstoday.com.my): cash paid out to shareholders, not money raised. No buyback basis exists in the vocabulary; outbound_investment is the existing non-summed basis for an outbound spend. Row stays published, figure kept, excluded from the total.",
+ "note": "owner ruling 2026-10-19: excluded from money raised. Nvidia's $150 billion is a stock BUYBACK authorisation (businesstoday.com.my): cash paid out to shareholders, not money raised. No buyback basis exists in the vocabulary; outbound_investment is the existing non-summed basis for an outbound spend. Row stays published, figure kept, excluded from the total.",
+ "written_at": "2026-10-19T18:00:00+00:00",
+ "open_finding": true
+}

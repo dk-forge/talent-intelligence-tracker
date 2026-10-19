@@ -1,0 +1,95 @@
+name: correct-drifted-sources
+
+# Re-point rows whose cited outlet moved domain, to the SAME document at its new
+# address, through the committed re-source ledger and the site's /re-source
+# door. Only URLs the owner ruled same-document are touched
+# (data/drifted_repoint.json, owner ruling 2026-10-19). Free: no model, no fetch.
+# A database writer: it shares talent-collect and merges back. Queue it:
+#
+#   gh workflow run drain-writers.yml -f enqueue=correct-drifted-sources.yml \
+#        -f inputs_json='{"dry_run":"false"}' -f reason='why'
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db.
+  group: talent-collect
+  # It corrects the live site and then appends the revision that records it.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: [self-hosted, linux, contabo]
+    # About eighty rows at a one-second pace plus the host's retry pauses.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          # The script writes ONLY with --apply, and this is the only place it
+          # can be passed: the input defaults to true, so a dispatch that says
+          # nothing is a dry run rather than a live edit of published rows.
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
+          # No `|| true`: a plugin that cannot accept the fields, or a row left
+          # UNKNOWN, must fail the run rather than pass quietly.
+          python correct_drifted_sources.py $ARGS
+
+      - name: Commit the database
+        if: ${{ always() && inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          # MERGE our revisions into the remote's database, never copy our file
+          # over the top of it. See merge_db.py.
+          cp data/talent_intel.db "$RUNNER_TEMP/corrected.db"
+          cp data/talent_intel_cache.db "$RUNNER_TEMP/corrected_cache.db"
+          LANDED=0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/corrected.db" data/talent_intel.db
+            git add data/talent_intel.db data/talent_intel_cache.db
+            if git diff --staged --quiet; then
+              echo "No data change."
+              LANDED=1
+              break
+            fi
+            git commit -q -m "data: re-point drifted citations to the same document at its new address $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              LANDED=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt) - merging onto the current main."
+            sleep $((attempt * 5))
+          done
+          if [ "$LANDED" = "1" ]; then
+            exit 0
+          fi
+          # The site was corrected BEFORE the database on purpose, so a run that
+          # cannot push has corrected the live rows and lost only the record of
+          # having done so. The worklist is derived from what is stored, so
+          # re-queueing finds the same rows and re-sends values the site
+          # already holds. Loud, because nothing else would say so.
+          echo "::error::could not push the corrected database after 5 attempts."
+          echo "::error::The live site is already corrected; the revisions are not"
+          echo "::error::committed. Re-queue this workflow - it is idempotent."
+          exit 1
