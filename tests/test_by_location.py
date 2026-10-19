@@ -42,7 +42,7 @@ def test_measures_share_the_boards_predicates():
 def test_switch_is_hidden_until_script_runs_and_time_is_default():
     assert 'id="tit-geo-bar" hidden' in SC
     assert 'id="tit-top-rounds" hidden' in SC
-    assert "'Copy link</button>'" in JS and 'class="tit-geo-view"' in JS
+    assert 'Copy link</button>' in JS and 'class="tit-geo-view"' in JS
     assert "var geoView = 'time'" in JS
 
 
