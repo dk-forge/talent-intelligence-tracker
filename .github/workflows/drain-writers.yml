@@ -56,6 +56,7 @@ on:
       - correct-aggregator-sources
       - correct-city-country
       - correct-company-key
+      - correct-drifted-sources
       - correct-form-d
       - correct-form-d-overcount
       - correct-funding-amount

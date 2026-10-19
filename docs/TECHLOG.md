@@ -1,3 +1,56 @@
+## 2026-10-19 - owner rulings: five rows out of "money raised", 31 drifted citations re-pointed (no spend)
+
+**OWNER RULINGS, given in chat 2026-10-19, recorded here and in the specs that apply them.**
+
+A. Exclude from the money-raised total (rows stay published):
+
+| row | what | applied as |
+|---|---|---|
+| 784dcf8e6dbe6020efbfb6bdfb11579f Mobge $10M | a VALUATION; the raise was not disclosed | owner-ruled edit, `corrected_amount: null` (the Ominimo/Sapien precedent: no basis means "this figure is a valuation") |
+| 5122dcae9a5f0a5d712625a29a0fe6ba Nvidia $150bn, 2026-09-28 | a stock BUYBACK | `money_basis = outbound_investment` |
+| ce8c398011f66779630c5f139349edb9 NVIDIA $6bn, 2026-08-21 | a payment to LICENSE Poolside's models | `money_basis = outbound_investment` |
+| d5b205f24cc73b07df4bbb0552d32dd1 亚马逊 $8bn, 2026-10-02 | Amazon's OUTBOUND investment | `money_basis = outbound_investment` |
+| 65d2d0470a1876afb6632b197929e75c X.AI Holdings Form D $16.6bn | DUPLICATE of "xAI raises $20 billion" (CNBC, 18632944...) | `corrected_amount: null`; the round counts once, through the CNBC row |
+
+The vocabulary has no `buyback`, `licensing`, `valuation` or `duplicate` basis; `outbound_investment` is
+the existing non-summed basis for an outbound spend, and a cleared figure is the existing way to say
+"this number is not a raise of anything". Nothing was added to the vocabulary.
+
+**One ruling NOT applied, and why.** The brief named "Ramaswamy nuclear startup $1.9 Billion Value"
+(b9e7be50f744766bf1717f2f87052595) as a valuation. It was: but two referees had already corrected that
+row on 2026-10-19 12:35 to **$400m company_raise**, the "about $400 million in fresh money" the source
+states for the Series A. The $1.9bn is no longer on the row or in the total. Excluding the $400m too
+would drop a stated raise, so it is left for the owner to confirm.
+
+Applied through `adjudicate-rows` `from_spec` (owner-ruled specs
+`analysis/adjudications/2026-10-19-owner-amount-*.json`), no referee, $0. Three of the rows had never
+been raised by any check, so they had no finding to answer and the only door that opened one (`--row`)
+asks two PAID referees a question the owner had already answered. An owner-ruled spec may now say
+`"open_finding": true`, which opens it exactly as `--row` does and calls no model. A two-referee spec
+cannot reach that branch (test).
+
+A2. Issue #180, NOT ASKABLE finding `vehicle_name/3ef71ea2ba8cbf4e399f9f40414fb1c9` (Alpine Income
+Property Trust $117,300,000): EXCLUDE. Owner: "An investment trust raising money to buy property isn't a
+hiring signal." The row was never published, so the rejection is the whole correction (a rejected
+finding withholds its row for good; nothing to retract). Applied through `adjudicate-rows` `reject_keys`
+with that note, no referee, $0.
+
+B. Drifted-domain citations (ops_status [2c], 49 URLs): owner said "yes, update them to their new
+addresses". Only the SAME document moves. Per URL, recorded in `data/drifted_repoint.json`:
+
+* 9 news articles whose outlet moved domain (economictimes m.→indiatimes, b2b-cambodia→b2b-asianews,
+  sentinelsource→keenesentinel, capitalfm .co.ke→.africa, elobservador .com.uy→.com, objectifgard→
+  objectifsud, wave3→wdrbwave): same slug / article id, re-pointed.
+* 22 Greenhouse boards whose employer now redirects them to its OWN list of open roles: re-pointed.
+* 18 Greenhouse boards that redirect to a generic careers landing page or a homepage (Toast's
+  `/homepage`, Coinbase, Lyft, Datadog, Robinhood ...): NOT the same document, NOT re-pointed, left for
+  a human to retract or re-source. Listed in the PR.
+
+`correct_drifted_sources.py --record` wrote the proposals into the committed re-source ledger
+(`data/re_source_ledger.json`), and `correct-drifted-sources.yml` (queued, never dispatched) pushes each
+through the site's `/re-source` door and appends a revision with `store.revise`. The original citation
+survives at `is_current = 0`. No row edited in place, no model, no fetch.
+
 ## 2026-10-19 - data faults: BORME space-padded dates, 12 slug collisions, all-lossy slug fallback (1.108.1, pushed, NOT deployed)
 
 **spain_borme ERROR (2 acts over 4 publication days vs 64/day).** Not a URL or markup change: summaries and documents parsed fine (7,405 entries over 3 days). BORME prints the inscription date in `Datos registrales` with a SPACE-padded day, `( 8.10.26)`, and `_INSCRIBED` demanded `\d{2}`, so every act inscribed on the 1st-9th was declined as undated. Mid-month windows hit almost nothing else. Fixed the pattern; a live read-only replay of 2026-10-14..16 stores 127 acts with 0 undated. Guard: `tests/test_spain_borme.py::test_a_space_padded_single_digit_day_is_still_a_date` (verbatim line from BORME-A 2026-10-16).

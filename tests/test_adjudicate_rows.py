@@ -390,6 +390,26 @@ def test_apply_from_spec_re_applies_an_owner_ruled_spec_with_no_call(conn, tmp_p
     assert row["funding_amount_usd"] == 59_000_000, "the stored amount is kept, only the basis moves"
 
 
+def test_an_owner_ruled_spec_may_open_its_own_finding_with_no_call(conn, tmp_path):
+    """2026-10-19: rows no check ever raised. `open_finding` opens the finding
+    the way --row does, and nothing asks a referee."""
+    spec_path = tmp_path / "owner-open.json"
+    body = {"key": f"amount/{MONEY_HASH}", "status": "owner-ruled", "action": "edit",
+            "correction": {"corrected_basis": "outbound_investment"},
+            "ruled_by": "owner, 2026-10-19", "ruling": "an outbound spend, not a raise"}
+    spec_path.write_text(json.dumps(body))
+    assert adj.apply_from_spec(conn, spec_path, apply=True, push=lambda r, u: {}) == 1, \
+        "without open_finding a missing finding is still refused"
+    spec_path.write_text(json.dumps({**body, "open_finding": True}))
+    assert adj.apply_from_spec(conn, spec_path, apply=True, push=lambda r, u: {}) == 0
+    assert _current(conn, MONEY_HASH)["money_basis"] == "outbound_investment"
+    assert _state(conn, f"amount/{MONEY_HASH}")["state"] == "accepted"
+    spec_path.write_text(json.dumps({**body, "status": "agree-dry-run", "open_finding": True}))
+    conn.execute("DELETE FROM publish_guardrails")
+    assert adj.apply_from_spec(conn, spec_path, apply=True, push=lambda r, u: {}) == 1, \
+        "a two-referee spec never opens a finding"
+
+
 # --- the third referee (owner ruling 2026-09-28: "on a split, consult a 3rd one")
 
 def test_a_split_asks_a_third_referee_and_two_of_three_decide(conn, tmp_path, stats):

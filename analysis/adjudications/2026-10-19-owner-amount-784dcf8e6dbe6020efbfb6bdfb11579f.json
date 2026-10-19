@@ -1,0 +1,13 @@
+{
+ "key": "amount/784dcf8e6dbe6020efbfb6bdfb11579f",
+ "label": "Mobge $10,000,000",
+ "status": "owner-ruled",
+ "action": "edit",
+ "correction": {
+  "corrected_amount": null
+ },
+ "ruled_by": "owner, 2026-10-19 (in chat)",
+ "ruling": "The $10 million is the valuation the investment was taken at; the source says the size of the investment was not disclosed. A valuation is not money raised. The row stays published; it carries no figure, so it leaves the money-raised total.",
+ "note": "owner ruling 2026-10-19: excluded from money raised. The $10 million is the valuation the investment was taken at; the source says the size of the investment was not disclosed. A valuation is not money raised. The row stays published; it carries no figure, so it leaves the money-raised total.",
+ "written_at": "2026-10-19T18:00:00+00:00"
+}

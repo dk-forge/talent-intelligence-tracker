@@ -1,0 +1,13 @@
+{
+ "key": "amount/65d2d0470a1876afb6632b197929e75c",
+ "label": "X.AI Holdings Corp. $16,599,961,030",
+ "status": "owner-ruled",
+ "action": "edit",
+ "correction": {
+  "corrected_amount": null
+ },
+ "ruled_by": "owner, 2026-10-19 (in chat)",
+ "ruling": "This Form D (0000891836-26-000001) is the same round already counted as 'xAI raises $20 billion' (CNBC, signal 18632944f2a0b3544bdd8016e5abcebb, 2026-01-06). Counting both double-counts one round. The vocabulary has no duplicate basis, so the duplicate's figure is cleared: the row stays published as the filing record and the round is counted once, through the CNBC row.",
+ "note": "owner ruling 2026-10-19: excluded from money raised. This Form D (0000891836-26-000001) is the same round already counted as 'xAI raises $20 billion' (CNBC, signal 18632944f2a0b3544bdd8016e5abcebb, 2026-01-06). Counting both double-counts one round. The vocabulary has no duplicate basis, so the duplicate's figure is cleared: the row stays published as the filing record and the round is counted once, through the CNBC row.",
+ "written_at": "2026-10-19T18:00:00+00:00"
+}

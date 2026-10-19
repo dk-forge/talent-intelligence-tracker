@@ -1342,6 +1342,20 @@ def apply_from_spec(conn, path: Path, *, apply: bool, push=None,
         # the referees were never asked, so the ledger must not imply they were.
         return apply_reshape(conn, spec, who=f"owner ruling ({spec['ruled_by']})",
                              apply=apply, withdraw=withdraw, send=send)
+    if spec.get("status") == "owner-ruled" and spec.get("open_finding"):
+        # AN OWNER RULING ON A ROW NO CHECK EVER RAISED (2026-10-19: a stock
+        # buyback, a licence payment and an outbound investment summed as
+        # raises). The only way to open a finding used to be `--row`, which
+        # then asks two PAID referees a question the owner has already
+        # answered. The spec says so by name (`open_finding: true`), the
+        # finding is opened exactly as `--row` would open it, and no model is
+        # called. A two-referee spec cannot reach this branch.
+        check, _, subject = spec["key"].partition("/")
+        try:
+            open_session_finding(conn, check, subject, f"owner ruling: {spec['ruling'][:200]}")
+        except ValueError as exc:
+            print(f"{spec['key']}: {exc}")
+            return 1
     item = load_finding(conn, spec["key"])
     if item is None:
         print(f"{spec['key']}: no such finding")

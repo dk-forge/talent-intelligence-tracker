@@ -1,0 +1,14 @@
+{
+ "key": "amount/d5b205f24cc73b07df4bbb0552d32dd1",
+ "label": "亚马逊 (Amazon) $8,000,000,000",
+ "status": "owner-ruled",
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "outbound_investment"
+ },
+ "ruled_by": "owner, 2026-10-19 (in chat)",
+ "ruling": "Amazon's $8 billion (cnbeta.com.tw) is Amazon's own outbound investment, not money Amazon raised. Row stays published, figure kept, excluded from the total.",
+ "note": "owner ruling 2026-10-19: excluded from money raised. Amazon's $8 billion (cnbeta.com.tw) is Amazon's own outbound investment, not money Amazon raised. Row stays published, figure kept, excluded from the total.",
+ "written_at": "2026-10-19T18:00:00+00:00",
+ "open_finding": true
+}
