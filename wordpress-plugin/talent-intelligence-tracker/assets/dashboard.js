@@ -3851,6 +3851,25 @@
   var geoView = 'time', geoPeriod = 'ytd', geoSort = 'rounds', geoDir = 'desc';
   var geoAll = false, geoData = null, geoBase = null;
   var geoBar = document.getElementById('tit-geo-bar');
+  // The bar and Top Rounds shell are built here, not server-rendered: the
+  // page has a markup byte budget (tests/php/render_dashboard.php).
+  if (geoBar) {
+    geoBar.innerHTML = '<div class="tit-geo-views" role="group" aria-label="Show the board by">' +
+      [['time', 'Time'], ['region', 'Region'], ['country', 'Country'], ['city', 'City']].map(function (v) {
+        return '<button type="button" class="tit-geo-view" data-view="' + v[0] + '" aria-pressed="false">' + v[1] + '</button>';
+      }).join('') + '</div><label class="tit-geo-period-l">Period <select class="tit-geo-period" id="tit-geo-period">' +
+      [['week', 'This week'], ['month', 'This month'], ['quarter', 'This quarter'],
+       ['ytd', new Date().getFullYear() + ' YTD']].map(function (p) {
+        return '<option value="' + p[0] + '">' + p[1] + '</option>';
+      }).join('') + '</select></label><button type="button" class="tit-geo-copy" id="tit-geo-copy">Copy link</button>' +
+      '<span class="tit-geo-copied" id="tit-geo-copied" role="status" aria-live="polite"></span>';
+  }
+  var geoTopEl = document.getElementById('tit-top-rounds');
+  if (geoTopEl) {
+    geoTopEl.setAttribute('aria-labelledby', 'tit-top-rounds-h');
+    geoTopEl.innerHTML = '<h3 class="tit-top-rounds-h" id="tit-top-rounds-h">Top Rounds</h3>' +
+      '<div class="tit-top-rounds-body" id="tit-top-rounds-body"></div>';
+  }
   var geoBox = document.getElementById('tit-geo');
   var geoGlance = root.querySelector('.tit-glance');
   var geoPeriodSel = document.getElementById('tit-geo-period');

@@ -1126,25 +1126,7 @@ function tit_dashboard_html() {
                    the By location table, which dashboard.js fetches through
                    /aggregate?include=geo. Rendered hidden: without JavaScript
                    the switch could only offer views it cannot paint. */ ?>
-          <div class="tit-geo-bar" id="tit-geo-bar" hidden>
-            <div class="tit-geo-views" role="group" aria-label="Show the board by">
-              <?php foreach (array('time' => 'Time', 'region' => 'Region', 'country' => 'Country', 'city' => 'City') as $gv => $gl) : ?>
-                <button type="button" class="tit-geo-view<?php echo $gv === 'time' ? ' is-on' : ''; ?>"
-                        data-view="<?php echo esc_attr($gv); ?>"
-                        aria-pressed="<?php echo $gv === 'time' ? 'true' : 'false'; ?>"><?php echo esc_html($gl); ?></button>
-              <?php endforeach; ?>
-            </div>
-            <label class="tit-geo-period-l">Period
-              <select class="tit-geo-period" id="tit-geo-period">
-                <?php foreach (tit_glance_periods() as $gpi => $gp) :
-                    $gk = array('week', 'month', 'quarter', 'ytd')[$gpi]; ?>
-                  <option value="<?php echo esc_attr($gk); ?>"<?php echo $gk === 'ytd' ? ' selected' : ''; ?>><?php echo esc_html($gp[0]); ?></option>
-                <?php endforeach; ?>
-              </select>
-            </label>
-            <button type="button" class="tit-geo-copy" id="tit-geo-copy">Copy link</button>
-            <span class="tit-geo-copied" id="tit-geo-copied" role="status" aria-live="polite"></span>
-          </div>
+          <div class="tit-geo-bar" id="tit-geo-bar" hidden></div>
           <div class="tit-glance" id="tit-glance">
             <?php echo tit_glance_matrix_html($glance); ?>
           </div>
@@ -1177,10 +1159,7 @@ function tit_dashboard_html() {
                  company_raise, tit_money_where) in the selected period and
                  place, each with its source. Filled by dashboard.js from the
                  same include=geo call as the By location table. */ ?>
-        <section class="tit-top-rounds" id="tit-top-rounds" hidden aria-labelledby="tit-top-rounds-h">
-          <h3 class="tit-top-rounds-h" id="tit-top-rounds-h">Top Rounds</h3>
-          <div class="tit-top-rounds-body" id="tit-top-rounds-body"></div>
-        </section>
+        <section class="tit-top-rounds" id="tit-top-rounds" hidden></section>
 
       </div>
 
