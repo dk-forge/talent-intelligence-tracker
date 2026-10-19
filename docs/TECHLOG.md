@@ -17803,3 +17803,10 @@ widening the 30s deadline or adding a retry would convert the next genuine
 dead-Chrome occurrence back into silence, which is the exact regression that
 fix exists to prevent. Closed #228 with this entry linked, no code pushed.
 · hourly ops-check
+
+## 2026-10-19 — Read-through moves to anthropic/claude-sonnet-5.5 (owner ruling)
+
+**Class:** model-change
+**Guard:** `tests/test_readthrough_split.py` pins `classify.READ_MODEL`.
+
+The owner approved moving the read-through from `anthropic/claude-sonnet-5` to `anthropic/claude-sonnet-5.5`. OpenRouter lists both at the same price ($2/$10 per 1M tokens; `:batch` is $1/$5), so this is a quality step with no extra cost. The cache-read rate on 5.5 is lower ($0.10 vs $0.20). Before the switch, one live call with the read path's own settings (`temperature: 0`, no `json_mode` for `anthropic/`) returned valid JSON for $0.00014. Added both 5.5 rows to `data/model_prices.json` so the meter prices them. Revert: `TIT_READ_MODEL=anthropic/claude-sonnet-5`.
