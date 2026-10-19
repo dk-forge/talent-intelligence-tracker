@@ -196,9 +196,12 @@ FIXTURE = """<!doctype html>
   </table></div><button class="tit-geo-more">Show all 40</button>
   <p class="tit-geo-note">2026 YTD, under the filters above.</p></div>
   <section class="tit-top-rounds"><h3 class="tit-top-rounds-h">Top Rounds</h3>
+    <p class="tit-tr-sub">Recently funded, now hiring: where the money went, and where to apply.</p>
     <ol class="tit-tr-list"><li class="tit-tr-item"><span class="tit-tr-amt">$50M</span>
-    <span class="tit-tr-co">Example Co</span><span class="tit-tr-meta">Berlin, Germany · 2026-10-01</span>
-    <a class="tit-tr-src" href="#">Source</a></li></ol></section>
+    <a class="tit-tr-co" href="#">Example Co</a><span class="tit-tr-meta">Berlin, Germany · 2026-10-01</span>
+    <span class="tit-tr-links"><a class="tit-tr-jobs" href="#">See jobs</a>
+    <a class="tit-tr-src" href="#">Source</a><a class="tit-tr-tailor" href="#">Tailor your resume for this company</a></span></li></ol>
+    <button class="tit-tr-more">Show all 25 funded companies</button></section>
   <!-- The sibling emits its <style> beside the form, in the body, AFTER this
        stylesheet has loaded in the head. Reproduced in that order: the two
        rules that meet here have equal specificity (.alt-digest against

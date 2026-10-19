@@ -4030,18 +4030,42 @@
         'US dollar figure ' + (label ? esc(label.toLowerCase()) + ' ' : '') + 'in this view.</p>';
       return;
     }
-    var h = '<ol class="tit-tr-list">';
-    list.forEach(function (r) {
+    // Recently funded, now hiring (owner request 2026-10-19): who got the
+    // money, a link to their tracker page and a link to their jobs. "See jobs"
+    // only for the employer's own board (jobs_kind 'board'); a name search is
+    // labelled "Search jobs" so it never reads as their careers page.
+    var h = '<p class="tit-tr-sub">Recently funded, now hiring: where the money went, and where to apply.</p><ol class="tit-tr-list">';
+    list.forEach(function (r, i) {
       var place = [r.city, r.country ? countryLabel(r.country) : ''].filter(Boolean).join(', ');
       var href = escUrl(r.source_url);
-      h += '<li class="tit-tr-item"><span class="tit-tr-amt" title="' + esc(moneyFull(r.amount)) + '">' +
-        esc(moneyShort(r.amount)) + '</span><span class="tit-tr-co">' + esc(r.company) + '</span>' +
+      var co = escUrl(r.company_url);
+      var jobs = escUrl(r.jobs_url);
+      h += '<li class="tit-tr-item"' + (i >= TR_FIRST ? ' hidden' : '') + '><span class="tit-tr-amt" title="' + esc(moneyFull(r.amount)) + '">' +
+        esc(moneyShort(r.amount)) + '</span>' +
+        (co ? '<a class="tit-tr-co" href="' + co + '">' + esc(r.company) + '</a>' : '<span class="tit-tr-co">' + esc(r.company) + '</span>') +
         '<span class="tit-tr-meta">' + esc([place, r.date].filter(Boolean).join(' · ')) + '</span>' +
+        '<span class="tit-tr-links">' +
+        (jobs ? '<a class="tit-tr-jobs" href="' + jobs + '" target="_blank" rel="noopener nofollow">' +
+          (r.jobs_kind === 'board' ? 'See jobs' : 'Search jobs') + '</a>' : '') +
         (href ? '<a class="tit-tr-src" href="' + href + '" target="_blank" rel="noopener nofollow">Source</a>' : '') +
-        '</li>';
+        '<a class="tit-tr-tailor" href="' + TR_TAILOR + '" target="_blank" rel="noopener">Tailor your resume for this company</a>' +
+        '</span></li>';
     });
-    geoTopBody.innerHTML = h + '</ol>';
+    h += '</ol>';
+    if (list.length > TR_FIRST) {
+      h += '<button type="button" class="tit-tr-more" id="tit-tr-more">Show all ' + list.length + ' funded companies</button>';
+    }
+    geoTopBody.innerHTML = h;
+    var more = document.getElementById('tit-tr-more');
+    if (more) more.addEventListener('click', function () {
+      geoTopBody.querySelectorAll('.tit-tr-item[hidden]').forEach(function (li) { li.hidden = false; });
+      more.remove();
+    });
   }
+  var TR_FIRST = 10;
+  // Owner-approved 2026-10-19. Quick Draft reads no company param today, so
+  // this carries attribution only; a prefill needs a small app change.
+  var TR_TAILOR = 'https://asktherecruiter.com/quick-draft?utm_source=talent-tracker&amp;utm_medium=funded-card&amp;utm_campaign=tailor';
 
   // Tapping a place applies it through the SAME controls the region strip,
   // country row and city row use, then drills one level down.

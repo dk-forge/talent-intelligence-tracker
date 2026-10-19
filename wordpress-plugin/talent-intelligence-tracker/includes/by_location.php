@@ -130,7 +130,7 @@ function tit_top_rounds($table, $where, array $params, $period_key, $limit = 10)
     $period = tit_geo_period($period_key);
     $date_expr = tit_signal_date_expr();
     $money = tit_money_where();
-    $sql = "SELECT company, funding_amount_usd AS amount,
+    $sql = "SELECT company, company_key, funding_amount_usd AS amount,
                    " . tit_city_expr() . " AS city, " . tit_country_expr() . " AS country,
                    {$date_expr} AS d, source_url
               FROM {$table}
@@ -147,7 +147,44 @@ function tit_top_rounds($table, $where, array $params, $period_key, $limit = 10)
             'country' => strtoupper((string) ($r['country'] ?? '')),
             'date'    => (string) $r['d'],
             'source_url' => (string) $r['source_url'],
-        );
+        ) + tit_funded_links((string) ($r['company_key'] ?? ''), (string) $r['company']);
+    }
+    return $out;
+}
+
+/**
+ * Where a reader goes next from a funded company: its tracker page and its jobs.
+ *
+ * NO GUESSED DOMAINS. jobs_kind 'board' is the employer's OWN job board, a URL
+ * the ats_boards collector actually read (board_series.json / its option).
+ * Anything else is jobs_kind 'search', a LinkedIn jobs SEARCH for the name,
+ * which the card labels "Search jobs" rather than "See jobs" so it never reads
+ * as the company's careers page. company_url is set only when the company page
+ * is servable, so the card never links a 404.
+ */
+function tit_funded_links($company_key, $company) {
+    $out = array('company_url' => '', 'jobs_url' => '', 'jobs_kind' => '');
+    if ($company_key !== '' && function_exists('tit_company_url')
+            && function_exists('tit_company_servable_slug') && tit_company_servable_slug($company_key)) {
+        $out['company_url'] = tit_company_url($company_key);
+    }
+    if ($company_key !== '' && function_exists('tit_board_series_data')) {
+        $data = tit_board_series_data();
+        $boards = isset($data['boards'][$company_key]) && is_array($data['boards'][$company_key])
+            ? $data['boards'][$company_key] : array();
+        foreach ($boards as $b) {
+            $u = isset($b['source_url']) ? (string) $b['source_url'] : '';
+            if (preg_match('#^https://[^\s"<>]+$#', $u)) {
+                $out['jobs_url'] = $u;
+                $out['jobs_kind'] = 'board';
+                return $out;
+            }
+        }
+    }
+    $name = trim($company);
+    if ($name !== '') {
+        $out['jobs_url'] = 'https://www.linkedin.com/jobs/search/?keywords=' . rawurlencode($name);
+        $out['jobs_kind'] = 'search';
     }
     return $out;
 }
