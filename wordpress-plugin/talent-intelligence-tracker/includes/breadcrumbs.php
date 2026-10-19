@@ -74,6 +74,7 @@ function tit_breadcrumbs_jsonld($trail) {
 function tit_breadcrumbs_current() {
     $sections = array(
         'tit_press'       => array('Press', 'tit_press_url'),
+        'tit_funded_week' => array('Funded This Week', 'tit_funded_week_url'),
         'tit_recall'      => array('Measured recall', 'tit_recall_url'),
         'tit_sources'     => array('Sources', 'tit_sources_url'),
         'tit_corrections' => array('Corrections', 'tit_corrections_url'),

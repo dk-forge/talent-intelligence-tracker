@@ -79,6 +79,7 @@ function tit_is_our_page() {
         // would inject a list of links to them above the figures a journalist
         // came for. Same argument as every other route this plugin owns.
         || get_query_var('tit_press')
+        || get_query_var('tit_funded_week')
         || get_query_var('tit_places')
         || get_query_var('tit_place')
         || is_page(TIT_PAGE_SLUG);

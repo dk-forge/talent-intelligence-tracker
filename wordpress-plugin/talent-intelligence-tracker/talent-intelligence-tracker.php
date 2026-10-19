@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.110.0
+ * Version: 1.111.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.110.0');
+define('TIT_VERSION', '1.111.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -79,6 +79,8 @@ tit_require('includes/recall.php');
 // tit_press_link()'s whitelist against what dashboard.js parses, so it is last
 // of the routed pages rather than first.
 tit_require('includes/press.php');
+// The weekly "Funded this week, now hiring" roundup. Read only, rendered live.
+tit_require('includes/funded_week.php');
 // Intro + FAQ + FAQPage JSON-LD on the tracker page and the static routes
 // (1.105.0, ai-layoff-tracker#446 items 2-3). Callers check function_exists.
 tit_require('includes/page_faq.php');
@@ -363,7 +365,8 @@ function tit_verify_schema() {
  * returns the patterns themselves, so nothing here has to restate a route.
  */
 function tit_route_modules() {
-    return array('tit_company_rewrites', 'tit_places_rewrites', 'tit_roles_rewrites', 'tit_embed_rewrites');
+    return array('tit_company_rewrites', 'tit_places_rewrites', 'tit_roles_rewrites', 'tit_embed_rewrites',
+                 'tit_funded_week_rewrites');
 }
 
 /**
