@@ -1,3 +1,11 @@
+## 2026-10-19 - plugin 1.111.1: the roundup page returned HTTP 500 in production
+
+1.111.0's `tit_funded_week_facts()` built `new WP_REST_Request(array())`. The real constructor's first
+argument is the HTTP method and WordPress runs `strtoupper()` on it, which is a TypeError on an array in
+PHP 8, so both `/funded-this-week/` URLs fataled while the dashboard stayed up. The SQLite harness passed
+because its stub took an array of params. Fixed to `new WP_REST_Request('GET')`; the harness stub now
+has the real signature and throws on a non-string method (reverting the fix fails it).
+
 ## 2026-10-19 - plugin 1.111.0: "Funded This Week, Now Hiring" weekly roundup (no spend, no writer, no mail)
 
 Owner approved "go roundup". New read-only route, `includes/funded_week.php`:
