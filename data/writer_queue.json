@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-19T18:11:29Z",
-  "last_tick": "2026-10-19T18:11:29Z",
+  "last_dispatch": "2026-10-19T18:17:11Z",
+  "last_tick": "2026-10-19T18:17:11Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -251,6 +251,35 @@
     "ticket:20261019T091244Z-adjudicate-rows": "2026-10-19T09:34:06Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T18:17:11Z",
+      "history": [
+        {
+          "at": "2026-10-19T18:17:07Z",
+          "detail": "owner rulings 2026-10-19: five rows out of money raised (PR #278)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T18:17:11Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261019T181707Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-10-19-owner-amount-784dcf8e6dbe6020efbfb6bdfb11579f.json,analysis/adjudications/2026-10-19-owner-amount-5122dcae9a5f0a5d712625a29a0fe6ba.json,analysis/adjudications/2026-10-19-owner-amount-ce8c398011f66779630c5f139349edb9.json,analysis/adjudications/2026-10-19-owner-amount-d5b205f24cc73b07df4bbb0552d32dd1.json,analysis/adjudications/2026-10-19-owner-amount-65d2d0470a1876afb6632b197929e75c.json",
+        "reason": "owner rulings 2026-10-19: out of money raised"
+      },
+      "priority": 0,
+      "reason": "owner rulings 2026-10-19: five rows out of money raised (PR #278)",
+      "requested_at": "2026-10-19T18:17:07Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-11T05:43:43Z",
