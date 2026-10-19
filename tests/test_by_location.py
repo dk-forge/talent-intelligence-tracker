@@ -83,3 +83,17 @@ def test_mobile_scrolls_inside_the_table_not_the_page():
 def test_new_css_uses_plugin_tokens_only():
     block = CSS[CSS.index("BY LOCATION + TOP ROUNDS"):]
     assert not re.search(r"color:\s*#", block), "hard-coded colour breaks dark mode"
+
+
+def test_funded_card_links_jobs_honestly():
+    # Owner request 2026-10-19: company page + jobs on every Top Rounds row.
+    assert "r.jobs_kind === 'board' ? 'See jobs' : 'Search jobs'" in JS
+    assert 'class="tit-tr-jobs" href="\' + jobs + \'" target="_blank" rel="noopener nofollow"' in JS
+    assert "escUrl(r.company_url)" in JS and "escUrl(r.jobs_url)" in JS
+    assert "linkedin.com/jobs/search/?keywords=" in BL and "utm_" not in BL
+    assert ".tit-wrap .tit-tr-more { min-height:44px; }" in CSS
+
+
+def test_tailor_button_links_ask_the_recruiter():
+    assert "quick-draft?utm_source=talent-tracker&amp;utm_medium=funded-card&amp;utm_campaign=tailor" in JS
+    assert ".tit-wrap .tit-tr-tailor {" in CSS

@@ -276,7 +276,20 @@ check($d['by_location']['period'] === 'This week', 'period label echoed');
 $d = $agg(array('include' => 'geo', 'geo_period' => 'ytd'));
 check($d['by_location'] === null, 'Time view skips the per-place scan');
 $top = $d['top_rounds'];
-check(count($top) === 10, 'top rounds capped at 10, got ' . count($top));
+// Recently funded, now hiring (2026-10-19): the list holds up to 25 (the card
+// shows ten, then "Show all"); 14 company raises are in YTD here.
+check(count($top) === 14, 'top rounds hold every YTD company raise up to 25, got ' . count($top));
+check(strpos($top[0]['company_url'] ?? '', '/company/') !== false, 'company page link carried, got ' . ($top[0]['company_url'] ?? 'none'));
+check(($top[0]['jobs_kind'] ?? '') === 'search', 'no known board -> a jobs SEARCH, never a guessed domain');
+check(($top[0]['jobs_url'] ?? '') === 'https://www.linkedin.com/jobs/search/?keywords=TEST%20FIXTURE%20Alpha',
+    'search fallback is LinkedIn keywords, got ' . ($top[0]['jobs_url'] ?? 'none'));
+$bd = tit_board_series_data();
+$bk = array_key_first($bd['boards'] ?? array());
+$bl = tit_funded_links((string) $bk, 'TEST FIXTURE Board');
+check($bl['jobs_kind'] === 'board' && $bl['jobs_url'] === $bd['boards'][$bk][0]['source_url'],
+    'a known ATS board is the "See jobs" link: ' . json_encode($bl));
+$nl = tit_funded_links('', '');
+check($nl['jobs_url'] === '' && $nl['company_url'] === '', 'no name, no link');
 check(($top[0]['company'] ?? '') === 'TEST FIXTURE Alpha', 'largest company raise first');
 check(($top[0]['source_url'] ?? '') === 'https://example.test/alpha', 'source link carried');
 check(($top[0]['city'] ?? '') === 'Berlin' && ($top[0]['country'] ?? '') === 'DE', 'place carried');

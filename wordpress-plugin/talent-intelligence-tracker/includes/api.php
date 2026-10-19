@@ -1160,7 +1160,7 @@ function tit_api_aggregate(WP_REST_Request $req) {
         $out = array(
             'by_location' => $level !== ''
                 ? tit_by_location($table, $where, $params, $level, $pkey) : null,
-            'top_rounds'  => tit_top_rounds($table, $where, $params, $pkey),
+            'top_rounds'  => tit_top_rounds($table, $where, $params, $pkey, 25),
             'generated'   => gmdate('c'),
         );
         set_transient($cache_key, $out, TIT_CACHE_TTL);
