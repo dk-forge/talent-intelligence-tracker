@@ -1,14 +1,30 @@
 {
  "key": "amount/b9e7be50f744766bf1717f2f87052595",
  "label": "Ramaswamy Nuclear Startup $1,900,000,000",
- "status": "unknown",
+ "status": "agree-dry-run",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
  ],
  "verdicts": {
-  "anthropic/claude-sonnet-4.5": null,
-  "openai/gpt-4o": null
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 400000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly distinguishes between valuation and raise: \"has raised capital at around a $1.9 billion valuation\" and \"The series A fundraiser generated about $400 million in fresh money.\" The $1.9 billion is the post-money valuation, NOT the raise. The actual raise is $400 million in new capital that arrived at the company. The stored amount of $1.9B is incorrect; it should be $400M."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 400000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source states: 'The series A fundraiser generated about $400 million in fresh money,' indicating the actual amount raised. The stored amount of $1.9 billion is a valuation, not the raise."
+  }
  },
  "row": {
   "company": "Ramaswamy Nuclear Startup",
@@ -31,14 +47,20 @@
   "hq_country": null,
   "published_at": "2026-10-18 23:37:17"
  },
- "cost_usd": 0.0,
+ "cost_usd": 0.011657,
  "cost_by_referee": {
-  "anthropic/claude-sonnet-4.5": 0.0,
-  "openai/gpt-4o": 0.0
+  "anthropic/claude-sonnet-4.5": 0.007347,
+  "openai/gpt-4o": 0.0043100000000000005
  },
- "evidence_url": "https://web.archive.org/web/20261012232822/https://news.bloomberglaw.com/private-equity/vivek-ramaswamys-nuclear-startup-raises-at-1-9-billion-value",
+ "evidence_url": "https://news.bloomberglaw.com/private-equity/vivek-ramaswamys-nuclear-startup-raises-at-1-9-billion-value",
  "evidence_chars": 1184,
- "action": "keep",
- "correction": null,
- "written_at": "2026-10-19T09:33:23+00:00"
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 400000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/b9e7be50f744766bf1717f2f87052595, both referees say edit. corrected_amount=400000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly distinguishes between valuation and raise: \"has raised capital at around a $1.9 billion valuation\" and \"The series A fundraiser generated about $400 million in fresh money.\" The $1.9 billion is the pos; openai/gpt-4o: The source states: 'The series A fundraiser generated about $400 million in fresh money,' indicating the actual amount raised. The stored amount of $1.9 billion is a valuation, not the raise.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-19T12:34:13+00:00"
 }

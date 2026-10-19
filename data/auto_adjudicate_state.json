@@ -19,6 +19,11 @@
    "enqueued_at": "2026-10-13T18:31:36+00:00",
    "last": "AGREE"
   },
+  "amount/784dcf8e6dbe6020efbfb6bdfb11579f": {
+   "asks": 1,
+   "enqueued_at": "2026-10-19T12:34:04+00:00",
+   "last": "AGREE"
+  },
   "amount/7fb14ecb62643636ca0696061348ce38": {
    "asks": 1,
    "enqueued_at": "2026-10-11T01:07:04+00:00",
@@ -27,6 +32,11 @@
   "amount/9616de8026f282b15a994743a418cda9": {
    "asks": 1,
    "enqueued_at": "2026-10-08T01:01:21+00:00",
+   "last": "AGREE"
+  },
+  "amount/b9e7be50f744766bf1717f2f87052595": {
+   "asks": 1,
+   "enqueued_at": "2026-10-19T12:34:04+00:00",
    "last": "AGREE"
   },
   "amount/d47a5082c8f8470ee8f2fe94ce3456fa": {
@@ -41,19 +51,19 @@
   }
  },
  "last_run": {
-  "at": "2026-10-19T06:48:04+00:00",
+  "at": "2026-10-19T12:34:04+00:00",
   "referee_answers": {
    "budget_stop": 0,
    "low_confidence": 0,
    "no_answer": 0,
    "parse_failure": 0,
-   "verdict": 0
+   "verdict": 4
   },
-  "spent_usd": 0.0
+  "spent_usd": 0.027067
  },
  "months": {
   "2026-09": 0.0,
-  "2026-10": 0.202956
+  "2026-10": 0.230022
  },
  "version": 1
 }
