@@ -4207,3 +4207,73 @@ html:has(.tit-main), body:has(.tit-main) {
 .tit-related-h { font-size: 1rem; margin: 0 0 6px; }
 .tit-related-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .tit-related-list a { overflow-wrap: anywhere; }
+
+/* ===========================================================================
+   BY LOCATION + TOP ROUNDS (1.109.0, owner-approved 2026-10-19).
+   Plugin tokens only, so dark mode follows the same tokens the board uses.
+   Every text element sits inside .tit-wrap, which the dark-mode p/h2/h3 rule
+   above already raises past the site override.
+   =========================================================================== */
+.tit-wrap .tit-geo-bar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px;
+  margin:6px 0 10px; }
+.tit-wrap .tit-geo-bar[hidden], .tit-wrap .tit-geo[hidden],
+.tit-wrap .tit-top-rounds[hidden], .tit-wrap .tit-glance[hidden] { display:none; }
+.tit-wrap .tit-geo-views { display:inline-flex; border:1px solid var(--tit-line);
+  border-radius:8px; overflow:hidden; }
+.tit-wrap .tit-geo-view { appearance:none; border:0; border-right:1px solid var(--tit-line);
+  background:var(--tit-surface-1); color:var(--tit-fg); font:inherit; font-size:13px;
+  font-weight:650; padding:6px 12px; cursor:pointer; min-height:32px; }
+.tit-wrap .tit-geo-view:last-child { border-right:0; }
+.tit-wrap .tit-geo-view:hover { background:var(--tit-surface); }
+.tit-wrap .tit-geo-view.is-on { background:var(--tit-blue); color:var(--tit-ink-invert); }
+.tit-wrap .tit-geo-view:focus-visible, .tit-wrap .tit-geo-copy:focus-visible,
+.tit-wrap .tit-geo-sort:focus-visible, .tit-wrap .tit-geo-place:focus-visible,
+.tit-wrap .tit-geo-more:focus-visible { outline:2px solid var(--tit-blue); outline-offset:2px; }
+.tit-wrap .tit-geo-period-l { display:inline-flex; align-items:center; gap:6px;
+  font-size:13px; color:var(--tit-fg); }
+.tit-wrap .tit-geo-period { font:inherit; font-size:13px; color:var(--tit-fg);
+  background:var(--tit-surface-1); border:1px solid var(--tit-line); border-radius:6px; padding:4px 6px; }
+.tit-wrap .tit-geo-copy, .tit-wrap .tit-geo-more { appearance:none; font:inherit; font-size:13px;
+  font-weight:650; color:var(--tit-fg); background:var(--tit-surface-1);
+  border:1px solid var(--tit-line); border-radius:6px; padding:5px 10px; cursor:pointer; }
+.tit-wrap .tit-geo-copied { font-size:12.5px; color:var(--tit-fg); }
+
+.tit-wrap .tit-geo { max-width:100%; }
+.tit-wrap .tit-geo-scroll { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.tit-wrap .tit-geo-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+.tit-wrap .tit-geo-table th, .tit-wrap .tit-geo-table td { border-bottom:1px solid var(--tit-grid);
+  padding:6px 8px; text-align:right; white-space:nowrap; color:var(--tit-fg); }
+.tit-wrap .tit-geo-table th:first-child, .tit-wrap .tit-geo-table td:first-child {
+  text-align:left; position:sticky; left:0; z-index:1; background:var(--tit-surface-1); }
+.tit-wrap .tit-geo-table thead th { font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.03em; background:var(--tit-surface-1); }
+.tit-wrap .tit-geo-sort { appearance:none; border:0; background:none; font:inherit; color:inherit;
+  text-transform:inherit; letter-spacing:inherit; cursor:pointer; padding:2px 0; }
+.tit-wrap .tit-geo-place { appearance:none; border:0; background:none; font:inherit; font-weight:650;
+  color:var(--tit-fg); cursor:pointer; padding:2px 0; text-align:left; text-decoration:underline;
+  text-decoration-color:var(--tit-line); text-underline-offset:3px;
+  max-width:16em; overflow:hidden; text-overflow:ellipsis; }
+.tit-wrap .tit-geo-sub { display:block; font-size:11.5px; font-weight:500; color:var(--tit-fg); opacity:1; }
+.tit-wrap .tit-geo-note { font-size:12.5px; color:var(--tit-fg); margin:6px 0 0; }
+.tit-wrap .tit-geo-empty { font-size:13.5px; color:var(--tit-fg); padding:10px 0; }
+
+.tit-wrap .tit-top-rounds { margin:16px 0 0; }
+.tit-wrap .tit-top-rounds-h { margin:0 0 6px; }
+.tit-wrap .tit-tr-list { list-style:none; margin:0; padding:0; }
+.tit-wrap .tit-tr-item { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px;
+  padding:7px 0; border-bottom:1px solid var(--tit-grid); color:var(--tit-fg); font-size:13.5px;
+  min-width:0; }
+.tit-wrap .tit-tr-amt { font-weight:750; min-width:4.5em; font-variant-numeric:tabular-nums; }
+.tit-wrap .tit-tr-co { font-weight:650; flex:1 1 12em; min-width:0; overflow-wrap:anywhere; }
+.tit-wrap .tit-tr-meta { font-size:12.5px; color:var(--tit-fg); }
+.tit-wrap .tit-tr-src { font-size:12.5px; color:var(--tit-link); }
+
+@media (max-width:600px) {
+  /* 375px: place + Funding Rounds + $ Raised fit the viewport; the remaining
+     measures scroll sideways INSIDE .tit-geo-scroll, never the page. */
+  .tit-wrap .tit-geo-table { font-size:13px; }
+  .tit-wrap .tit-geo-table th, .tit-wrap .tit-geo-table td { padding:6px 6px; }
+  .tit-wrap .tit-geo-place { max-width:9.5em; }
+  .tit-wrap .tit-geo-bar { gap:8px; }
+  .tit-wrap .tit-geo-view { padding:6px 9px; }
+}

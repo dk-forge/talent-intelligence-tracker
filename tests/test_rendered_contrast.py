@@ -184,6 +184,21 @@ FIXTURE = """<!doctype html>
       </button></td>
     </tr>
   </tbody></table></div>
+  <!-- By location + Top rounds (1.109.0): the view switch, the place table
+       with its sticky first column, and the top rounds list. -->
+  <div class="tit-geo-bar"><div class="tit-geo-views">
+    <button class="tit-geo-view">Time</button><button class="tit-geo-view is-on">Country</button></div>
+    <label class="tit-geo-period-l">Period <select class="tit-geo-period"><option>2026 YTD</option></select></label>
+    <button class="tit-geo-copy">Copy link</button></div>
+  <div class="tit-geo"><div class="tit-geo-scroll"><table class="tit-geo-table"><thead><tr>
+    <th><button class="tit-geo-sort">Country</button></th><th><button class="tit-geo-sort">Funding Rounds</button></th></tr></thead>
+    <tbody><tr><th><button class="tit-geo-place">Germany</button><span class="tit-geo-sub">Berlin</span></th><td>12</td></tr></tbody>
+  </table></div><button class="tit-geo-more">Show all 40</button>
+  <p class="tit-geo-note">2026 YTD, under the filters above.</p></div>
+  <section class="tit-top-rounds"><h3 class="tit-top-rounds-h">Top Rounds</h3>
+    <ol class="tit-tr-list"><li class="tit-tr-item"><span class="tit-tr-amt">$50M</span>
+    <span class="tit-tr-co">Example Co</span><span class="tit-tr-meta">Berlin, Germany · 2026-10-01</span>
+    <a class="tit-tr-src" href="#">Source</a></li></ol></section>
   <!-- The sibling emits its <style> beside the form, in the body, AFTER this
        stylesheet has loaded in the head. Reproduced in that order: the two
        rules that meet here have equal specificity (.alt-digest against

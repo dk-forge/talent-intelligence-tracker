@@ -2171,6 +2171,8 @@
     // Charts and figures move with the same querystring the table uses, so the
     // two can never disagree about what is being shown.
     refreshAggregate(params);
+    // The By location table and Top rounds, same filters, own slim call.
+    refreshGeo(params);
 
     // The supersede-abort moved into busyBegin, which is also where the loading
     // state starts. `refresh` is its own retry: it rebuilds the querystring
@@ -2880,6 +2882,10 @@
 
   function pageUrl(cardId) {
     var qs = lastQuery;
+    // The By location view, period and sort (geoQuery) ride beside the
+    // filters. Guarded: pageUrl can run before that block has been reached.
+    var gq = typeof geoQuery === 'function' && geoBar !== undefined ? geoQuery() : '';
+    if (gq) qs += (qs ? '&' : '') + gq;
     if (cardId) qs += (qs ? '&' : '') + 'card=' + encodeURIComponent(cardId);
     return location.pathname + (qs ? '?' + qs : '') + (cardId ? '#' + cardId : '');
   }
@@ -3821,6 +3827,294 @@
     vtTable.addEventListener('click', function () { setView('table', true); });
   }
 
+  // --- By location + Top rounds (1.109.0, owner-approved 2026-10-19) --------
+  // The view switch above the board: Time (the board, default) | Region |
+  // Country | City. Location views are server-aggregated through
+  // /aggregate?include=geo under the SAME filters as everything else; the
+  // client only sorts, truncates and paints. The view, period and sort ride
+  // in the address bar beside the filters (geoQuery(), read by pageUrl()), so
+  // a copied link restores exactly this table. Read client-side only, so the
+  // bare URL Cloudflare caches is untouched.
+  var GEO_VIEWS = { time: 1, region: 1, country: 1, city: 1 };
+  var GEO_PERIODS = { week: 1, month: 1, quarter: 1, ytd: 1 };
+  var GEO_COLS = [
+    ['label', 'Place', 'text'],
+    ['rounds', 'Funding Rounds', 'count'],
+    ['money', '$ Raised', 'money'],
+    ['hiring', 'Adding Roles', 'count'],
+    ['leadership', 'Leadership Moves', 'count'],
+    ['pay', 'Pay and Benefits', 'count']
+  ];
+  var GEO_SORTS = {};
+  GEO_COLS.forEach(function (c) { GEO_SORTS[c[0]] = 1; });
+  var GEO_TOP = 25;
+  var geoView = 'time', geoPeriod = 'ytd', geoSort = 'rounds', geoDir = 'desc';
+  var geoAll = false, geoData = null, geoBase = null;
+  var geoBar = document.getElementById('tit-geo-bar');
+  var geoBox = document.getElementById('tit-geo');
+  var geoGlance = root.querySelector('.tit-glance');
+  var geoPeriodSel = document.getElementById('tit-geo-period');
+  var geoTop = document.getElementById('tit-top-rounds');
+  var geoTopBody = document.getElementById('tit-top-rounds-body');
+  var geoViewBtns = Array.prototype.slice.call(root.querySelectorAll('.tit-geo-view'));
+
+  // Defaults are left out so a plain page keeps a plain URL.
+  function geoQuery() {
+    var q = new URLSearchParams();
+    if (geoView !== 'time') q.set('geo_view', geoView);
+    if (geoPeriod !== 'ytd') q.set('geo_period', geoPeriod);
+    if (geoView !== 'time' && (geoSort !== 'rounds' || geoDir !== 'desc')) {
+      q.set('geo_sort', geoSort + (geoDir === 'asc' ? '.asc' : ''));
+    }
+    return q.toString();
+  }
+
+  function readGeoUrl() {
+    var q = new URLSearchParams(location.search);
+    var v = q.get('geo_view'), p = q.get('geo_period'), s = q.get('geo_sort') || '';
+    if (v && GEO_VIEWS[v]) geoView = v;
+    if (p && GEO_PERIODS[p]) geoPeriod = p;
+    var parts = s.split('.');
+    if (GEO_SORTS[parts[0]]) {
+      geoSort = parts[0];
+      geoDir = parts[1] === 'asc' ? 'asc' : 'desc';
+    }
+  }
+
+  function syncGeoControls() {
+    geoViewBtns.forEach(function (b) {
+      var on = b.getAttribute('data-view') === geoView;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (geoPeriodSel) geoPeriodSel.value = geoPeriod;
+    var loc = geoView !== 'time';
+    if (geoGlance) geoGlance.hidden = loc;
+    if (geoBox) geoBox.hidden = !loc;
+  }
+
+  function geoParams(base) {
+    var p = new URLSearchParams((base || new URLSearchParams()).toString());
+    p.delete('per_page');
+    p.delete('page');
+    p.delete('sort');
+    p.set('include', 'geo');
+    p.set('geo_period', geoPeriod);
+    if (geoView !== 'time') p.set('geo', geoView);
+    return p;
+  }
+
+  // The filters a plain, unfiltered first paint would have sent: refresh()
+  // has not run, so take the detail control's default the way it would.
+  function geoDefaultBase() {
+    var p = new URLSearchParams();
+    if (inputs.detail && inputs.detail.value) p.set('detail', inputs.detail.value);
+    return p;
+  }
+
+  function refreshGeo(base) {
+    if (base) geoBase = base;
+    if (!geoBar) return;
+    var params = geoParams(geoBase || geoDefaultBase());
+    if (geoView !== 'time' && geoBox) {
+      geoBox.innerHTML = '<p class="tit-geo-empty">Loading…</p>';
+    }
+    fetch(TIT.api + 'aggregate?' + params.toString())
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        geoData = data && data.by_location ? data.by_location : null;
+        paintGeo();
+        paintTopRounds(data && data.top_rounds ? data.top_rounds : []);
+      }, function () {
+        if (geoView !== 'time' && geoBox) {
+          geoBox.innerHTML = '<p class="tit-geo-empty">This table could not load. ' +
+            'Change the view or period to try again.</p>';
+        }
+      });
+  }
+
+  function geoPlaceLabel(row) {
+    if (!geoData) return row.label;
+    if (geoData.level === 'country') return countryLabel(row.key);
+    return row.label;
+  }
+
+  function geoSorted(rows) {
+    var col = geoSort, dir = geoDir === 'asc' ? 1 : -1;
+    return rows.slice().sort(function (a, b) {
+      if (col === 'label') {
+        return dir * String(geoPlaceLabel(a)).localeCompare(String(geoPlaceLabel(b)));
+      }
+      var d = (Number(a[col]) || 0) - (Number(b[col]) || 0);
+      return d !== 0 ? dir * d : (Number(b.total) || 0) - (Number(a.total) || 0);
+    });
+  }
+
+  function paintGeo() {
+    syncGeoControls();
+    if (!geoBox || geoView === 'time') return;
+    if (!geoData || !geoData.rows || !geoData.rows.length) {
+      geoBox.innerHTML = '<p class="tit-geo-empty">Nothing in this view for ' +
+        esc(geoData ? geoData.period : 'this period') + '.</p>';
+      return;
+    }
+    var rows = geoSorted(geoData.rows);
+    var shown = geoAll ? rows : rows.slice(0, GEO_TOP);
+    var h = '<div class="tit-geo-scroll"><table class="tit-geo-table"><thead><tr>';
+    GEO_COLS.forEach(function (c) {
+      var on = c[0] === geoSort;
+      var aria = on ? (geoDir === 'asc' ? 'ascending' : 'descending') : 'none';
+      h += '<th scope="col" aria-sort="' + aria + '"><button type="button" class="tit-geo-sort" ' +
+        'data-col="' + esc(c[0]) + '">' + esc(c[0] === 'label' ? geoTitle() : c[1]) +
+        (on ? (geoDir === 'asc' ? ' ▲' : ' ▼') : '') + '</button></th>';
+    });
+    h += '</tr></thead><tbody>';
+    shown.forEach(function (r) {
+      var sub = '';
+      if (geoData.level === 'city' && r.country) sub = countryLabel(r.country);
+      h += '<tr><th scope="row"><button type="button" class="tit-geo-place" data-key="' +
+        esc(r.key) + '"' + (r.codes ? ' data-codes="' + esc(r.codes) + '"' : '') +
+        ' title="Filter the page to ' + esc(geoPlaceLabel(r)) + '">' + esc(geoPlaceLabel(r)) +
+        '</button>' + (sub ? '<span class="tit-geo-sub">' + esc(sub) + '</span>' : '') + '</th>';
+      GEO_COLS.slice(1).forEach(function (c) {
+        var n = Number(r[c[0]]) || 0;
+        h += '<td' + (c[2] === 'money' ? ' title="' + esc(moneyFull(n)) + '"' : '') + '>' +
+          esc(c[2] === 'money' ? moneyShort(n) : nfmt(n)) + '</td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+    if (rows.length > GEO_TOP) {
+      h += '<button type="button" class="tit-geo-more" aria-expanded="' + (geoAll ? 'true' : 'false') +
+        '">' + (geoAll ? 'Show top ' + GEO_TOP : 'Show all ' + nfmt(rows.length)) + '</button>';
+    }
+    h += '<p class="tit-geo-note">' + esc(geoData.period) + ', under the filters above. ' +
+      'Tap a place to filter the page to it. $ Raised sums ' +
+      '<a href="#tit-usd-note">USD-stated company raises only</a>.</p>';
+    geoBox.innerHTML = h;
+  }
+
+  function geoTitle() {
+    return geoView === 'region' ? 'Region' : geoView === 'city' ? 'City' : 'Country';
+  }
+
+  function paintTopRounds(list) {
+    if (!geoTop || !geoTopBody) return;
+    geoTop.hidden = false;
+    var label = geoPeriodSel && geoPeriodSel.selectedIndex >= 0
+      ? geoPeriodSel.options[geoPeriodSel.selectedIndex].text : '';
+    if (!list.length) {
+      geoTopBody.innerHTML = '<p class="tit-geo-empty">No company raise with a stated ' +
+        'US dollar figure ' + (label ? esc(label.toLowerCase()) + ' ' : '') + 'in this view.</p>';
+      return;
+    }
+    var h = '<ol class="tit-tr-list">';
+    list.forEach(function (r) {
+      var place = [r.city, r.country ? countryLabel(r.country) : ''].filter(Boolean).join(', ');
+      var href = escUrl(r.source_url);
+      h += '<li class="tit-tr-item"><span class="tit-tr-amt" title="' + esc(moneyFull(r.amount)) + '">' +
+        esc(moneyShort(r.amount)) + '</span><span class="tit-tr-co">' + esc(r.company) + '</span>' +
+        '<span class="tit-tr-meta">' + esc([place, r.date].filter(Boolean).join(' · ')) + '</span>' +
+        (href ? '<a class="tit-tr-src" href="' + href + '" target="_blank" rel="noopener nofollow">Source</a>' : '') +
+        '</li>';
+    });
+    geoTopBody.innerHTML = h + '</ol>';
+  }
+
+  // Tapping a place applies it through the SAME controls the region strip,
+  // country row and city row use, then drills one level down.
+  function applyGeoPlace(btn) {
+    var key = btn.getAttribute('data-key') || '';
+    if (!geoData) return;
+    if (geoData.level === 'region') {
+      setRegion(btn.getAttribute('data-codes') || null);
+      if (inputs.country) inputs.country.value = '';
+      if (inputs.city) inputs.city.value = '';
+      geoView = 'country';
+    } else if (geoData.level === 'country') {
+      setRegion(null);
+      if (inputs.city) inputs.city.value = '';
+      if (inputs.country) {
+        ensureOption(inputs.country, key, countryLabel(key));
+        inputs.country.value = key;
+      }
+      geoView = 'city';
+    } else {
+      setRegion(null);
+      if (inputs.country) inputs.country.value = '';
+      if (inputs.city) {
+        ensureOption(inputs.city, key, key);
+        inputs.city.value = key;
+      }
+    }
+    geoAll = false;
+    refresh();
+  }
+
+  if (geoBar) {
+    geoBar.hidden = false;
+    geoViewBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var v = b.getAttribute('data-view');
+        if (!GEO_VIEWS[v] || v === geoView) return;
+        geoView = v;
+        geoAll = false;
+        syncGeoControls();
+        writeUrl();
+        refreshGeo();
+      });
+    });
+    if (geoPeriodSel) {
+      geoPeriodSel.addEventListener('change', function () {
+        if (!GEO_PERIODS[geoPeriodSel.value]) return;
+        geoPeriod = geoPeriodSel.value;
+        writeUrl();
+        refreshGeo();
+      });
+    }
+    var geoCopy = document.getElementById('tit-geo-copy');
+    var geoCopied = document.getElementById('tit-geo-copied');
+    if (geoCopy) {
+      geoCopy.addEventListener('click', function () {
+        writeUrl();
+        var url = location.href;
+        var done = function (ok) {
+          if (geoCopied) geoCopied.textContent = ok ? 'Link copied' : url;
+        };
+        try {
+          navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+        } catch (e) { done(false); }
+      });
+    }
+  }
+
+  if (geoBox) {
+    geoBox.addEventListener('click', function (e) {
+      var t = e.target && e.target.closest ? e.target : null;
+      if (!t) return;
+      var sort = t.closest('.tit-geo-sort');
+      if (sort) {
+        var col = sort.getAttribute('data-col');
+        if (!GEO_SORTS[col]) return;
+        if (col === geoSort) geoDir = geoDir === 'desc' ? 'asc' : 'desc';
+        else { geoSort = col; geoDir = col === 'label' ? 'asc' : 'desc'; }
+        paintGeo();
+        writeUrl();
+        return;
+      }
+      if (t.closest('.tit-geo-more')) {
+        geoAll = !geoAll;
+        paintGeo();
+        return;
+      }
+      var place = t.closest('.tit-geo-place');
+      if (place) applyGeoPlace(place);
+    });
+  }
+
   syncAllPills();
   populateFacets();
 
@@ -3828,12 +4122,14 @@
   // Only fetches when the link actually carried a view; the plain page is
   // already rendered by the server.
   applyUrlState();
+  readGeoUrl();
+  syncGeoControls();
   syncLooking();
   syncPlace();
   syncCountryButtons();
   syncCityButtons();
   syncBasis();
-  if (location.search) refresh();
+  if (location.search) refresh(); else refreshGeo(null);
   // AFTER refresh(), because refresh() rewrites the address bar from the
   // filters alone and would drop the `card` this is about to read if it ran
   // first. It sets expandedCard, so every later write keeps it.

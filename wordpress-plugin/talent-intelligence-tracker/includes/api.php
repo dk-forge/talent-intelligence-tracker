@@ -581,7 +581,12 @@ function tit_filter_spec() {
           added to this list in the same commit that teaches the endpoint to
           read it.
         */
-        'include'  => array('kind' => 'enum', 'allowed' => array('fresh')),
+        'include'  => array('kind' => 'enum', 'allowed' => array('fresh', 'geo')),
+
+        // include=geo's own two knobs: which level the By location table
+        // groups by, and which of the board's four windows it covers.
+        'geo'        => array('kind' => 'enum', 'allowed' => array('region', 'country', 'city')),
+        'geo_period' => array('kind' => 'enum', 'allowed' => array('week', 'month', 'quarter', 'ytd')),
 
         // Open vocabularies. See the `text` note above.
         'city'    => array('kind' => 'text'),
@@ -906,6 +911,9 @@ function tit_cache_key($prefix, WP_REST_Request $req) {
         // a slimmed include=fresh response be served to the full dashboard
         // fetch, which then paints from keys that are not there.
         'include',
+        // include=geo reads both; unkeyed, a country table would be served
+        // to a city request.
+        'geo', 'geo_period',
     );
     $parts = array();
     foreach ($whitelist as $key) {
@@ -1135,6 +1143,30 @@ function tit_api_aggregate(WP_REST_Request $req) {
       this endpoint can change shape by accident. The cache key carries the
       param (see tit_cache_key) so slim and full responses never share an entry.
     */
+    /*
+      include=geo RETURNS ONLY THE BY LOCATION TABLE AND THE TOP ROUNDS
+      (includes/by_location.php), under the same where clause as everything
+      else. A separate slim call because switching the table's view or period
+      should not re-run the charts, the board and the trend.
+    */
+    if (trim((string) $req->get_param('include')) === 'geo') {
+        if (!function_exists('tit_by_location')) {
+            return new WP_Error('tit_geo_unavailable', 'By location is not loaded yet.', array('status' => 503));
+        }
+        // No `geo` means the Time view: only the top rounds are wanted, so the
+        // per-place scan is skipped rather than run for a table nobody sees.
+        $level = (string) $req->get_param('geo');
+        $pkey  = (string) ($req->get_param('geo_period') ?: 'ytd');
+        $out = array(
+            'by_location' => $level !== ''
+                ? tit_by_location($table, $where, $params, $level, $pkey) : null,
+            'top_rounds'  => tit_top_rounds($table, $where, $params, $pkey),
+            'generated'   => gmdate('c'),
+        );
+        set_transient($cache_key, $out, TIT_CACHE_TTL);
+        return tit_public_response($out);
+    }
+
     if (trim((string) $req->get_param('include')) === 'fresh') {
         $one = function ($expr) use ($wpdb, $table, $where, $params) {
             $sql = "SELECT {$expr} FROM {$table} WHERE {$where}";
