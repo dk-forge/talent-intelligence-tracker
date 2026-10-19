@@ -253,71 +253,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-19T09:40:07Z",
-      "history": [
-        {
-          "at": "2026-10-19T09:39:59Z",
-          "detail": "dry run: move rows onto the 11 new employer aliases (PR #277)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-19T09:40:07Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261019T093959Z-correct-company-key",
-      "inputs": {
-        "dry_run": "true"
-      },
-      "priority": 0,
-      "reason": "dry run: move rows onto the 11 new employer aliases (PR #277)",
-      "requested_at": "2026-10-19T09:39:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-company-key.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-10T08:52:58Z",
-      "history": [
-        {
-          "at": "2026-10-10T08:37:25Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-10T08:52:58Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-10T09:08:32Z",
-          "detail": "run 38039424290",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-10T09:19:31Z",
-          "detail": "run 38039424290",
-          "event": "landed"
-        }
-      ],
-      "id": "20261010T083725Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-10T09:19:31Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-10T08:37:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38039424290",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-10T09:51:44Z",
       "history": [
         {
@@ -2569,6 +2504,44 @@
       "run_id": "39230901446",
       "state": "failed",
       "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T09:40:07Z",
+      "history": [
+        {
+          "at": "2026-10-19T09:39:59Z",
+          "detail": "dry run: move rows onto the 11 new employer aliases (PR #277)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T09:40:07Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T09:41:09Z",
+          "detail": "run 39231793629",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-19T09:41:09Z",
+          "detail": "run 39231793629",
+          "event": "landed"
+        }
+      ],
+      "id": "20261019T093959Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "landed_at": "2026-10-19T09:41:09Z",
+      "priority": 0,
+      "reason": "dry run: move rows onto the 11 new employer aliases (PR #277)",
+      "requested_at": "2026-10-19T09:39:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39231793629",
+      "state": "landed",
+      "workflow": "correct-company-key.yml"
     }
   ],
   "version": 1
