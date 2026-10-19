@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-19T16:46:08Z",
-  "last_tick": "2026-10-19T17:06:51Z",
+  "last_dispatch": "2026-10-19T18:11:29Z",
+  "last_tick": "2026-10-19T18:11:29Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -251,6 +251,35 @@
     "ticket:20261019T091244Z-adjudicate-rows": "2026-10-19T09:34:06Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T18:11:29Z",
+      "history": [
+        {
+          "at": "2026-10-19T18:11:25Z",
+          "detail": "owner ruling 2026-10-19 issue #180: exclude Alpine Income Property Trust",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T18:11:29Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261019T181125Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "note": "owner ruling 2026-10-19 (issue #180): An investment trust raising money to buy property is not a hiring signal. Excluded.",
+        "reject_keys": "vehicle_name/3ef71ea2ba8cbf4e399f9f40414fb1c9"
+      },
+      "priority": 0,
+      "reason": "owner ruling 2026-10-19 issue #180: exclude Alpine Income Property Trust",
+      "requested_at": "2026-10-19T18:11:25Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-11T01:21:16Z",
