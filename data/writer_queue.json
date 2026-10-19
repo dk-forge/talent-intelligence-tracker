@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-10-19T09:32:54Z",
-  "last_tick": "2026-10-19T09:32:54Z",
+  "last_dispatch": "2026-10-19T09:40:07Z",
+  "last_tick": "2026-10-19T09:40:07Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -251,6 +251,33 @@
     "ticket:20261019T091244Z-adjudicate-rows": "2026-10-19T09:34:06Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T09:40:07Z",
+      "history": [
+        {
+          "at": "2026-10-19T09:39:59Z",
+          "detail": "dry run: move rows onto the 11 new employer aliases (PR #277)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T09:40:07Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261019T093959Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "priority": 0,
+      "reason": "dry run: move rows onto the 11 new employer aliases (PR #277)",
+      "requested_at": "2026-10-19T09:39:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "correct-company-key.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-10T08:52:58Z",
