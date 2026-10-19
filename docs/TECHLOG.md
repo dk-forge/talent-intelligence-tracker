@@ -1,3 +1,13 @@
+## 2026-10-19 - plugin 1.111.2: "Cite this dataset" DOI (Zenodo)
+
+Owner-approved. The dataset is archived on Zenodo; the CONCEPT DOI 10.5281/zenodo.23482651 always resolves
+to the latest version (this version: 10.5281/zenodo.23482652). Added a DOI badge and a "How to cite"
+section to README, a `CITATION.cff` (cff 1.2.0, author is the organisation "AskTheRecruiter", no personal
+name; licences MIT + CC-BY-4.0 from LICENSE and LICENSE-DATA) and a `.zenodo.json` so future releases carry
+the proper title. On the dashboard the existing `.tit-cite` "Cite as" line gains the DOI as one more inline
+link, no new element and no layout change; it inherits the same inline-link treatment as the Corrections,
+Sources and Press links beside it. Markup budget test passes. Not deployed.
+
 ## 2026-10-19 - plugin 1.111.1: the roundup page returned HTTP 500 in production
 
 1.111.0's `tit_funded_week_facts()` built `new WP_REST_Request(array())`. The real constructor's first

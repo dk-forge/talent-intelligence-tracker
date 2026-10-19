@@ -1,5 +1,7 @@
 # Talent Intelligence Tracker
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23482651.svg)](https://doi.org/10.5281/zenodo.23482651)
+
 A continuously updated view of the market signals that move talent, segmented by
 city, region and country. Every record links to a primary source.
 
@@ -138,6 +140,17 @@ is deliberately tiny, and a `402` stops the run instead of burning a batch of
 failures. Set a hard spend cap on the API key itself — that is what makes it a
 guarantee rather than a hope. How each collector is run, watched and repaired:
 [docs/RUNBOOK_COLLECTION.md](docs/RUNBOOK_COLLECTION.md).
+
+## How to cite
+
+Cite the dataset by its concept DOI, which always resolves to the latest
+archived version on Zenodo:
+
+> AskTheRecruiter. *Talent Intelligence Tracker*. Zenodo. https://doi.org/10.5281/zenodo.23482651
+
+[`CITATION.cff`](CITATION.cff) carries the same metadata in machine-readable
+form (GitHub's "Cite this repository" button reads it). To cite one exact
+snapshot, use that version's own DOI from the Zenodo record.
 
 ## Licence
 

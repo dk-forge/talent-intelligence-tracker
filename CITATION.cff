@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it using the metadata from this file."
+type: dataset
+title: "Talent Intelligence Tracker"
+abstract: "A continuously updated, source-linked dataset of hiring-side talent market signals, segmented by city, region and country. Every record links to a primary source."
+authors:
+  - name: "AskTheRecruiter"
+doi: 10.5281/zenodo.23482651
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23482651
+    description: "Concept DOI (Zenodo). Always resolves to the latest archived version."
+url: "https://asktherecruiter.com/blog/talent-intelligence-tracker/"
+repository-code: "https://github.com/dk-forge/talent-intelligence-tracker"
+license:
+  - MIT
+  - CC-BY-4.0
+keywords:
+  - talent market
+  - hiring
+  - labor market
+  - funding
+  - leadership changes
