@@ -247,76 +247,10 @@
     }
   ],
   "red_marks": {
-    "ticket:20261013T164016Z-adjudicate-rows": "2026-10-18T17:48:10Z"
+    "ticket:20261013T164016Z-adjudicate-rows": "2026-10-18T17:48:10Z",
+    "ticket:20261019T091244Z-adjudicate-rows": "2026-10-19T09:34:06Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-19T09:32:54Z",
-      "history": [
-        {
-          "at": "2026-10-19T09:12:44Z",
-          "detail": "owner ruling 2026-10-19: exclude both valuation figures",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-19T09:32:54Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261019T091244Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "reason": "owner ruling 2026-10-19: stored amount is a valuation, not a raise",
-        "rows": "784dcf8e6dbe6020efbfb6bdfb11579f,b9e7be50f744766bf1717f2f87052595"
-      },
-      "priority": 0,
-      "reason": "owner ruling 2026-10-19: exclude both valuation figures",
-      "requested_at": "2026-10-19T09:12:44Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-10T05:42:40Z",
-      "history": [
-        {
-          "at": "2026-10-10T05:37:49Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-10T05:42:40Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-10T05:48:22Z",
-          "detail": "run 38028431667",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-10T05:48:22Z",
-          "detail": "run 38028431667",
-          "event": "landed"
-        }
-      ],
-      "id": "20261010T053749Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-10T05:48:22Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-10T05:37:49Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38028431667",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-10T08:52:58Z",
@@ -2569,6 +2503,45 @@
       "run_id": "39226688914",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-19T09:32:54Z",
+      "history": [
+        {
+          "at": "2026-10-19T09:12:44Z",
+          "detail": "owner ruling 2026-10-19: exclude both valuation figures",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-19T09:32:54Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-19T09:34:06Z",
+          "detail": "run 39230901446",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-19T09:34:06Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20261019T091244Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "owner ruling 2026-10-19: stored amount is a valuation, not a raise",
+        "rows": "784dcf8e6dbe6020efbfb6bdfb11579f,b9e7be50f744766bf1717f2f87052595"
+      },
+      "priority": 0,
+      "reason": "owner ruling 2026-10-19: exclude both valuation figures",
+      "requested_at": "2026-10-19T09:12:44Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39230901446",
+      "state": "failed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
