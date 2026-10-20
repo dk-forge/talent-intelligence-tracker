@@ -1,21 +1,9 @@
 {
-  "checked_at": "2026-10-20T22:03:02Z",
+  "checked_at": "2026-10-20T22:37:09Z",
   "code_scanning": {
     "alerts": [
       {
-        "end_line": 2103,
-        "fixed_in": null,
-        "id": 6,
-        "message": "DOM text is reinterpreted as HTML without escaping meta-characters.",
-        "package": null,
-        "path": "wordpress-plugin/talent-intelligence-tracker/assets/dashboard.js",
-        "rule": "js/xss-through-dom",
-        "severity": "high",
-        "start_line": 2102,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 1062,
+        "end_line": 1063,
         "fixed_in": null,
         "id": 19,
         "message": "This expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.",
@@ -23,11 +11,11 @@
         "path": "adjudicate_guardrail.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 1060,
+        "start_line": 1061,
         "tool": "CodeQL"
       },
       {
-        "end_line": 258,
+        "end_line": 259,
         "fixed_in": null,
         "id": 20,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -35,11 +23,11 @@
         "path": "build_board_series.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 258,
+        "start_line": 259,
         "tool": "CodeQL"
       },
       {
-        "end_line": 265,
+        "end_line": 267,
         "fixed_in": null,
         "id": 21,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -47,11 +35,11 @@
         "path": "build_board_series.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 265,
+        "start_line": 267,
         "tool": "CodeQL"
       },
       {
-        "end_line": 72,
+        "end_line": 73,
         "fixed_in": null,
         "id": 22,
         "message": "This expression logs sensitive data (password) as clear text.\nThis expression logs sensitive data (password) as clear text.",
@@ -59,11 +47,11 @@
         "path": "denmark_cvr_probe.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 71,
+        "start_line": 72,
         "tool": "CodeQL"
       },
       {
-        "end_line": 620,
+        "end_line": 621,
         "fixed_in": null,
         "id": 23,
         "message": "This expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.",
@@ -71,11 +59,11 @@
         "path": "collectors/estonia_ariregister.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 619,
+        "start_line": 620,
         "tool": "CodeQL"
       },
       {
-        "end_line": 1373,
+        "end_line": 1374,
         "fixed_in": null,
         "id": 24,
         "message": "This expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.",
@@ -83,11 +71,11 @@
         "path": "pipeline/identity.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 1369,
+        "start_line": 1370,
         "tool": "CodeQL"
       },
       {
-        "end_line": 1387,
+        "end_line": 1389,
         "fixed_in": null,
         "id": 25,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -95,11 +83,11 @@
         "path": "pipeline/identity.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 1387,
+        "start_line": 1389,
         "tool": "CodeQL"
       },
       {
-        "end_line": 1411,
+        "end_line": 1414,
         "fixed_in": null,
         "id": 26,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -107,11 +95,11 @@
         "path": "pipeline/identity.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 1411,
+        "start_line": 1414,
         "tool": "CodeQL"
       },
       {
-        "end_line": 1421,
+        "end_line": 1425,
         "fixed_in": null,
         "id": 27,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -119,11 +107,11 @@
         "path": "pipeline/identity.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 1419,
+        "start_line": 1423,
         "tool": "CodeQL"
       },
       {
-        "end_line": 93,
+        "end_line": 94,
         "fixed_in": null,
         "id": 28,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -131,11 +119,11 @@
         "path": "ops_status.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 93,
+        "start_line": 94,
         "tool": "CodeQL"
       },
       {
-        "end_line": 406,
+        "end_line": 408,
         "fixed_in": null,
         "id": 29,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -143,11 +131,11 @@
         "path": "ops_status.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 405,
+        "start_line": 407,
         "tool": "CodeQL"
       },
       {
-        "end_line": 136,
+        "end_line": 137,
         "fixed_in": null,
         "id": 30,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -155,11 +143,11 @@
         "path": "reference_store.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 136,
+        "start_line": 137,
         "tool": "CodeQL"
       },
       {
-        "end_line": 139,
+        "end_line": 140,
         "fixed_in": null,
         "id": 31,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -167,11 +155,11 @@
         "path": "restore_lost_rows.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 136,
+        "start_line": 137,
         "tool": "CodeQL"
       },
       {
-        "end_line": 624,
+        "end_line": 625,
         "fixed_in": null,
         "id": 32,
         "message": "This expression logs sensitive data (private) as clear text.",
@@ -179,11 +167,11 @@
         "path": "resolve_ats_boards.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 624,
+        "start_line": 625,
         "tool": "CodeQL"
       },
       {
-        "end_line": 835,
+        "end_line": 837,
         "fixed_in": null,
         "id": 33,
         "message": "This expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.",
@@ -191,11 +179,11 @@
         "path": "resolve_ats_boards.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 835,
+        "start_line": 837,
         "tool": "CodeQL"
       },
       {
-        "end_line": 1113,
+        "end_line": 1114,
         "fixed_in": null,
         "id": 34,
         "message": "This expression logs sensitive data (private) as clear text.\nThis expression logs sensitive data (private) as clear text.",
@@ -203,11 +191,11 @@
         "path": "run_collect.py",
         "rule": "py/clear-text-logging-sensitive-data",
         "severity": "high",
-        "start_line": 1112,
+        "start_line": 1113,
         "tool": "CodeQL"
       },
       {
-        "end_line": 356,
+        "end_line": 360,
         "fixed_in": null,
         "id": 35,
         "message": "Sensitive data (private) is used in a hashing algorithm (MD5) that is insecure.\nSensitive data (private) is used in a hashing algorithm (MD5) that is insecure.\nSensitive data (private) is used in a hashing algorithm (MD5) that is insecure.\nSensitive data (private) is used in a hashing algorithm (MD5",
@@ -215,223 +203,19 @@
         "path": "pipeline/validate.py",
         "rule": "py/weak-sensitive-data-hashing",
         "severity": "high",
-        "start_line": 356,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 285,
-        "fixed_in": null,
-        "id": 36,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "collectors/google_news.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 285,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 433,
-        "fixed_in": null,
-        "id": 37,
-        "message": "The string asktherecruiter.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "analysis/recall/goldset.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 433,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 220,
-        "fixed_in": null,
-        "id": 38,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "collectors/news_backstop.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 220,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 268,
-        "fixed_in": null,
-        "id": 39,
-        "message": "The string example.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_adjudicate_guardrail.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 268,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 443,
-        "fixed_in": null,
-        "id": 40,
-        "message": "The string communityimpact.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_adjudicate_reshape.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 443,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 444,
-        "fixed_in": null,
-        "id": 41,
-        "message": "The string connectcre.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_adjudicate_reshape.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 444,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 68,
-        "fixed_in": null,
-        "id": 42,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_collector_and_store.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 68,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 74,
-        "fixed_in": null,
-        "id": 43,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_collector_and_store.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 74,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 111,
-        "fixed_in": null,
-        "id": 44,
-        "message": "The string knowledge.hubspot.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_feed_and_crm.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 111,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 112,
-        "fixed_in": null,
-        "id": 45,
-        "message": "The string help.salesforce.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_feed_and_crm.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 112,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 144,
-        "fixed_in": null,
-        "id": 46,
-        "message": "The string reuters.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_funding_corroboration.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 144,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 809,
-        "fixed_in": null,
-        "id": 47,
-        "message": "The string bettingbotswana.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_national_press.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 809,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 155,
-        "fixed_in": null,
-        "id": 48,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_news_backstop.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 155,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 536,
-        "fixed_in": null,
-        "id": 49,
-        "message": "The string asktherecruiter.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_recall.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 536,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 132,
-        "fixed_in": null,
-        "id": 50,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_us_exec_wire.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 132,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 168,
-        "fixed_in": null,
-        "id": 51,
-        "message": "The string google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "tests/test_us_exec_wire.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 168,
-        "tool": "CodeQL"
-      },
-      {
-        "end_line": 225,
-        "fixed_in": null,
-        "id": 52,
-        "message": "The string news.google.com may be at an arbitrary position in the sanitized URL.",
-        "package": null,
-        "path": "collectors/us_exec_wire.py",
-        "rule": "py/incomplete-url-substring-sanitization",
-        "severity": "high",
-        "start_line": 225,
+        "start_line": 360,
         "tool": "CodeQL"
       }
     ],
     "counts": {
       "critical": 0,
-      "high": 35,
+      "high": 17,
       "low": 0,
       "medium": 0
     },
     "reason": null,
     "state": "OK",
-    "total": 35
+    "total": 17
   },
   "dependabot": {
     "alerts": [],
