@@ -2,7 +2,7 @@
 
 > **OWNER PRIORITY ORDER — every session, cloud or desktop, every dk-forge repo (owner ruling 2026-10-20).** Work strictly in this order and never start a lower priority while a higher one has open work. The goal is zero on every line, as fast as possible.
 > 1. **Errors in production:** website or API errors (Sentry org `dakotta-labs`, `https://de.sentry.io`), a degraded `/healthz/deep`, red CI on `main`, alarm issues, a broken watchdog or self-heal job. Fix ASAP: root cause, test-first, release, verify live.
-> 2. **User feedback:** each item that makes sense is fixed and rolled out immediately (`docs/FEEDBACK_QUEUE.md` in asktherecruiter-sandbox); once verified live, write the tester an UNSENT "you asked, we fixed" Gmail draft (check Sent first; the owner sends). Ask the owner about any item that does not make sense.
+> 2. **User feedback (target: live within 1-2 days of arriving):** evaluate each item; if it makes sense, fix it and roll it out to PRODUCTION immediately. Only once the fix is verified live in production is the item done. THEN, and never before, write the tester an UNSENT Gmail draft saying we got their feedback and it is fixed (check Gmail Sent first, no "[Ready to send]" tags; the owner sends), and push-notify the owner: "Draft ready to send to <tester>: <item>". Ask the owner about any item that does not make sense, and tell the owner if an item will miss the 1-2 day target and why.
 > 3. **GitHub at zero** across asktherecruiter-sandbox, ai-layoff-tracker, talent-intelligence-tracker and fasthire: PRs green and merged, issues closed, security alerts fixed.
 > 4. **Tech debt.**
 > 5. **Roadmap.**
