@@ -35,6 +35,10 @@ on:
         type: boolean
         default: false
 
+# Least privilege for GITHUB_TOKEN (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+
 jobs:
   digest:
     runs-on: [self-hosted, linux, contabo]

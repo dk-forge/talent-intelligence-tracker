@@ -46,6 +46,11 @@ env:
     set net:reconnect-interval-max 30;
     set dns:fatal-timeout 20;
 
+# Least privilege for GITHUB_TOKEN (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+  actions: read  # gh api reads tests.yml runs for the commit
+
 jobs:
   deploy:
     runs-on: [self-hosted, linux, contabo]
