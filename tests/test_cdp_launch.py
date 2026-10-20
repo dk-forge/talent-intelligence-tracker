@@ -55,7 +55,8 @@ import cdp  # noqa: E402
 
 def _fake_chrome(body):
     """A shell script standing in for the browser. Returns its path."""
-    path = tempfile.mktemp(prefix='fake-chrome-', suffix='.sh')
+    fd, path = tempfile.mkstemp(prefix='fake-chrome-', suffix='.sh')
+    os.close(fd)
     with open(path, 'w', encoding='utf-8') as handle:
         handle.write('#!/bin/sh\n' + body)
     os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC | stat.S_IXGRP)
@@ -124,7 +125,7 @@ class ALaunchThatFailsSaysWhat(unittest.TestCase):
     def test_chrome_picks_the_debug_port_rather_than_being_handed_one(self):
         """A port reserved in Python and released before Chrome binds it is a
         race, and the loser of that race looks exactly like a timeout."""
-        record = tempfile.mktemp(prefix='fake-chrome-argv-')
+        record = os.path.join(tempfile.mkdtemp(prefix='fake-chrome-argv-'), 'argv')
         self._use('printf "%s\\n" "$@" > ' + record + '\nexit 1\n')
         with self.assertRaises(cdp.CDPUnavailable):
             with cdp.Browser():

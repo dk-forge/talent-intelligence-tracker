@@ -171,7 +171,7 @@ def test_every_chart_drawing_has_an_accessible_name():
 
 @needs_php
 def test_rendered_dashboard_carries_the_table_and_the_row():
-    dest = tempfile.mktemp(suffix=".html")
+    dest = os.path.join(tempfile.mkdtemp(), "out.html")
     subprocess.run(["php", str(HARNESS)], cwd=str(ROOT), env=dict(os.environ, TIT_DUMP_HTML=dest),
                    capture_output=True, text=True, timeout=300)
     if not os.path.exists(dest):

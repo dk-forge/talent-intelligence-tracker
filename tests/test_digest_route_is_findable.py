@@ -214,7 +214,7 @@ def build_page():
                    "site": SITE_OVERRIDE,
                    "frag": _render_markup(),
                    "js": JS.read_text(encoding="utf-8")}
-    path = tempfile.mktemp(suffix=".html")
+    path = os.path.join(tempfile.mkdtemp(), "out.html")
     open(path, "w", encoding="utf-8").write(html)
     return path
 
