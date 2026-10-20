@@ -1366,6 +1366,7 @@ def main(argv=None) -> int:
         # resolver, so --name always goes back to the sources.
         ident = resolve(args.name, conn=conn, refresh=True)
         conn.commit()
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #24): public employer names/counts or a variable NAME, never a credential value.
         print(json.dumps({
             "company": ident.company, "qid": ident.qid, "ticker": ident.ticker,
             "cik": ident.cik, "hq_city": ident.hq_city, "hq_country": ident.hq_country,
@@ -1384,6 +1385,7 @@ def main(argv=None) -> int:
         stats = place_backfill(conn, limit=args.limit, dry_run=args.dry_run,
                                retry_negative=args.retry_negative)
         conn.commit()
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #25): public employer names/counts or a variable NAME, never a credential value.
         print(f"\nemployers with a placeless row : {stats['employers']}")
         print(f"placed                         : {stats['placed']}")
         print(f"wikidata does not know them    : {stats['unresolved']}")
@@ -1408,6 +1410,7 @@ def main(argv=None) -> int:
                          retry_negative=args.retry_negative)
     conn.commit()
 
+    # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #26): public employer names/counts or a variable NAME, never a credential value.
     print(f"\nemployers examined : {stats['employers']}")
     print(f"resolved           : {stats['resolved']}")
     print(f"unresolved         : {stats['unresolved']}")
@@ -1416,6 +1419,7 @@ def main(argv=None) -> int:
     if stats["samples"]:
         print("\nsample:")
         for ident in stats["samples"]:
+            # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #27): public employer names/counts or a variable NAME, never a credential value.
             print(f"  {ident.company[:38]:<38} {ident.ticker or '-':<7} "
                   f"cik={ident.cik or '-':<9} {ident.hq_city or '-':<14} "
                   f"{ident.hq_country or '-':<3} {ident.employer_type or '-'}")

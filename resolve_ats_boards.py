@@ -621,6 +621,7 @@ def review(candidates: list[dict], *, pace: Pace, roles: int = 5) -> list[dict]:
               f"({hit['verified_count']} roles)")
         for line in (employer_evidence(hit["company"], 1)
                      or ["(nothing on file to compare)"]):
+            # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #32): public employer names/counts or a variable NAME, never a credential value.
             print(f"    OURS   {line}")
         pace.wait(hit["ats"])
         sample = board_sample(hit["ats"], hit["slug"], roles)
@@ -832,6 +833,7 @@ def main() -> int:
                   f"signals for, so their volume renders on a page with "
                   f"nothing else on it:")
             for name, key in orphans:
+                # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #33): public employer names/counts or a variable NAME, never a credential value.
                 print(f"    {name}  ->  company_key {key!r}")
         return 0 if states.get("ok") == len(boards) else 2
 

@@ -108,8 +108,8 @@ def test_feed_has_a_rate_cap_that_spares_cached_hits():
 
 
 def test_crm_headers_cite_both_vendors_docs():
-    assert "knowledge.hubspot.com" in CRM
-    assert "help.salesforce.com" in CRM
+    assert re.search(r"(?<![\w.-])knowledge\.hubspot\.com\b", CRM)
+    assert re.search(r"(?<![\w.-])help\.salesforce\.com\b", CRM)
     for header in ("Company name", "Company domain name", "Country/Region",
                    "Account Name", "Website", "Billing Country"):
         assert f"'{header}'" in CRM, header

@@ -353,6 +353,10 @@ def content_hash(company_key: str, pillar: str, published_date: str | None,
     norm_headline = re.sub(r"[^a-z0-9 ]", "", norm_headline.lower())
     norm_headline = re.sub(r"\s+", " ", norm_headline).strip()
     payload = f"{company_key}|{pillar}|{published_date or ''}|{norm_headline}"
+    # lgtm[py/weak-sensitive-data-hashing] alert #35: a dedup KEY over public
+    # headline text, not password storage. content_hash is stored on every row
+    # and both dedup layers match on it; another algorithm would re-key the whole
+    # corpus and silently re-admit duplicates, so it stays MD5 by design.
     return hashlib.md5(payload.encode()).hexdigest()
 
 

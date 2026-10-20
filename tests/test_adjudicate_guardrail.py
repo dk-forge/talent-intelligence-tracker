@@ -7,6 +7,7 @@ Nothing stubs a real module into sys.modules (CLAUDE.md, "Test gotcha").
 
 from __future__ import annotations
 
+from urllib.parse import urlsplit
 import json
 from datetime import datetime, timezone
 
@@ -265,7 +266,7 @@ def test_a_thin_read_tries_the_next_copy_and_no_copy_is_unknown(conn, tmp_path, 
 
 def test_a_long_enough_read_wins_over_a_thin_earlier_copy(conn, tmp_path, stats):
     article = "Mistral raised 3 billion euros ($3.5 billion) at a 21 billion euro valuation. " * 20
-    fetch = lambda url: ("stub" if "example.com" in url else article)  # noqa: E731
+    fetch = lambda url: ("stub" if urlsplit(url).hostname == "example.com" else article)  # noqa: E731
     call = _referee({A: _verdict("accept"), B: _verdict("accept")}, stats=stats)
     rc = adj.adjudicate(conn, KEY, apply=True, start_usd=0.0, call=call, fetch=fetch,
                         wayback=lambda url: "https://web.archive.org/web/1/x",

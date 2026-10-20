@@ -1108,6 +1108,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         )
     if known_appointments:
         armed = "skipped" if leadership_precheck_arms() else "SHADOW, not skipped"
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #34): public employer names/counts or a variable NAME, never a credential value.
         print(
             f"[{collector}] cross-language appointments already held: "
             f"{known_appointments} ({armed})"

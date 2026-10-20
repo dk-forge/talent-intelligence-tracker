@@ -7,6 +7,7 @@ A fake that persists there shadows the real module for every test that loads
 afterwards, so tests pass alone and fail in the suite.
 """
 
+from urllib.parse import urlsplit
 from pathlib import Path
 
 import pytest
@@ -65,13 +66,13 @@ def test_source_element_becomes_source_url_and_name():
     first = google_news.parse(FIXTURE.read_bytes())[0]
     assert first["source_url"].startswith("https://www.irishtimes.com/business/")
     assert first["source_name"] == "The Irish Times"
-    assert "news.google.com" in first["discovery_url"]
+    assert urlsplit(first["discovery_url"]).hostname == "news.google.com"
 
 
 def test_item_without_a_source_element_falls_back_to_the_google_link():
     """And validate.py then rejects it rather than crediting Google."""
     last = google_news.parse(FIXTURE.read_bytes())[3]
-    assert "news.google.com" in last["source_url"]
+    assert urlsplit(last["source_url"]).hostname == "news.google.com"
 
     with pytest.raises(validate.Rejected, match="aggregator"):
         validate.build_signal(

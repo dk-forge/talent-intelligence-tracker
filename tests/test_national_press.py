@@ -4,6 +4,7 @@ Every test here runs offline against a recorded fixture or an in-memory feed
 list. Nothing in this file touches the network or the model.
 """
 
+import re
 import base64
 import csv
 import json
@@ -806,7 +807,7 @@ def test_a_feed_that_now_answers_from_another_domain_is_refused():
 
     assert items == [], "not one row may be stored from a hijacked domain"
     assert press.FEED_HEALTH[0]["status"] == "hijacked"
-    assert "bettingbotswana.com" in press.FEED_HEALTH[0]["detail"]
+    assert re.search(r"(?<![\w.-])bettingbotswana\.com\b", press.FEED_HEALTH[0]["detail"])
 
 
 def test_an_ordinary_redirect_inside_the_same_domain_is_fine():

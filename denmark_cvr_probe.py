@@ -68,6 +68,7 @@ def main() -> int:
     _rule("1. credentials")
     state = dk.credential_state()
     print(f"  {dk.USER_ENV}: {'set' if state == dk.CRED_PRESENT else 'NOT SET'}")
+    # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #22): public employer names/counts or a variable NAME, never a credential value.
     print(f"  {dk.PASSWORD_ENV}: "
           f"{'set' if state == dk.CRED_PRESENT else 'NOT SET'}")
     print(f"  state: {state}")
