@@ -84,6 +84,7 @@ def main() -> int:
     _report_surfaces()
     problems += _report_spend()
     problems += _report_backup()
+    problems += _report_security_alerts()
 
     print("\n" + "-" * 64)
     if problems:
@@ -2248,6 +2249,29 @@ def _report_backup() -> list[str]:
     print("    recovery   docs/RECOVERY.md  (what this covers, and the four "
           "things it does not)")
     return problems
+
+
+
+def _report_security_alerts() -> list[str]:
+    """[7] Open GitHub security alerts, read OFFLINE from the committed snapshot.
+
+    `security-alerts.yml` refreshes data/security_alerts.json daily with
+    ALERTS_READ_TOKEN. Absent, stale (over 2 days) or unreadable is UNKNOWN,
+    never zero. Known open alerts are an action item: fix them like red CI.
+    """
+    print("\n[7] SECURITY ALERTS  (data/security_alerts.json, refreshed daily)")
+    import security_alerts
+    try:
+        snap = json.loads((Path(__file__).parent / "data" / "security_alerts.json").read_text())
+    except (OSError, ValueError):
+        snap = None
+    verdict, lines = security_alerts.summarize(snap)
+    print(f"    {verdict}")
+    for line in lines:
+        print(f"    {line}")
+    if verdict == "ALERTS":
+        return ["open security alerts: see [7]; fix them like any red CI"]
+    return []
 
 
 if __name__ == "__main__":
