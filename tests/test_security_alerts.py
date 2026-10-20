@@ -62,6 +62,24 @@ class SecurityAlertsTest(unittest.TestCase):
         assert d["alerts"][0]["fixed_in"] == "1.2.3" and d["alerts"][2]["fixed_in"] is None
         assert snap["code_scanning"]["total"] == 0
 
+    def test_code_scanning_records_rule_location_and_message(self):
+        alert = {"number": 7, "tool": {"name": "CodeQL"},
+                 "rule": {"id": "py/clear-text-logging-sensitive-data",
+                          "security_severity_level": "high"},
+                 "most_recent_instance": {
+                     "location": {"path": "a/b.py", "start_line": 12, "end_line": 14},
+                     "message": {"text": "This expression logs sensitive data (secret) " + "x" * 500}}}
+        op = _opener({"dependabot": _Resp([]), "code-scanning": _Resp([alert, {"number": 8}])})
+        snap = sa.build("o/r", env={"ALERTS_READ_TOKEN": "t", "GITHUB_TOKEN": "g"}, opener=op)
+        a, bare = snap["code_scanning"]["alerts"]
+        assert a["rule"] == "py/clear-text-logging-sensitive-data" and a["path"] == "a/b.py"
+        assert (a["start_line"], a["end_line"]) == (12, 14)
+        assert a["message"].startswith("This expression logs") and len(a["message"]) == sa.MESSAGE_MAX
+        # An alert with no instance still produces a row, every new field None.
+        assert (bare["start_line"], bare["end_line"], bare["message"], bare["path"]) == (None,) * 4
+        _, lines = sa.summarize(dict(snap, checked_at=sa._iso(NOW)), now=NOW)
+        assert any("a/b.py:12" in line for line in lines)
+
     def test_missing_token_and_403_404_are_unknown_never_zero(self):
         op = _opener({"dependabot": _http(403), "code-scanning": _http(404)})
         snap = sa.build("o/r", env={"ALERTS_READ_TOKEN": "t", "GITHUB_TOKEN": "g"}, opener=op)
