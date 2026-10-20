@@ -1,0 +1,494 @@
+{
+  "checked_at": "2026-10-20T04:12:32Z",
+  "code_scanning": {
+    "alerts": [
+      {
+        "fixed_in": null,
+        "id": 1,
+        "package": null,
+        "path": ".github/workflows/ab-models.yml",
+        "rule": "actions/missing-workflow-permissions",
+        "severity": "medium",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 2,
+        "package": null,
+        "path": ".github/workflows/deploy-plugin.yml",
+        "rule": "actions/missing-workflow-permissions",
+        "severity": "medium",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 3,
+        "package": null,
+        "path": ".github/workflows/enrich.yml",
+        "rule": "actions/missing-workflow-permissions",
+        "severity": "medium",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 4,
+        "package": null,
+        "path": ".github/workflows/health-digest.yml",
+        "rule": "actions/missing-workflow-permissions",
+        "severity": "medium",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 5,
+        "package": null,
+        "path": ".github/workflows/tests.yml",
+        "rule": "actions/missing-workflow-permissions",
+        "severity": "medium",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 6,
+        "package": null,
+        "path": "wordpress-plugin/talent-intelligence-tracker/assets/dashboard.js",
+        "rule": "js/xss-through-dom",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 7,
+        "package": null,
+        "path": "tests/test_cdp_launch.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 8,
+        "package": null,
+        "path": "tests/test_cdp_launch.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 9,
+        "package": null,
+        "path": "tests/test_control_boundaries.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 10,
+        "package": null,
+        "path": "tests/test_control_boundaries.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 11,
+        "package": null,
+        "path": "tests/test_control_boundaries.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 12,
+        "package": null,
+        "path": "tests/test_digest_route_is_findable.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 13,
+        "package": null,
+        "path": "tests/test_place_ribbon_counts_updates_held.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 14,
+        "package": null,
+        "path": "tests/test_place_ribbon_counts_updates_held.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 15,
+        "package": null,
+        "path": "tests/test_place_ribbon_counts_updates_held.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 16,
+        "package": null,
+        "path": "tests/test_reader_copy_says_entries.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 17,
+        "package": null,
+        "path": "tests/test_seo_route_b.py",
+        "rule": "py/insecure-temporary-file",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 18,
+        "package": null,
+        "path": "tests/test_country_vocabulary.py",
+        "rule": "py/redos",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 19,
+        "package": null,
+        "path": "adjudicate_guardrail.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 20,
+        "package": null,
+        "path": "build_board_series.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 21,
+        "package": null,
+        "path": "build_board_series.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 22,
+        "package": null,
+        "path": "denmark_cvr_probe.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 23,
+        "package": null,
+        "path": "collectors/estonia_ariregister.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 24,
+        "package": null,
+        "path": "pipeline/identity.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 25,
+        "package": null,
+        "path": "pipeline/identity.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 26,
+        "package": null,
+        "path": "pipeline/identity.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 27,
+        "package": null,
+        "path": "pipeline/identity.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 28,
+        "package": null,
+        "path": "ops_status.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 29,
+        "package": null,
+        "path": "ops_status.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 30,
+        "package": null,
+        "path": "reference_store.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 31,
+        "package": null,
+        "path": "restore_lost_rows.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 32,
+        "package": null,
+        "path": "resolve_ats_boards.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 33,
+        "package": null,
+        "path": "resolve_ats_boards.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 34,
+        "package": null,
+        "path": "run_collect.py",
+        "rule": "py/clear-text-logging-sensitive-data",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 35,
+        "package": null,
+        "path": "pipeline/validate.py",
+        "rule": "py/weak-sensitive-data-hashing",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 36,
+        "package": null,
+        "path": "collectors/google_news.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 37,
+        "package": null,
+        "path": "analysis/recall/goldset.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 38,
+        "package": null,
+        "path": "collectors/news_backstop.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 39,
+        "package": null,
+        "path": "tests/test_adjudicate_guardrail.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 40,
+        "package": null,
+        "path": "tests/test_adjudicate_reshape.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 41,
+        "package": null,
+        "path": "tests/test_adjudicate_reshape.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 42,
+        "package": null,
+        "path": "tests/test_collector_and_store.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 43,
+        "package": null,
+        "path": "tests/test_collector_and_store.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 44,
+        "package": null,
+        "path": "tests/test_feed_and_crm.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 45,
+        "package": null,
+        "path": "tests/test_feed_and_crm.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 46,
+        "package": null,
+        "path": "tests/test_funding_corroboration.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 47,
+        "package": null,
+        "path": "tests/test_national_press.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 48,
+        "package": null,
+        "path": "tests/test_news_backstop.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 49,
+        "package": null,
+        "path": "tests/test_recall.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 50,
+        "package": null,
+        "path": "tests/test_us_exec_wire.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 51,
+        "package": null,
+        "path": "tests/test_us_exec_wire.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      },
+      {
+        "fixed_in": null,
+        "id": 52,
+        "package": null,
+        "path": "collectors/us_exec_wire.py",
+        "rule": "py/incomplete-url-substring-sanitization",
+        "severity": "high",
+        "tool": "CodeQL"
+      }
+    ],
+    "counts": {
+      "critical": 0,
+      "high": 47,
+      "low": 0,
+      "medium": 5
+    },
+    "reason": null,
+    "state": "OK",
+    "total": 52
+  },
+  "dependabot": {
+    "alerts": [],
+    "counts": null,
+    "reason": "HTTP 403: not readable with ALERTS_READ_TOKEN (feature off, plan, or token scope); not a zero",
+    "state": "UNKNOWN",
+    "total": null
+  },
+  "repo": "dk-forge/talent-intelligence-tracker",
+  "schema": 1,
+  "source": ".github/workflows/security-alerts.yml"
+}
