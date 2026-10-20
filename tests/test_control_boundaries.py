@@ -259,7 +259,7 @@ def _render_markup():
     php = shutil.which('php')
     if not php:
         raise unittest.SkipTest('no php on PATH: UNKNOWN, not a pass')
-    dest = tempfile.mktemp(suffix='.html')
+    dest = os.path.join(tempfile.mkdtemp(), 'out.html')
     env = dict(os.environ, TIT_DUMP_HTML=dest)
     p = subprocess.run([php, str(HARNESS)], cwd=str(ROOT), env=env,
                        capture_output=True, text=True)
@@ -277,7 +277,7 @@ def _build_page():
                    'site': SITE_OVERRIDE,
                    'frag': _render_markup(),
                    'js': JS.read_text(encoding='utf-8')}
-    path = tempfile.mktemp(suffix='.html')
+    path = os.path.join(tempfile.mkdtemp(), 'out.html')
     open(path, 'w', encoding='utf-8').write(html)
     return path
 
@@ -459,7 +459,7 @@ class ControlBoundaries(unittest.TestCase):
         html = PAGE % {'theme': THEME_SHIM,
                        'plugin': CSS.read_text(encoding='utf-8'),
                        'site': SITE_OVERRIDE, 'frag': frag, 'js': ''}
-        path = tempfile.mktemp(suffix='.html')
+        path = os.path.join(tempfile.mkdtemp(), 'out.html')
         open(path, 'w', encoding='utf-8').write(html)
         try:
             for width in (375, 414):

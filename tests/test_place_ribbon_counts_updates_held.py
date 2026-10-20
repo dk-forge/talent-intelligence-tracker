@@ -133,8 +133,8 @@ def _run_harness():
     php = shutil.which('php')
     if not php:
         raise unittest.SkipTest('no php on PATH: UNKNOWN, not a pass')
-    frag_path = tempfile.mktemp(suffix='.html')
-    agg_path = tempfile.mktemp(suffix='.json')
+    frag_path = os.path.join(tempfile.mkdtemp(), 'out.html')
+    agg_path = os.path.join(tempfile.mkdtemp(), 'out.json')
     env = dict(os.environ, TIT_DUMP_HTML=frag_path, TIT_DUMP_AGGREGATE=agg_path)
     proc = subprocess.run([php, str(HARNESS)], cwd=str(ROOT), env=env,
                           capture_output=True, text=True)
@@ -175,7 +175,7 @@ class PlaceRibbonCountsUpdatesHeld(unittest.TestCase):
                        'site': SITE_OVERRIDE,
                        'frag': frag,
                        'js': JS.read_text(encoding='utf-8')}
-        cls.page_path = tempfile.mktemp(suffix='.html')
+        cls.page_path = os.path.join(tempfile.mkdtemp(), 'out.html')
         open(cls.page_path, 'w', encoding='utf-8').write(html)
         try:
             with Browser(width=1280, height=900) as page:

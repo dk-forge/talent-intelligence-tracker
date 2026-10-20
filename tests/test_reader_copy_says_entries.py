@@ -275,7 +275,7 @@ def render_markup():
     php = shutil.which("php")
     if not php:
         raise unittest.SkipTest("no php on PATH: UNKNOWN, not a pass")
-    dest = tempfile.mktemp(suffix=".html")
+    dest = os.path.join(tempfile.mkdtemp(), "out.html")
     env = dict(os.environ, TIT_DUMP_HTML=dest)
     proc = subprocess.run([php, str(HARNESS)], cwd=str(ROOT), env=env,
                           capture_output=True, text=True)
