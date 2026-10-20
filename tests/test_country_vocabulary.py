@@ -103,7 +103,7 @@ def _region_tabs():
     regions = {}
     # array('Name', 'AA,BB' . 'CC,DD') — the code lists are split across several
     # concatenated string literals purely for line length, so rejoin them.
-    for match in re.finditer(r"array\(\s*'([^']*)'\s*,\s*((?:'[^']*'\s*\.?\s*)+)\)", defs):
+    for match in re.finditer(r"array\(\s*'([^']*)'\s*,\s*((?:'[^']*'\s*(?:\.\s*)?)+)\)", defs):
         codes = "".join(re.findall(r"'([^']*)'", match.group(2)))
         regions[match.group(1)] = {c for c in codes.split(",") if c}
 
