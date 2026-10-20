@@ -1,0 +1,75 @@
+name: security-alerts
+
+# Daily snapshot of this repository's open GitHub security alerts (owner,
+# 2026-10-20), so every session sees the counts without asking the owner.
+#
+# security_alerts.py (stdlib only, no pip install) reads:
+#   * Dependabot alerts with ALERTS_READ_TOKEN, a fine-grained PAT holding only
+#     "Dependabot alerts: read" + Metadata;
+#   * code-scanning alerts with GITHUB_TOKEN + `security-events: read`.
+# and writes data/security_alerts.json, which ops_status.py [7] reads OFFLINE.
+#
+# A missing secret or an API error is state UNKNOWN in the file, and the run is
+# still green: the UNKNOWN is what the next session reads, and a red run here
+# would only mail the owner about a credential. It is never written as a zero.
+#
+# NOT a database writer, so it is not in the `talent-collect` lock and does not
+# go through drain-writers. It commits one small JSON, only when it changed
+# (an unchanged snapshot keeps its checked_at for 20h, so a same-day dispatch
+# is no commit; the daily heartbeat keeps it inside the 48h staleness line).
+#
+# COST: zero. No model, and Actions minutes are free on a public repo.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write         # commit data/security_alerts.json
+  security-events: read   # code-scanning alerts via GITHUB_TOKEN
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the alert APIs
+        env:
+          ALERTS_READ_TOKEN: ${{ secrets.ALERTS_READ_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 security_alerts.py fetch --out data/security_alerts.json
+
+      # Commits only from main; a dispatch on a branch proves the read and
+      # prints the snapshot, it does not push.
+      - name: Commit the snapshot when it changed
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          ALERTS_READ_TOKEN: ${{ secrets.ALERTS_READ_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git add data/security_alerts.json
+            if git diff --staged --quiet; then
+              echo "Snapshot unchanged; nothing to commit."
+              exit 0
+            fi
+            git commit -q -m "security-alerts: snapshot $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push origin HEAD:main; then
+              echo "Recorded on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt); re-deriving on current main."
+            git fetch origin main
+            git reset --hard origin/main
+            python3 security_alerts.py fetch --out data/security_alerts.json
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not commit the security alert snapshot after 5 attempts."
+          exit 1

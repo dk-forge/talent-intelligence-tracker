@@ -27,6 +27,11 @@ Exit 2 in either means something needs a human. `ci_status.py` also exits **3**
 for "I could not check" — no gh, no credential, no network — because that must
 never read as an all-clear.
 
+**Security alerts:** read `data/security_alerts.json` (refreshed daily by
+`security-alerts.yml` via `ALERTS_READ_TOKEN`; `ops_status.py [7]` prints it, and
+absent or over 2 days old is UNKNOWN, never zero); fix them like any red CI;
+GitHub's paid Code Security is declined until paying clients (owner, 2026-10-20).
+
 **Red CI EMAILS the owner, and the email survives the host being down.**
 `ci_status.py` tells a session what is red; this tells the owner. ARMED since
 2026-07-30. `.github/workflows/ci-alert.yml` listens for EVERY workflow
