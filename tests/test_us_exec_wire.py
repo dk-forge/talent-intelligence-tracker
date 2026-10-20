@@ -14,6 +14,7 @@ The properties under test:
   * The source is DORMANT by default and spends nothing itself.
 """
 
+from urllib.parse import urlsplit
 from urllib.parse import urlparse
 
 import pytest
@@ -129,7 +130,7 @@ def test_fetch_returns_pointers_that_are_not_yet_storable():
     items = wire.fetch(session=session, pause=0)
     assert items, "the index payload should yield candidates"
     for item in items:
-        assert "news.google.com" in item["discovery_url"]
+        assert urlsplit(item["discovery_url"]).hostname == "news.google.com"
         assert not wire.storable(item)[0]
 
 
@@ -165,7 +166,7 @@ def test_no_request_is_ever_built_against_a_blocked_wire_feed():
         assert not wire.targets_blocked_wire_feed(url), (
             f"built a request against a blocked wire host: {url}")
         # Every request is Google's own — the index or the resolver.
-        assert host.endswith("google.com"), f"unexpected host contacted: {url}"
+        assert host == "google.com" or host.endswith(".google.com"), f"unexpected host contacted: {url}"
 
 
 def test_targets_blocked_wire_feed_flags_each_wire():

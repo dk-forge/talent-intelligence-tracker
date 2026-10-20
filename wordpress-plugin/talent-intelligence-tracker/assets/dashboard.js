@@ -2093,14 +2093,15 @@
      'tit-export-salesforce', 'tit-export-rss'].forEach(function (id) {
       var a = document.getElementById(id);
       if (!a) return;
-      var base = a.getAttribute('data-base');
-      if (!base) return;
-      // data-base is server-written through esc_url(), but it is still DOM text
-      // flowing into an href (CodeQL js/xss-through-dom): agree with escUrl's
-      // scheme allowlist and leave the server-painted href alone otherwise.
-      if (!/^https?:\/\//.test(base.replace(/[\u0000-\u0020\u007f]/g, '').toLowerCase())) return;
-      a.href = base + (lastQuery
-        ? (base.indexOf('?') >= 0 ? '&' : '?') + lastQuery : '');
+      if (!a.getAttribute('data-base')) return;
+      // Only the QUERY is rewritten. Scheme, host and path stay exactly as the
+      // server painted them through esc_url(), so no DOM text is ever handed
+      // back to the browser as a URL (CodeQL js/xss-through-dom). The base
+      // query is remembered once, so repeated refreshes never stack filters.
+      if (a.titBaseSearch === undefined) a.titBaseSearch = a.search;
+      var baseSearch = a.titBaseSearch;
+      a.search = lastQuery
+        ? (baseSearch ? baseSearch + '&' : '?') + lastQuery : baseSearch;
       var scope = document.getElementById(id + '-scope');
       if (scope) scope.textContent = lastQuery ? ' · filtered' : ' · all';
     });

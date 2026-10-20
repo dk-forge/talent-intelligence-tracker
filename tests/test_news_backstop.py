@@ -7,6 +7,7 @@ The property under test throughout is the same one: Google News is a POINTER.
 What ends up in the database is the publisher's own article, or nothing.
 """
 
+from urllib.parse import urlsplit
 import csv
 
 import pytest
@@ -152,7 +153,7 @@ def test_fetch_returns_pointers_that_are_not_yet_storable():
     items = backstop.fetch(KUWAIT, session=session)
     assert len(items) == 2
     for item in items:
-        assert "news.google.com" in item["discovery_url"]
+        assert urlsplit(item["discovery_url"]).hostname == "news.google.com"
         assert not backstop.storable(item)[0]
 
 

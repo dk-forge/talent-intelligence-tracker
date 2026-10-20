@@ -133,6 +133,7 @@ def touch(source: str, store: Path = STORE, now: datetime | None = None) -> None
 
 def notice(message: str) -> None:
     """One Actions annotation line (readable via check-run annotations)."""
+    # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #30): public employer names/counts or a variable NAME, never a credential value.
     print(f"::notice::{message}", flush=True)
 
 

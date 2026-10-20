@@ -278,13 +278,21 @@ def unresolved_count(items: list[dict]) -> int:
     """
     n = 0
     for it in items:
-        if "news.google.com" not in (it.get("discovery_url") or ""):
+        if not _is_google_news(it.get("discovery_url")):
             continue
         src = it.get("source_url") or ""
         path = src.split("://", 1)[-1].partition("/")[2].strip("/")
-        if "news.google.com" in src or not path:
+        if _is_google_news(src) or not path:
             n += 1
     return n
+
+
+def _is_google_news(url: str | None) -> bool:
+    """Hostname, never substring: a publisher URL whose query string or path
+    mentions news.google.com is still the publisher (CodeQL
+    py/incomplete-url-substring-sanitization)."""
+    host = (urllib.parse.urlsplit(url or "").hostname or "").lower()
+    return host == "news.google.com" or host.endswith(".news.google.com")
 
 
 def article_id(discovery_url: str) -> str:

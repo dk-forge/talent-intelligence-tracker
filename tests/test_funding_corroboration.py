@@ -141,7 +141,7 @@ def test_two_independent_outlets_publish_a_figure_the_ceiling_cannot_explain(con
     # And it says WHY, rather than silently letting a mega-round through.
     corroborated = result["guardrails"]["amount"]["corroborated"]
     assert [c["content_hash"] for c in corroborated] == ["mega"]
-    assert "reuters.com" in corroborated[0]["outlets"]
+    assert {"reuters.com"} <= set(corroborated[0]["outlets"])
 
 
 def test_one_outlet_is_not_corroboration(conn):

@@ -616,6 +616,7 @@ def collect(queries=None, *, days: int | None = None, today: date | None = None,
         general = general or fetch_zip(general_url, session=session)
     staff = employee_counts(elements, general)
     roster = {code for code, count in staff.items() if count >= threshold}
+    # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #23): public employer names/counts or a variable NAME, never a credential value.
     print(f"[{COLLECTOR}] {len(staff)} companies with a reported headcount, "
           f"{len(roster)} at {threshold} full-time equivalents or more")
     if len(roster) < MIN_ROSTER and threshold <= DEFAULT_MIN_EMPLOYEES:

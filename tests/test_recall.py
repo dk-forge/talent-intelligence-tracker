@@ -7,6 +7,7 @@ when a number was published, because loosening it silently is how a recall
 figure improves without coverage improving.
 """
 
+import re
 import json
 import os
 import subprocess
@@ -533,7 +534,7 @@ def test_the_work_list_names_the_countries_that_held_nothing():
     # alert up months from now with no memory of this.
     instruction = work["next_goldset"]["instruction"].lower()
     assert "independent research passes" in instruction
-    assert "asktherecruiter.com" in instruction, "must forbid consulting our own data"
+    assert re.search(r"(?<![\w.-])asktherecruiter\.com\b", instruction), "must forbid consulting our own data"
     assert "source url" in instruction
     assert "sealed=true" in instruction
     assert "2026-06" in instruction, "must name the file to write"

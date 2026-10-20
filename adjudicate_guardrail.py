@@ -1057,6 +1057,7 @@ def _describe_reshape(row: dict, signals: list) -> None:
           f"hash {row['content_hash']}")
     for n, s in enumerate(signals, 1):
         kind = "revision of the original" if n == 1 else "NEW row"
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #19): public employer names/counts or a variable NAME, never a credential value.
         print(f"  to {n}  {s.company!r} [{s.company_key}]  {s.funding_amount!r} "
               f"(${int(s.funding_amount_usd or 0):,})  headcount {s.headcount}  "
               f"basis {s.money_basis}  hash {s.content_hash}  ({kind})")

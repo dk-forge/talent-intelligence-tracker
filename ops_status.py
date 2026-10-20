@@ -90,6 +90,7 @@ def main() -> int:
     if problems:
         print(f"ACTION NEEDED: {len(problems)} item(s)")
         for p in problems:
+            # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #28): public employer names/counts or a variable NAME, never a credential value.
             print(f"  -> {p}")
         return 2
 
@@ -402,6 +403,7 @@ def _report_employer_keys(conn) -> list[str]:
     if stale:
         n = sum(stale.values())
         employers = len({old for old, _ in stale})
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #29): public employer names/counts or a variable NAME, never a credential value.
         print(f"    {n} row(s) across {employers} employer(s) carry a key this "
               f"name no longer normalises to")
         for (old, new), count in sorted(stale.items())[:6]:

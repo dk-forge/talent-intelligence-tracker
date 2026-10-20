@@ -217,7 +217,7 @@ def storable(item: dict) -> tuple[bool, str]:
     host = (parts.hostname or "").lower()
     if not host:
         return False, "no publisher URL"
-    if host in _AGGREGATOR_HOSTS or host.endswith("news.google.com"):
+    if host in _AGGREGATOR_HOSTS or host.endswith(".news.google.com"):
         return False, "still points at the aggregator — the redirect did not resolve"
 
     if parts.path.strip("/") == "" and not parts.query:

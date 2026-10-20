@@ -255,6 +255,7 @@ def main() -> int:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #20): public employer names/counts or a variable NAME, never a credential value.
         print(f"{boards} boards, {payload['employers']} employers -> {out}")
 
     print("direction: " + ", ".join(f"{k}={v}" for k, v in sorted(directions.items())))
@@ -262,6 +263,7 @@ def main() -> int:
         if not os.environ.get("WP_API_KEY"):
             print("WP_API_KEY is not set — nothing was published.", file=sys.stderr)
             return 1
+        # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #21): public employer names/counts or a variable NAME, never a credential value.
         print(f"published {publish(payload)} employers")
     return 0
 

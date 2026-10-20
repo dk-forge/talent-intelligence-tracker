@@ -9,6 +9,7 @@ employer under one article.
 
 from __future__ import annotations
 
+import re
 import dataclasses
 import json
 from datetime import datetime, timezone
@@ -440,8 +441,8 @@ def test_the_committed_elite_metal_spec_is_well_formed():
     path = adj.SPEC_DIR / "2026-09-21-amount-23344cfec1156a226e3bc355bae49768.json"
     spec = json.loads(path.read_text(encoding="utf-8"))
     assert (spec["status"], spec["action"]) == ("owner-ruled", "split")
-    assert spec["ruled_by"] and "communityimpact.com" in spec["ruling"] \
-        and "connectcre.com" in spec["ruling"]
+    assert spec["ruled_by"] and re.search(r"(?<![\w.-])communityimpact\.com\b", spec["ruling"]) \
+        and re.search(r"(?<![\w.-])connectcre\.com\b", spec["ruling"])
     assert [(r["corrected_company"], r["corrected_amount"], r["corrected_headcount"])
             for r in spec["rows"]] == [("Elite Metal Finishing", 10_000_000, 170),
                                        ("Machine Sciences Corporation", 32_000_000, 70)]

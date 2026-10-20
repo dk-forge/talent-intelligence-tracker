@@ -133,6 +133,7 @@ def replay_history(db_path: Path, shas: list[str], *, dry_run: bool) -> dict:
             version.unlink()
             version_cache.unlink(missing_ok=True)
             if report["signals_inserted"] or report["employer_identity_added"]:
+                # lgtm[py/clear-text-logging-sensitive-data] CodeQL false positive (alert #31): public employer names/counts or a variable NAME, never a credential value.
                 print(f"  [{index}/{len(shas)}] {sha[:9]}: "
                       f"+{report['signals_inserted']} signals, "
                       f"+{report['employer_identity_added']} identity, "

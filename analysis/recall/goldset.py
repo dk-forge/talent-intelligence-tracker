@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 from datetime import datetime
+from urllib.parse import urlsplit
 
 from analysis.recall.stats import widest_possible_width
 
@@ -430,7 +431,8 @@ def validate(data: dict, peers: list | None = None, shape: dict | None = None) -
         url = item.get("source_url") or ""
         if not url.startswith("http"):
             problems.append(f"{label}: source_url must be a URL, got {url!r}")
-        if "asktherecruiter.com" in url:
+        host = (urlsplit(url).hostname or "").lower()
+        if host == "asktherecruiter.com" or host.endswith(".asktherecruiter.com"):
             problems.append(f"{label}: source_url points at our own tracker, which breaks independence")
 
         try:
