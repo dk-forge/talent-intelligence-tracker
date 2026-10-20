@@ -43,6 +43,7 @@ MAX_AGE_HOURS = 48
 # new commit; a daily heartbeat still refreshes it well inside MAX_AGE_HOURS.
 HEARTBEAT_HOURS = 20
 MAX_PAGES = 50
+MESSAGE_MAX = 300
 
 
 def _now() -> dt.datetime:
@@ -123,13 +124,20 @@ def _code_scanning_row(a: dict) -> dict:
     sev = (rule.get("security_severity_level") or rule.get("severity") or "unknown").lower()
     # Non-security rule severities (error/warning/note) map onto the same scale.
     sev = {"error": "high", "warning": "medium", "note": "low"}.get(sev, sev)
-    loc = ((a.get("most_recent_instance") or {}).get("location") or {})
+    inst = a.get("most_recent_instance") or {}
+    loc = inst.get("location") or {}
+    # The analyser's own message names the expression/variable, never a value;
+    # it is clipped so one odd alert cannot bloat the committed snapshot.
+    msg = (inst.get("message") or {}).get("text")
     return {
         "id": a.get("number"),
         "package": None,
         "rule": rule.get("id"),
         "tool": (a.get("tool") or {}).get("name"),
         "path": loc.get("path"),
+        "start_line": loc.get("start_line"),
+        "end_line": loc.get("end_line"),
+        "message": msg[:MESSAGE_MAX] if isinstance(msg, str) else None,
         "severity": sev,
         "fixed_in": None,
     }
@@ -229,7 +237,8 @@ def summarize(snap: dict | None, now: dt.datetime | None = None,
         for a in (sec.get("alerts") or [])[:10]:
             what = a.get("package") or a.get("rule") or "?"
             fix = f" -> fixed in {a['fixed_in']}" if a.get("fixed_in") else ""
-            lines.append(f"    #{a.get('id')} {a.get('severity')} {what}{fix}")
+            where = f" {a['path']}:{a['start_line']}" if a.get("path") and a.get("start_line") else ""
+            lines.append(f"    #{a.get('id')} {a.get('severity')} {what}{fix}{where}")
         alerts = alerts or bool(sec.get("total") and not stale)
     # Known open alerts outrank a half-unknown picture: they are actionable now.
     return ("ALERTS" if alerts else "UNKNOWN" if unknown else "OK"), lines
