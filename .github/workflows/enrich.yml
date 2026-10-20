@@ -24,6 +24,10 @@ concurrency:
   group: talent-collect      # shares the DB with the collectors; one writer at a time
   cancel-in-progress: false
 
+# Least privilege for GITHUB_TOKEN (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+
 jobs:
   enrich:
     runs-on: [self-hosted, linux, contabo]

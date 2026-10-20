@@ -24,6 +24,10 @@ on:
         required: false
         default: ''
 
+# Least privilege for GITHUB_TOKEN (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+
 jobs:
   ab:
     runs-on: ubuntu-latest
