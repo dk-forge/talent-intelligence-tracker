@@ -1,166 +1,13 @@
 {
-  "checked_at": "2026-10-20T04:17:46Z",
+  "checked_at": "2026-10-20T06:40:11Z",
   "code_scanning": {
     "alerts": [
-      {
-        "fixed_in": null,
-        "id": 1,
-        "package": null,
-        "path": ".github/workflows/ab-models.yml",
-        "rule": "actions/missing-workflow-permissions",
-        "severity": "medium",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 2,
-        "package": null,
-        "path": ".github/workflows/deploy-plugin.yml",
-        "rule": "actions/missing-workflow-permissions",
-        "severity": "medium",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 3,
-        "package": null,
-        "path": ".github/workflows/enrich.yml",
-        "rule": "actions/missing-workflow-permissions",
-        "severity": "medium",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 4,
-        "package": null,
-        "path": ".github/workflows/health-digest.yml",
-        "rule": "actions/missing-workflow-permissions",
-        "severity": "medium",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 5,
-        "package": null,
-        "path": ".github/workflows/tests.yml",
-        "rule": "actions/missing-workflow-permissions",
-        "severity": "medium",
-        "tool": "CodeQL"
-      },
       {
         "fixed_in": null,
         "id": 6,
         "package": null,
         "path": "wordpress-plugin/talent-intelligence-tracker/assets/dashboard.js",
         "rule": "js/xss-through-dom",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 7,
-        "package": null,
-        "path": "tests/test_cdp_launch.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 8,
-        "package": null,
-        "path": "tests/test_cdp_launch.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 9,
-        "package": null,
-        "path": "tests/test_control_boundaries.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 10,
-        "package": null,
-        "path": "tests/test_control_boundaries.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 11,
-        "package": null,
-        "path": "tests/test_control_boundaries.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 12,
-        "package": null,
-        "path": "tests/test_digest_route_is_findable.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 13,
-        "package": null,
-        "path": "tests/test_place_ribbon_counts_updates_held.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 14,
-        "package": null,
-        "path": "tests/test_place_ribbon_counts_updates_held.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 15,
-        "package": null,
-        "path": "tests/test_place_ribbon_counts_updates_held.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 16,
-        "package": null,
-        "path": "tests/test_reader_copy_says_entries.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 17,
-        "package": null,
-        "path": "tests/test_seo_route_b.py",
-        "rule": "py/insecure-temporary-file",
-        "severity": "high",
-        "tool": "CodeQL"
-      },
-      {
-        "fixed_in": null,
-        "id": 18,
-        "package": null,
-        "path": "tests/test_country_vocabulary.py",
-        "rule": "py/redos",
         "severity": "high",
         "tool": "CodeQL"
       },
@@ -473,13 +320,13 @@
     ],
     "counts": {
       "critical": 0,
-      "high": 47,
+      "high": 35,
       "low": 0,
-      "medium": 5
+      "medium": 0
     },
     "reason": null,
     "state": "OK",
-    "total": 52
+    "total": 35
   },
   "dependabot": {
     "alerts": [],
