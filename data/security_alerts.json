@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-20T04:12:32Z",
+  "checked_at": "2026-10-20T04:17:46Z",
   "code_scanning": {
     "alerts": [
       {
@@ -483,10 +483,15 @@
   },
   "dependabot": {
     "alerts": [],
-    "counts": null,
-    "reason": "HTTP 403: not readable with ALERTS_READ_TOKEN (feature off, plan, or token scope); not a zero",
-    "state": "UNKNOWN",
-    "total": null
+    "counts": {
+      "critical": 0,
+      "high": 0,
+      "low": 0,
+      "medium": 0
+    },
+    "reason": null,
+    "state": "OK",
+    "total": 0
   },
   "repo": "dk-forge/talent-intelligence-tracker",
   "schema": 1,
