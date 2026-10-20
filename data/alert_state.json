@@ -20,6 +20,11 @@
       "last": 1791911313,
       "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
     },
+    "drain-writers:main:3763cb547d28b11a": {
+      "first": 1792533709,
+      "last": 1792533709,
+      "subject": "CI RED: drain-writers: nothing unresolved matching '38436026420' \u2014 expected an orphan run id, a failed ticket id, or 'all'"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -36,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-20T07:02:01+00:00",
+  "updated_at": "2026-10-20T22:01:50+00:00",
   "version": 1
 }
