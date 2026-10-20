@@ -246,9 +246,6 @@
       "workflow": "collect-structured"
     }
   ],
-  "red_marks": {
-    "ticket:20261019T091244Z-adjudicate-rows": "2026-10-20T09:44:46Z"
-  },
   "tickets": [
     {
       "attempts": 0,
@@ -1979,6 +1976,7 @@
       "workflow": "archive-sources.yml"
     },
     {
+      "acknowledged": "2026-10-20T22:05:55Z",
       "attempts": 0,
       "dispatched_at": "2026-10-19T09:32:54Z",
       "history": [
@@ -2001,6 +1999,11 @@
           "at": "2026-10-19T09:34:06Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-10-20T22:05:55Z",
+          "detail": "superseded: the same rows were applied by later landed adjudicate-rows tickets (741b46d5 by 20261013T183218Z; 784dcf8e by 20261019T181707Z; b9e7be50 by 20261019T123451Z) (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20261019T091244Z-adjudicate-rows",
