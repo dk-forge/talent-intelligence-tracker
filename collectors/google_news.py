@@ -300,7 +300,8 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
     validate.py rejects it as a bare domain rather than crediting Google.
     """
     url = item.get("discovery_url") or ""
-    if "news.google.com" not in url:
+    # Hostname, not substring: "news.google.com" in a query string is not Google.
+    if (urllib.parse.urlsplit(url).hostname or "").lower() != "news.google.com":
         return item
 
     http = session or requests
