@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-02",
+ "as_of": "2026-10-09",
  "attribution": "Job postings by occupation and country: Indeed Hiring Lab, Job Postings Tracker (github.com/hiring-lab/job_postings_tracker), licensed CC BY 4.0. Index values as published (100 = Feb 1, 2020); 4- and 52-week changes and the weekly thinning are computed by us.",
  "categories_unpublished": [
   "EA",
@@ -8,12 +8,12 @@
   "IT",
   "NL"
  ],
- "checked_at": "2026-10-13T11:35:44+00:00",
- "fetched_at": "2026-10-13T11:35:44+00:00",
+ "checked_at": "2026-10-20T11:33:26+00:00",
+ "fetched_at": "2026-10-20T11:33:26+00:00",
  "files": {
   "latest.json": {
-   "bytes": 416246,
-   "sha256": "cb52ca5e1069b87673a49623269154e99588d66dd73ec917920ea12952dac19b"
+   "bytes": 416305,
+   "sha256": "55270505ceb0fbaec2eb343124dd1bb44ba3ae94993354137e39b6a5280ede59"
   }
  },
  "licence": "CC BY 4.0",
