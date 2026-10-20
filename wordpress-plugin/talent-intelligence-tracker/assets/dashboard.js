@@ -2095,6 +2095,10 @@
       if (!a) return;
       var base = a.getAttribute('data-base');
       if (!base) return;
+      // data-base is server-written through esc_url(), but it is still DOM text
+      // flowing into an href (CodeQL js/xss-through-dom): agree with escUrl's
+      // scheme allowlist and leave the server-painted href alone otherwise.
+      if (!/^https?:\/\//.test(base.replace(/[\u0000-\u0020\u007f]/g, '').toLowerCase())) return;
       a.href = base + (lastQuery
         ? (base.indexOf('?') >= 0 ? '&' : '?') + lastQuery : '');
       var scope = document.getElementById(id + '-scope');
