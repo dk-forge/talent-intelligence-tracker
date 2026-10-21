@@ -105,11 +105,16 @@ def test_compact_site_copy_has_attribution_and_top_employers():
 
 
 def test_touch_keeps_a_monthly_check_of_a_quarterly_source_fresh(tmp_path):
-    from datetime import datetime, timezone
+    from datetime import datetime, timedelta, timezone
+    # Relative to the real clock: store() stamps checked_at with now(), so a
+    # fixed `later` stopped being 40+ days after it on 2026-10-21 and the
+    # suite went red with no code change.
+    now = datetime.now(timezone.utc)
     table, stats = _table()
     h1b_lca.store(table, stats, {"file": XLSX.name, "fiscal_year": 2026, "quarter": 3,
-                                 "as_of": "2026-06-30"}, store_dir=tmp_path)
-    later = datetime(2026, 12, 1, tzinfo=timezone.utc)
+                                 "as_of": (now - timedelta(days=30)).date().isoformat()},
+                  store_dir=tmp_path)
+    later = now + timedelta(days=60)
     spec = {"h1b_lca": reference_freshness.SPECS["h1b_lca"]}
     assert any("collector" in p for p in reference_freshness.check(tmp_path, later, spec)[0]["problems"])
     reference_store.touch("h1b_lca", tmp_path, now=later)
