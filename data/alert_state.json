@@ -29,13 +29,8 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
-    },
-    "tests:main:c27600eb65e34f24": {
-      "first": 1792540416,
-      "last": 1792540416,
-      "subject": "CI RED: tests: assert not [('US$11', 11.0)]"
     }
   },
-  "updated_at": "2026-10-20T23:53:37+00:00",
+  "updated_at": "2026-10-21T00:30:22+00:00",
   "version": 1
 }
