@@ -249,73 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-21T01:05:38Z",
-      "history": [
-        {
-          "at": "2026-10-21T01:01:04Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-21T01:05:38Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261021T010104Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-10-21T01:01:04Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-12T10:45:50Z",
-      "history": [
-        {
-          "at": "2026-10-12T10:45:46Z",
-          "detail": "owner ruling 2026-10-12: reject MDEC $44B amount (#180)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-12T10:45:50Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-12T10:46:52Z",
-          "detail": "run 38238363654",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-12T10:46:52Z",
-          "detail": "run 38238363654",
-          "event": "landed"
-        }
-      ],
-      "id": "20261012T104546Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "note": "Owner ruling 2026-10-12 (unanimous 3-AI review): primary source (MDEC via Malaysiakini, The Star, Bernama) says close to RM180 billion in digital investments SECURED from 1,000+ MD-status companies 2025-Aug 2026; e27 headline converted to US$44B. Not a raise or deal by MDEC; storing an exact USD amount invents a number.",
-        "reject_keys": "amount/440b7e16389d69399d5681257c6033e3"
-      },
-      "landed_at": "2026-10-12T10:46:52Z",
-      "priority": 0,
-      "reason": "owner ruling 2026-10-12: reject MDEC $44B amount (#180)",
-      "requested_at": "2026-10-12T10:45:46Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38238363654",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-12T16:46:26Z",
       "history": [
         {
@@ -2582,6 +2515,44 @@
       "requested_at": "2026-10-20T16:33:39Z",
       "requested_by": "dakotta-labs",
       "run_id": "39459992056",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-21T01:05:38Z",
+      "history": [
+        {
+          "at": "2026-10-21T01:01:04Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-21T01:05:38Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-21T01:32:23Z",
+          "detail": "run 39525282190",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-21T01:32:23Z",
+          "detail": "run 39525282190",
+          "event": "landed"
+        }
+      ],
+      "id": "20261021T010104Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-21T01:32:23Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-10-21T01:01:04Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39525282190",
       "state": "landed",
       "workflow": "archive-sources.yml"
     }
