@@ -570,7 +570,16 @@ def _plain(html: str, limit: int = TEASER_CHARS) -> str:
     text = (text.replace("&nbsp;", " ").replace("&amp;", "&")
                 .replace("&#8217;", "’").replace("&quot;", '"')
                 .replace("&lt;", "<").replace("&gt;", ">"))
-    return _WS.sub(" ", text).strip()[:limit]
+    text = _WS.sub(" ", text).strip()
+    if len(text) <= limit:
+        return text
+    # Cut on a word boundary. A hard slice once ended a teaser inside
+    # 'US$110 juta' as 'US$11', which every later guard then accepted as a
+    # figure the source printed (tests/test_teaser_cut_on_a_word.py).
+    cut = text[:limit]
+    if text[limit] != " " and " " in cut:
+        cut = cut.rsplit(" ", 1)[0]
+    return cut.rstrip()
 
 
 # The XML-free reader. Only ever reached when both parses have failed, because

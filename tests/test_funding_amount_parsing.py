@@ -360,6 +360,13 @@ FLOOR_REFUSALS = {
                "string we hold does not finish the word, and reading a "
                "truncated stem as a known scale would be a guess. Refusing "
                "is correct.",
+    "US$11": "Reka, Indonesian (youngster.id, arrived 2026-10-20). The feed "
+             "says 'pendanaan US$110 juta' (US$110 million, July 2025), and "
+             "OUR teaser cap cut it at character 400, inside the figure. The "
+             "string we hold states no scale and no full number, so refusing "
+             "is correct. The cut itself is fixed at its root "
+             "(tests/test_teaser_cut_on_a_word.py); this entry covers the one "
+             "row collected before it.",
 }
 
 # QpiAI's '$20–25 million' (YourStory, 2026-08-17) was here for one day and is
