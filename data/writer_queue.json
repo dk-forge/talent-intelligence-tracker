@@ -249,71 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-23T05:39:34Z",
-      "history": [
-        {
-          "at": "2026-10-23T05:38:05Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-23T05:39:34Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261023T053805Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-23T05:38:05Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-14T05:39:14Z",
-      "history": [
-        {
-          "at": "2026-10-14T05:37:47Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-14T05:39:14Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-14T05:46:27Z",
-          "detail": "run 38517790470",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-14T05:46:27Z",
-          "detail": "run 38517790470",
-          "event": "landed"
-        }
-      ],
-      "id": "20261014T053747Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-14T05:46:27Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-14T05:37:47Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38517790470",
-      "state": "landed",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-14T08:54:24Z",
       "history": [
         {
@@ -2575,6 +2510,44 @@
       "run_id": "39882200485",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-23T05:39:34Z",
+      "history": [
+        {
+          "at": "2026-10-23T05:38:05Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-23T05:39:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-23T05:45:30Z",
+          "detail": "run 39906981772",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-23T05:45:30Z",
+          "detail": "run 39906981772",
+          "event": "landed"
+        }
+      ],
+      "id": "20261023T053805Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-23T05:45:30Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-10-23T05:38:05Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "39906981772",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
