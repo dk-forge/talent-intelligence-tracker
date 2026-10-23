@@ -1,0 +1,63 @@
+{
+ "key": "amount/9736201dc0fae9ee8ef7f92dc8f249cd",
+ "label": "OpenAI $1,250,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source states: \"η αποτίμησή της να διαμορφώνεται στα 1,25 τρισ. δολάρια\" (its valuation is set at $1.25 trillion). This is explicitly a VALUATION, not a raise amount. The source mentions \"αντλεί κεφάλαια ύψους έως και 30 δισ. δολαρίων\" (raising capital up to $30 billion), but this is the actual raise amount being sought. Rule 3 is clear: \"A VALUATION IS NOT A RAISE.\" The $1.25 trillion figure cannot be classified as company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states: 'Η OpenAI αντλεί κεφάλαια ύψους έως και 30 δισ. δολαρίων, με την αποτίμησή της να διαμορφώνεται στα 1,25 τρισ. δολάρια.' This indicates a valuation, not a raise. The funding amount of $1.25 trillion is a valuation, not the amount raised, which is up to $30 billion. Therefore, the stored amount is incorrect for a company_raise basis."
+  }
+ },
+ "row": {
+  "company": "OpenAI",
+  "headline": "OpenAI's valuation 'locked' at $1.25 trillion - New funding round",
+  "summary": "OpenAI's valuation is set at $1.25 trillion in a new funding round led by investors from the United Arab Emirates and Coatue.",
+  "funding_amount": "$1.25 trillion",
+  "funding_amount_usd": 1250000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.insider.gr/epiheiriseis/429858/kleidonei-sta-125-tris-dolaria-i-apotimisi-tis-openai-neos-gyros-hrimatodotisis",
+  "source_name": "Insider.gr",
+  "published_date": "2026-10-22",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.027682,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.018054,
+  "openai/gpt-4o": 0.0096275
+ },
+ "evidence_url": "https://www.insider.gr/epiheiriseis/429858/kleidonei-sta-125-tris-dolaria-i-apotimisi-tis-openai-neos-gyros-hrimatodotisis",
+ "evidence_chars": 5159,
+ "action": "reject",
+ "correction": null,
+ "note": "two-model adjudication of amount/9736201dc0fae9ee8ef7f92dc8f249cd, both referees say reject. anthropic/claude-sonnet-4.5: The source states: \"η αποτίμησή της να διαμορφώνεται στα 1,25 τρισ. δολάρια\" (its valuation is set at $1.25 trillion). This is explicitly a VALUATION, not a raise amount. The source mentions \"αντλεί κεφάλαια ύψους έως κα; openai/gpt-4o: The source text states: 'Η OpenAI αντλεί κεφάλαια ύψους έως και 30 δισ. δολαρίων, με την αποτίμησή της να διαμορφώνεται στα 1,25 τρισ. δολάρια.' This indicates a valuation, not a raise. The funding amount of $1.25 trilli",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-23T00:54:23+00:00"
+}
