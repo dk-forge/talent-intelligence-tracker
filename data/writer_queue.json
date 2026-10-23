@@ -249,73 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-23T00:54:59Z",
-      "history": [
-        {
-          "at": "2026-10-23T00:54:54Z",
-          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-23T00:54:59Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261023T005454Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-10-23-amount-9736201dc0fae9ee8ef7f92dc8f249cd.json",
-        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
-      },
-      "priority": 0,
-      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-      "requested_at": "2026-10-23T00:54:54Z",
-      "requested_by": "github-actions[bot]",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-13T19:41:32Z",
-      "history": [
-        {
-          "at": "2026-10-13T19:41:27Z",
-          "detail": "push Amazon 741b46d5 money_basis pledge revision live (owner ruling E 2026-10-13)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-13T19:41:32Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-13T19:44:38Z",
-          "detail": "run 38456856662",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-13T19:44:38Z",
-          "detail": "run 38456856662",
-          "event": "landed"
-        }
-      ],
-      "id": "20261013T194127Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-10-13T19:44:38Z",
-      "priority": 0,
-      "reason": "push Amazon 741b46d5 money_basis pledge revision live (owner ruling E 2026-10-13)",
-      "requested_at": "2026-10-13T19:41:27Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "38456856662",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-14T01:04:18Z",
       "history": [
         {
@@ -2575,6 +2508,46 @@
       "run_id": "39816692831",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-23T00:54:59Z",
+      "history": [
+        {
+          "at": "2026-10-23T00:54:54Z",
+          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-23T00:54:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-23T00:56:04Z",
+          "detail": "run 39880951551",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-23T00:56:04Z",
+          "detail": "run 39880951551",
+          "event": "landed"
+        }
+      ],
+      "id": "20261023T005454Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-10-23-amount-9736201dc0fae9ee8ef7f92dc8f249cd.json",
+        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
+      },
+      "landed_at": "2026-10-23T00:56:04Z",
+      "priority": 0,
+      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
+      "requested_at": "2026-10-23T00:54:54Z",
+      "requested_by": "github-actions[bot]",
+      "run_id": "39880951551",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
