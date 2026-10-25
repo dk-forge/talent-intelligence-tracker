@@ -1,0 +1,73 @@
+{
+ "key": "amount/dd8d21a68a3546d6564d8bfc49015471",
+ "label": "Amazon $220,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "outbound_investment",
+   "recommended": "edit",
+   "corrected_amount": 220000000000,
+   "corrected_basis": "outbound_investment",
+   "confidence": 95,
+   "reasoning": "The source states 'Amazon was struggling to meet demand...despite plans to spend about $220 billion on capital expenditure in 2026.' This is capital spending (capex) by Amazon on its own infrastructure, not money raised from investors. The guardrail correctly identifies this as 'capital spending'. Under the rules, this is Amazon paying out for assets/projects, which maps to 'outbound_investment' - Amazon is the one spending, not receiving investment."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text mentions 'plans to spend about $220 billion on capital expenditure in 2026,' which is not a company raising money. Capital expenditure refers to spending, not new capital arriving from investors or lenders. Therefore, the stored amount does not meet the 'company_raise' basis requirement."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states \"Amazon plans $220 billion in capital spending for 2026.\" Capital spending is not a company raising money, and therefore not a company_raise basis."
+  }
+ },
+ "row": {
+  "company": "Amazon",
+  "headline": "Amazon's cloud is nearly sold out through 2027. Can its AI spending keep up with demand?",
+  "summary": "Amazon plans $220 billion in capital spending for 2026. CEO Andy Jassy stated that demand for AI is exceeding AWS capacity as the company develops its own chips.",
+  "funding_amount": "$220 billion",
+  "funding_amount_usd": 220000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.livemint.com/companies/news/amazons-cloud-is-nearly-sold-out-through-2027-can-its-ai-spending-keep-up-with-demand-11792813908903.html",
+  "source_name": "Mint",
+  "published_date": "2026-10-24",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Seattle",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.02001,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.011853,
+  "openai/gpt-4o": 0.007820000000000002,
+  "google/gemini-2.5-flash-lite": 0.0003365
+ },
+ "evidence_url": "https://www.livemint.com/companies/news/amazons-cloud-is-nearly-sold-out-through-2027-can-its-ai-spending-keep-up-with-demand-11792813908903.html",
+ "evidence_chars": 7007,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/dd8d21a68a3546d6564d8bfc49015471, two of three referees say reject. anthropic/claude-sonnet-4.5: The source states 'Amazon was struggling to meet demand...despite plans to spend about $220 billion on capital expenditure in 2026.' This is capital spending (capex) by Amazon on its own infrastructure, not money raised ; openai/gpt-4o: The source text mentions 'plans to spend about $220 billion on capital expenditure in 2026,' which is not a company raising money. Capital expenditure refers to spending, not new capital arriving from investors or lender; google/gemini-2.5-flash-lite: The source text states \"Amazon plans $220 billion in capital spending for 2026.\" Capital spending is not a company raising money, and therefore not a company_raise basis.",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-25T00:57:16+00:00"
+}
