@@ -1,3 +1,13 @@
+## 2026-10-25 - security: certifi 2026.10.19 and urllib3 2.8.0 in both locks
+
+Threat-watch in asktherecruiter-sandbox raised three alarms against this repo's locks: certifi
+2026.7.22 still bundled the distrusted emSign roots (GHSA-6q48-6c7w-9gw2, critical, sandbox #2619) and
+urllib3 2.7.0 had two high advisories in `HTTPResponse.stream()/read()` and HTTPS-proxy TLS handling
+(sandbox #2645, #2646). Both pins move in `requirements.lock` and `requirements-dev.lock`, with the
+PyPI sha256 for the wheel and the sdist. Both are transitive (via requests); no code change. Full suite
+5890 passed; `test_offline_suite_is_offline::ProbeIsLive` fails in the cloud sandbox with and without
+this change (its live probe cannot reach the network there), so it is deselected locally only.
+
 ## 2026-10-19 - plugin 1.111.2: "Cite this dataset" DOI (Zenodo)
 
 Owner-approved. The dataset is archived on Zenodo; the CONCEPT DOI 10.5281/zenodo.23482651 always resolves
