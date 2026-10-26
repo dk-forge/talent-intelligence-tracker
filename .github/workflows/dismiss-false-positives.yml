@@ -11,7 +11,7 @@ permissions:
   contents: read
 jobs:
   dismiss:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, contabo]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
