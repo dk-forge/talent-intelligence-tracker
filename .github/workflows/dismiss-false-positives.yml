@@ -1,0 +1,30 @@
+name: dismiss-false-positives
+# Dismisses only the reviewed CodeQL alerts listed (with a reason each) in
+# .github/codeql-false-positives.json. Adding an alert there is a reviewed PR.
+on:
+  push:
+    branches: [main]
+    paths: [.github/codeql-false-positives.json]
+  workflow_dispatch:
+permissions:
+  security-events: write
+  contents: read
+jobs:
+  dismiss:
+    runs-on: [self-hosted, linux, contabo]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          jq -r '.alerts | to_entries[] | "\(.key)\t\(.value)"' .github/codeql-false-positives.json |
+          while IFS=$'\t' read -r n why; do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts/$n" -q .state)
+            if [ "$state" = open ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/code-scanning/alerts/$n" \
+                -f state=dismissed -f dismissed_reason="false positive" -f dismissed_comment="$why" >/dev/null
+              echo "dismissed #$n: $why"
+            else
+              echo "skip #$n ($state)"
+            fi
+          done

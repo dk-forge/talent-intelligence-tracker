@@ -1,0 +1,22 @@
+{
+  "_why": "Reviewed 2026-10-26. Each alert below was read at its line: it prints public company data, counts or an env var NAME (never a credential or personal data), or uses MD5 only as a dedup key. Dismissed by .github/workflows/dismiss-false-positives.yml.",
+  "alerts": {
+    "19": "public company data, not credentials or personal data",
+    "20": "public company data, not credentials or personal data",
+    "21": "public company data, not credentials or personal data",
+    "22": "prints only the env var NAME and set/NOT SET, never the password",
+    "23": "public company data, not credentials or personal data",
+    "24": "public company data, not credentials or personal data",
+    "25": "public company data, not credentials or personal data",
+    "26": "public company data, not credentials or personal data",
+    "27": "public company data, not credentials or personal data",
+    "28": "public company data, not credentials or personal data",
+    "29": "public company data, not credentials or personal data",
+    "30": "public company data, not credentials or personal data",
+    "31": "public company data, not credentials or personal data",
+    "32": "public company data, not credentials or personal data",
+    "33": "public company data, not credentials or personal data",
+    "34": "public company data, not credentials or personal data",
+    "35": "MD5 is a dedup key for public headlines, not a security use"
+  }
+}
