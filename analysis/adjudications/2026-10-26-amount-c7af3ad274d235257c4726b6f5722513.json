@@ -1,0 +1,73 @@
+{
+ "key": "amount/c7af3ad274d235257c4726b6f5722513",
+ "label": "Meta Platforms $825,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "outbound_investment",
+   "recommended": "edit",
+   "corrected_amount": 825000000000,
+   "corrected_basis": "outbound_investment",
+   "confidence": 95,
+   "reasoning": "The source describes '$825 billion in future commitments for AI infrastructure' and 'capex forecast' - this is capital expenditure (spending) by Meta on infrastructure, not money raised from investors. Per the rules, 'outbound_investment: THIS employer is the one paying.' Meta is the one spending/paying for AI infrastructure, not receiving investment. This is capex/spending, not a company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 90,
+   "reasoning": "The source text mentions 'Meta Platforms' long-term AI infrastructure spending' and 'future commitments rising to approximately US$825 billion,' which indicates planned expenditure, not a company raise. The term 'capex' is used, which refers to capital expenditure, not new capital from investors. Therefore, the amount is not a company raise."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'Meta Platforms' long-term AI infrastructure spending is creating financial pressure, with free cash flow turning negative in Q3 2026 and future commitments rising to approximately US$825 billion.' This describes future commitments and spending, not new capital that arrived at the employer, and therefore is not a company_raise."
+  }
+ },
+ "row": {
+  "company": "Meta Platforms",
+  "headline": "Meta&rsquo;s AI commitments surge to US$825 billion, testing financing power",
+  "summary": "Meta Platforms' long-term AI infrastructure spending is creating financial pressure, with free cash flow turning negative in Q3 2026 and future commitments rising to approximately US$825 billion. The company also increased its 2026 capex forecast by US$5 billion to US$135 billion, indicating ongoing AI expansion.",
+  "funding_amount": "$825 billion",
+  "funding_amount_usd": 825000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.digitimes.com/news/a20261023PD220/meta-financing-infrastructure-investment-capex.html",
+  "source_name": "DIGITIMES Asia",
+  "published_date": "2026-10-25",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Menlo Park",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.012544,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007572,
+  "openai/gpt-4o": 0.00475,
+  "google/gemini-2.5-flash-lite": 0.00022179999999999943
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 1012,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/c7af3ad274d235257c4726b6f5722513, two of three referees say reject. anthropic/claude-sonnet-4.5: The source describes '$825 billion in future commitments for AI infrastructure' and 'capex forecast' - this is capital expenditure (spending) by Meta on infrastructure, not money raised from investors. Per the rules, 'ou; openai/gpt-4o: The source text mentions 'Meta Platforms' long-term AI infrastructure spending' and 'future commitments rising to approximately US$825 billion,' which indicates planned expenditure, not a company raise. The term 'capex' ; google/gemini-2.5-flash-lite: The source text states 'Meta Platforms' long-term AI infrastructure spending is creating financial pressure, with free cash flow turning negative in Q3 2026 and future commitments rising to approximately US$825 billion.'",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-26T00:56:06+00:00"
+}

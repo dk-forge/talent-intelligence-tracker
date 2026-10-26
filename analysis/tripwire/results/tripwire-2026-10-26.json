@@ -1,0 +1,413 @@
+{
+ "ran_at": "2026-10-26T08:42:31+01:00",
+ "ran_on": "2026-10-26",
+ "plan": {
+  "cycle": 598,
+  "planned_on": "2026-10-26",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-10-19 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "BO",
+    "name": "Bolivia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "CR",
+    "name": "Costa Rica",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "DK",
+    "name": "Denmark",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "BR",
+    "name": "Brazil",
+    "tier": "weak",
+    "measured": {
+     "total": 3,
+     "held": 1,
+     "held_pct": 33.3
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "BO",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "CR",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "DK",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "BR",
+   "tier": "weak",
+   "measured": {
+    "total": 3,
+    "held": 1,
+    "held_pct": 33.3
+   }
+  }
+ ],
+ "counts": {
+  "leads": 10,
+  "held": 7,
+  "missing": 3,
+  "unusable": 0,
+  "usable": 10
+ },
+ "by_country": {
+  "BO": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "CR": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  },
+  "DK": {
+   "leads": 4,
+   "held": 3,
+   "missing": 1,
+   "unusable": 0
+  },
+  "BR": {
+   "leads": 2,
+   "held": 2,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0223,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0022,
+  "usd_per_candidate_miss": 0.0074,
+  "lifetime_usd": 0.6692,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:BO",
+   "leads": 1,
+   "usd": 0.00544,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 104,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:CR",
+   "leads": 3,
+   "usd": 0.00562,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 286,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:DK",
+   "leads": 4,
+   "usd": 0.00574,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 411,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:BR",
+   "leads": 2,
+   "usd": 0.00549,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 160,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "BO",
+   "dimension_tier": "zero",
+   "claimed_company": "Peso",
+   "claimed_country": "BO",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-21",
+   "claimed_amount": "",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "Red Uno",
+   "claimed_url": "https://www.reduno.com.bo/economia/tether-invierte-en-la-startup-boliviana-peso-que-busca-expandir-los-pagos-digitales-en-america-latina-20261021183930",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CR",
+   "dimension_tier": "zero",
+   "claimed_company": "Holcim Costa Rica",
+   "claimed_country": "CR",
+   "claimed_city": "San Jos\u00e9",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-06",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Rumbo Econ\u00f3mico",
+   "claimed_url": "https://rumboeconomico.net/negocios/empresas-nombran-nuevos-liderazgos-y-anuncian-expansiones/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "abe9e3428ddeb50ad320fd75a57d7c91",
+    "company": "Holcim",
+    "pillar": "leadership_change",
+    "country": "GB",
+    "published_date": "2026-09-08",
+    "source_url": "https://www.indexbox.io/it/blog/holcim-appoints-adham-el-sharkawy-as-uk-ceo-1/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CR",
+   "dimension_tier": "zero",
+   "claimed_company": "BCR Sociedad Administradora de Fondos de Inversi\u00f3n",
+   "claimed_country": "CR",
+   "claimed_city": "San Jos\u00e9",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-06",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Rumbo Econ\u00f3mico",
+   "claimed_url": "https://rumboeconomico.net/negocios/empresas-nombran-nuevos-liderazgos-y-anuncian-expansiones/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CR",
+   "dimension_tier": "zero",
+   "claimed_company": "Artemis",
+   "claimed_country": "CR",
+   "claimed_city": "San Jos\u00e9",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-11",
+   "claimed_amount": "$1.2 million",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "Contxto",
+   "claimed_url": "https://contxto.com/en/fintech/artemis-secures-a-1-2-million-investment-round-and-sets-up-operations-in-costa-rica/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "7c524060f367226b8d0191e8ee4961a1",
+    "company": "Artemis Medicare Services Ltd",
+    "pillar": "leadership_change",
+    "country": "IN",
+    "published_date": "2026-07-31",
+    "source_url": "https://www.bseindia.com/corporates/anndet_new?newsid=c62d7cac-f4dd-4f0d-ac91-37f3b8d8a3f3"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "CelVivo ApS",
+   "claimed_country": "DK",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-08-25",
+   "claimed_amount": "42 mio. kr.",
+   "claimed_stage": "",
+   "claimed_outlet": "Ritzau",
+   "claimed_url": "https://via.ritzau.dk/pressemeddelelse/15110155/den-danske-biotekvirksomhed-celvivo-sikrer-sig-42-mio-kr-i-finansiering-og-ansaetter-ny-ceo-til-at-lede-naeste-vaekstfase?publisherId=13568777&lang=da",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d8fb6e26e5a2c0452a7083f2b3b790a8",
+    "company": "Celvivo",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-28",
+    "source_url": "https://app.[dp-c8cff1].co/news/note/celvivo-raises-6-6m-to-scale-3d-cell-culture-platform-names-new-ceo"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "CelVivo ApS",
+   "claimed_country": "DK",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-25",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Ritzau",
+   "claimed_url": "https://via.ritzau.dk/pressemeddelelse/15110155/den-danske-biotekvirksomhed-celvivo-sikrer-sig-42-mio-kr-i-finansiering-og-ansaetter-ny-ceo-til-at-lede-naeste-vaekstfase?publisherId=13568777&lang=da",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d8fb6e26e5a2c0452a7083f2b3b790a8",
+    "company": "Celvivo",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-08-28",
+    "source_url": "https://app.[dp-c8cff1].co/news/note/celvivo-raises-6-6m-to-scale-3d-cell-culture-platform-names-new-ceo"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "Sparrow Quantum",
+   "claimed_country": "DK",
+   "claimed_city": "Copenhagen",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-22",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Technology Reporter Denmark",
+   "claimed_url": "https://www.technologyreporterdenmark.com/executive-report",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "Pandektes",
+   "claimed_country": "DK",
+   "claimed_city": "Copenhagen",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-25",
+   "claimed_amount": "\u20ac13.5M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "The Next Web",
+   "claimed_url": "https://thenextweb.com/news/pandektes-13-5m-series-a-legal-research",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "b25d831ab331d8d0cb97dbe49e207e29",
+    "company": "Pandektes",
+    "pillar": "company_development",
+    "country": "DK",
+    "published_date": "2026-10-05",
+    "source_url": "https://www.eu-startups.com/2026/10/copenhagens-pandektes-raises-e13-5-million-to-build-the-data-infrastructure-for-ai-powered-legal-research/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "BR",
+   "dimension_tier": "weak",
+   "claimed_company": "Nuvia",
+   "claimed_country": "BR",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-17",
+   "claimed_amount": "US$1.8 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Exame",
+   "claimed_url": "https://exame.com/insight/a-tese-que-trouxe-tres-fundos-estrangeiros-ao-brasil-e-r-10-milhoes-para-a-nuvia/p",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "113ff2b476373cfa40d219eba238c9a8",
+    "company": "Nuvia",
+    "pillar": "company_development",
+    "country": "BR",
+    "published_date": "2026-09-21",
+    "source_url": "https://www.baguete.com.br/noticias/nuvia-capta-us-18-milhao"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "BR",
+   "dimension_tier": "weak",
+   "claimed_company": "A5X",
+   "claimed_country": "BR",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-16",
+   "claimed_amount": "R$360M",
+   "claimed_stage": "series_d",
+   "claimed_outlet": "Builders in Fintech",
+   "claimed_url": "https://buildersinfintech.ai/companies/a5x",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "0d725c8d47993cecefcd35e9cc2a27ba",
+    "company": "A5X",
+    "pillar": "company_development",
+    "country": "BR",
+    "published_date": "2026-09-14",
+    "source_url": "https://startups.com.br/negocios/fintech/a5x-levanta-r-360m-para-competir-com-a-b3-em-derivativos/"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}
