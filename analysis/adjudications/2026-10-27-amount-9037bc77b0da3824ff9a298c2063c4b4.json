@@ -1,0 +1,66 @@
+{
+ "key": "amount/9037bc77b0da3824ff9a298c2063c4b4",
+ "label": "Meta $95,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "public_offering",
+   "recommended": "edit",
+   "corrected_amount": 95000000000,
+   "corrected_basis": "public_offering",
+   "confidence": 95,
+   "reasoning": "The source states: 'Meta Platforms said on Monday (Oct 26) it plans to raise up to US$95 billion in equity to fund its costly AI-related expansion' and 'The company launched public offerings of about US$35 billion in common stock and convertible preferred stock' plus 'a separate at-the-market share sale programme of up to US$60 billion'. This is equity sold into public markets (public_offering), not a private venture raise (company_raise). The $95B figure is correct but the basis must be public_offering."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "public_offering",
+   "recommended": "edit",
+   "corrected_amount": 95000000000,
+   "corrected_basis": "public_offering",
+   "confidence": 95,
+   "reasoning": "The source states 'Meta Platforms said on Monday (Oct 26) it plans to raise up to US$95 billion in equity to fund its costly AI-related expansion.' This is a public offering, not a private company raise, as it involves public stock sales."
+  }
+ },
+ "row": {
+  "company": "Meta",
+  "headline": "Meta to raise up to US$95 billion in equity to fund costly AI expansion",
+  "summary": "Meta plans to raise up to US$95 billion in equity to fund its future spending on AI, data centers, and cloud computing, estimated at about US$825 billion.",
+  "funding_amount": "US$95 billion",
+  "funding_amount_usd": 95000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.businesstimes.com.sg/companies-markets/telcos-media-tech/meta-raise-us95-billion-equity-fund-costly-ai-expansion",
+  "source_name": "The Business Times Singapore",
+  "published_date": "2026-10-26",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Menlo Park",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.019285,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.01185,
+  "openai/gpt-4o": 0.007435000000000001
+ },
+ "evidence_url": "https://www.businesstimes.com.sg/companies-markets/telcos-media-tech/meta-raise-us95-billion-equity-fund-costly-ai-expansion",
+ "evidence_chars": 6529,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 95000000000,
+  "corrected_basis": "public_offering"
+ },
+ "note": "two-model adjudication of amount/9037bc77b0da3824ff9a298c2063c4b4, both referees say edit. corrected_amount=95000000000 corrected_basis=public_offering. anthropic/claude-sonnet-4.5: The source states: 'Meta Platforms said on Monday (Oct 26) it plans to raise up to US$95 billion in equity to fund its costly AI-related expansion' and 'The company launched public offerings of about US$35 billion in com; openai/gpt-4o: The source states 'Meta Platforms said on Monday (Oct 26) it plans to raise up to US$95 billion in equity to fund its costly AI-related expansion.' This is a public offering, not a private company raise, as it involves p",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-27T00:54:12+00:00"
+}

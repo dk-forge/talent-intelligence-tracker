@@ -29,6 +29,11 @@
    "enqueued_at": "2026-10-11T01:07:04+00:00",
    "last": "AGREE"
   },
+  "amount/9037bc77b0da3824ff9a298c2063c4b4": {
+   "asks": 1,
+   "enqueued_at": "2026-10-27T00:54:03+00:00",
+   "last": "AGREE"
+  },
   "amount/9616de8026f282b15a994743a418cda9": {
    "asks": 1,
    "enqueued_at": "2026-10-08T01:01:21+00:00",
@@ -66,19 +71,19 @@
   }
  },
  "last_run": {
-  "at": "2026-10-26T18:34:25+00:00",
+  "at": "2026-10-27T00:54:03+00:00",
   "referee_answers": {
    "budget_stop": 0,
    "low_confidence": 0,
    "no_answer": 0,
    "parse_failure": 0,
-   "verdict": 0
+   "verdict": 2
   },
-  "spent_usd": 0.0
+  "spent_usd": 0.019285
  },
  "months": {
   "2026-09": 0.0,
-  "2026-10": 0.290258
+  "2026-10": 0.309543
  },
  "version": 1
 }
