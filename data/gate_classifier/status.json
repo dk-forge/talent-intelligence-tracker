@@ -1,28 +1,28 @@
 {
  "armed": true,
- "artifact_sha": "4d55921af600d913",
+ "artifact_sha": "b7fe793487f42057",
  "drift": {
   "open": true,
   "since": "2026-09-08"
  },
- "labels": 82514,
- "reason": "replay 99.978% of 9001 stored rows kept over 80 days",
+ "labels": 93835,
+ "reason": "replay 99.98% of 9821 stored rows kept over 87 days",
  "replay": {
-  "candidates": 82514,
+  "candidates": 93835,
   "confident_pct": 4.1,
-  "days": 80,
-  "kept": 8999,
-  "rate_pct": 99.978,
+  "days": 87,
+  "kept": 9819,
+  "rate_pct": 99.98,
   "routed": {
-   "irrelevant": 3349,
+   "irrelevant": 3852,
    "relevant": 0,
-   "uncertain": 79165
+   "uncertain": 89983
   },
-  "stored": 9001,
+  "stored": 9821,
   "window": [
    "2026-08-01",
-   "2026-10-19"
+   "2026-10-26"
   ]
  },
- "trained_at": "2026-10-20T05:29:31Z"
+ "trained_at": "2026-10-27T05:29:38Z"
 }
