@@ -1,5 +1,10 @@
 {
  "keys": {
+  "amount/2c6c24b00e811af30209198e5371936f": {
+   "asks": 1,
+   "enqueued_at": "2026-10-28T00:41:33+00:00",
+   "last": "AGREE"
+  },
   "amount/2fac4ce0d9d8aaf7e481ae8394802839": {
    "asks": 1,
    "enqueued_at": "2026-10-15T00:50:49+00:00",
@@ -22,6 +27,11 @@
   "amount/784dcf8e6dbe6020efbfb6bdfb11579f": {
    "asks": 1,
    "enqueued_at": "2026-10-19T12:34:04+00:00",
+   "last": "AGREE"
+  },
+  "amount/7e7df52a13f47f46fe45e432890c23fb": {
+   "asks": 1,
+   "enqueued_at": "2026-10-28T00:41:33+00:00",
    "last": "AGREE"
   },
   "amount/7fb14ecb62643636ca0696061348ce38": {
@@ -71,19 +81,19 @@
   }
  },
  "last_run": {
-  "at": "2026-10-27T18:18:51+00:00",
+  "at": "2026-10-28T00:41:33+00:00",
   "referee_answers": {
    "budget_stop": 0,
    "low_confidence": 0,
    "no_answer": 0,
    "parse_failure": 0,
-   "verdict": 0
+   "verdict": 4
   },
-  "spent_usd": 0.0
+  "spent_usd": 0.028127
  },
  "months": {
   "2026-09": 0.0,
-  "2026-10": 0.309543
+  "2026-10": 0.33767
  },
  "version": 1
 }

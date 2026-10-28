@@ -1,0 +1,66 @@
+{
+ "key": "amount/2c6c24b00e811af30209198e5371936f",
+ "label": "Anthropic $63,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 63000000000,
+   "corrected_basis": "project_finance",
+   "confidence": 85,
+   "reasoning": "The text states 'financial firms to fund Anthropic's purchase of US$63 billion worth of Broadcom chips.' This is not equity capital arriving at Anthropic from investors (company_raise). Instead, it is financing arranged by a supplier (Broadcom) through financial firms to fund a specific asset purchase - Anthropic buying chips. This fits 'project_finance': a loan or facility advanced against an asset or project. The $63B is stated for this event but the basis should be project_finance, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 63000000000,
+   "corrected_basis": "project_finance",
+   "confidence": 90,
+   "reasoning": "The source states 'Broadcom has arranged for financial firms to fund Anthropic's purchase of US$63 billion worth of Broadcom chips.' This indicates project financing for chip purchases, not a company raise. The money basis should be 'project_finance' as it involves funding against an asset or project."
+  }
+ },
+ "row": {
+  "company": "Anthropic",
+  "headline": "Broadcom, financial firms agree on US$63 billion funding for Anthropic chip purchases",
+  "summary": "Broadcom has arranged for financial firms to fund Anthropic's purchase of US$63 billion worth of Broadcom chips. This deal reflects the increasing overlap between suppliers and lenders and Wall Street's growing role in financing AI infrastructure.",
+  "funding_amount": "US$63 billion",
+  "funding_amount_usd": 63000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.digitimes.com/news/a20261027VL222/broadcom-anthropic-funding-financing-finance.html",
+  "source_name": "DIGITIMES Asia",
+  "published_date": "2026-10-27",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.012515,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007812,
+  "openai/gpt-4o": 0.004702500000000001
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 908,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 63000000000,
+  "corrected_basis": "project_finance"
+ },
+ "note": "two-model adjudication of amount/2c6c24b00e811af30209198e5371936f, both referees say edit. corrected_amount=63000000000 corrected_basis=project_finance. anthropic/claude-sonnet-4.5: The text states 'financial firms to fund Anthropic's purchase of US$63 billion worth of Broadcom chips.' This is not equity capital arriving at Anthropic from investors (company_raise). Instead, it is financing arranged ; openai/gpt-4o: The source states 'Broadcom has arranged for financial firms to fund Anthropic's purchase of US$63 billion worth of Broadcom chips.' This indicates project financing for chip purchases, not a company raise. The money bas",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-28T00:41:43+00:00"
+}

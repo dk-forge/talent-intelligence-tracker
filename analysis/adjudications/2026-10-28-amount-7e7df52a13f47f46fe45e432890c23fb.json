@@ -1,0 +1,73 @@
+{
+ "key": "amount/7e7df52a13f47f46fe45e432890c23fb",
+ "label": "Advent $27,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "fund_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source clearly states: \"A Advent acaba de captar seu maior fundo global, de US$ 27 bilhões\" (Advent just raised its largest global fund, of US$ 27 billion). This is explicitly a fund raise - Advent is an investment firm closing its own fund, not a company raising venture capital. The money_basis is correctly stored as 'fund_raise', which per the rules is NOT summed into company raises. The amount US$ 27 billion matches exactly."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "fund_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'Advent acaba de captar seu maior fundo global, de US$ 27 bilhões', indicating a fund raise, not a company raise. According to the rules, fund_raise is not summed as money raised by the company. Therefore, the stored amount is not applicable for this event."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "fund_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'Advent capta US$ 27 bi para seu maior fundo global'. Rule 1 states the public total sums ONLY rows whose money_basis is 'company_raise'. The stored row's money_basis is 'fund_raise', which is not 'company_raise'. Rule 2 states 'Every other basis is stored but NOT summed.' Therefore, this amount should not be summed."
+  }
+ },
+ "row": {
+  "company": "Advent",
+  "headline": "Advent raises US$ 27B for its largest global fund",
+  "summary": "Advent has raised its largest global fund to date, totaling US$ 27 billion, along with an additional US$ 3 billion for a new middle market investment strategy. Priority markets are the US and Europe, with up to US$ 6 billion from the main fund potentially allocated to emerging markets for co-investment with the firm's local funds.",
+  "funding_amount": "US$ 27 bi",
+  "funding_amount_usd": 27000000000,
+  "funding_stage": "other",
+  "deal_type": "fund_raise",
+  "money_basis": "fund_raise",
+  "source_url": "https://braziljournal.com/advent-capta-us-27-bi-para-seu-maior-fundo-global",
+  "source_name": "Brazil Journal",
+  "published_date": "2026-10-27",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Boston",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.015612,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.009554999999999998,
+  "openai/gpt-4o": 0.005787500000000001,
+  "google/gemini-2.5-flash-lite": 0.0002699
+ },
+ "evidence_url": "https://braziljournal.com/advent-capta-us-27-bi-para-seu-maior-fundo-global",
+ "evidence_chars": 2661,
+ "action": "reject",
+ "correction": null,
+ "note": "three-model adjudication of amount/7e7df52a13f47f46fe45e432890c23fb, two of three referees say reject. anthropic/claude-sonnet-4.5: The source clearly states: \"A Advent acaba de captar seu maior fundo global, de US$ 27 bilhões\" (Advent just raised its largest global fund, of US$ 27 billion). This is explicitly a fund raise - Advent is an investment f; openai/gpt-4o: The source text states 'Advent acaba de captar seu maior fundo global, de US$ 27 bilhões', indicating a fund raise, not a company raise. According to the rules, fund_raise is not summed as money raised by the company. Th; google/gemini-2.5-flash-lite: The source text states 'Advent capta US$ 27 bi para seu maior fundo global'. Rule 1 states the public total sums ONLY rows whose money_basis is 'company_raise'. The stored row's money_basis is 'fund_raise', which is not ",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-28T00:41:53+00:00"
+}
