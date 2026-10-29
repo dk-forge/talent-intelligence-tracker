@@ -1,0 +1,44 @@
+# Security alerts mirror (2026-10-29): Claude sessions' integration token gets
+# 403 on the code-scanning, Dependabot and secret-scanning alert APIs but can
+# read issues, so once a day this keeps ONE issue "Security alerts (mirror)"
+# (label `security-mirror`) edited in place with the open alerts: counts per
+# type and severity, then rule/package, severity, file:line or manifest,
+# created date and link. Secret values are NEVER written (type, file:line and
+# link only). Closes itself when every type reads 0; reopens when not.
+# Tokens: optional secret ALERTS_READ_TOKEN (fine-grained PAT, alert reads) is
+# tried first, then GITHUB_TOKEN. A type neither can read is shown UNREADABLE
+# in the issue (never a zero) and the run stays green.
+# Complements security-alerts.yml (the JSON snapshot on a data branch).
+# Logic + tests: security_alerts_mirror.py,
+# tests/test_security_alerts_mirror.py.
+name: Security alerts mirror
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: security-alerts-mirror
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+  security-events: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Update the security-mirror issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ALERTS_READ_TOKEN: ${{ secrets.ALERTS_READ_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 security_alerts_mirror.py apply
