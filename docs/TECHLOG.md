@@ -1,3 +1,16 @@
+## 2026-10-29 - ops: daily security alerts mirror issue
+
+**Class:** novel (owner request: Claude sessions' token gets 403 on the alert APIs but can read issues)
+**Guard:** `tests/test_security_alerts_mirror.py`
+
+`.github/workflows/security-alerts-mirror.yml` (daily 06:23 UTC + dispatch) runs `security_alerts_mirror.py apply`,
+which keeps ONE issue "Security alerts (mirror)" (label `security-mirror`) edited in place with the open
+code-scanning, Dependabot and secret-scanning alerts: counts per type and severity, then rule/package,
+severity, file:line or manifest, created date and link. Secret values are never written (type, file:line
+and link only). Tokens: `ALERTS_READ_TOKEN` first, then GITHUB_TOKEN; a type neither can read shows
+UNREADABLE in the issue, never zero, and the run stays green. Closes when every type reads 0, reopens when
+not. Complements `security-alerts.yml` (the JSON snapshot).
+
 ## 2026-10-25 - security: certifi 2026.10.19 and urllib3 2.8.0 in both locks
 
 Threat-watch in asktherecruiter-sandbox raised three alarms against this repo's locks: certifi
