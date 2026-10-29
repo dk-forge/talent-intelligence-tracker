@@ -249,73 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-29T07:21:48Z",
-      "history": [
-        {
-          "at": "2026-10-29T07:07:13Z",
-          "detail": "scheduled link hygiene (0 7 * * 1,4)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-29T07:21:48Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261029T070713Z-tripwire",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (0 7 * * 1,4)",
-      "requested_at": "2026-10-29T07:07:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "tripwire.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-19T18:17:11Z",
-      "history": [
-        {
-          "at": "2026-10-19T18:17:07Z",
-          "detail": "owner rulings 2026-10-19: five rows out of money raised (PR #278)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-19T18:17:11Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-19T18:18:13Z",
-          "detail": "run 39301239183",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-19T18:18:13Z",
-          "detail": "run 39301239183",
-          "event": "landed"
-        }
-      ],
-      "id": "20261019T181707Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-10-19-owner-amount-784dcf8e6dbe6020efbfb6bdfb11579f.json,analysis/adjudications/2026-10-19-owner-amount-5122dcae9a5f0a5d712625a29a0fe6ba.json,analysis/adjudications/2026-10-19-owner-amount-ce8c398011f66779630c5f139349edb9.json,analysis/adjudications/2026-10-19-owner-amount-d5b205f24cc73b07df4bbb0552d32dd1.json,analysis/adjudications/2026-10-19-owner-amount-65d2d0470a1876afb6632b197929e75c.json",
-        "reason": "owner rulings 2026-10-19: out of money raised"
-      },
-      "landed_at": "2026-10-19T18:18:13Z",
-      "priority": 0,
-      "reason": "owner rulings 2026-10-19: five rows out of money raised (PR #278)",
-      "requested_at": "2026-10-19T18:17:07Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "39301239183",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-19T18:18:13Z",
       "history": [
         {
@@ -2567,6 +2500,44 @@
       "run_id": "40824074841",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-29T07:21:48Z",
+      "history": [
+        {
+          "at": "2026-10-29T07:07:13Z",
+          "detail": "scheduled link hygiene (0 7 * * 1,4)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-29T07:21:48Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-29T07:24:41Z",
+          "detail": "run 40834948256",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-29T07:24:41Z",
+          "detail": "run 40834948256",
+          "event": "landed"
+        }
+      ],
+      "id": "20261029T070713Z-tripwire",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-29T07:24:41Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (0 7 * * 1,4)",
+      "requested_at": "2026-10-29T07:07:13Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "40834948256",
+      "state": "landed",
+      "workflow": "tripwire.yml"
     }
   ],
   "version": 1
