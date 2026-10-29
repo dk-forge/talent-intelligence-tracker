@@ -249,73 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-10-29T05:33:20Z",
-      "history": [
-        {
-          "at": "2026-10-29T05:32:41Z",
-          "detail": "scheduled link hygiene (30 5 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-29T05:33:20Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261029T053241Z-link-check",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (30 5 * * *)",
-      "requested_at": "2026-10-29T05:32:41Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "link-check.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-19T18:11:29Z",
-      "history": [
-        {
-          "at": "2026-10-19T18:11:25Z",
-          "detail": "owner ruling 2026-10-19 issue #180: exclude Alpine Income Property Trust",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-19T18:11:29Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-19T18:12:38Z",
-          "detail": "run 39300465771",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-19T18:12:38Z",
-          "detail": "run 39300465771",
-          "event": "landed"
-        }
-      ],
-      "id": "20261019T181125Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "note": "owner ruling 2026-10-19 (issue #180): An investment trust raising money to buy property is not a hiring signal. Excluded.",
-        "reject_keys": "vehicle_name/3ef71ea2ba8cbf4e399f9f40414fb1c9"
-      },
-      "landed_at": "2026-10-19T18:12:38Z",
-      "priority": 0,
-      "reason": "owner ruling 2026-10-19 issue #180: exclude Alpine Income Property Trust",
-      "requested_at": "2026-10-19T18:11:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "39300465771",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-19T18:17:11Z",
       "history": [
         {
@@ -2569,6 +2502,44 @@
       "run_id": "40796821952",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-10-29T05:33:20Z",
+      "history": [
+        {
+          "at": "2026-10-29T05:32:41Z",
+          "detail": "scheduled link hygiene (30 5 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-10-29T05:33:20Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-10-29T05:40:04Z",
+          "detail": "run 40824074841",
+          "event": "bound"
+        },
+        {
+          "at": "2026-10-29T05:40:04Z",
+          "detail": "run 40824074841",
+          "event": "landed"
+        }
+      ],
+      "id": "20261029T053241Z-link-check",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-10-29T05:40:04Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (30 5 * * *)",
+      "requested_at": "2026-10-29T05:32:41Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "40824074841",
+      "state": "landed",
+      "workflow": "link-check.yml"
     }
   ],
   "version": 1
