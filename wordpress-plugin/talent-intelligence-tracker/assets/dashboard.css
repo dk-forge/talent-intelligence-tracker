@@ -4299,3 +4299,97 @@ html:has(.tit-main), body:has(.tit-main) {
   .tit-wrap a.tit-tr-co, .tit-wrap .tit-tr-jobs, .tit-wrap .tit-tr-src, .tit-wrap .tit-tr-tailor {
     display:inline-flex; align-items:center; min-height:44px; min-width:44px; }
 }
+
+/* --- Company profile layout (1.112.0) -----------------------------------
+   Header card, fact chips, section headings, follow card and the closing
+   method and next-step sections (includes/company_layout.php). Brand colour
+   and type come from the site's own --atr-* tokens, which the theme already
+   redefines for dark, with the plugin's tokens as the fallback when a page is
+   rendered without the theme. Scoped to .tit-wrap.tit-company so nothing here
+   reaches the dashboard. Mobile first: one column, widened at 700px. */
+.tit-wrap.tit-company { --tit-co-brand:var(--atr-primary,var(--tit-hiring));
+  --tit-co-brand-deep:var(--atr-primary-deep,var(--tit-trust-k));
+  --tit-co-brand-soft:var(--atr-primary-soft,var(--tit-green-tint));
+  --tit-co-on-brand:var(--atr-on-primary,var(--tit-ink-invert));
+  --tit-co-serif:var(--atr-serif,var(--tit-serif)); }
+.tit-wrap.tit-company .tit-co-head { display:flex; gap:14px; align-items:flex-start;
+  margin:10px 0 18px; padding:18px 16px; border:1px solid var(--tit-line);
+  border-radius:14px; background:var(--tit-surface-1); }
+.tit-wrap.tit-company .tit-co-avatar { flex:none; width:52px; height:52px; border-radius:12px;
+  display:grid; place-items:center; font-weight:700; font-size:20px; letter-spacing:.02em;
+  background:var(--tit-co-brand-soft); color:var(--tit-fg); }
+.tit-wrap.tit-company .tit-co-id { min-width:0; flex:1; }
+.tit-wrap.tit-company .tit-co-kicker { margin:0 0 2px; font-size:12px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--tit-mut); }
+.tit-wrap.tit-company .tit-co-head h1 { font-family:var(--tit-co-serif); font-size:28px;
+  line-height:1.15; margin:0 0 6px; overflow-wrap:anywhere; }
+.tit-wrap.tit-company .tit-co-head .tit-status { margin:0 0 10px; font-size:16px; }
+.tit-wrap.tit-company .tit-co-chips { list-style:none; margin:0 0 8px; padding:0;
+  display:flex; flex-wrap:wrap; gap:6px; }
+.tit-wrap.tit-company .tit-co-chip { margin:0; padding:4px 10px; border-radius:999px;
+  font-size:13px; line-height:1.4; background:var(--tit-quiet);
+  border:1px solid var(--tit-line); color:var(--tit-fg); }
+.tit-wrap.tit-company .tit-co-chip-k { color:var(--tit-mut); font-weight:600; }
+.tit-wrap.tit-company .tit-co-head .tit-freshness { margin:0; font-size:13.5px; }
+@media (min-width:700px){
+  .tit-wrap.tit-company .tit-co-head { gap:20px; padding:24px; }
+  .tit-wrap.tit-company .tit-co-avatar { width:68px; height:68px; font-size:26px; border-radius:16px; }
+  .tit-wrap.tit-company .tit-co-head h1 { font-size:36px; }
+}
+
+.tit-wrap.tit-company .tit-co-h2 { font-family:var(--tit-co-serif); font-size:22px;
+  line-height:1.25; margin:28px 0 10px; color:var(--tit-fg); }
+.tit-wrap.tit-company .tit-co-glance { margin-top:4px; }
+.tit-wrap.tit-company .tit-stats { gap:12px; }
+@media (min-width:700px){
+  .tit-wrap.tit-company .tit-stats-3 { grid-template-columns:repeat(3,1fr); }
+  .tit-wrap.tit-company .tit-stats-2 { grid-template-columns:repeat(2,1fr); }
+}
+.tit-wrap.tit-company .tit-stat { padding:18px 16px; text-align:left;
+  background:var(--tit-surface-1); border-radius:14px; display:flex;
+  flex-direction:column-reverse; justify-content:flex-end; gap:6px; }
+.tit-wrap.tit-company .tit-stat .tit-l { margin:0; font-size:12.5px; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase; }
+.tit-wrap.tit-company .tit-stat .tit-n { font-size:26px; }
+.tit-wrap.tit-company .tit-stat .tit-n-word { font-size:20px; line-height:1.3; }
+.tit-wrap.tit-company .tit-thin { border-radius:12px; margin:4px 0 0; }
+.tit-wrap.tit-company .tit-timeline { margin-top:8px; }
+.tit-wrap.tit-company .tit-event:first-child { border-top:0; }
+.tit-wrap.tit-company .tit-h { font-family:var(--tit-co-serif); font-size:20px;
+  line-height:1.3; color:var(--tit-fg); }
+
+/* Follow: RSS link and the sibling's email form, as one card. The honeypot
+   input is hidden here because the sibling's stylesheet that hides it does
+   not load on this route; a visible empty field above "Email" is what the
+   1.111 page showed. */
+.tit-wrap.tit-company .tit-co-follow { margin:26px 0 0; padding:18px 16px;
+  border:1px solid var(--tit-line); border-radius:14px; background:var(--tit-surface); }
+.tit-wrap.tit-company .tit-co-follow .tit-follow { margin:0 0 6px; }
+.tit-wrap.tit-company .tit-co-follow .alt-follow { margin:0; }
+.tit-wrap.tit-company .tit-co-follow .alt-follow h2 { font-family:var(--tit-co-serif);
+  font-size:20px; margin:4px 0 6px; color:var(--tit-fg); }
+.tit-wrap.tit-company .tit-co-follow .alt-follow p { margin:0 0 12px; font-size:15px;
+  color:var(--tit-mut); max-width:70ch; }
+.tit-wrap.tit-company .alt-hp { position:absolute !important; left:-10000px !important;
+  width:1px !important; height:1px !important; overflow:hidden !important; }
+.tit-wrap.tit-company .tit-co-follow form { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
+.tit-wrap.tit-company .tit-co-follow label { display:flex; flex-direction:column; gap:4px;
+  font-size:13px; font-weight:600; color:var(--tit-fg); flex:1 1 220px; max-width:360px; }
+.tit-wrap.tit-company .tit-co-follow input[type=email] { font:inherit; font-weight:400;
+  font-size:15px; padding:10px 12px; border:1px solid var(--tit-ctl-line); border-radius:10px;
+  background:var(--tit-surface-1); color:var(--tit-fg); min-height:44px; }
+.tit-wrap.tit-company .tit-co-follow button, .tit-wrap.tit-company .tit-co-btn {
+  font:inherit; font-weight:600; font-size:15px; min-height:44px; padding:10px 20px;
+  border:0; border-radius:999px; cursor:pointer; text-decoration:none;
+  display:inline-flex; align-items:center; background:var(--tit-co-brand);
+  color:var(--tit-co-on-brand); }
+.tit-wrap.tit-company .tit-co-follow button:hover, .tit-wrap.tit-company .tit-co-btn:hover {
+  background:var(--tit-co-brand-deep); color:var(--tit-co-on-brand); }
+.tit-wrap.tit-company .tit-co-follow button:focus-visible, .tit-wrap.tit-company .tit-co-btn:focus-visible {
+  outline:3px solid var(--tit-blue-ring); outline-offset:2px; }
+
+.tit-wrap.tit-company .tit-co-method .tit-cite { margin:0; }
+.tit-wrap.tit-company .tit-co-cta { margin:28px 0 0; padding:20px 18px; border-radius:14px;
+  background:var(--tit-co-brand-soft); border:1px solid var(--tit-line); }
+.tit-wrap.tit-company .tit-co-cta .tit-co-h2 { margin:0 0 6px; }
+.tit-wrap.tit-company .tit-co-cta p { margin:0 0 14px; color:var(--tit-fg); max-width:62ch; }

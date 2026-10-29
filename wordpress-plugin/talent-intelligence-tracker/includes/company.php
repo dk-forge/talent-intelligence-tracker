@@ -1013,49 +1013,27 @@ function tit_company_render($rows, $key, $profile) {
       if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(
           tit_breadcrumbs_company_trail($name, tit_company_url($company_key))); ?>
 
-      <h1><?php echo esc_html($name); ?></h1>
-
-      <?php if ($status) : ?>
-        <p class="tit-status"><?php echo esc_html($status); ?></p>
-      <?php endif; ?>
-
-      <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
-      if (function_exists('tit_freshness_line'))
-          echo tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']);
-      // Follow this employer by RSS (includes/feed.php); guarded for the FTP race.
-      if (function_exists('tit_feed_follow_url'))
-          echo tit_feed_follow_html($name, tit_feed_follow_url('company', $company_key));
-      if (function_exists('tit_follow_form')) echo tit_follow_form('company', $company_key, $name); ?>
-
       <?php
-      // Industry and headquarters, where the rows carry them. Printed as a
-      // subhead rather than as tiles, because either can be absent and an empty
-      // tile reads as a missing fact rather than an unstated one.
-      $industry = '';
-      $hq = '';
-      foreach ($rows as $r) {
-          if ($industry === '' && !empty($r['industry'])) {
-              $industry = ucfirst(str_replace('_', ' ', $r['industry']));
-          }
-          if ($hq === '' && (!empty($r['hq_city']) || !empty($r['hq_country']))) {
-              $hq = trim(($r['hq_city'] ? $r['hq_city'] . ', ' : '')
-                         . tit_country_name($r['hq_country']), ', ');
-          }
-      }
-      $subhead = array_filter(array($industry, $hq ? 'Headquarters ' . $hq : ''));
-      if ($subhead) : ?>
-        <p class="tit-note"><?php echo esc_html(implode(' · ', $subhead)); ?></p>
-      <?php endif; ?>
+      // The header card (includes/company_layout.php): avatar, name, status,
+      // industry and headquarters chips, and the visible twin of dateModified
+      // (includes/freshness.php). The fallback is the plain h1 and status
+      // line, for the seconds an FTP deploy has company.php without it.
+      $freshness = function_exists('tit_freshness_line')
+          ? tit_freshness_line($profile['last_updated'] ?? '', $profile['kinds']) : '';
+      if (function_exists('tit_company_header_html')) {
+          echo tit_company_header_html($name, (string) $status,
+              tit_company_chips($rows, $profile), $freshness);  // escaped there
+      } else { ?>
+        <h1><?php echo esc_html($name); ?></h1>
+        <?php if ($status) : ?><p class="tit-status"><?php echo esc_html($status); ?></p><?php endif;
+        echo $freshness;
+      } ?>
 
       <?php // GLEIF LEI, only on a unique name + country match (includes/company_lei.php).
       $lei = function_exists('tit_company_lei') ? tit_company_lei($company_key) : '';
       if ($lei !== '') echo tit_company_lei_html($lei);  // built and escaped there ?>
 
-      <p class="tit-note">
-        Everything we hold on <?php echo esc_html($name); ?>, newest first.
-        Every line links to the filing or report it came from.
-      </p>
-
+      <h2 class="tit-co-h2 tit-co-glance">At a glance</h2>
       <div class="tit-stats tit-stats-<?php echo count($facts); ?>">
         <?php foreach ($facts as [$n, $label]) : ?>
           <div class="tit-stat">
@@ -1098,6 +1076,12 @@ function tit_company_render($rows, $key, $profile) {
         </p>
       <?php endif; ?>
 
+      <section class="tit-co-section" aria-labelledby="tit-co-timeline-h">
+      <h2 id="tit-co-timeline-h" class="tit-co-h2">Signal timeline</h2>
+      <p class="tit-note">
+        Everything we hold on <?php echo esc_html($name); ?>, newest first.
+        Every line links to the filing or report it came from.
+      </p>
       <ol class="tit-timeline">
         <?php foreach ($rows as $r) :
             $place = $r['city'] ?: $r['hq_city'];
@@ -1112,7 +1096,7 @@ function tit_company_render($rows, $key, $profile) {
                 <?php echo esc_html($directions[$r['signal_direction']] ?? $r['signal_direction']); ?>
               </span>
               <span class="tit-tag"><?php echo esc_html($labels[$r['pillar']] ?? $r['pillar']); ?></span>
-              <h2 class="tit-h"<?php echo tit_lang_attr($r); ?>><?php echo esc_html($r['headline']); ?></h2>
+              <h3 class="tit-h"<?php echo tit_lang_attr($r); ?>><?php echo esc_html($r['headline']); ?></h3>
               <p class="tit-rt"><?php echo esc_html($r['talent_readthrough']); ?></p>
               <p class="tit-event-meta">
                 <?php if ($where) : ?><?php echo esc_html($where); ?> · <?php endif; ?>
@@ -1153,6 +1137,7 @@ function tit_company_render($rows, $key, $profile) {
           </li>
         <?php endforeach; ?>
       </ol>
+      </section>
 
       <?php // A pasteable reference, server-rendered, above the provenance note.
                   // function_exists is the FTP-deploy race guard.
@@ -1160,11 +1145,24 @@ function tit_company_render($rows, $key, $profile) {
                       echo tit_cite_box_html($name, tit_company_url($company_key)); // escaped inside
                   } ?>
 
+      <section class="tit-co-follow" aria-label="Follow <?php echo esc_attr($name); ?>">
+      <?php // Follow by RSS (includes/feed.php) and by email (the sibling's
+      // form, includes/follow.php); both guarded for the FTP race.
+      if (function_exists('tit_feed_follow_url'))
+          echo tit_feed_follow_html($name, tit_feed_follow_url('company', $company_key));
+      if (function_exists('tit_follow_form')) echo tit_follow_form('company', $company_key, $name); ?>
+      </section>
+
+      <?php if (function_exists('tit_company_method_html')) {
+          echo tit_company_method_html($name, home_url('/talent-intelligence-tracker/'),
+              home_url('/talent-intelligence-tracker/sources/'), 'https://asktherecruiter.com/');  // escaped there
+      } else { ?>
       <p class="tit-cite">
         The read-through on each line is our interpretation. The headline and
         figures come from the linked source. Data licensed CC BY 4.0.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
       </p>
+      <?php } ?>
     </div>
 
     <?php
