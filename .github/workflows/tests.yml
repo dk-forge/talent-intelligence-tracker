@@ -127,6 +127,11 @@ jobs:
       - name: Render the role pages
         run: php tests/php/render_role_pages.php
 
+      # The company profile layout (header card, chips, heading order, follow
+      # card, method note, next step) rendered from fixture rows.
+      - name: Render the company profile page
+        run: php tests/php/render_company_page.php
+
       # The dashboard is the page every reader lands on, and what it costs is
       # not visible in a diff: the shortcode runs a dozen aggregates over the
       # whole table, and what turns that into a slow page is one innocent query

@@ -22,7 +22,7 @@ JS = (PLUGIN / "assets" / "dashboard.js").read_text()
 
 # Every server-rendered item headline, by file.
 PHP_HEADLINE_SITES = {
-    "company.php": "<h2 class=\"tit-h\"",
+    "company.php": "<h3 class=\"tit-h\"",
     "places.php": "<h3 class=\"tit-h\"",
     "roles.php": "<h3 class=\"tit-h\"",
     "shortcodes.php": "<span class=\"tit-card-h tit-h\"",
