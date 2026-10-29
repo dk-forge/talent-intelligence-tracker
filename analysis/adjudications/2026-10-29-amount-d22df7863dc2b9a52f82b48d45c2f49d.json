@@ -1,0 +1,73 @@
+{
+ "key": "amount/d22df7863dc2b9a52f82b48d45c2f49d",
+ "label": "מטא פלטפורמס $35,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 75,
+   "reasoning": "The source text states 'גיוס הון של 35 מיליארד דולר' ($35 billion capital raise) for Meta Platforms. However, Meta is a publicly-traded company (NASDAQ: META), and a $35B raise by a public company would typically be a public_offering or bond_issue, not a company_raise (which is for private venture capital). The source provides insufficient detail to determine the actual transaction type. Without clarity on whether this was equity sold to private investors versus public markets or debt, the money_basis cannot be confirmed as company_raise. The figure itself appears stated but the basis is questionable."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source text states: 'מטא פלטפורמס גייסה 35 מיליארד דולר למימון תשתיות בינה מלאכותית,' which translates to 'Meta Platforms raised $35 billion for AI infrastructure funding.' This indicates a company raise event with the specified amount, matching the stored row's money_basis and funding_amount."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The headline states 'מטא פלטפורמס מתאוששת ועולה לאחר גיוס הון של $35 מיליארד למימון תשתיות AI' and the summary states 'מטא פלטפורמס מתאוששת ועולה לאחר גיוס הון של 35 מיליארד דולר למימון תשתיות בינה מלאכותית.' The talent_readthrough states 'מטא פלטפורמס גייסה 35 מיליארד דולר למימון תשתיות בינה מלאכותית.' This indicates a company raise of $35 billion."
+  }
+ },
+ "row": {
+  "company": "מטא פלטפורמס",
+  "headline": "מטא פלטפורמס מתאוששת ועולה לאחר גיוס הון של $35 מיליארד למימון תשתיות AI",
+  "summary": "מטא פלטפורמס מתאוששת ועולה לאחר גיוס הון של 35 מיליארד דולר למימון תשתיות בינה מלאכותית.",
+  "funding_amount": "$35 מיליארד",
+  "funding_amount_usd": 35000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://il.investing.com/news/stock-market-news/article-1003577",
+  "source_name": "Investing.com",
+  "published_date": "2026-10-26",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Menlo Park",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.01325,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008337,
+  "openai/gpt-4o": 0.0046700000000000005,
+  "google/gemini-2.5-flash-lite": 0.0002427000000000002
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 672,
+ "action": "accept",
+ "correction": null,
+ "note": "three-model adjudication of amount/d22df7863dc2b9a52f82b48d45c2f49d, two of three referees say accept. anthropic/claude-sonnet-4.5: The source text states 'גיוס הון של 35 מיליארד דולר' ($35 billion capital raise) for Meta Platforms. However, Meta is a publicly-traded company (NASDAQ: META), and a $35B raise by a public company would typically be a pu; openai/gpt-4o: The source text states: 'מטא פלטפורמס גייסה 35 מיליארד דולר למימון תשתיות בינה מלאכותית,' which translates to 'Meta Platforms raised $35 billion for AI infrastructure funding.' This indicates a company raise event with t; google/gemini-2.5-flash-lite: The headline states 'מטא פלטפורמס מתאוששת ועולה לאחר גיוס הון של $35 מיליארד למימון תשתיות AI' and the summary states 'מטא פלטפורמס מתאוששת ועולה לאחר גיוס הון של 35 מיליארד דולר למימון תשתיות בינה מלאכותית.' The talent_",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-10-29T00:41:20+00:00"
+}
