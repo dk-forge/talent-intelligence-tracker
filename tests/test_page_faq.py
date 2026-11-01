@@ -161,3 +161,35 @@ def test_wired_into_every_route_and_the_dashboard():
         assert f"tit_page_faq_section('{key}')" in src, f
     sc = (PLUGIN / "includes" / "shortcodes.php").read_text(encoding="utf-8")
     assert "tit_page_faq_wrap_dashboard" in sc
+
+
+# THE FACTS ARRIVE AS KEYS, AND A READER MUST SEE NAMES (2026-11-01).
+# tit_press_facts() returns the GROUP BY key: an ISO code for the country and
+# the stored slug for the industry. tit_page_faq_facts() passed both straight
+# through, so the live tracker and places pages printed "IN has the most
+# updates so far this year" and "technology is the industry with the most
+# updates", in the visible FAQ and in the FAQPage JSON-LD. The fixtures above
+# hand the content builder "Germany" and "Software", which is why nothing
+# caught it: the test fed in the answer the code was meant to produce.
+FACT_STUBS = r"""
+function current_time($f){ return $f === 'Y' ? '2031' : '2031-06-01'; }
+function tit_table_name(){ return 'signals'; }
+function tit_press_facts($t){ return array(
+    'windows' => array(array('key' => 'year', 'n' => 10, 'c' => 4, 'v' => 2)),
+    'all' => array('n' => 50, 'c' => 9, 'countries' => 3),
+    'top_country' => array('k' => 'IN', 'n' => 7),
+    'top_industry' => array('k' => 'pharma_biotech', 'n' => 5)); }
+function tit_country_name($c){ $m = array('IN' => 'India'); return $m[strtoupper($c)] ?? strtoupper($c); }
+function tit_industry_labels(){ return array('pharma_biotech' => 'Pharma & Biotech'); }
+"""
+
+
+@needs_php
+def test_top_country_and_industry_reach_the_reader_as_names():
+    f = json.loads(_php(FACT_STUBS + "echo json_encode(tit_page_faq_facts());"))
+    assert f["top_country"] == "India", f["top_country"]
+    assert f["top_industry"] == "Pharma & Biotech", f["top_industry"]
+    blob = text(json.dumps(content("places", f), ensure_ascii=False))
+    assert "India has the most updates" in blob
+    assert "IN has the most" not in blob
+    assert "pharma_biotech" not in blob

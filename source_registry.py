@@ -927,7 +927,7 @@ COLLECTOR_BY_SOURCE_NAME = {
     "Employer job boards (Greenhouse, Lever, Ashby)": "ats_boards",
     "Employer newsrooms (announcements read at the source)": "primary_chase",
     "UK gender pay gap service": "uk_paygap",
-    "SEC executive compensation disclosures": "sec_execcomp",
+    "SEC EDGAR executive compensation disclosures": "sec_execcomp",
     "National and regional tech press": "national_press",
     "BSE corporate announcements (SEBI Regulation 30)": "bse_india",
     "EDINET extraordinary reports (FSA Japan)": "edinet_japan",
@@ -1109,7 +1109,7 @@ SOURCES = (
                  "country chart: nearly every GB row in the tracker comes from "
                  "here, which is filing volume and not British business activity. "
                  "The chart says so where it renders."),
-    Source("SEC executive compensation disclosures",
+    Source("SEC EDGAR executive compensation disclosures",
            "https://www.sec.gov/edgar.shtml", "live",
            "Regulatory filings", ("Pay", "Leadership change"), "National", "US",
            notes="Read straight from the filing, with no model in the path. Pay "

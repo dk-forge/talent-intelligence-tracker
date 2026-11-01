@@ -5725,9 +5725,9 @@ function tit_place_caveat($table, $where = 'is_current = 1', array $params = arr
 function tit_collector_label($key) {
     $map = array(
         'uk_paygap'    => 'the UK gender pay gap filing',
-        'sec_edgar'    => 'SEC 8-K filings',
-        'sec_form_d'   => 'SEC Form D filings',
-        'sec_execcomp' => 'SEC executive pay filings',
+        'sec_edgar'    => 'SEC EDGAR 8-K filings',
+        'sec_form_d'   => 'SEC EDGAR Form D filings',
+        'sec_execcomp' => 'SEC EDGAR executive pay filings',
         'google_news'  => 'Google News',
         'gdelt'        => 'GDELT news monitoring',
         'ats_boards'   => 'company job boards',

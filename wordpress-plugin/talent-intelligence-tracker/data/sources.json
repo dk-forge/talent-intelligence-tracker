@@ -251,6 +251,22 @@
   "collector": "sec_edgar"
  },
  {
+  "name": "SEC EDGAR executive compensation disclosures",
+  "url": "https://www.sec.gov/edgar.shtml",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Pay",
+   "Leadership change"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": "Read straight from the filing, with no model in the path. Pay figures are as disclosed and are never converted, estimated or annualised by us.",
+  "collector": "sec_execcomp"
+ },
+ {
   "name": "SEC EDGAR Form D",
   "url": "https://www.sec.gov/edgar.shtml",
   "status": "live",
@@ -265,22 +281,6 @@
   "free": true,
   "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred.",
   "collector": "sec_form_d"
- },
- {
-  "name": "SEC executive compensation disclosures",
-  "url": "https://www.sec.gov/edgar.shtml",
-  "status": "live",
-  "category": "Regulatory filings",
-  "signals": [
-   "Pay",
-   "Leadership change"
-  ],
-  "coverage": "National",
-  "country": "US",
-  "rss": "",
-  "free": true,
-  "notes": "Read straight from the filing, with no model in the path. Pay figures are as disclosed and are never converted, estimated or annualised by us.",
-  "collector": "sec_execcomp"
  },
  {
   "name": "UK gender pay gap service",

@@ -1538,6 +1538,12 @@ EMPLOYER_KEY_ALIASES = {
     'mærsk': 'maersk',
     'santé': 'sante',                     # one $15M Series A, two outlets
     't - mobile': 't-mobile',             # one CEO appointment
+    # --- 2026-11-01 -----------------------------------------------------------
+    # Clarin writes the miner "Río Tinto"; every other source writes "Rio
+    # Tinto". Same London-HQ employer, same Argentine lithium programme.
+    # 'rio tinto london' and 'rio tinto simfer' are separate entities and are
+    # NOT aliased (tests/test_rio_tinto_employer_key.py).
+    'río tinto': 'rio tinto',
     # Vietnamese without diacritics is the ordinary ASCII spelling of the name,
     # the same rule as 'formosa hà tĩnh' -> 'formosa ha tinh' above. The 2026-09
     # blocker (the two slugifiers disagreeing on đ) is gone: U+0111 is in
