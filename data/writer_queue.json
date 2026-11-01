@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-01T17:00:08Z",
-  "last_tick": "2026-11-01T17:00:08Z",
+  "last_dispatch": "2026-11-01T18:23:40Z",
+  "last_tick": "2026-11-01T18:23:40Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,6 +247,33 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-01T18:23:40Z",
+      "history": [
+        {
+          "at": "2026-11-01T18:23:36Z",
+          "detail": "owner typed fix money rows 2026-11-01; money-basis-check red 3 days",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-01T18:23:40Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261101T182336Z-correct-money-basis",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "owner typed fix money rows 2026-11-01; money-basis-check red 3 days",
+      "requested_at": "2026-11-01T18:23:36Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "correct-money-basis.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-10-23T00:54:59Z",
