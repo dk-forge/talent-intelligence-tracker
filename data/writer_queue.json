@@ -249,73 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-01T18:23:40Z",
-      "history": [
-        {
-          "at": "2026-11-01T18:23:36Z",
-          "detail": "owner typed fix money rows 2026-11-01; money-basis-check red 3 days",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-01T18:23:40Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261101T182336Z-correct-money-basis",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "owner typed fix money rows 2026-11-01; money-basis-check red 3 days",
-      "requested_at": "2026-11-01T18:23:36Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-money-basis.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-10-23T00:54:59Z",
-      "history": [
-        {
-          "at": "2026-10-23T00:54:54Z",
-          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-10-23T00:54:59Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-10-23T00:56:04Z",
-          "detail": "run 39880951551",
-          "event": "bound"
-        },
-        {
-          "at": "2026-10-23T00:56:04Z",
-          "detail": "run 39880951551",
-          "event": "landed"
-        }
-      ],
-      "id": "20261023T005454Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-10-23-amount-9736201dc0fae9ee8ef7f92dc8f249cd.json",
-        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
-      },
-      "landed_at": "2026-10-23T00:56:04Z",
-      "priority": 0,
-      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-      "requested_at": "2026-10-23T00:54:54Z",
-      "requested_by": "github-actions[bot]",
-      "run_id": "39880951551",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-10-23T01:07:30Z",
       "history": [
         {
@@ -2565,6 +2498,44 @@
       "run_id": "41329180124",
       "state": "landed",
       "workflow": "correct-company-key.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-01T18:23:40Z",
+      "history": [
+        {
+          "at": "2026-11-01T18:23:36Z",
+          "detail": "owner typed fix money rows 2026-11-01; money-basis-check red 3 days",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-01T18:23:40Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-01T18:27:41Z",
+          "detail": "run 41336394418",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-01T18:27:41Z",
+          "detail": "run 41336394418",
+          "event": "landed"
+        }
+      ],
+      "id": "20261101T182336Z-correct-money-basis",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-01T18:27:41Z",
+      "priority": 0,
+      "reason": "owner typed fix money rows 2026-11-01; money-basis-check red 3 days",
+      "requested_at": "2026-11-01T18:23:36Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "41336394418",
+      "state": "landed",
+      "workflow": "correct-money-basis.yml"
     }
   ],
   "version": 1
