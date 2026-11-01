@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect:main:b9225566a0e5f299": {
-      "first": 1793485350,
-      "last": 1793485350,
-      "subject": "CI RED: collect: REJECT  Failed $66M Refi Spurs Lenders' NJ Property Takeover Bid - Law360"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-10-31T22:22:31+00:00",
+  "updated_at": "2026-11-01T22:25:01+00:00",
   "version": 1
 }
