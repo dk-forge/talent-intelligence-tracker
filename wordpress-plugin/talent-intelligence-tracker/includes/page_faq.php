@@ -38,8 +38,15 @@ function tit_page_faq_facts() {
             $f['all_n'] = max(0, (int) ($p['all']['n'] ?? 0));
             $f['all_c'] = max(0, (int) ($p['all']['c'] ?? 0));
             $f['countries'] = max(0, (int) ($p['all']['countries'] ?? 0));
-            $f['top_country'] = (string) ($p['top_country']['k'] ?? '');
-            $f['top_industry'] = (string) ($p['top_industry']['k'] ?? '');
+            // tit_press_facts returns GROUP BY keys: an ISO code and an
+            // industry slug. The copy needs names, or the FAQ reads "IN has
+            // the most updates" (live until 2026-11-01).
+            $cc = (string) ($p['top_country']['k'] ?? '');
+            $f['top_country'] = ($cc !== '' && function_exists('tit_country_name'))
+                ? (string) tit_country_name($cc) : $cc;
+            $ik = (string) ($p['top_industry']['k'] ?? '');
+            $labels = function_exists('tit_industry_labels') ? tit_industry_labels() : array();
+            $f['top_industry'] = (string) ($labels[$ik] ?? $ik);
         }
         if (function_exists('tit_ingest_cadence_phrase')) $f['cadence'] = (string) tit_ingest_cadence_phrase();
     } catch (\Throwable $e) {
