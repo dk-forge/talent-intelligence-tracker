@@ -1,0 +1,66 @@
+{
+ "key": "amount/2d9b557d765c172693d64ae4bbdab9c2",
+ "label": "Tractian $1,400,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 130000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source clearly states: 'A Tractian... levantou uma rodada Série D de US$ 130 milhões (cerca de R$ 655 milhões) que avaliou a empresa em US$ 1,4 bilhão'. The US$ 1.4 billion is explicitly the valuation ('avaliou a empresa em'), not the raise. The actual raise is US$ 130 million from the Series D round. Rule 3 applies: a valuation is not a raise. The stored amount of $1.4B is the valuation; the correct raise amount is $130M."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": 130000000,
+   "corrected_basis": "company_raise",
+   "confidence": 100,
+   "reasoning": "The source states 'levantou uma rodada Série D de US$ 130 milhões' indicating the amount raised was $130 million, not the $1.4 billion valuation."
+  }
+ },
+ "row": {
+  "company": "Tractian",
+  "headline": "Tractian is the newest Brazilian unicorn",
+  "summary": "Tractian, a São Paulo-based company specializing in sensors and industrial maintenance systems, has been valued at US$ 1.4 billion following a new funding round. This valuation makes it the newest Brazilian unicorn.",
+  "funding_amount": "US$ 1,4 bilhão",
+  "funding_amount_usd": 1400000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.baguete.com.br/noticias/tractian-e-o-mais-novo-unicornio-brasileiro",
+  "source_name": "Baguete",
+  "published_date": "2026-10-23",
+  "collector": "national_press",
+  "city": null,
+  "region": "Latin America",
+  "state": null,
+  "country": "BR",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-10-24 23:36:57"
+ },
+ "cost_usd": 0.017726,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.011406,
+  "openai/gpt-4o": 0.006319999999999999
+ },
+ "evidence_url": "https://www.baguete.com.br/noticias/tractian-e-o-mais-novo-unicornio-brasileiro",
+ "evidence_chars": 4578,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 130000000,
+  "corrected_basis": "company_raise"
+ },
+ "note": "two-model adjudication of amount/2d9b557d765c172693d64ae4bbdab9c2, both referees say edit. corrected_amount=130000000 corrected_basis=company_raise. anthropic/claude-sonnet-4.5: The source clearly states: 'A Tractian... levantou uma rodada Série D de US$ 130 milhões (cerca de R$ 655 milhões) que avaliou a empresa em US$ 1,4 bilhão'. The US$ 1.4 billion is explicitly the valuation ('avaliou a emp; openai/gpt-4o: The source states 'levantou uma rodada Série D de US$ 130 milhões' indicating the amount raised was $130 million, not the $1.4 billion valuation.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-11-01T19:44:24+00:00"
+}

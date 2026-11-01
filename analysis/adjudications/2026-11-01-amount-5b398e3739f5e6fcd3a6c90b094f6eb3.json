@@ -1,0 +1,63 @@
+{
+ "key": "amount/5b398e3739f5e6fcd3a6c90b094f6eb3",
+ "label": "Aurelion $2,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 85,
+   "reasoning": "The headline states 'Aurelion capta investimento de US$ 2 milhões de acionista controlador' (Aurelion captures investment of US$ 2 million from controlling shareholder). The summary confirms 'Aurelion has secured an investment of US$ 2 million from its controlling shareholder.' This is new capital arriving at the company from an investor (the controlling shareholder), qualifying as company_raise. The amount US$ 2 million is clearly stated for this specific event."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The summary states: 'Aurelion has secured an investment of US$ 2 million from its controlling shareholder.' This indicates that the amount is indeed a company raise, as it is new capital arriving at the employer from a private investor, fitting the 'company_raise' basis."
+  }
+ },
+ "row": {
+  "company": "Aurelion",
+  "headline": "Aurelion capta investimento de US$ 2 milhões de acionista controlador",
+  "summary": "Aurelion has secured an investment of US$ 2 million from its controlling shareholder. The company is based in Brazil.",
+  "funding_amount": "US$ 2 milhões",
+  "funding_amount_usd": 2000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://br.investing.com/news/company-news/aurelion-capta-investimento-de-us-2-milhoes-de-acionista-controlador-93CH-2100353",
+  "source_name": "Investing.com Brasil - Finanças, Câmbio e Investimentos",
+  "published_date": "2026-10-22",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-10-25 22:26:17"
+ },
+ "cost_usd": 0.011632,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007349999999999999,
+  "openai/gpt-4o": 0.004282499999999998
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 796,
+ "action": "accept",
+ "correction": null,
+ "note": "two-model adjudication of amount/5b398e3739f5e6fcd3a6c90b094f6eb3, both referees say accept. anthropic/claude-sonnet-4.5: The headline states 'Aurelion capta investimento de US$ 2 milhões de acionista controlador' (Aurelion captures investment of US$ 2 million from controlling shareholder). The summary confirms 'Aurelion has secured an inve; openai/gpt-4o: The summary states: 'Aurelion has secured an investment of US$ 2 million from its controlling shareholder.' This indicates that the amount is indeed a company raise, as it is new capital arriving at the employer from a p",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-11-01T19:44:33+00:00"
+}
