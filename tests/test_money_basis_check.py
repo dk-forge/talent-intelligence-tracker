@@ -549,3 +549,45 @@ def test_the_printed_adjudicate_ticket_is_valid_json(conn):
     cmd = next(l for l in lines if "enqueue=adjudicate-rows.yml" in l)
     payload = json.loads(re.search(r"inputs_json='([^']*)'", cmd).group(1))
     assert payload["rows"] == "f" * 32 and payload["dry_run"] == "false"
+
+
+# --- #299: a figure the referees accepted is not a contradiction -------------
+
+_PROJECT = ("Homerun capta recursos para avanzar en proyecto de US$400 millones", 400_000_000)
+
+
+def _spec(spec_dir, signal_id, usd, *, action="accept", recs=("accept", "accept")):
+    spec_dir.mkdir(parents=True, exist_ok=True)
+    refs = ["ref/a", "ref/b"][:len(recs)]
+    body = {"key": f"amount/{signal_id}", "status": "applied", "action": action,
+            "referees": refs,
+            "verdicts": {m: {"recommended": r} for m, r in zip(refs, recs)},
+            "row": {"funding_amount_usd": usd}}
+    (spec_dir / f"2026-11-01-amount-{signal_id}.json").write_text(json.dumps(body))
+
+
+def test_a_figure_both_referees_accepted_is_not_a_fail(conn, tmp_path, monkeypatch):
+    monkeypatch.setattr(cmb, "ADJUDICATION_DIR", tmp_path / "adj")
+    _published(conn, signal_id="a" * 32, company="Homerun", usd=_PROJECT[1], headline=_PROJECT[0], summary="")
+    _spec(tmp_path / "adj", "a" * 32, _PROJECT[1])
+    _verdict, lines = cmb.check(conn, offline=True)
+    assert "PASS  figure" in "\n".join(lines)
+
+
+@pytest.mark.parametrize("kw,spec_usd", [
+    ({"action": "reject", "recs": ("reject", "reject")}, _PROJECT[1]),   # referees rejected
+    ({"recs": ("accept", "reject")}, _PROJECT[1]),                     # no agreement
+    ({"recs": ("accept",)}, _PROJECT[1]),                              # one referee only
+    ({}, 1_000_000),                                                    # verdict was on another figure
+])
+def test_anything_short_of_an_accepted_verdict_on_this_figure_still_fails(conn, tmp_path, monkeypatch, kw, spec_usd):
+    monkeypatch.setattr(cmb, "ADJUDICATION_DIR", tmp_path / "adj")
+    _published(conn, signal_id="b" * 32, company="Homerun", usd=_PROJECT[1], headline=_PROJECT[0], summary="")
+    _spec(tmp_path / "adj", "b" * 32, spec_usd, **kw)
+    _verdict, lines = cmb.check(conn, offline=True)
+    assert "FAIL  figure: 1 published row" in "\n".join(lines)
+
+
+def test_the_real_aurelion_verdict_is_read_from_the_committed_specs():
+    accepted = cmb.accepted_amounts()
+    assert accepted.get("5b398e3739f5e6fcd3a6c90b094f6eb3") == 2_000_000
