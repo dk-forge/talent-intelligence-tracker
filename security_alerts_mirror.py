@@ -209,10 +209,6 @@ def decide(results: dict, issue: dict | None, body: str) -> dict:
     return {"action": "edit" if issue.get("body") != body else "none", "body": body}
 
 
-def _body_for_compare(body: str) -> str:
-    return re.sub(r"Last checked: .*\n", "", body or "")
-
-
 def apply(env=os.environ, opener=urllib.request.urlopen) -> int:
     import datetime as dt
     repo = env["GITHUB_REPOSITORY"]
@@ -226,8 +222,9 @@ def apply(env=os.environ, opener=urllib.request.urlopen) -> int:
     body = build_body(results, env.get("RUN_URL", ""), now)
     issues = _get_all(f"{API}/repos/{repo}/issues?state=all&labels={LABEL}&per_page=100", gh, opener)
     issue = next((i for i in issues if i.get("title") == TITLE and "pull_request" not in i), None)
-    cmp_issue = None if issue is None else {**issue, "body": _body_for_compare(issue.get("body"))}
-    act = decide(results, cmp_issue, _body_for_compare(body))
+    # Compare full bodies, timestamp included, so every run refreshes "Last checked":
+    # a stale date then means the job itself stopped.
+    act = decide(results, issue, body)
     print(f"issue action: {act['action']}")
     if act["action"] == "create":
         try:
