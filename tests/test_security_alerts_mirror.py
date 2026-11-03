@@ -107,6 +107,22 @@ class MirrorTests(unittest.TestCase):
         r = m.fetch_kind("o/r", "secret_scanning", [("ALERTS_READ_TOKEN", ""), ("GITHUB_TOKEN", "gh")], opener)
         assert not r["ok"] and "GITHUB_TOKEN: HTTP 403 denied" in r["reason"]
 
+    def test_apply_always_bumps_last_checked_even_when_nothing_changed(self) -> None:
+        # A stale "Last checked" date must mean a dead job, so an unchanged mirror is still edited.
+        ss = {"ok": False, "alerts": [], "reason": "GITHUB_TOKEN: HTTP 403 denied"}
+        old = m.build_body(_res(ss=ss), "", "2026-10-29 19:54 UTC")
+        calls = []
+
+        def opener(req, timeout=0):
+            calls.append((req.get_method(), req.full_url))
+            if "/issues?" in req.full_url:
+                return _Resp([{"number": 7, "title": m.TITLE, "state": "open", "body": old}])
+            if "secret-scanning" in req.full_url:
+                raise urllib.error.HTTPError(req.full_url, 403, "Forbidden", {}, io.BytesIO(b'{"message":"denied"}'))
+            return _Resp([])
+
+        m.apply({"GITHUB_REPOSITORY": "o/r", "GITHUB_TOKEN": "gh"}, opener)
+        assert ("PATCH", "https://api.github.com/repos/o/r/issues/7") in calls
 
 if __name__ == "__main__":
     unittest.main()
