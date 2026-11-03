@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-11-03T00:51:35Z",
-  "last_tick": "2026-11-03T00:51:35Z",
+  "last_tick": "2026-11-03T01:06:30Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -260,6 +260,11 @@
           "at": "2026-11-03T00:51:35Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-11-03T01:06:30Z",
+          "detail": "run 41555835846",
+          "event": "bound"
         }
       ],
       "id": "20261103T004113Z-archive-sources",
@@ -270,7 +275,7 @@
       "reason": "scheduled link hygiene (20 */8 * * *)",
       "requested_at": "2026-11-03T00:41:13Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "41555835846",
       "state": "dispatched",
       "workflow": "archive-sources.yml"
     },
