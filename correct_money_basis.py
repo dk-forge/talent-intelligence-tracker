@@ -107,11 +107,13 @@ correction is a database write and is queued like every other one:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sqlite3
 import sys
 from collections import Counter
+from pathlib import Path
 
 from pipeline import money_raised, publish, schema, vocab
 
@@ -306,9 +308,40 @@ def stale_verdicts(conn) -> list[tuple[dict, str]]:
             and v != money_raised.COMPANY_RAISE]
 
 
+#: Where adjudicate_guardrail.py writes one spec per two-referee decision.
+ADJUDICATION_DIR = Path(__file__).resolve().parent / "analysis" / "adjudications"
+
+
+def accepted_amounts(spec_dir: Path | None = None) -> dict[str, int]:
+    """{signal_id: usd} for every amount the referees AGREED to accept (#299).
+
+    The figure regexes are a tripwire, and the referees are the judge: a row
+    two referees read and accepted is not a contradiction, so the check must
+    not stay red on it forever. Only a unanimous accept from at least two
+    referees counts, and only for the figure they judged: if the stored
+    amount changes afterwards, the verdict no longer covers it.
+    """
+    out: dict[str, int] = {}
+    for path in sorted((spec_dir or ADJUDICATION_DIR).glob("*-amount-*.json")):
+        try:
+            spec = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        check, _, signal_id = str(spec.get("key") or "").partition("/")
+        verdicts = [v for v in (spec.get("verdicts") or {}).values() if isinstance(v, dict)]
+        usd = (spec.get("row") or {}).get("funding_amount_usd")
+        if (check == "amount" and signal_id and spec.get("action") == "accept"
+                and len(verdicts) >= 2 and all(v.get("recommended") == "accept" for v in verdicts)
+                and usd):
+            out[signal_id] = int(usd)
+    return out
+
+
 def figure_contradictions(conn) -> list[tuple[dict, str]]:
     """Published company_raise rows whose stored USD figure is a number the
-    text attributes to something that is not a raise, and to no raise."""
+    text attributes to something that is not a raise, and to no raise, and
+    that the referees have not accepted at that figure."""
+    accepted = accepted_amounts()
     out = []
     for row in rows_with_a_figure(conn):
         if not row.get("published_at") or row.get("money_basis") != money_raised.COMPANY_RAISE:
@@ -318,6 +351,8 @@ def figure_contradictions(conn) -> list[tuple[dict, str]]:
             continue
         text = f"{row.get('headline') or ''} \n {row.get('summary') or ''}"
         if int(stored) in _figures(RAISE_FIGURE, text):
+            continue
+        if accepted.get(row.get("signal_id")) == int(stored):
             continue
         for label, pattern in FIGURE_CONTRADICTIONS:
             if int(stored) in _figures(pattern, text):
