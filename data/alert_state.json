@@ -30,17 +30,12 @@
       "last": 1793774770,
       "subject": "CI RED: money-basis check: VERDICT: FAIL"
     },
-    "runner-heartbeat:main:1f70fd7285063f06": {
-      "first": 1793803631,
-      "last": 1793803631,
-      "subject": "CI SELF-TIMEOUT: runner heartbeat: the job cancelled ITSELF on timeout-minutes: it exceeded the maximum execution time of 2m0s"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-04T14:47:13+00:00",
+  "updated_at": "2026-11-04T15:17:23+00:00",
   "version": 1
 }
