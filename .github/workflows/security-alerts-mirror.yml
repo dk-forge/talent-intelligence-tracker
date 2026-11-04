@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write   # docs/status/security-mirror.json (owner 2026-11-04)
   issues: write
   security-events: read
 
@@ -42,3 +42,26 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python3 security_alerts_mirror.py apply
+      # Owner ruling 2026-11-04: the report lives in docs/status/security-mirror.json;
+      # the issue exists only while an alert is open. Pushed from main only, at most
+      # once a day plus once per status change.
+      - name: Push the status file (main only)
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+        run: |
+          set -uo pipefail
+          f=docs/status/security-mirror.json
+          [ -f "$f" ] || exit 0
+          if git diff --quiet -- "$f" && git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
+            echo "status file unchanged."; exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "$f"
+          git commit -q -m "chore: security mirror status [skip ci]"
+          for attempt in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git fetch -q origin main
+            git rebase -q origin/main || { git rebase --abort; exit 0; }
+            sleep $((attempt * 5))
+          done
+          echo "::warning::status file not pushed after 3 attempts"
