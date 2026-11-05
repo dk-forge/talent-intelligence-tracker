@@ -57,3 +57,29 @@ def test_truncated_reply_is_counted(monkeypatch):
     m._spent["usd"] = 0.0
     content, cost, err = m.call("x/y", "s", "u", max_tokens=5, key="k")
     assert err == "truncated" and content == '{"a": "b' and cost == 0.001
+
+
+def test_read_max_tokens_defaults_to_production(monkeypatch):
+    from pipeline import classify
+    monkeypatch.delenv("EVAL_READ_MAX_TOKENS", raising=False)
+    m = _reload(monkeypatch)
+    assert m.read_max_tokens() == classify.READ_MAX_TOKENS
+    monkeypatch.setenv("EVAL_READ_MAX_TOKENS", "400")
+    assert m.read_max_tokens() == 400
+    monkeypatch.setenv("EVAL_READ_MAX_TOKENS", "")
+    assert m.read_max_tokens() == classify.READ_MAX_TOKENS
+
+
+def test_error_kinds_are_reported(monkeypatch):
+    m = _reload(monkeypatch)
+    assert m.error_kind("truncated") == "truncated"
+    assert m.error_kind("HTTP 502") == "api"
+    assert m.error_kind("network Timeout") == "api"
+    assert m.error_kind("cap") == "cap"
+    t = m.Tally()
+    t.add_call(0.0, "truncated")
+    t.add_call(0.0, "HTTP 500")
+    t.add_call(0.0, None)
+    t.add_parse_error()
+    assert t.err == 3
+    assert "errors_by_type=truncated:1,api:1,parse:1" in t.line()

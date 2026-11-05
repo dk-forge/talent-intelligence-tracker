@@ -110,9 +110,25 @@ def parse_json(content):
     return out if isinstance(out, dict) else None
 
 
+def error_kind(err):
+    """truncated | api | cap: the reason a call gave no usable reply."""
+    if err in ("truncated", "cap"):
+        return err
+    return "api"
+
+
+def read_max_tokens():
+    """EVAL_READ_MAX_TOKENS overrides READ's cap for the eval only;
+    production (classify.READ_MAX_TOKENS) is never changed by it."""
+    from pipeline import classify
+    raw = (os.environ.get("EVAL_READ_MAX_TOKENS") or "").strip()
+    return int(raw) if raw else classify.READ_MAX_TOKENS
+
+
 class Tally:
     def __init__(self):
         self.n = self.ok = self.err = self.correct = self.judged = 0
+        self.kinds = {}
         self.calls = 0
         self.cost = 0.0
         self.tp = self.fp = self.fn = 0
@@ -124,6 +140,13 @@ class Tally:
         self.cost += cost
         if err:
             self.err += 1
+            k = error_kind(err)
+            self.kinds[k] = self.kinds.get(k, 0) + 1
+
+    def add_parse_error(self):
+        """A complete reply that held no usable JSON."""
+        self.err += 1
+        self.kinds["parse"] = self.kinds.get("parse", 0) + 1
 
     def line(self, extra=""):
         per_k = 1000 * self.cost / self.calls if self.calls else 0
@@ -133,7 +156,9 @@ class Tally:
             p = self.tp / (self.tp + self.fp) if self.tp + self.fp else 0
             r = self.tp / (self.tp + self.fn) if self.tp + self.fn else 0
             pr = f" precision={p:.1%} recall={r:.1%}"
+        kinds = ",".join(f"{k}:{v}" for k, v in self.kinds.items()) or "none"
         return (f"acc={acc}{pr} valid={self.ok}/{self.n} errors={self.err} "
+                f"errors_by_type={kinds} "
                 f"spend=${self.cost:.4f} cost_per_1k_calls=${per_k:.3f}{extra}")
 
 
@@ -203,6 +228,8 @@ def run_read(items, extracted, key, dry):
     base = extracted.get(EXTRACTION_MODELS[0], {})
     pos = [it for it in items if str(it["gold_is_talent_signal"]) == "True"
            and (it["id"] in base or dry)]
+    cap = read_max_tokens()
+    notice("read max_tokens", f"{cap} (production {classify.READ_MAX_TOKENS})")
     for m in READ_MODELS:
         t, hedged, ungrounded = Tally(), 0, 0
         for it in pos:
@@ -212,12 +239,14 @@ def run_read(items, extracted, key, dry):
             if dry:
                 continue
             content, cost, err = call(m, prompts.READ_SYSTEM, prompt,
-                                      max_tokens=classify.READ_MAX_TOKENS,
+                                      max_tokens=cap,
                                       json_mode=not m.startswith("anthropic/"), key=key)
             t.add_call(cost, err)
             parsed = parse_json(content)
             sentence = ((parsed or {}).get("talent_readthrough") or "").strip()
             if not sentence:
+                if not err:
+                    t.add_parse_error()
                 continue
             t.ok += 1
             if classify.ungrounded_reason(sentence, classified, raw["raw_text"]):

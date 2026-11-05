@@ -18,6 +18,9 @@ on:
       steps:
         description: 'Comma list of gate,extraction,referee,read (empty = all)'
         default: ''
+      read_max_tokens:
+        description: 'READ max_tokens for this eval only (empty = production READ_MAX_TOKENS)'
+        default: ''
       dry_run:
         description: 'Build prompts only, spend nothing'
         type: boolean
@@ -54,6 +57,7 @@ jobs:
           EVAL_CAP_USD: '1.00'
           EVAL_CANDIDATE: ${{ inputs.candidate }}
           EVAL_STEPS: ${{ inputs.steps }}
+          EVAL_READ_MAX_TOKENS: ${{ inputs.read_max_tokens }}
           EVAL_REFEREE_N: ${{ inputs.referee }}
           EVAL_DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
         run: python eval_haiku55.py
