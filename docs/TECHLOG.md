@@ -17943,3 +17943,10 @@ fix exists to prevent. Closed #228 with this entry linked, no code pushed.
 **Guard:** `tests/test_readthrough_split.py` pins `classify.READ_MODEL`.
 
 The owner approved moving the read-through from `anthropic/claude-sonnet-5` to `anthropic/claude-sonnet-5.5`. OpenRouter lists both at the same price ($2/$10 per 1M tokens; `:batch` is $1/$5), so this is a quality step with no extra cost. The cache-read rate on 5.5 is lower ($0.10 vs $0.20). Before the switch, one live call with the read path's own settings (`temperature: 0`, no `json_mode` for `anthropic/`) returned valid JSON for $0.00014. Added both 5.5 rows to `data/model_prices.json` so the meter prices them. Revert: `TIT_READ_MODEL=anthropic/claude-sonnet-5`.
+
+## 2026-11-05 - Read-through output cap 200 -> 400 tokens
+
+**Class:** config-change
+**Guard:** `tests/test_readthrough_split.py::test_the_read_cap_defaults_to_400_tokens`.
+
+Eval run 42115680006 measured `anthropic/claude-sonnet-5.5` valid read-through replies at 84.6% with `max_tokens=200` and 93.9% with 400, for +5% cost. At 200 the misses were replies cut before the closing brace. `TIT_READ_MAX_TOKENS` default raised to 400. Revert: `TIT_READ_MAX_TOKENS=200`.
