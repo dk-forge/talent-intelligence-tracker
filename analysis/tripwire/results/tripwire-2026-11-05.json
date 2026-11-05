@@ -1,0 +1,492 @@
+{
+ "ran_at": "2026-11-05T08:19:13+01:00",
+ "ran_on": "2026-11-05",
+ "plan": {
+  "cycle": 618,
+  "planned_on": "2026-11-05",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-02 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "EE",
+    "name": "Estonia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "ET",
+    "name": "Ethiopia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "FI",
+    "name": "Finland",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "PL",
+    "name": "Poland",
+    "tier": "weak",
+    "measured": {
+     "total": 4,
+     "held": 1,
+     "held_pct": 25.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "EE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "ET",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "FI",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "PL",
+   "tier": "weak",
+   "measured": {
+    "total": 4,
+    "held": 1,
+    "held_pct": 25.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 14,
+  "held": 8,
+  "missing": 6,
+  "unusable": 0,
+  "usable": 14
+ },
+ "by_country": {
+  "PL": {
+   "leads": 4,
+   "held": 1,
+   "missing": 3,
+   "unusable": 0
+  },
+  "ET": {
+   "leads": 3,
+   "held": 1,
+   "missing": 2,
+   "unusable": 0
+  },
+  "FI": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  },
+  "EE": {
+   "leads": 4,
+   "held": 4,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0224,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0016,
+  "usd_per_candidate_miss": 0.0037,
+  "lifetime_usd": 0.8412,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:EE",
+   "leads": 4,
+   "usd": 0.00563,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 294,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:ET",
+   "leads": 3,
+   "usd": 0.00562,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 287,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:FI",
+   "leads": 3,
+   "usd": 0.00557,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 234,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:PL",
+   "leads": 4,
+   "usd": 0.00558,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 243,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "Roleo",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-03",
+   "claimed_amount": "\u20ac2.9M",
+   "claimed_stage": "",
+   "claimed_outlet": "Estonia.ee / The Recursive",
+   "claimed_url": "https://estonia.ee/ict/news/tallinn-based-roleo-raises-2-9-million-for",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c1affc0e8ee7836bfba776ea6839b198",
+    "company": "Roleo",
+    "pillar": "company_development",
+    "country": "EE",
+    "published_date": "2026-11-02",
+    "source_url": "https://www.therecursive.com/estonias-roleo-raises-eur2-9m-for-an-ai-agent-that-manages-your-career-in-the-background/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "Blackwall",
+   "claimed_country": "EE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-20",
+   "claimed_amount": "$100M",
+   "claimed_stage": "series_c",
+   "claimed_outlet": "StartupCentrum",
+   "claimed_url": "https://media.startupcentrum.com/en/blackwall-raises-100-million/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a6a560c1fbd65c384a6b42ccdb93ef2f",
+    "company": "Blackwall",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-20",
+    "source_url": "https://www.trendingtopics.eu/blackwall-series-c-valuation/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "Skeleton Technologies",
+   "claimed_country": "EE",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "The Recursive",
+   "claimed_url": "https://www.therecursive.com/skeleton-technologies-becomes-estonias-newest-unicorn-after-siemens-led-investment/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "b07a1061b726ea0b50a7d377fa107753",
+    "company": "Skeleton Technologies",
+    "pillar": "company_development",
+    "country": "EE",
+    "published_date": "2026-10-14",
+    "source_url": "https://www.therecursive.com/skeleton-technologies-becomes-estonias-newest-unicorn-after-siemens-led-investment/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "zero",
+   "claimed_company": "Golbriak Space",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "\u20ac4 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Startup.eu",
+   "claimed_url": "https://www.startup.eu/archive/2026-10-08",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "07448e4844a337b161d075b9989f8cd6",
+    "company": "Golbriak Space",
+    "pillar": "company_development",
+    "country": "EE",
+    "published_date": "2026-10-08",
+    "source_url": "https://www.therecursive.com/estonias-golbriak-space-raises-eur4m-to-scale-laser-communications-for-satellites/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ET",
+   "dimension_tier": "zero",
+   "claimed_company": "Safaricom Ethiopia Telecommunications PLC",
+   "claimed_country": "ET",
+   "claimed_city": "Addis Ababa",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-03",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "TechAfrica News",
+   "claimed_url": "https://techafricanews.com/2026/11/03/safaricom-ethiopia-appoints-samuel-munyua-cfo",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "7ca1efec024981e7101036731902d2b7",
+    "company": "Safaricom",
+    "pillar": "how_we_work",
+    "country": "KE",
+    "published_date": "2026-10-01",
+    "source_url": "https://techmoran.com/2026/10/01/safaricom-pesapal-target-500000-outlets-with-scan-to-pay-tap-to-pay-rollout/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ET",
+   "dimension_tier": "zero",
+   "claimed_company": "Ethiopian IT Park Corporation",
+   "claimed_country": "ET",
+   "claimed_city": "Addis Ababa",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-02",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "TechReview Africa",
+   "claimed_url": "https://techreviewafrica.purplealmondconsulting.com/news/8023/ethiopian-it-park-and-awash-capital-sign-agreement-to-expand-financing-for-technology-businesses",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ET",
+   "dimension_tier": "zero",
+   "claimed_company": "Dashen Bank",
+   "claimed_country": "ET",
+   "claimed_city": "Addis Ababa",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-01",
+   "claimed_amount": "\u20ac40 million",
+   "claimed_stage": "",
+   "claimed_outlet": "Capital Ethiopia",
+   "claimed_url": "https://capitalethiopia.com/2026/11/01/eib-global-dashen-bank-to-unlock-e40-million-for-green-agribusiness-and-women-led-enterprises/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "Volare",
+   "claimed_country": "FI",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-04",
+   "claimed_amount": "\u20ac7.1M",
+   "claimed_stage": "",
+   "claimed_outlet": "Tech Funding News",
+   "claimed_url": "https://techfundingnews.com/volare-7-1m-second-insect-protein-plant-finland/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "833bbf0d32b30075e9f669679acec08a",
+    "company": "Volare",
+    "pillar": "how_we_work",
+    "country": "FI",
+    "published_date": "2026-10-26",
+    "source_url": "https://www.eu-startups.com/2026/10/finlands-volare-raises-e7-1-million-and-opens-5000-tonne-insect-protein-factory/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "Coherence Quantum",
+   "claimed_country": "FI",
+   "claimed_city": "Espoo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-20",
+   "claimed_amount": "\u20ac2.78 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "EU-Startups",
+   "claimed_url": "https://www.eu-startups.com/2026/10/espoo-based-coherence-quantum-raises-e2-78-million-to-build-infrastructure-for-larger-quantum-computers/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "64ee50be5aac792dea8d4661b1d0e8f3",
+    "company": "Coherence Quantum",
+    "pillar": "company_development",
+    "country": "FI",
+    "published_date": "2026-10-20",
+    "source_url": "https://www.eu-startups.com/2026/10/espoo-based-coherence-quantum-raises-e2-78-million-to-build-infrastructure-for-larger-quantum-computers/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "FI",
+   "dimension_tier": "zero",
+   "claimed_company": "SmartCap",
+   "claimed_country": "FI",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-08-27",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Resilience Media",
+   "claimed_url": "https://resiliencemedia.co/tag/finland/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PL",
+   "dimension_tier": "weak",
+   "claimed_company": "Autofixer",
+   "claimed_country": "PL",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-28",
+   "claimed_amount": "\u20ac3 Mn",
+   "claimed_stage": "",
+   "claimed_outlet": "StartUpRise",
+   "claimed_url": "https://startuprise.co.uk/poland-startups/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a359f0ba8acb81ce54ac890f9c3bc6b8",
+    "company": "Autofixer",
+    "pillar": "company_development",
+    "country": "PL",
+    "published_date": "2026-10-28",
+    "source_url": "https://www.eu-startups.com/2026/10/polands-autofixer-raises-e3-million-in-venture-debt-to-scale-its-online-car-parts-platform/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PL",
+   "dimension_tier": "weak",
+   "claimed_company": "Coding Giants",
+   "claimed_country": "PL",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "\u20ac6 Mn",
+   "claimed_stage": "",
+   "claimed_outlet": "StartUpRise",
+   "claimed_url": "https://startuprise.co.uk/poland-startups/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PL",
+   "dimension_tier": "weak",
+   "claimed_company": "Paymove",
+   "claimed_country": "PL",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "\u20ac2.12 Mn",
+   "claimed_stage": "",
+   "claimed_outlet": "StartUpRise",
+   "claimed_url": "https://startuprise.co.uk/poland-startups/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "PL",
+   "dimension_tier": "weak",
+   "claimed_company": "Rezon Bio",
+   "claimed_country": "PL",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "StartUpRise",
+   "claimed_url": "https://startuprise.co.uk/poland-startups/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
