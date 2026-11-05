@@ -40,16 +40,25 @@ sys.path.insert(0, HERE)
 
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
-CANDIDATE = "anthropic/claude-haiku-5.5"
+# EVAL_CANDIDATE picks the model under test (owner 2026-11-05: Flash-Lite on READ).
+CANDIDATE = (os.environ.get("EVAL_CANDIDATE") or "").strip() or "anthropic/claude-haiku-5.5"
 GATE_MODELS = ("google/gemini-2.5-flash-lite", CANDIDATE)
 EXTRACTION_MODELS = ("google/gemini-2.5-flash-lite", CANDIDATE)
-READ_MODELS = ("anthropic/claude-sonnet-5", CANDIDATE)
+# Baseline = production READ_MODEL default (classify.py).
+READ_MODELS = ("anthropic/claude-sonnet-5.5", CANDIDATE)
 REFEREE_MODELS = ("anthropic/claude-sonnet-4.5", "openai/gpt-4o",
                   "google/gemini-2.5-flash-lite", CANDIDATE)
 CAP_USD = float(os.environ.get("EVAL_CAP_USD", "1.00"))
+STEPS = ("gate", "extraction", "referee", "read")
 DECIDING = ("is_talent_signal", "company", "pillar", "country")
 
 _spent = {"usd": 0.0}
+
+
+def steps(spec):
+    """EVAL_STEPS, comma-separated; empty means every step."""
+    got = {x.strip().lower() for x in (spec or "").split(",") if x.strip()}
+    return got or set(STEPS)
 
 
 def notice(title, msg):
@@ -78,8 +87,11 @@ def call(model, system, user, *, max_tokens, json_mode=True, key=""):
     payload = resp.json()
     cost = float((payload.get("usage") or {}).get("cost") or 0)
     _spent["usd"] += cost
-    content = ((payload.get("choices") or [{}])[0].get("message") or {}).get("content") or ""
-    return content, cost, None
+    choice = (payload.get("choices") or [{}])[0]
+    content = (choice.get("message") or {}).get("content") or ""
+    # A reply cut at max_tokens has no closing brace and parses as nothing:
+    # name it, so a 0-valid run says why (the 2026-10-08 Haiku READ result).
+    return content, cost, ("truncated" if choice.get("finish_reason") == "length" else None)
 
 
 def parse_json(content):
@@ -149,10 +161,10 @@ def run_gate(items, key, dry):
                                    f"wilson95={s['accuracy_lo']:.1%}-{s['accuracy_hi']:.1%}"))
 
 
-def run_extraction(items, key, dry):
+def run_extraction(items, key, dry, models=None):
     from pipeline import classify
     got = {}
-    for m in EXTRACTION_MODELS:
+    for m in models or EXTRACTION_MODELS:
         t, got[m] = Tally(), {}
         for it in items:
             if dry:
@@ -274,10 +286,19 @@ def main(argv=None):
     items = gate_goldset.scoreable(gate_goldset.load())
     notice("eval-haiku55", f"gate gold items={len(items)} referee specs={len(referee_items())} "
            f"cap=${CAP_USD:.2f} dry={dry}")
-    run_gate(items, key, dry)
-    extracted = run_extraction(items, key, dry)
-    run_referee(key, dry, args.referee)
-    run_read(items, extracted, key, dry)
+    want = steps(os.environ.get("EVAL_STEPS", ""))
+    if "gate" in want:
+        run_gate(items, key, dry)
+    extracted = {}
+    if "extraction" in want:
+        extracted = run_extraction(items, key, dry)
+    elif "read" in want:
+        # READ is built on the incumbent's extraction, so only that runs.
+        extracted = run_extraction(items, key, dry, (EXTRACTION_MODELS[0],))
+    if "referee" in want:
+        run_referee(key, dry, args.referee)
+    if "read" in want:
+        run_read(items, extracted, key, dry)
     notice("eval-haiku55 total", f"billed spend this run ${_spent['usd']:.4f} (cap ${CAP_USD:.2f})")
     return 0
 

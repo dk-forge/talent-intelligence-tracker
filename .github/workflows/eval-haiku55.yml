@@ -12,6 +12,12 @@ on:
       referee:
         description: 'Settled money findings to put to the referees'
         default: '30'
+      candidate:
+        description: 'Model under test (READ baseline is anthropic/claude-sonnet-5.5)'
+        default: 'anthropic/claude-haiku-5.5'
+      steps:
+        description: 'Comma list of gate,extraction,referee,read (empty = all)'
+        default: ''
       dry_run:
         description: 'Build prompts only, spend nothing'
         type: boolean
@@ -46,6 +52,8 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           EVAL_CAP_USD: '1.00'
+          EVAL_CANDIDATE: ${{ inputs.candidate }}
+          EVAL_STEPS: ${{ inputs.steps }}
           EVAL_REFEREE_N: ${{ inputs.referee }}
           EVAL_DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
         run: python eval_haiku55.py
