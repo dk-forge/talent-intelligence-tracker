@@ -1,0 +1,66 @@
+name: Prune Actions caches
+
+# The repo's 10 GB Actions cache filled up (limits-watch, 2026-11-05). GitHub
+# then evicts caches on its own, but builds slow down and the limits watch
+# stays red. Weekly: delete every cache not used in the last 7 days. Caches
+# are rebuildable, so the worst case is one slower CI run.
+
+on:
+  schedule:
+    - cron: '37 3 * * 0'   # Sundays 03:37 UTC
+  workflow_dispatch:
+    inputs:
+      max_age_days:
+        description: Delete caches unused for more than this many days
+        default: '7'
+
+permissions:
+  actions: write
+
+concurrency:
+  group: actions-cache-prune
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Delete caches unused for N days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          MAX_AGE_DAYS: ${{ inputs.max_age_days || '7' }}
+        run: |
+          python3 - <<'PY'
+          import datetime as dt, json, os, urllib.request
+          repo, token = os.environ["REPO"], os.environ["GH_TOKEN"]
+          days = int(os.environ["MAX_AGE_DAYS"])
+          if days < 1:
+              raise SystemExit("MAX_AGE_DAYS must be at least 1")
+          cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)
+          def call(method, path):
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/{path}", method=method,
+                  headers={"Authorization": f"Bearer {token}",
+                           "Accept": "application/vnd.github+json"})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  body = r.read()
+              return json.loads(body) if body else None
+          old, page = [], 1
+          while True:
+              d = call("GET", f"actions/caches?per_page=100&page={page}")
+              batch = d.get("actions_caches", [])
+              for c in batch:
+                  seen = dt.datetime.fromisoformat(c["last_accessed_at"].replace("Z", "+00:00"))
+                  if seen < cutoff:
+                      old.append(c)
+              if len(batch) < 100:
+                  break
+              page += 1
+          freed = 0
+          for c in old:
+              call("DELETE", f"actions/caches/{c['id']}")
+              freed += c.get("size_in_bytes", 0)
+          print(f"Deleted {len(old)} caches unused for {days}+ days, freed {freed/1e9:.2f} GB")
+          PY
