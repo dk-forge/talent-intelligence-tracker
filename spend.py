@@ -483,7 +483,15 @@ def main() -> int:
     d = fetch()
     used = float(d.get("usage") or 0)
     limit = d.get("limit")
-    remaining = (float(limit) - used) if limit is not None else None
+    # OpenRouter's own limit_remaining is authoritative when present: a key
+    # whose limit resets (limit_reset monthly/weekly/daily) has lifetime usage
+    # far above its limit while having the full limit left. limit - usage is
+    # only the fallback for responses without it (ai-layoff-tracker#597).
+    lr = d.get("limit_remaining")
+    if lr is not None:
+        remaining = float(lr)
+    else:
+        remaining = (float(limit) - used) if limit is not None else None
     spent_this_month, month = month_delta(used)
 
     print("=" * 56)
@@ -494,7 +502,7 @@ def main() -> int:
     if limit is None:
         print("  key limit           none set  <- a runaway run has no backstop")
     else:
-        pct = 100 * used / float(limit) if float(limit) else 0
+        pct = 100 * (float(limit) - remaining) / float(limit) if float(limit) else 0
         print(f"  key limit           ${float(limit):,.2f}  ({pct:.1f}% used)")
         print(f"  remaining on key    ${remaining:,.4f}")
     print(f"  monthly allowance   ${MONTHLY_ALLOWANCE_USD:,.2f} (policy, in spend.py)")
