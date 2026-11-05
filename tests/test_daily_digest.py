@@ -67,11 +67,11 @@ class GmDoesNotAppearAsHiring(unittest.TestCase):
 
 class ProjectionLabelled(unittest.TestCase):
     def test_projection_in_planned_section_not_roles(self):
-        proj = row(company="CR", headcount=500, headcount_scope="new_roles",
+        proj = row(company="Firm", headcount=500, headcount_scope="new_roles",
                    headline="Firm to add 500 jobs in Costa Rica by 2030",
                    summary="Firm plans 500 jobs by 2030.")
         ed = edition([proj])
-        self.assertEqual([f.company for f in ed.planned], ["CR"])
+        self.assertEqual([f.company for f in ed.planned], ["Firm"])
         self.assertEqual(ed.naming_roles, [])
         self.assertIn("PLANNED / PROJECTED", dd.render(ed))
 

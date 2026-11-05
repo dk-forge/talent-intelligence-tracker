@@ -33,6 +33,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
 from pipeline import count_meaning as cm
+from pipeline import digest_quality as dq
 from pipeline import schema
 from pipeline import tiers
 
@@ -122,6 +123,21 @@ class Featured:
     # Public trust tier (pipeline/tiers.py, docs/VERIFICATION_TIERS.md).
     tier: str = "reported"
     rumored: bool = False
+    # Reader-facing facts checked by pipeline/digest_quality (2026-11-04).
+    link: str = ""
+    announced: str | None = None
+    iso2: str | None = None
+    city: str | None = None
+    industry: str = dq.INDUSTRY_NOT_STATED
+    applications_open: bool = False
+    roles_stated: str | None = None
+
+    @property
+    def location(self) -> str:
+        country = dq.country_name(self.iso2)
+        if self.iso2 and self.city:
+            return f"{self.city}, {country}"
+        return country
 
     @property
     def _substitute(self) -> bool:
@@ -161,11 +177,12 @@ class Featured:
         return "Reported"
 
 
-def _featured(row) -> Featured:
+def _featured(row, employer: str | None = None) -> Featured:
     headline = row["headline"] or ""
     _tier = tiers.tier_of_row(row)
+    city = dq._get(row, "city")
     return Featured(
-        company=row["company"] or "",
+        company=employer if employer is not None else (row["company"] or ""),
         headline=headline,
         summary=row["summary"] or "",
         meaning=cm.classify(row),
@@ -177,6 +194,13 @@ def _featured(row) -> Featured:
         summary_english=not looks_non_english(row["summary"] or ""),
         tier=_tier.tier,
         rumored=_tier.rumored,
+        link=dq.link(row),
+        announced=dq.announced(row),
+        iso2=dq.place(row),
+        city=(city.strip() if city else None),
+        industry=dq.industry(row),
+        applications_open=dq.applications_open(row),
+        roles_stated=dq.stated_roles(row),
     )
 
 
@@ -207,6 +231,15 @@ class Edition:
     #: RTO policy). It has a home BECAUSE it is a real sixth class -- see the
     #: bucket loop for what its absence did.
     other: list[Featured] = field(default_factory=list)
+    #: Items held back by the pre-send checks: (employer, reason). They are
+    #: not in `featured`, so no headline counts them.
+    held: list[tuple[str, str]] = field(default_factory=list)
+    #: Stale or republished plans filtered out of this edition.
+    stale_count: int = 0
+
+    @property
+    def unique_employers(self) -> int:
+        return len({f.company.strip().casefold() for f in self.featured})
 
     @property
     def confirmed_count(self) -> int:
@@ -239,9 +272,24 @@ class Edition:
 
 
 def build_edition(rows, since, until, as_of, ytd_total, prev_ytd=None) -> Edition:
-    featured = [_featured(r) for r in rows]
+    featured = []
+    held: list[tuple[str, str]] = []
+    stale = 0
+    for r in rows:
+        verdict = dq.check_attribution(r)
+        if verdict.status == dq.HELD:
+            held.append((verdict.employer, verdict.reason))
+            continue
+        if not dq.link(r):
+            held.append((verdict.employer, "no source or careers link"))
+            continue
+        if dq.is_stale(r, until) or dq.is_republished(r, until):
+            stale += 1
+            continue
+        featured.append(_featured(r, verdict.employer))
     ed = Edition(since=since, until=until, as_of=as_of, featured=featured,
-                 ytd_total=ytd_total, prev_ytd=prev_ytd)
+                 ytd_total=ytd_total, prev_ytd=prev_ytd, held=held,
+                 stale_count=stale)
     for f in featured:
         t = f.meaning.type
         if t in (cm.CONFIRMED_HIRES, cm.OPEN_VACANCIES):
@@ -286,6 +334,16 @@ def _projected_size(f: Featured) -> int:
 
 
 # --- Rendering (plain text; adaptable to the HTML the mailer wraps) ---------
+
+def regional_ranking(ed: Edition) -> list[tuple[str, int]]:
+    """Countries by item count. An unplaced item is never ranked."""
+    counts: dict[str, int] = {}
+    for f in ed.featured:
+        if f.iso2:
+            name = dq.country_name(f.iso2)
+            counts[name] = counts.get(name, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
 
 def _fmt_dt(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%d %H:%MZ")
@@ -339,6 +397,17 @@ def render(ed: Edition) -> str:
                      f"{len(ed.featured):,}: the difference is backfill of "
                      f"older stories now captured, not new activity today.")
     L.append(ytd_line)
+    L.append(f"Counts: {len(ed.featured)} report"
+             f"{'s' if len(ed.featured) != 1 else ''} from "
+             f"{ed.unique_employers} unique employer"
+             f"{'s' if ed.unique_employers != 1 else ''}. Job-board "
+             f"listings are not vacancies: one opening can be listed many "
+             f"times, so no listing count is a count of jobs.")
+    if ed.held:
+        L.append(f"Held back for an employer or link check: {len(ed.held)}.")
+    if ed.stale_count:
+        L.append(f"Filtered out as stale or republished plans: "
+                 f"{ed.stale_count}.")
     L.append("")
 
     L.append("SIGNALS NAMING THE MOST ROLES")
@@ -382,6 +451,20 @@ def render(ed: Edition) -> str:
             L.extend(_render_item(f))
         L.append("")
 
+    ranking = regional_ranking(ed)
+    unplaced = sum(1 for f in ed.featured if not f.iso2)
+    if ranking or unplaced:
+        L.append("BY COUNTRY (items per country)")
+        for name, n in ranking[:10]:
+            L.append(f"  {name}: {n}")
+        if unplaced:
+            L.append(f"  Not ranked ({dq.LOCATION_NOT_STATED}): {unplaced}")
+        L.append("")
+
+    if ed.featured:
+        L.append(f"Applying? Tailor your CV for any of these roles with "
+                 f"Ask The Recruiter: {dq.TAILOR_CV_URL}")
+
     return "\n".join(L).rstrip() + "\n"
 
 
@@ -401,11 +484,25 @@ def _render_item(f: Featured, show_roles=False, projected=False,
     else:
         head = f"  {f.company} {tag}"
     lines = [head, f"      {f.lead}"]
+    when = (f"Announced {f.announced}" if f.announced
+            else "Announcement date not stated")
+    lines.append(f"      {when} · {f.location} · {f.industry}")
+    facts = []
+    if f.applications_open:
+        facts.append("Applications open")
+    if f.roles_stated:
+        facts.append(f"Roles: {f.roles_stated}")
+    if f.iso2:
+        facts.append(f"Location: {f.location}")
+    if f.applications_open or f.roles_stated:
+        facts.append(f"tailor your CV: {dq.TAILOR_CV_URL}")
+    if facts:
+        lines.append("      " + " · ".join(facts))
     if f.original_note:
         lines.append(f"      original: {f.original_note}")
     elif f.needs_translation:
         lines.append("      (original language; no English summary on record)")
-    lines.append(f"      {f.source_name} · {f.source_url}")
+    lines.append(f"      {f.source_name} · {f.link}")
     return lines
 
 
