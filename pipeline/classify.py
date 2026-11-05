@@ -74,7 +74,10 @@ READ_MODEL = os.environ.get("TIT_READ_MODEL", "anthropic/claude-sonnet-5.5")
 # ~60 tokens of sentence, with headroom for a second sentence and for a model
 # that opens with a brace and a key. Low enough that a runaway generation is
 # bounded; high enough that a truncated sentence is not the failure mode.
-READ_MAX_TOKENS = int(os.environ.get("TIT_READ_MAX_TOKENS", "200") or "200")
+# 200 -> 400 on 2026-11-05: eval run 42115680006 measured sonnet-5.5 valid
+# replies at 84.6% with 200 and 93.9% with 400, for +5% cost. Truncated JSON
+# was the failure mode at 200.
+READ_MAX_TOKENS = int(os.environ.get("TIT_READ_MAX_TOKENS", "400") or "400")
 
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 

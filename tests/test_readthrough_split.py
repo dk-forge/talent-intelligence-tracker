@@ -100,6 +100,21 @@ def test_the_read_through_has_its_own_model_and_env_var():
     assert classify.read_enabled()
 
 
+def test_the_read_cap_defaults_to_400_tokens(monkeypatch):
+    # Eval run 42115680006: sonnet-5.5 valid replies 84.6% at 200 -> 93.9% at
+    # 400 for +5% cost. At 200 a reply cut mid-JSON parses as nothing.
+    import os
+    import subprocess
+    import sys
+    env = {k: v for k, v in os.environ.items() if k != "TIT_READ_MAX_TOKENS"}
+    out = subprocess.run(
+        [sys.executable, "-c",
+         "from pipeline import classify; print(classify.READ_MAX_TOKENS)"],
+        env=env, capture_output=True, text=True, check=True,
+    )
+    assert out.stdout.strip() == "400"
+
+
 def test_the_read_through_can_be_switched_off(monkeypatch):
     """The one-line revert to the fused behaviour, and it must actually revert."""
     monkeypatch.setattr(classify, "READ_MODEL", "off")
