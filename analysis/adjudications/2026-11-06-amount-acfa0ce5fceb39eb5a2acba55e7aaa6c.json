@@ -1,0 +1,63 @@
+{
+ "key": "amount/acfa0ce5fceb39eb5a2acba55e7aaa6c",
+ "label": "Revolut $115,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source states \"Revolut alcanzó una valuación de 115,000 millones de dólares tras cerrar una nueva ronda de financiación\" (Revolut reached a valuation of 115,000 million dollars after closing a new funding round). This is explicitly a VALUATION figure, not the amount raised. The article never states how much capital was actually invested in the funding round. Per rule 3, \"A VALUATION IS NOT A RAISE.\" The actual raise amount is not mentioned anywhere in the text."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text states 'Revolut alcanzó una valuación de 115,000 millones de dólares tras cerrar una nueva ronda de financiación,' which indicates a valuation, not the amount raised. The article does not specify the actual funding amount received by Revolut, only the post-funding valuation."
+  }
+ },
+ "row": {
+  "company": "Revolut",
+  "headline": "Revolut alcanza una valuación de 115,000 millones de dólares tras nueva ronda de financiación",
+  "summary": "Revolut has reached a valuation of $115,000 million after a new funding round. The article does not specify the funding stage or hiring plans.",
+  "funding_amount": "$115,000 million",
+  "funding_amount_usd": 115000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://elceo.com/negocios/revolut-valuacion-115000-mdd-ronda-financiacion/",
+  "source_name": "EL CEO",
+  "published_date": "2026-11-05",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "London",
+  "hq_country": "GB",
+  "published_at": null
+ },
+ "cost_usd": 0.02464,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.015465,
+  "openai/gpt-4o": 0.009175000000000003
+ },
+ "evidence_url": "https://elceo.com/negocios/revolut-valuacion-115000-mdd-ronda-financiacion/",
+ "evidence_chars": 9502,
+ "action": "reject",
+ "correction": null,
+ "note": "two-model adjudication of amount/acfa0ce5fceb39eb5a2acba55e7aaa6c, both referees say reject. anthropic/claude-sonnet-4.5: The source states \"Revolut alcanzó una valuación de 115,000 millones de dólares tras cerrar una nueva ronda de financiación\" (Revolut reached a valuation of 115,000 million dollars after closing a new funding round). Thi; openai/gpt-4o: The source text states 'Revolut alcanzó una valuación de 115,000 millones de dólares tras cerrar una nueva ronda de financiación,' which indicates a valuation, not the amount raised. The article does not specify the actu",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-06T00:35:29+00:00"
+}
