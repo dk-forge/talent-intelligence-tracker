@@ -7,12 +7,12 @@ name: Prune Actions caches
 
 on:
   schedule:
-    - cron: '37 3 * * 0'   # Sundays 03:37 UTC
+    - cron: '37 3 * * *'   # daily 03:37 UTC (weekly was not enough, cache stayed at 100%)
   workflow_dispatch:
     inputs:
       max_age_days:
         description: Delete caches unused for more than this many days
-        default: '7'
+        default: '2'
 
 permissions:
   actions: write
@@ -30,7 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          MAX_AGE_DAYS: ${{ inputs.max_age_days || '7' }}
+          MAX_AGE_DAYS: ${{ inputs.max_age_days || '2' }}
         run: |
           python3 - <<'PY'
           import datetime as dt, json, os, urllib.request
