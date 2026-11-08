@@ -1,3 +1,15 @@
+## 2026-11-08 - Weekly accuracy benchmark: landmarks 14/20, 7/7 nightly collects green (docs only)
+
+**What.** Weekly benchmark (docs only, no code change). This repo's own benchmark is `check_landmarks.py`: 14 of 20 held, 6 standing gaps, 0 regressions (last report 2026-11-02, the live lens "not read"). Recall (`recall`, `recall_eu`, `recall_us`) is DEGRADED only because each gold set is stale (97, 63 and 94 days); assembling a new set is a human step by design, so no fix was attempted.
+
+| Date | Landmarks held | Prior | Top gap |
+|---|---|---|---|
+| 2026-11-08 | 14/20 | none recorded | 6 standing gaps, 0 regressions |
+
+**Last 7 nights (collect.yml, schedule):** 11-01 to 11-07 all success (10-31 failed). Signals captured per UTC day, 11-01 to 11-07: 267, 148, 156, 193, 366, 195, 304 (11-08 partial: 108). DEGRADED: only the three recall rows above; `gdelt` reports "FILES FAILED: 1" while OK. Spend: $1.49 of $8.00 for November after 8 days, projected $5.57. `limit_remaining` is a key reading and was not available to this session, so it is not reported. Stored-versus-found per night is not kept in a committed file here, so that column is unmeasured.
+**Not fixed:** nothing code-shaped led the misses; no PR for code this week.
+**Class:** measurement (docs only)
+
 ## 2026-10-29 - ops: daily security alerts mirror issue
 
 **Class:** novel (owner request: Claude sessions' token gets 403 on the alert APIs but can read issues)
