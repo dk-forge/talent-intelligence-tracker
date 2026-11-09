@@ -249,80 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-09T19:13:45Z",
-      "history": [
-        {
-          "at": "2026-11-09T19:13:41Z",
-          "detail": "unplaced-country batch 2026-10-19..2026-10-29 dry_run=false (owner-allowed tracker backfill)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-09T19:13:45Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-09T19:18:01Z",
-          "detail": "run 42681342355",
-          "event": "bound"
-        }
-      ],
-      "id": "20261109T191341Z-correct-unplaced-country",
-      "inputs": {
-        "dry_run": "false",
-        "since": "2026-10-19",
-        "until": "2026-10-29"
-      },
-      "priority": 0,
-      "reason": "unplaced-country batch 2026-10-19..2026-10-29 dry_run=false (owner-allowed tracker backfill)",
-      "requested_at": "2026-11-09T19:13:41Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42681342355",
-      "state": "dispatched",
-      "workflow": "correct-unplaced-country.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-01T19:43:49Z",
-      "history": [
-        {
-          "at": "2026-11-01T19:43:45Z",
-          "detail": "money figure contradictions (owner: fix money rows 2026-11-01)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-01T19:43:49Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-01T19:45:17Z",
-          "detail": "run 41343196761",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-01T19:45:17Z",
-          "detail": "run 41343196761",
-          "event": "landed"
-        }
-      ],
-      "id": "20261101T194345Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure",
-        "rows": "2d9b557d765c172693d64ae4bbdab9c2,5b398e3739f5e6fcd3a6c90b094f6eb3"
-      },
-      "landed_at": "2026-11-01T19:45:17Z",
-      "priority": 0,
-      "reason": "money figure contradictions (owner: fix money rows 2026-11-01)",
-      "requested_at": "2026-11-01T19:43:45Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "41343196761",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-02T00:53:52Z",
       "history": [
         {
@@ -2583,6 +2509,46 @@
       "requested_at": "2026-11-09T19:11:52Z",
       "requested_by": "dakotta-labs",
       "run_id": "42681050796",
+      "state": "landed",
+      "workflow": "correct-unplaced-country.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-09T19:13:45Z",
+      "history": [
+        {
+          "at": "2026-11-09T19:13:41Z",
+          "detail": "unplaced-country batch 2026-10-19..2026-10-29 dry_run=false (owner-allowed tracker backfill)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-09T19:13:45Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-09T19:18:01Z",
+          "detail": "run 42681342355",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-09T19:18:49Z",
+          "detail": "run 42681342355",
+          "event": "landed"
+        }
+      ],
+      "id": "20261109T191341Z-correct-unplaced-country",
+      "inputs": {
+        "dry_run": "false",
+        "since": "2026-10-19",
+        "until": "2026-10-29"
+      },
+      "landed_at": "2026-11-09T19:18:49Z",
+      "priority": 0,
+      "reason": "unplaced-country batch 2026-10-19..2026-10-29 dry_run=false (owner-allowed tracker backfill)",
+      "requested_at": "2026-11-09T19:13:41Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "42681342355",
       "state": "landed",
       "workflow": "correct-unplaced-country.yml"
     }
