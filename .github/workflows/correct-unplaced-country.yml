@@ -21,6 +21,14 @@ on:
         description: 'Report what would change and write nothing'
         type: boolean
         default: true
+      since:
+        description: 'Earliest published_date to examine (YYYY-MM-DD); blank keeps the script default'
+        required: false
+        default: ''
+      until:
+        description: 'Latest published_date to examine (YYYY-MM-DD); blank keeps the script default'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -38,8 +46,9 @@ concurrency:
 jobs:
   correct:
     runs-on: [self-hosted, linux, contabo]
-    # 58 rows measured, one /correct request each, plus the host's retry pauses.
-    timeout-minutes: 30
+    # Batches of up to ~100 rows (--since/--until), one /correct request each,
+    # plus the host's retry pauses.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -51,6 +60,8 @@ jobs:
         env:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
+          SINCE: ${{ inputs.since }}
+          UNTIL: ${{ inputs.until }}
         run: |
           set -o pipefail
           # The script writes ONLY with --apply, and this is the only place it
@@ -60,7 +71,12 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
           # No `|| true`: a refused shape or a plugin that cannot accept the
           # fields must fail the run, not pass quietly.
-          python correct_unplaced_country.py $ARGS
+          # The window arrives through the environment, never interpolated
+          # into the shell; a blank input keeps the script's own default.
+          WINDOW=()
+          if [ -n "$SINCE" ]; then WINDOW+=(--since "$SINCE"); fi
+          if [ -n "$UNTIL" ]; then WINDOW+=(--until "$UNTIL"); fi
+          python correct_unplaced_country.py $ARGS "${WINDOW[@]}"
 
       - name: Commit the database
         if: ${{ inputs.dry_run != true }}

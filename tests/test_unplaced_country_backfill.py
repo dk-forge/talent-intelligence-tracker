@@ -203,3 +203,24 @@ def test_dry_run_writes_nothing(conn, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "'ID'" in out and "publisher=ID" in out and "language=ID" in out
     assert live(conn, signal.signal_id)["country"] is None
+
+
+def test_the_workflow_passes_a_since_until_window_through_the_environment():
+    """Batched runs need --since/--until from the dispatch, never interpolated
+    into the shell, and an empty input must keep the script's own default."""
+    yaml = pytest.importorskip("yaml")
+    from pathlib import Path
+
+    wf = yaml.safe_load((Path(__file__).parent.parent
+                         / ".github/workflows/correct-unplaced-country.yml").read_text())
+    triggers = wf.get("on") or wf.get(True)
+    inputs = triggers["workflow_dispatch"]["inputs"]
+    assert inputs["dry_run"]["default"] is True
+    for name in ("since", "until"):
+        assert inputs[name]["required"] is False
+    step = next(s for job in wf["jobs"].values() for s in job.get("steps", [])
+                if "correct_unplaced_country.py" in (s.get("run") or ""))
+    assert step["env"]["SINCE"] == "${{ inputs.since }}"
+    assert step["env"]["UNTIL"] == "${{ inputs.until }}"
+    assert "inputs.since" not in step["run"] and "inputs.until" not in step["run"]
+    assert '--since "$SINCE"' in step["run"] and '--until "$UNTIL"' in step["run"]
