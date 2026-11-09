@@ -1,0 +1,424 @@
+{
+ "ran_at": "2026-11-09T08:21:09+01:00",
+ "ran_on": "2026-11-09",
+ "plan": {
+  "cycle": 626,
+  "planned_on": "2026-11-09",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-02 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "SN",
+    "name": "Senegal",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "SV",
+    "name": "El Salvador",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "UA",
+    "name": "Ukraine",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "DE",
+    "name": "Germany",
+    "tier": "covered",
+    "measured": {
+     "total": 2,
+     "held": 1,
+     "held_pct": 50.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "SN",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "SV",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "UA",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "DE",
+   "tier": "covered",
+   "measured": {
+    "total": 2,
+    "held": 1,
+    "held_pct": 50.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 11,
+  "held": 6,
+  "missing": 5,
+  "unusable": 0,
+  "usable": 11
+ },
+ "by_country": {
+  "DE": {
+   "leads": 5,
+   "held": 3,
+   "missing": 2,
+   "unusable": 0
+  },
+  "SN": {
+   "leads": 2,
+   "held": 0,
+   "missing": 2,
+   "unusable": 0
+  },
+  "UA": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  },
+  "ES": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0223,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.002,
+  "usd_per_candidate_miss": 0.0045,
+  "lifetime_usd": 0.8635,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:SN",
+   "leads": 2,
+   "usd": 0.00553,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 191,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:SV",
+   "leads": 2,
+   "usd": 0.00551,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 176,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:UA",
+   "leads": 3,
+   "usd": 0.00554,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 208,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:DE",
+   "leads": 5,
+   "usd": 0.00574,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 404,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "SN",
+   "dimension_tier": "zero",
+   "claimed_company": "SORAM Afrique",
+   "claimed_country": "SN",
+   "claimed_city": "Dakar",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-09-30",
+   "claimed_amount": "$1.36 million",
+   "claimed_stage": "",
+   "claimed_outlet": "African-Startups",
+   "claimed_url": "https://african-startups.com/countries/senegal/saviu-backs-senegals-soram-afrique-in-1-36-million-marking-its-first-climate-tech-investment/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SN",
+   "dimension_tier": "zero",
+   "claimed_company": "PETROSEN Holding SA",
+   "claimed_country": "SN",
+   "claimed_city": "Dakar",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-07-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Pr\u00e9sidence du S\u00e9n\u00e9gal",
+   "claimed_url": "https://www.presidence.sn/en/actualites/communique-of-the-council-of-ministers-of-1-july-2026/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SV",
+   "dimension_tier": "zero",
+   "claimed_company": "Cox",
+   "claimed_country": "ES",
+   "claimed_city": "Madrid",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "$2.9 billion",
+   "claimed_stage": "",
+   "claimed_outlet": "Dinero",
+   "claimed_url": "https://dinero.com.sv/en/economy/el-salvador-signs-2-9-billion-investment-agreement-with-grupo-cox-for-energy-and-potable-water/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "fb15d8d8cf72b0d0301b106dc6f0ce1b",
+    "company": "Cox",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-11",
+    "source_url": "https://www.economiadigital.es/andalucia/empresas/cox-capta-800-millones-dolares-emision-capital-hibrido.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "UA",
+   "dimension_tier": "zero",
+   "claimed_company": "Uforce",
+   "claimed_country": "UA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-18",
+   "claimed_amount": "$50m",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Bad Ideas Fund",
+   "claimed_url": "https://badideas.fund/reports/cee-startup-funding/q3-2026",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "UA",
+   "dimension_tier": "zero",
+   "claimed_company": "Buntar Aerospace",
+   "claimed_country": "UA",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-29",
+   "claimed_amount": "\u20ac14M",
+   "claimed_stage": "",
+   "claimed_outlet": "Tech.eu Funding Explorer",
+   "claimed_url": "https://funding.tech.eu/geographies/ukraine/2026",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "24af9ba736fe58c75ea849298305a7d4",
+    "company": "Buntar Aerospace",
+    "pillar": "company_development",
+    "country": "UA",
+    "published_date": "2026-10-05",
+    "source_url": "https://www.therecursive.com/ukraines-buntar-aerospace-raises-eur14-3m-for-drones-built-to-operate-without-gps/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "UA",
+   "dimension_tier": "zero",
+   "claimed_company": "Preply",
+   "claimed_country": "UA",
+   "claimed_city": "Kyiv",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-18",
+   "claimed_amount": "\u20ac136m",
+   "claimed_stage": "series_d",
+   "claimed_outlet": "Bad Ideas Fund",
+   "claimed_url": "https://badideas.fund/reports/cee-startup-funding/q3-2026",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "95286d332b90a9df1d3f9dd094d896ad",
+    "company": "Preply",
+    "pillar": "company_development",
+    "country": "GB",
+    "published_date": "2026-10-10",
+    "source_url": "https://jobs.ashbyhq.com/preply"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DE",
+   "dimension_tier": "covered",
+   "claimed_company": "Quint Computing",
+   "claimed_country": "DE",
+   "claimed_city": "Erlangen",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-03",
+   "claimed_amount": "\u20ac9.1M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "sesamers",
+   "claimed_url": "https://www.sesamers.com/funding/quint-computing-raises-9-1m-quantum-error-correction/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DE",
+   "dimension_tier": "covered",
+   "claimed_company": "Hypersonica",
+   "claimed_country": "DE",
+   "claimed_city": "Munich",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-02",
+   "claimed_amount": "\u20ac100M",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "sesamers",
+   "claimed_url": "https://www.sesamers.com/funding/hypersonica-raises-100m-series-b-hypersonic-deep-strike/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "e7dedf227561208f3f77a5c385140b2c",
+    "company": "Hypersonica",
+    "pillar": "company_development",
+    "country": "DE",
+    "published_date": "2026-11-02",
+    "source_url": "https://www.tectonicdefense.com/hypersonica-raises-e100m-series-b-for-european-deep-strike/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DE",
+   "dimension_tier": "covered",
+   "claimed_company": "Conlio",
+   "claimed_country": "DE",
+   "claimed_city": "Berlin",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-03",
+   "claimed_amount": "\u20ac6.4M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Deal Origination DACH",
+   "claimed_url": "https://dealorigination.de/en/deals/conlio-piton-capital-2026-11",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3a42e33b2fc2186c36c31606b23c19a8",
+    "company": "Conlio",
+    "pillar": "company_development",
+    "country": "DE",
+    "published_date": "2026-11-03",
+    "source_url": "https://www.startbase.com/news/conlio-erhaelt-64-millionen-euro-fuer-ki-gestuetzte-finanzprozesse-in-der-logistik/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DE",
+   "dimension_tier": "covered",
+   "claimed_company": "Marble Imaging",
+   "claimed_country": "DE",
+   "claimed_city": "Bremen",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-09",
+   "claimed_amount": "\u20ac6M",
+   "claimed_stage": "",
+   "claimed_outlet": "Tech Funding News",
+   "claimed_url": "https://techfundingnews.com/marble-imaging-6m-sovereign-satellite-imagery-spacex-launch/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "ff16310a7572db3fb7a6755f948940e3",
+    "company": "Marble",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-09-29",
+    "source_url": "https://thenextweb.com/news/marble-raises-6-5m-series-a-smartfin-aml"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DE",
+   "dimension_tier": "covered",
+   "claimed_company": "StrollMe",
+   "claimed_country": "DE",
+   "claimed_city": "Frankfurt",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-29",
+   "claimed_amount": "\u20ac22M",
+   "claimed_stage": "",
+   "claimed_outlet": "Europreneurs Media",
+   "claimed_url": "https://europreneursmedia.com/news/strollme-raises-22m-equity-debt-kids-mobility-subscription/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
