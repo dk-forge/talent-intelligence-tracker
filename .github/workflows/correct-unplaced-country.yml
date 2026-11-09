@@ -1,0 +1,80 @@
+name: correct-unplaced-country
+
+# Give a country to the rows written before pipeline/place_fallback.py (PR
+# #311), with the SAME decision build_signal now makes: two independent signals
+# agree and nothing on the row disagrees. One signal alone never places a row.
+# See correct_unplaced_country.py; the dry run lists every row, the chosen
+# country and its signals, and every row left blank with its reason.
+#
+# country is not an input to content_hash, so the site is corrected IN PLACE
+# through /correct (country and region are in tit_correctable_columns()), then
+# the revision is appended locally. Same path as correct-city-country.
+#
+# Queue it, never dispatch it:
+#   gh workflow run drain-writers.yml -f enqueue=correct-unplaced-country.yml \
+#     -f inputs_json='{"dry_run":"false"}' -f reason='why'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # correct-company-key.yml, correct-sec-pillar.yml, retract.yml and the
+  # backfills.
+  group: talent-collect
+  # It corrects the live site and then appends the revision that records it. A
+  # run cancelled between those two steps is resumed cleanly by the next one:
+  # but only if it is allowed to finish rather than being killed by a dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: [self-hosted, linux, contabo]
+    # 58 rows measured, one /correct request each, plus the host's retry pauses.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --require-hashes -r $GITHUB_WORKSPACE/requirements.lock
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          # The script writes ONLY with --apply, and this is the only place it
+          # can be passed: the input defaults to true, so a dispatch that says
+          # nothing is a dry run rather than a live edit of published rows.
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "false" ]; then ARGS="--apply"; fi
+          # No `|| true`: a refused shape or a plugin that cannot accept the
+          # fields must fail the run, not pass quietly.
+          python correct_unplaced_country.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db data/talent_intel_cache.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+          git commit -m "data: backfill country on unplaced rows (place_fallback) $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Rebase rather than reset-and-merge, matching the other correction
+          # workflows: this appends revisions and rebasing keeps both
+          # sides, while a force push would discard whatever landed meanwhile.
+          git pull --rebase --autostash origin main
+          git push

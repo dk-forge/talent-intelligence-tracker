@@ -64,6 +64,7 @@ on:
       - correct-money-basis
       - correct-sec-filer-name
       - correct-sec-pillar
+      - correct-unplaced-country
       - enrich
       - extraction-benchmark
       - link-check

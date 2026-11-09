@@ -1,3 +1,9 @@
+## 2026-11-09 - Country backfill for the rows written before place_fallback (PR #311)
+
+**What.** PR #311 placed new unplaced rows only where two independent signals agree, and said no tested writer existed for the rows already stored. `correct_unplaced_country.py` + `correct-unplaced-country.yml` (dry run by default, queued through drain-writers) re-issue them with the SAME call, `place_fallback.decide`, over the window #311 measured (published 2026-11-02..09): 449 blank, 58 placed, 391 left blank with a named reason (185 one signal only, 147 no signal, 57 signals disagree, 1 two countries in the headline, 1 agreeing pair the rule does not accept). The site is corrected in place through `/correct` (country, region), then `store.revise()` appends the revision; content_hash is asserted unchanged. Older unplaced rows (about 500 more the rule would place) are out of scope here: a wider window is a separate reviewed run with `--since`.
+**Guard:** `tests/test_unplaced_country_backfill.py` (+11; placing on the publisher alone fails 4 of them)
+**Class:** recurrence (a rule fixed forward with history left behind)
+
 ## 2026-11-08 - Weekly accuracy benchmark: landmarks 14/20, 7/7 nightly collects green (docs only)
 
 **What.** Weekly benchmark (docs only, no code change). This repo's own benchmark is `check_landmarks.py`: 14 of 20 held, 6 standing gaps, 0 regressions (last report 2026-11-02, the live lens "not read"). Recall (`recall`, `recall_eu`, `recall_us`) is DEGRADED only because each gold set is stale (97, 63 and 94 days); assembling a new set is a human step by design, so no fix was attempted.
