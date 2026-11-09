@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "correct-unplaced-country:main:eec07f7cbeb30ee5": {
-      "first": 1794251248,
-      "last": 1794251248,
-      "subject": "CI RED: correct-unplaced-country: FAILED 42101 Index.hu Informatikai Zrt.: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1794251302,
       "last": 1794251302,
@@ -46,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-09T19:08:22+00:00",
+  "updated_at": "2026-11-09T19:11:10+00:00",
   "version": 1
 }
