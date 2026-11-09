@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-09T18:53:47Z",
-  "last_tick": "2026-11-09T18:53:47Z",
+  "last_dispatch": "2026-11-09T18:55:36Z",
+  "last_tick": "2026-11-09T18:55:36Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,6 +247,35 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-09T18:55:36Z",
+      "history": [
+        {
+          "at": "2026-11-09T18:55:32Z",
+          "detail": "unplaced-country batch 2026-09-26..2026-10-07 dry_run=false (owner-allowed tracker backfill)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-09T18:55:36Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261109T185532Z-correct-unplaced-country",
+      "inputs": {
+        "dry_run": "false",
+        "since": "2026-09-26",
+        "until": "2026-10-07"
+      },
+      "priority": 0,
+      "reason": "unplaced-country batch 2026-09-26..2026-10-07 dry_run=false (owner-allowed tracker backfill)",
+      "requested_at": "2026-11-09T18:55:32Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "correct-unplaced-country.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-01T08:33:23Z",
