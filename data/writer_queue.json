@@ -246,78 +246,7 @@
       "workflow": "collect-structured"
     }
   ],
-  "red_marks": {
-    "ticket:20261109T183853Z-correct-unplaced-country": "2026-11-09T18:44:35Z",
-    "ticket:20261109T184515Z-correct-unplaced-country": "2026-11-09T18:48:20Z"
-  },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-09T18:48:58Z",
-      "history": [
-        {
-          "at": "2026-11-09T18:48:54Z",
-          "detail": "unplaced-country batch 2026-09-02..2026-09-25 dry_run=false (owner-allowed tracker backfill)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-09T18:48:58Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261109T184854Z-correct-unplaced-country",
-      "inputs": {
-        "dry_run": "false",
-        "since": "2026-09-02",
-        "until": "2026-09-25"
-      },
-      "priority": 0,
-      "reason": "unplaced-country batch 2026-09-02..2026-09-25 dry_run=false (owner-allowed tracker backfill)",
-      "requested_at": "2026-11-09T18:48:54Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-unplaced-country.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-01T00:50:53Z",
-      "history": [
-        {
-          "at": "2026-11-01T00:48:33Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-01T00:50:53Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-01T01:05:36Z",
-          "detail": "run 41258541754",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-01T01:17:53Z",
-          "detail": "run 41258541754",
-          "event": "landed"
-        }
-      ],
-      "id": "20261101T004833Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-01T01:17:53Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-01T00:48:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "41258541754",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-01T05:33:30Z",
@@ -2570,6 +2499,46 @@
       "requested_by": "dakotta-labs",
       "run_id": "42676827662",
       "state": "failed",
+      "workflow": "correct-unplaced-country.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-09T18:48:58Z",
+      "history": [
+        {
+          "at": "2026-11-09T18:48:54Z",
+          "detail": "unplaced-country batch 2026-09-02..2026-09-25 dry_run=false (owner-allowed tracker backfill)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-09T18:48:58Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-09T18:53:01Z",
+          "detail": "run 42677403140",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-09T18:53:01Z",
+          "detail": "run 42677403140",
+          "event": "landed"
+        }
+      ],
+      "id": "20261109T184854Z-correct-unplaced-country",
+      "inputs": {
+        "dry_run": "false",
+        "since": "2026-09-02",
+        "until": "2026-09-25"
+      },
+      "landed_at": "2026-11-09T18:53:01Z",
+      "priority": 0,
+      "reason": "unplaced-country batch 2026-09-02..2026-09-25 dry_run=false (owner-allowed tracker backfill)",
+      "requested_at": "2026-11-09T18:48:54Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "42677403140",
+      "state": "landed",
       "workflow": "correct-unplaced-country.yml"
     }
   ],
