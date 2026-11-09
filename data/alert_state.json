@@ -20,6 +20,11 @@
       "last": 1794249871,
       "subject": "CI RED: correct-unplaced-country: FAILED 37920 Belfius: HTTPSConnectionPool(host='asktherecruiter.com', port=443): Read timed out. (read timeout=30)"
     },
+    "correct-unplaced-country:main:be7ff75d6d944235": {
+      "first": 1794250095,
+      "last": 1794250095,
+      "subject": "CI RED: correct-unplaced-country: error: failed to push some refs to 'https://github.com/dk-forge/talent-intelligence-tracker'"
+    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1794249921,
       "last": 1794249921,
@@ -46,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-09T18:45:25+00:00",
+  "updated_at": "2026-11-09T18:48:16+00:00",
   "version": 1
 }
