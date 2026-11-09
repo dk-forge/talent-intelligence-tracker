@@ -20,6 +20,11 @@
       "last": 1794251248,
       "subject": "CI RED: correct-unplaced-country: FAILED 42101 Index.hu Informatikai Zrt.: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
     },
+    "drain-writers:main:2e81661ce7c364f0": {
+      "first": 1794251302,
+      "last": 1794251302,
+      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-09T19:07:29+00:00",
+  "updated_at": "2026-11-09T19:08:22+00:00",
   "version": 1
 }
