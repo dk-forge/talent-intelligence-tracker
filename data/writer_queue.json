@@ -246,77 +246,7 @@
       "workflow": "collect-structured"
     }
   ],
-  "red_marks": {
-    "ticket:20261109T190312Z-correct-unplaced-country": "2026-11-09T19:07:29Z"
-  },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-09T19:08:17Z",
-      "history": [
-        {
-          "at": "2026-11-09T19:08:13Z",
-          "detail": "unplaced-country batch 2026-10-08..2026-10-18 dry_run=false (owner-allowed tracker backfill)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-09T19:08:17Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261109T190813Z-correct-unplaced-country",
-      "inputs": {
-        "dry_run": "false",
-        "since": "2026-10-08",
-        "until": "2026-10-18"
-      },
-      "priority": 0,
-      "reason": "unplaced-country batch 2026-10-08..2026-10-18 dry_run=false (owner-allowed tracker backfill)",
-      "requested_at": "2026-11-09T19:08:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-unplaced-country.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-01T17:00:08Z",
-      "history": [
-        {
-          "at": "2026-11-01T16:37:57Z",
-          "detail": "PR #298: merge 'rio tinto' duplicate key (rio tinto alias)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-01T17:00:08Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-01T17:03:09Z",
-          "detail": "run 41329180124",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-01T17:03:09Z",
-          "detail": "run 41329180124",
-          "event": "landed"
-        }
-      ],
-      "id": "20261101T163757Z-correct-company-key",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-01T17:03:09Z",
-      "priority": 0,
-      "reason": "PR #298: merge 'rio tinto' duplicate key (rio tinto alias)",
-      "requested_at": "2026-11-01T16:37:57Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "41329180124",
-      "state": "landed",
-      "workflow": "correct-company-key.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-01T18:23:40Z",
@@ -2578,6 +2508,46 @@
       "requested_by": "dakotta-labs",
       "run_id": "42679641134",
       "state": "failed",
+      "workflow": "correct-unplaced-country.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-09T19:08:17Z",
+      "history": [
+        {
+          "at": "2026-11-09T19:08:13Z",
+          "detail": "unplaced-country batch 2026-10-08..2026-10-18 dry_run=false (owner-allowed tracker backfill)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-09T19:08:17Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-09T19:11:13Z",
+          "detail": "run 42680451732",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-09T19:11:13Z",
+          "detail": "run 42680451732",
+          "event": "landed"
+        }
+      ],
+      "id": "20261109T190813Z-correct-unplaced-country",
+      "inputs": {
+        "dry_run": "false",
+        "since": "2026-10-08",
+        "until": "2026-10-18"
+      },
+      "landed_at": "2026-11-09T19:11:13Z",
+      "priority": 0,
+      "reason": "unplaced-country batch 2026-10-08..2026-10-18 dry_run=false (owner-allowed tracker backfill)",
+      "requested_at": "2026-11-09T19:08:13Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "42680451732",
+      "state": "landed",
       "workflow": "correct-unplaced-country.yml"
     }
   ],
