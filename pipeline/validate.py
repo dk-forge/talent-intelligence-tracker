@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from . import capital_event, identity, money_raised, prefilter, vocab
+from . import capital_event, identity, language, money_raised, place_fallback, prefilter, vocab
 
 
 class Rejected(Exception):
@@ -751,6 +751,17 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         hq_city, _hq_region, hq_country = hq_hit
     else:
         hq_country = vocab.normalize_country(classified.get("headquarters_country", ""))
+
+    # Still unplaced: a rule-based country only where two independent signals
+    # agree and nothing on the row disagrees (pipeline/place_fallback.py says
+    # which, and why one alone is refused). Otherwise it stays NULL.
+    if not country:
+        source_headline = (raw.get("headline") or headline or "").strip()
+        country = place_fallback.decide(
+            source_url=source_url, headline=source_headline,
+            language=language.detect(source_headline)[0], hq_country=hq_country)
+        if country and not region:
+            region = _region_for_country(country)
 
     # Deliberately NOT a rejection. Geography is how this product segments, but
     # it is not what makes a record true: the credibility rules are the source
