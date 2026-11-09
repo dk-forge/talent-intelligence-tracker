@@ -17962,3 +17962,12 @@ The owner approved moving the read-through from `anthropic/claude-sonnet-5` to `
 **Guard:** `tests/test_readthrough_split.py::test_the_read_cap_defaults_to_400_tokens`.
 
 Eval run 42115680006 measured `anthropic/claude-sonnet-5.5` valid read-through replies at 84.6% with `max_tokens=200` and 93.9% with 400, for +5% cost. At 200 the misses were replies cut before the closing brace. `TIT_READ_MAX_TOKENS` default raised to 400. Revert: `TIT_READ_MAX_TOKENS=200`.
+
+## 2026-11-09 - Rule-based country for unplaced rows, two agreeing signals only
+
+**Class:** data-quality
+**Guard:** `tests/test_place_fallback.py`.
+
+The 9 Nov talent daily showed Austro Panel d.o.o. (biznisinfo.ba, "in BiH") and PhinCon (Indonesian headline on liputan6.com) with no country. `pipeline/place_fallback.py` now runs in `validate.build_signal` when the classifier left `country` blank. It does NOT overturn the 2026-09-02 refusal above: the ccTLD, a headline place and the language still never place a row on their own. A country is written only when the publisher's country (a National outlet in data/feeds.csv, else a real ccTLD, never .io/.ai/.co and the like) is corroborated by an exclusive headline language, a single country named in the headline, or the row's own hq_country; with no publisher country, only language and headline agreeing. Any contradiction (another country in the headline, a different hq_country or language) keeps it blank.
+
+Measured on the committed DB, rows published 2026-11-02..09: 449 current rows with no country; the rule would place 58 (both rows above among them) and leaves 391 blank: 216 with no place signal at all, 103 publisher country uncorroborated, 50 publisher contradicted by HQ, 18 one weak signal, 4 conflicting headline places. Existing rows are NOT backfilled: there is no tested writer for this class yet (correct_city_country.py accepts only its own shapes), so new rows only until one is queued.
