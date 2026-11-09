@@ -20,6 +20,11 @@
       "last": 1794249871,
       "subject": "CI RED: correct-unplaced-country: FAILED 37920 Belfius: HTTPSConnectionPool(host='asktherecruiter.com', port=443): Read timed out. (read timeout=30)"
     },
+    "drain-writers:main:2e81661ce7c364f0": {
+      "first": 1794249921,
+      "last": 1794249921,
+      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-09T18:44:32+00:00",
+  "updated_at": "2026-11-09T18:45:25+00:00",
   "version": 1
 }
