@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-11-09T19:13:45Z",
-  "last_tick": "2026-11-09T19:13:45Z",
+  "last_tick": "2026-11-09T19:18:01Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -260,6 +260,11 @@
           "at": "2026-11-09T19:13:45Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-11-09T19:18:01Z",
+          "detail": "run 42681342355",
+          "event": "bound"
         }
       ],
       "id": "20261109T191341Z-correct-unplaced-country",
@@ -272,7 +277,7 @@
       "reason": "unplaced-country batch 2026-10-19..2026-10-29 dry_run=false (owner-allowed tracker backfill)",
       "requested_at": "2026-11-09T19:13:41Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "42681342355",
       "state": "dispatched",
       "workflow": "correct-unplaced-country.yml"
     },
