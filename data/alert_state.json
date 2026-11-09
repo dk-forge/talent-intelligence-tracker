@@ -25,11 +25,6 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
-    "host-watch:main:94837b599753f8be": {
-      "first": 1794248793,
-      "last": 1794248793,
-      "subject": "CI RED: host-watch: no error line could be extracted from the log"
-    },
     "money-basis-check:main:dedcf2329403bf13": {
       "first": 1793774770,
       "last": 1793774770,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-09T18:33:55+00:00",
+  "updated_at": "2026-11-09T18:36:31+00:00",
   "version": 1
 }
