@@ -34,8 +34,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:24240b9ebeffafcb": {
+      "first": 1794340299,
+      "last": 1794340299,
+      "subject": "CI RED: tests: DevTools listening on ws://127.0.0.1:42919/devtools/browser/b281fabe-b689-4192-907e-111ca049b79d"
     }
   },
-  "updated_at": "2026-11-10T11:05:44+00:00",
+  "updated_at": "2026-11-10T19:51:40+00:00",
   "version": 1
 }
