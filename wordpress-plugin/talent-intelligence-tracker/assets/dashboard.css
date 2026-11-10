@@ -4393,3 +4393,9 @@ html:has(.tit-main), body:has(.tit-main) {
   background:var(--tit-co-brand-soft); border:1px solid var(--tit-line); }
 .tit-wrap.tit-company .tit-co-cta .tit-co-h2 { margin:0 0 6px; }
 .tit-wrap.tit-company .tit-co-cta p { margin:0 0 14px; color:var(--tit-fg); max-width:62ch; }
+
+/* The "Headcount Not Stated" fold (planFold / foldUnstated in dashboard.js). */
+.tit-cards-fold { list-style:none; margin:12px 0; }
+.tit-cards-fold-btn { font:inherit; min-height:44px; padding:8px 14px; cursor:pointer;
+  border:1px solid currentColor; border-radius:999px; background:transparent; color:inherit; }
+.tit-cards-fold-btn:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
