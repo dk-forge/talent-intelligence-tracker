@@ -25,10 +25,11 @@ def test_runs_daily():
 
 def test_least_privilege():
     assert _wf()["permissions"] == {"actions": "write"}
+    assert _wf()["jobs"]["prune"]["permissions"] == {"actions": "write", "contents": "read"}
 
 
 def test_age_limited_and_floor():
     text = WF.read_text()
     assert "MAX_AGE_DAYS: ${{ inputs.max_age_days || '2' }}" in text
-    assert "if days < 1:" in text
-    assert "if seen < cutoff:" in text
+    assert "TARGET_GB: ${{ inputs.target_gb || '7' }}" in text
+    assert "python3 cache_prune.py" in text
