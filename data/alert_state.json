@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "drain-writers:main:14d01716cd1bfa5c": {
+      "first": 1794307703,
+      "last": 1794307703,
+      "subject": "CI RED: drain-writers: RuntimeError: gh run list -L 200 --json databaseId,workflowName,status,conclusion,createdAt,updatedAt,event failed: failed to get runs: HTTP 403: API rate li"
+    },
     "drain-writers:main:cb4dffb8fd963d37": {
       "first": 1794306836,
       "last": 1794306836,
@@ -41,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-10T10:33:56+00:00",
+  "updated_at": "2026-11-10T10:48:24+00:00",
   "version": 1
 }
