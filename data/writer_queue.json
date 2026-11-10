@@ -249,71 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-10T08:07:34Z",
-      "history": [
-        {
-          "at": "2026-11-10T07:52:36Z",
-          "detail": "scheduled link hygiene (50 7 * * 2)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-10T08:07:34Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261110T075236Z-benchmark-diff",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (50 7 * * 2)",
-      "requested_at": "2026-11-10T07:52:36Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "benchmark-diff.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-02T09:47:57Z",
-      "history": [
-        {
-          "at": "2026-11-02T09:42:47Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-02T09:47:57Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-02T09:51:17Z",
-          "detail": "run 41423586559",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-02T09:51:17Z",
-          "detail": "run 41423586559",
-          "event": "landed"
-        }
-      ],
-      "id": "20261102T094247Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-02T09:51:17Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-11-02T09:42:47Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "41423586559",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-02T16:33:53Z",
       "history": [
         {
@@ -2582,6 +2517,44 @@
       "run_id": "42762884506",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-10T08:07:34Z",
+      "history": [
+        {
+          "at": "2026-11-10T07:52:36Z",
+          "detail": "scheduled link hygiene (50 7 * * 2)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-10T08:07:34Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-10T08:08:34Z",
+          "detail": "run 42780204854",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-10T08:08:34Z",
+          "detail": "run 42780204854",
+          "event": "landed"
+        }
+      ],
+      "id": "20261110T075236Z-benchmark-diff",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-10T08:08:34Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (50 7 * * 2)",
+      "requested_at": "2026-11-10T07:52:36Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "42780204854",
+      "state": "landed",
+      "workflow": "benchmark-diff.yml"
     }
   ],
   "version": 1
