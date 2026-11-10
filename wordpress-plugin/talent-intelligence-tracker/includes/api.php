@@ -943,6 +943,23 @@ function tit_public_response($data) {
  * maintained separately would drift, and a drifted sort name used to fall back
  * to "notable" without saying so.
  */
+/**
+ * The leading sort key of the default ("notable") order: updates that STATE
+ * headcount come first, a real number before a bare direction, and only then
+ * materiality and recency. Reach audit 2026-11-10: about nine in ten weekly
+ * updates are "Headcount Not Stated", so a first-time reader met almost
+ * nothing with a number in it. The not-stated rows are not dropped; the
+ * dashboard folds them behind a count (planFold in dashboard.js).
+ *
+ * One function so the server-rendered first paint (shortcodes.php) and
+ * /query's default sort cannot put the rows in two different orders.
+ */
+function tit_headcount_lead_sql() {
+    return "CASE WHEN headcount > 0 THEN 0"
+         . " WHEN signal_direction IN ('hiring', 'displacement') THEN 1"
+         . " ELSE 2 END ASC";
+}
+
 function tit_query_orders() {
 // A closed list, never interpolated from the request: this string goes
 // straight into the SQL, where $wpdb->prepare cannot help.
@@ -957,7 +974,7 @@ $material_rank = "CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1"
                . " WHEN 'routine' THEN 3 ELSE 2 END ASC";
 
 $orders = array(
-    'notable'  => "{$material_rank}, COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC",
+    'notable'  => tit_headcount_lead_sql() . ", {$material_rank}, COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC",
     'newest'   => 'COALESCE(published_date, DATE(captured_at)) DESC, row_id DESC',
     'oldest'   => 'COALESCE(published_date, DATE(captured_at)) ASC, row_id ASC',
     'largest'  => 'headcount DESC, COALESCE(published_date, DATE(captured_at)) DESC',

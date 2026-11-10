@@ -431,7 +431,8 @@ function tit_dashboard_facts($table) {
     $facts['place_caveat'] = tit_place_caveat($table, $base, array(),
                                               $facts['counts_by_country']);
 
-    // Materiality first, recency inside it, matching /query's default sort so
+    // Stated headcount first (tit_headcount_lead_sql), then materiality, then
+    // recency, matching /query's default sort so
     // the first paint and the first repaint cannot put the rows in a different
     // order. A stated headcount or a real funding amount outranks a bare
     // officer change; an unjudged row outranks a judged-routine one.
@@ -445,7 +446,8 @@ function tit_dashboard_facts($table) {
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
                 archive_url, collector, published_date, industry, funding_amount_usd, language
            FROM {$table} WHERE {$base}
-          ORDER BY CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
+          ORDER BY " . (function_exists('tit_headcount_lead_sql') ? tit_headcount_lead_sql() . ',' : '') . "
+                   CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
                                     WHEN 'routine' THEN 3 ELSE 2 END ASC,
                    {$date_expr} DESC, row_id DESC
           LIMIT " . TIT_DASH_ROWS,
@@ -5785,6 +5787,16 @@ function tit_enqueue_dashboard_assets($with_js = true) {
     // old rewritten copy and the deploy appears not to have landed.
     wp_enqueue_style('tit-dashboard', TIT_URL . 'assets/dashboard.css', array(),
         tit_asset_version('assets/dashboard.css'));
+    /* GA4 conversion events (digest signup, downloads, RSS, star, outbound
+       source click) through the site-wide Google tag Site Kit already prints.
+       Loads no tag of its own and sends no personal data: see the header of
+       assets/analytics.js. Enqueued even on routes that skip dashboard.js,
+       because the digest form and source links render there too. */
+    wp_enqueue_script('tit-analytics', TIT_URL . 'assets/analytics.js', array(),
+        tit_asset_version('assets/analytics.js'), true);
+    if (function_exists('wp_script_add_data')) {
+        wp_script_add_data('tit-analytics', 'strategy', 'defer');
+    }
     if (!$with_js) return;
     wp_enqueue_script('tit-dashboard', TIT_URL . 'assets/dashboard.js', array(),
         tit_asset_version('assets/dashboard.js'), true);
@@ -5816,13 +5828,13 @@ function tit_enqueue_dashboard_assets($with_js = true) {
     if (function_exists('wp_script_add_data')) {
         wp_script_add_data('tit-dashboard', 'strategy', 'defer');
     }
+    /* The country and state name maps are NOT repeated here. They ride on
+       #tit-dashboard as data-countries / data-states (one copy, the one the
+       Autoptimize fallback already needed), and dashboard.js reads them from
+       the element. Shipping both copies cost ~11 KB on every dashboard view
+       (reach audit 2026-11-10). */
     wp_localize_script('tit-dashboard', 'TIT', array(
         'api' => esc_url_raw(rest_url('talent/v1/')),
-        // The filtered rows are rendered in the browser, so it needs the same
-        // country names the server used. Two copies of this list would drift.
-        'countries' => tit_country_names(),
-        // And the same for US postal codes, which the state filter rendered raw.
-        'states' => tit_state_names(),
     ));
 }
 

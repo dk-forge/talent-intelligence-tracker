@@ -636,8 +636,18 @@ function check($condition, $message) {
  * is the crawlable copy of the chart, the row is internal linking. 476 of
  * headroom on the usual basis. The next addition raises this number and writes
  * down why.
+ *
+ * RAISED 192,800 -> 195,600 on 2026-11-10 (reach audit, owner-approved), for
+ * 2,367 measured bytes, and none of them is new markup. The first paint now
+ * leads with updates that STATE headcount (tit_headcount_lead_sql), so the
+ * fifty cards it prints are a different fifty, and the stated ones carry
+ * longer headlines and read-throughs than bare officer filings. Measured on
+ * the pinned clock: 192,662 with the old order, 195,029 with the new one.
+ * The same change takes the ~11 KB country/state name maps OUT of the inline
+ * `var TIT` (they ship once, on the element), which this markup-only budget
+ * does not see, so the live page gets lighter overall.
  */
-const TIT_DASH_BYTE_BUDGET = 192800;
+const TIT_DASH_BYTE_BUDGET = 195600;
 
 /*
  * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.
@@ -819,8 +829,8 @@ const TIT_DASH_BYTE_CLOCK = '2026-08-19';
  * 2,096 bytes of it is the `data-states` attribute on #tit-dashboard: the US
  * state filter rendered 51 bare postal codes as its option labels ("AK", "AL",
  * "AZ") while every other control on the page spells its values out, so the
- * name map has to reach the browser. It rides on a data- attribute AND on
- * wp_localize_script for the reason gotcha 10 exists: Autoptimize sweeps the
+ * name map has to reach the browser. It rides on a data- attribute (and, until
+ * 2026-11-10, a second copy on wp_localize_script) for the reason gotcha 10 exists: Autoptimize sweeps the
  * inline object into a bundle that loads after the script, and the attribute is
  * the copy that cannot be moved away from the element it describes. Paying it
  * once in markup is the price of the control working at all.

@@ -100,19 +100,19 @@
   // Bailing on that read is what made every control on the live page inert.
   var TIT = window.TIT;
   if (!TIT || !TIT.api) {
-    TIT = { api: root.getAttribute('data-api') || '', countries: {}, states: {} };
+    TIT = { api: root.getAttribute('data-api') || '' };
+  }
+  // The name maps ship ONCE, on the element (the localized object stopped
+  // repeating them in the reach pass of 2026-11-10 to cut page weight).
+  if (!TIT.countries) {
     try {
       TIT.countries = JSON.parse(root.getAttribute('data-countries') || '{}');
-    } catch (e) { /* names degrade to the raw country codes */ }
-    try {
-      TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
-    } catch (e) { /* names degrade to the raw postal codes */ }
+    } catch (e) { TIT.countries = {}; /* names degrade to the raw country codes */ }
   }
-  // The localized object may predate this attribute by one deploy.
   if (!TIT.states) {
     try {
       TIT.states = JSON.parse(root.getAttribute('data-states') || '{}');
-    } catch (e) { TIT.states = {}; }
+    } catch (e) { TIT.states = {}; /* names degrade to the raw postal codes */ }
   }
   // The pending-archive note, composed by the SERVER (the collectors the
   // schedule covers, plus the finished sentence with its derived next-check
@@ -3819,7 +3819,76 @@
   // Everything a fresh set of rows has to touch, in one place, so the cards,
   // the table, the stars and the watch badge can never disagree about which
   // rows arrived.
+  /*
+    HEADCOUNT LEADS, NOT-STATED FOLDS (reach audit 2026-11-10).
+
+    About nine in ten updates say nothing about headcount. The rows already
+    arrive stated-first (tit_headcount_lead_sql orders both the first paint
+    and /query); this folds the "Headcount Not Stated" cards behind one
+    button that says how many there are. Progressive: without JavaScript every
+    card shows, stated first. Never folds when NOTHING on the page states
+    headcount, because a list of zero visible cards reads as a broken page.
+
+    planFold is pure (direction keys in, indices out) so the rule is tested
+    on its own; foldUnstated is the thin DOM half.
+  */
+  function planFold(keys) {
+    var shown = [], folded = [];
+    keys.forEach(function (k, i) { (k === 'neutral' ? folded : shown).push(i); });
+    if (!shown.length) return { shown: folded, folded: [] };
+    return { shown: shown, folded: folded };
+  }
+
+  var foldOpen = false;
+  function foldUnstated() {
+    if (!tbody) return;
+    var old = tbody.querySelector('li.tit-cards-fold');
+    if (old) old.parentNode.removeChild(old);
+    var cards = Array.prototype.slice.call(tbody.querySelectorAll('li.tit-card'));
+    var plan = planFold(cards.map(function (li) {
+      var d = li.querySelector('.tit-card-dir');
+      return d && d.classList.contains('tit-neutral') ? 'neutral' : 'stated';
+    }));
+    cards.forEach(function (li) { li.classList.remove('tit-card-unstated'); li.hidden = false; });
+    // A shared link that opens one card must never land on a hidden one.
+    if (!plan.folded.length || expandedCard) return;
+    var lastShown = cards[plan.shown[plan.shown.length - 1]];
+    plan.folded.forEach(function (i) {
+      cards[i].classList.add('tit-card-unstated');
+      cards[i].hidden = !foldOpen;
+    });
+    var n = plan.folded.length;
+    var li = document.createElement('li');
+    li.className = 'tit-cards-fold';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tit-cards-fold-btn';
+    function label() {
+      btn.setAttribute('aria-expanded', foldOpen ? 'true' : 'false');
+      btn.textContent = (foldOpen ? 'Hide ' : 'Show ') + n +
+        (n === 1 ? ' update' : ' updates') + ' marked Headcount Not Stated';
+    }
+    label();
+    btn.addEventListener('click', function () {
+      foldOpen = !foldOpen;
+      Array.prototype.forEach.call(tbody.querySelectorAll('li.tit-card-unstated'), function (c) {
+        c.hidden = !foldOpen;
+      });
+      label();
+    });
+    li.appendChild(btn);
+    // The button sits right after the last stated card, and the folded cards
+    // move below it, so opening it reveals them where the reader is looking.
+    lastShown.parentNode.insertBefore(li, lastShown.nextSibling);
+    var at = li;
+    plan.folded.forEach(function (i) {
+      at.parentNode.insertBefore(cards[i], at.nextSibling);
+      at = cards[i];
+    });
+  }
+
   function afterRowsPaint() {
+    foldUnstated();
     decorateCards();
     if (viewMode === 'table') renderTable();
     paintWatch();
@@ -4190,6 +4259,7 @@
   // remembered view may need a fetch (only when no shared link already
   // triggered one; afterRowsPaint() covers that path), and the watch chip
   // reveals itself only when storage is real.
+  foldUnstated();
   paintWatch();
   if (viewMode === 'table') setView('table', !location.search);
 })();
