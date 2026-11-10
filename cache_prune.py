@@ -66,6 +66,14 @@ def main():
         if len(batch) < 100:
             break
         page += 1
+    groups = {}
+    for c in caches:
+        g = groups.setdefault((c.get("ref"), key_prefix(c["key"])), [0, 0, c["key"]])
+        g[0] += 1
+        g[1] += c.get("size_in_bytes", 0)
+    print(f"{len(groups)} (ref, prefix) groups; largest:")
+    for (ref, pre), (n, size, sample) in sorted(groups.items(), key=lambda kv: -kv[1][1])[:15]:
+        print(f"  {size/GB:6.2f} GB  {n:4d}  {ref}  {pre}  e.g. {sample}")
     before = sum(c.get("size_in_bytes", 0) for c in caches)
     doomed = select_deletions(caches, now=dt.datetime.now(dt.timezone.utc),
                               max_age_days=days, target_bytes=target, default_ref=default_ref)
