@@ -74,9 +74,20 @@ DIGEST_NAME = "health_digest"
 MEASUREMENT_ONLY = {"tripwire", "link_check", "archive_sources"}
 try:
     from analysis.recall import family as _recall_families
-    MEASUREMENT_ONLY |= {f.health_source for f in _recall_families.ALL}
+    RECALL_SOURCES = {f.health_source: f.id for f in _recall_families.ALL}
 except Exception:                              # pragma: no cover - import guard
-    MEASUREMENT_ONLY |= {"recall", "recall_us", "recall_eu"}
+    RECALL_SOURCES = {"recall": "world", "recall_us": "us", "recall_eu": "eu"}
+MEASUREMENT_ONLY |= set(RECALL_SOURCES)
+
+# A degraded recall entry is a MEASUREMENT asking for a human, never a broken
+# scraper, and it gets its own subject and its own paste-ready line. From
+# 2026-09-07 to 2026-11-09 the digest filed all three under "collector(s) need
+# attention" and told the reader to "open its file in collectors/ ... and fix
+# the parser". No such file exists: the run had correctly marked its reference
+# set as aged out, and assembling a replacement is a human step by design. An
+# instruction that points at nothing is how a true alarm reads as noise for two
+# months. tests/test_digest_recall_is_not_a_collector.py holds this.
+GOLDSET_DUE_MARK = "new gold set due"
 
 # Statuses that are not an incident. "retired"/"disabled" are deliberate stops,
 # so their old timestamp is expected and must not read as staleness either.
@@ -450,10 +461,14 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
     guardrails = guardrails or []
     landmark_regressions = (landmarks or {}).get("regressions") or 0
     stale = buckets["stale"]
-    degraded = buckets["degraded"]
+    measurements = [d for d in buckets["degraded"] if d[0] in RECALL_SOURCES]
+    degraded = [d for d in buckets["degraded"] if d[0] not in RECALL_SOURCES]
     unknown = buckets["unknown_age"]
     names = ([n for n, _, _ in stale] + [n for n, _, _ in degraded]
              + [n for n, _ in unknown])
+    recall_names = [n for n, _, _ in measurements]
+    all_goldset_due = bool(measurements) and all(
+        GOLDSET_DUE_MARK in (detail or "") for _, _, detail in measurements)
 
     if stopped:
         subject = "Pipeline may have stopped: no collect in %s" % (
@@ -497,6 +512,10 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
     elif names:
         subject = "%d collector(s) need attention: %s" % (
             len(names), ", ".join(names[:4]))
+    elif recall_names:
+        subject = ("Fresh recall gold set(s) due: %s" if all_goldset_due
+                   else "Recall measurement needs a human: %s") % (
+            ", ".join(recall_names))
     elif spend and spend.get("at_ceiling"):
         subject = "LLM spend has reached the monthly ceiling"
     elif archive_stalled:
@@ -628,6 +647,9 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
     for name, status in unknown:
         lines.append("NO TIMESTAMP: %s reports status %s with no readable "
                      "run time." % (name, status or "unknown"))
+    for name, status, detail in measurements:
+        lines.append("RECALL MEASUREMENT: %s is %s. Not a collector: the "
+                     "measurement ran. %s" % (name, status, detail[:200]))
 
     if spend:
         if spend.get("error"):
@@ -740,6 +762,24 @@ def build_email(buckets: dict, stopped: bool, newest_hours, spend: dict | None,
             'recording, read what Wayback actually answered before changing any '
             'budget: a throttle is not a refusal and raising spn_max makes it '
             'worse."')
+
+    if measurements:
+        families_due = [RECALL_SOURCES[n] for n in recall_names]
+        lines.append(
+            '  "The health digest says recall needs a human for: %s. These are '
+            'measurements, not collectors, so there is no scraper to fix. For '
+            'each family run %s and read next_goldset.suggested_window in its '
+            'data/recall*_worklist.json. If a fresh gold set is due, it is '
+            'assembled by hand from public sources without consulting our own '
+            'database, must pass REQUIRED_SHAPE in analysis/recall/goldset.py '
+            '(US_REQUIRED_SHAPE for the US family), and lands as a new versioned '
+            'goldset file in that family\'s directory; never edit or reuse the '
+            'old one. If a quality gate FAILED instead, read the newest file in '
+            'that family\'s results/ and tell me what moved before changing a '
+            'threshold."'
+            % (", ".join(recall_names),
+               ", ".join("python measure_recall.py --family %s --check" % f
+                         for f in families_due)))
 
     # LANDMARKS is reported EVERY time, for the same reason SOURCE LINKS is:
     # it is supposed to move, and a number that only appears once it is already
