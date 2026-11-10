@@ -28,6 +28,22 @@ def _ids(caches, **kw):
 def test_key_prefix_drops_hash_suffix():
     assert key_prefix("pip-Linux-3f2a9c") == "pip-Linux"
     assert key_prefix("plain") == "plain"
+    assert key_prefix("classifier-eval-v1") == "classifier-eval-v1"
+
+
+def test_key_prefix_drops_codeql_sha_run_attempt():
+    # 2026-11-10 run: 282 caches, 282 prefixes, 0 deleted. CodeQL keys end in
+    # -<commit sha>-<run id>-<attempt>; each must share one prefix.
+    k = ("codeql-overlay-base-database-1-d953d79b74456ce0-python-2.27.4-"
+         "2da5cadea20c8b4430ce6432a70e42a7d9c2db7e-42679859563-1")
+    assert key_prefix(k) == "codeql-overlay-base-database-1-d953d79b74456ce0-python-2.27.4"
+
+
+def test_codeql_caches_trim_to_target():
+    cs = [_c(i, f"codeql-db-python-2.27.4-{i:040x}-4267985{i:04d}-1", i * 0.01, 0.1)
+          for i in range(100)]
+    got = _ids(cs)
+    assert 0 not in got and len(got) == 30
 
 
 def test_age_rule_kept():
@@ -45,7 +61,7 @@ def test_trims_lru_to_size_target():
 
 
 def test_protects_newest_main_cache_per_prefix():
-    cs = [_c(1, "pip-Linux-old", 1.0, 4.0), _c(2, "pip-Linux-new", 0.5, 4.0),
+    cs = [_c(1, "pip-Linux-aaa111", 1.0, 4.0), _c(2, "pip-Linux-bbb222", 0.5, 4.0),
           _c(3, "npm-Linux-x", 1.9, 3.0)]
     # 11 GB; candidates: only id 1 (2 and 3 are newest of their prefix on main)
     assert _ids(cs) == {1}

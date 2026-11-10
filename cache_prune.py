@@ -8,14 +8,26 @@ target (default 7 GB) sits under the 80% amber line of the 10 GB cap.
 import datetime as dt
 import json
 import os
+import re
 import urllib.request
 
 GB = 10**9
 
 
+_VOLATILE = re.compile(r"^(\d+|[0-9a-f]{6,})$")
+
+
 def key_prefix(key):
-    """Cache key without its trailing hash segment ('pip-Linux-abc' -> 'pip-Linux')."""
-    return key.rsplit("-", 1)[0] if "-" in key else key
+    """Cache key without its trailing hash/number segments.
+
+    'pip-Linux-abc123' -> 'pip-Linux'; CodeQL's '...-2.27.4-<sha>-<run id>-1'
+    -> '...-2.27.4' (stripping only the last segment gave every CodeQL cache
+    its own prefix, so all were protected and nothing was freed, 2026-11-10).
+    """
+    parts = key.split("-")
+    while len(parts) > 1 and _VOLATILE.match(parts[-1]):
+        parts.pop()
+    return "-".join(parts)
 
 
 def _seen(c):
@@ -72,7 +84,7 @@ def main():
         g[0] += 1
         g[1] += c.get("size_in_bytes", 0)
     print(f"{len(groups)} (ref, prefix) groups; largest:")
-    for (ref, pre), (n, size, sample) in sorted(groups.items(), key=lambda kv: -kv[1][1])[:15]:
+    for (ref, pre), (n, size, sample) in sorted(groups.items(), key=lambda kv: -kv[1][1])[:8]:
         print(f"  {size/GB:6.2f} GB  {n:4d}  {ref}  {pre}  e.g. {sample}")
     before = sum(c.get("size_in_bytes", 0) for c in caches)
     doomed = select_deletions(caches, now=dt.datetime.now(dt.timezone.utc),
