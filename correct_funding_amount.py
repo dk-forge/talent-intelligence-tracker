@@ -139,6 +139,14 @@ CLEAR_NOTE = ("funding_amount_usd removed: the parser no longer reads a figure "
               "read is left out rather than guessed at")
 
 
+#: What adjudicate_guardrail.apply_decision writes as the revision note when the
+#: referees (or the owner) settle a row's figure. The funding string is never
+#: edited, so a row whose string is a VALUATION still parses to the valuation:
+#: re-deriving it would undo the ruling (Mistral $3.5bn -> $24bn). A row whose
+#: history carries this note FOR ITS CURRENT STRING is the referees', not ours.
+ADJUDICATED_PREFIX = "funding figure adjudicated by"
+
+
 class Unsafe(RuntimeError):
     """The derivation would move more of the column than a person has agreed
     to. Never raised for one row: it is always a statement about the parser."""
@@ -152,10 +160,18 @@ def current_rows(conn) -> list[dict]:
     is not this pass's to invent an answer for.
     """
     conn.row_factory = sqlite3.Row
-    return [dict(r) for r in conn.execute(
+    ruled = {r[0] for r in conn.execute(
+        "SELECT DISTINCT a.signal_id FROM signals a JOIN signals c "
+        "  ON c.signal_id = a.signal_id AND c.is_current = 1 "
+        " WHERE substr(a.notes, 1, ?) = ? AND a.funding_amount = c.funding_amount",
+        (len(ADJUDICATED_PREFIX), ADJUDICATED_PREFIX))}
+    rows = [dict(r) for r in conn.execute(
         "SELECT * FROM signals WHERE is_current = 1 "
         "  AND funding_amount IS NOT NULL AND funding_amount <> '' "
         "ORDER BY row_id")]
+    for row in rows:
+        row["adjudicated"] = row["signal_id"] in ruled
+    return rows
 
 
 def _stored_usd(row: dict):
@@ -174,6 +190,8 @@ def rederivation(row: dict):
     printed table, the payload, the tests — reads this, so there is no second
     opinion about what "disagrees" means.
     """
+    if row.get("adjudicated"):
+        return None
     stored = _stored_usd(row)
     # Country-aware, the same function validate.build_signal calls, so a bare
     # '$' beside 'millones' on a Colombian row (pesos) is cleared here too.

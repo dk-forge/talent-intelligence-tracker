@@ -822,7 +822,7 @@ def apply_decision(conn, item: dict, action: str, correction: dict | None,
             push = push or correct_funding_amount.push_amount
             push(row, signal.funding_amount_usd)
         store.revise(conn, row["signal_id"], signal,
-                     f"funding figure adjudicated by {who}: {note[:400]}")
+                     f"{correct_funding_amount.ADJUDICATED_PREFIX} {who}: {note[:400]}")
         if row.get("published_at"):
             conn.execute(
                 "UPDATE signals SET published_at = ? WHERE signal_id = ? AND is_current = 1",
