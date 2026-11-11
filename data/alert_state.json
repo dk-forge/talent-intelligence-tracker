@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-structured:main:8889e80114d99bba": {
-      "first": 1794369834,
-      "last": 1794369834,
-      "subject": "CI RED: collect-structured: [opendart_korea] FETCH FAILED: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-11T04:03:56+00:00",
+  "updated_at": "2026-11-11T09:18:22+00:00",
   "version": 1
 }
