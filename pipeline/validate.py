@@ -14,7 +14,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from . import capital_event, identity, language, money_raised, place_fallback, prefilter, vocab
+from . import (capital_event, identity, language, money_raised, place_fallback,
+               planned_hiring, prefilter, vocab)
 
 
 class Rejected(Exception):
@@ -956,6 +957,18 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # opening with no stated roles stays 'neutral' and the page still says
     # "headcount not stated", which is the true thing to say about it.
     site_event = vocab.normalize_site_event(classified.get("site_event", "") or "")
+
+    # A state job-creation incentive award (collectors/state_incentives.py) is
+    # a PROMISE of hiring, stored under its own site_event and headcount_scope
+    # and judged as state money. Only that collector may write these values;
+    # pipeline/planned_hiring.py keeps the rows off every public output until
+    # PLANNED_HIRING_ENABLED is on.
+    if collector in planned_hiring.COLLECTORS:
+        site_event = planned_hiring.SITE_EVENT
+        headcount_scope = (planned_hiring.HEADCOUNT_SCOPE
+                           if headcount is not None else None)
+        basis = money_raised.STATE_FUNDING
+        deal_type = deal_type or money_raised.STATE_FUNDING
 
     # Employer identity, and the join key to the sibling layoff tracker.
     # company_key is a normalised name and collapses whenever two employers
