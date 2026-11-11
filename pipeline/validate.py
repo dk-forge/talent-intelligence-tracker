@@ -911,6 +911,17 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         # money", which is the ordinary case for four rows in five.
         basis = None
 
+    # A VALUATION IS NOT A RAISE (2026-11-11). "Kalepa is valued at $470
+    # million in a new funding round" is a real round with an undisclosed
+    # raise; the $470M is the company's price. Null the figure, exactly as
+    # capital_event does for a bond: it is not money anyone raised. Only a
+    # raise is judged; "a donation valued at $250M" is not a company's price.
+    if basis == money_raised.COMPANY_RAISE and money_raised.figure_is_valuation(
+            funding_usd, headline, summary, raw_text):
+        funding = None
+        funding_usd = None
+        basis = None
+
     # What the employer did with a place of work, when the source says so.
     # Treated exactly like deal_type and for the same reason: it is an event
     # type, not a headcount claim, so it never touches signal_direction. An
