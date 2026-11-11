@@ -866,6 +866,15 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
             funding_stage = None
             deal_type = deal_type or kind
 
+    # A VALUATION IS NOT A RAISE (2026-11-11). "Kalepa is valued at $470
+    # million in a new funding round" is a real round with an undisclosed
+    # raise; the $470M is the company's price. Null the figure, exactly as
+    # capital_event does for a bond: it is not money anyone raised.
+    if funding_usd is not None and money_raised.figure_is_valuation(
+            funding_usd, headline, summary, raw_text):
+        funding = None
+        funding_usd = None
+
     # AND THEN THE OTHER QUESTION, which is not "what instrument is this" but
     # "is the named employer raising money at all".
     #

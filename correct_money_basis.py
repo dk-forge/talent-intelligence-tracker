@@ -249,11 +249,7 @@ _AMOUNT_RUN = (r"(?:US\$|USD\s?|[$€£₹¥]|R\$)\s?\d[\d.,]*\s*"
 
 #: (label, pattern whose one group is the figure that is NOT a raise)
 FIGURE_CONTRADICTIONS = (
-    ("valuation", re.compile(
-        r"(?:valuation\s+of|valued\s+at|valuing\s+(?:it|the\s+company|\w+)\s+at|"
-        r"Bewertung\s+(?:von|bei\s+rund)|valorisation\s+de|valuación\s+de)\s+"
-        r"(?:about\s+|around\s+|over\s+|nearly\s+|more\s+than\s+|rund\s+)?(" + _AMOUNT_RUN + r")"
-        r"|(" + _AMOUNT_RUN + r")\s+(?:post-money\s+|pre-money\s+)?valuation\b", re.I)),
+    ("valuation", money_raised.VALUATION_FIGURE),
     ("project cost", re.compile(
         r"(" + _AMOUNT_RUN + r")\s+(?:\w+\s+){0,3}?(?:plant|factory|facility|facilities|campus|"
         r"data\s+cent(?:er|re)|logistics\s+(?:project|hub|cent(?:er|re))|"
@@ -271,17 +267,8 @@ FIGURE_CONTRADICTIONS = (
         r"|\b(?:revenue|ARR|backlog|bookings)\s+(?:of|to|at|surpassing|exceeding|above)\s+(" + _AMOUNT_RUN + r")", re.I)),
 )
 
-#: A figure the source attaches to a raise verb or a round name. A stored
-#: amount equal to one of these is a raise however many other numbers the
-#: sentence carries ("raises $65B at $965B valuation" is $65B raised).
-RAISE_FIGURE = re.compile(
-    r"\b(?:raise[sd]?|raising|secure[sd]?|land(?:s|ed)?|close[sd]?|closing|net(?:s|ted)?|"
-    r"bag(?:s|ged)?|attract(?:s|ed)?|garner(?:s|ed)?|receive[sd]?|wins?|won|gets?|got|"
-    r"levanta|capta|recauda|lève|sammelt)\s+"
-    r"(?:a\s+|an\s+|another\s+|over\s+|nearly\s+|about\s+|more\s+than\s+|up\s+to\s+|"
-    r"fresh\s+|new\s+|additional\s+|its\s+|a\s+further\s+)?(" + _AMOUNT_RUN + r")"
-    r"|(" + _AMOUNT_RUN + r")\s+(?:series\s+[a-k]|seed|pre[- ]?seed|funding|financing|"
-    r"investment\s+(?:from|led\s+by)|round|raise)\b", re.I)
+#: Shared with the write path (pipeline/money_raised.py) so the two agree.
+RAISE_FIGURE = money_raised.RAISE_FIGURE
 
 
 def _figures(pattern: re.Pattern, text: str) -> set[int]:
