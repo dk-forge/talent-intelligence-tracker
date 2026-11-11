@@ -25,17 +25,12 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
-    "merge-train:main:185a6c07edc6e5f0": {
-      "first": 1794422780,
-      "last": 1794422780,
-      "subject": "CI RED: Merge train: merge train could not complete: command failed (1): gh pr merge 327..."
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-11T18:46:21+00:00",
+  "updated_at": "2026-11-11T19:16:49+00:00",
   "version": 1
 }
