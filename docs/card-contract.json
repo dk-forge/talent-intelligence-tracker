@@ -1,6 +1,6 @@
 {
   "contract": "tracker-result-card",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "adopted": "2026-07-31",
   "byte_identical_in": [
     "dk-forge/ai-layoff-tracker:docs/card-contract.json",
@@ -67,9 +67,11 @@
     },
     "foot": {
       "suffix": "card-foot",
-      "reading_order": ["card-when", "card-src"],
+      "reading_order": ["card-when", "card-listed", "card-src"],
       "required_children": ["card-when", "card-src"],
+      "optional_children": ["card-listed"],
       "card-when": "The date the SOURCE carries, or the not-stated string. Rendered in a <time datetime> when there is a date.",
+      "card-listed": "When THIS TRACKER first listed the record, as 'First listed <date>' in a <time datetime>, beside and never instead of card-when. The layoff tracker reads created_at, the talent tracker reads captured_at. Omitted entirely when the product holds no first-listed time for the record (rows listed before the column existed): never guessed, never filled from the source date, never rendered as a not-stated string. Added in 1.1.0 (2026-11-11) so a reader citing a row can say when it appeared here, apart from when the source published it.",
       "card-src": "The publisher, as an outbound link with target=_blank and rel containing noopener. An archived copy may follow as a SECOND link, never instead."
     }
   },

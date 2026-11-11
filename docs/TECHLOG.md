@@ -5,6 +5,12 @@
 **Guard:** `tests/test_recall_goldset_issue.py` (+10)
 **Class:** recurrence (a true alarm with no channel a session reads)
 
+## 2026-11-11 - 1.114.0 every card says when the tracker first listed it
+
+**What.** Card contract 1.1.0 (byte-identical in ai-layoff-tracker) adds the optional foot slot `card-listed`: "First listed <date>" in a `<time class="tit-card-listed">`, between the source date (card-when) and the source link. Read from `captured_at`, which `tit_store_signal` writes once on insert and never on update, by its UTC date; until now it was visible only in the CSV export. Both renderers: `listedCell()` in dashboard.js and `tit_card_listed_date()` + the foot in `tit_card_html()`; the first-paint SELECT now carries `captured_at` (/query already did). A missing, empty or non-date `captured_at` prints nothing: never a guess, never `published_date` standing in. Markup budget 195,600 -> 199,600 (see render_dashboard.php).
+**Guard:** `tests/test_card_first_listed.py` (+14, node and php executed), `tests/test_card_contract.py`
+**Class:** novel (owner request)
+
 ## 2026-11-10 - Digest: a recall gold set falling due is a measurement finding, not a broken collector
 
 **What.** `recall`, `recall_us` and `recall_eu` have been `degraded` since 2026-09-07 (world, US) and 2026-09-21 (EU), weekly, not nightly and not since 2 Nov. Root cause: nothing broke. `analysis/recall/series.goldset_is_due` marked each reference set aged out (`GOLDSET_STALE_DAYS = 35`; the windows closed 104, 101 and 70 days ago) and the EU set had also plateaued at 24/46. The alarm was NOT silent: `health-digest.yml` mailed it every Monday (`alert delivery: sent` on 11-02 and 11-09). What was wrong was the email. It filed the three under "collector(s) need attention" and its paste-ready line said "open its file in collectors/ ... and fix the parser", which points at a file that does not exist. `health_digest.py` now routes any degraded recall family (derived from `analysis/recall/family.ALL` as `RECALL_SOURCES`) to its own subject ("Fresh recall gold set(s) due: ...") and its own instruction: `measure_recall.py --family <id> --check`, `next_goldset.suggested_window`, assembled by hand without consulting our own database, `REQUIRED_SHAPE`. A real collector still leads and its scraper line names only scrapers. No new alert was added, because one already fires weekly and a second would be the duplicate channel this repo is designed against.
@@ -8679,8 +8685,8 @@ cases fail on the tree before this change.
 ## THE RESULT CARD CONTRACT (canonical spec, shared with the sibling tracker)
 
 **Machine-readable copy:** `docs/card-contract.json`
-**sha256:** `5ce62ea8d11073b132af83696e222f0a2c4184fba646c5f0adcb9c06f7493af2`
-**Contract version:** 1.0.0, adopted 2026-07-31.
+**sha256:** `b37ccf2bcd7e460b5e25a4dc8fc9b290ed347ae59484faedd6b50d871db2f461`
+**Contract version:** 1.1.0 (1.0.0 adopted 2026-07-31; 1.1.0 on 2026-11-11 added the optional `card-listed` foot slot).
 
 That file is **byte-identical** in `dk-forge/ai-layoff-tracker` and
 `dk-forge/talent-intelligence-tracker`. This section and the section of the same
@@ -8734,6 +8740,7 @@ classes); the contract class must be present.
       <p class="{p}-card-rt">              our plain-English read, visually separated
       <div class="{p}-card-foot">
         <time class="{p}-card-when">       or "Date not stated" in {p}-card-nowhere
+        <time class="{p}-card-listed">     optional; "First listed <date>", ABSENT when the first-listed time is null
         <span class="{p}-card-src">        publisher, outbound; archived copy SECOND, never instead
       </div>
     </div>
