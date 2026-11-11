@@ -646,6 +646,30 @@ def precheck(raw: dict) -> None:
             f"(the source document announces it: {cut!r})")
 
 
+def _registry_hq_country(conn, classified: dict, raw: dict) -> str | None:
+    """The employer HQ registry's country (cache.employer_identity), only when
+    it clears identity.is_placeable (a curated HQ city, one organisation of
+    that name). Used by build_signal ONLY as place_fallback's corroborating
+    second signal, never as a country on its own: measured 2026-11-11, the
+    registry alone names INE Madrid and Eximbank Washington."""
+    if conn is None:
+        return None
+    name = (classified.get("company") or raw.get("company") or "").strip()
+    # Same key build_signal stores, industry included: it is the only thing
+    # that tells two same-named employers apart (vocab.HOMONYM_EMPLOYER_KEYS).
+    industry = vocab.normalize_industry(classified.get("industry", "") or "")
+    key = vocab.company_key(name, industry=industry) if name else ""
+    if not key:
+        return None
+    try:
+        ident = identity.cache_get(conn, key)
+    except Exception:
+        return None
+    if ident is None or not ident.resolved or not identity.is_placeable(ident):
+        return None
+    return (ident.hq_country or "").strip().upper() or None
+
+
 def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
     """Turn a classified candidate into a storable Signal, or raise Rejected.
 
@@ -732,7 +756,10 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
 
     # Job location: from the source text only.
     city = region = None
-    country = vocab.normalize_country(classified.get("country", "") or raw.get("country", ""))
+    # The first USABLE country, not the first truthy string: a classifier
+    # "Unknown" must not shadow the collector's own (a filing's stated address).
+    country = (vocab.normalize_country(classified.get("country", "") or "")
+               or vocab.normalize_country(raw.get("country", "") or ""))
     hit = vocab.normalize_city(classified.get("city", ""))
     if hit:
         city, region, city_country = hit
@@ -759,7 +786,8 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
         source_headline = (raw.get("headline") or headline or "").strip()
         country = place_fallback.decide(
             source_url=source_url, headline=source_headline,
-            language=language.detect(source_headline)[0], hq_country=hq_country)
+            language=language.detect(source_headline)[0],
+            hq_country=hq_country or _registry_hq_country(conn, classified, raw))
         if country and not region:
             region = _region_for_country(country)
 
