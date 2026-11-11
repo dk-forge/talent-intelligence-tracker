@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-11T09:19:49Z",
-  "last_tick": "2026-11-11T09:19:49Z",
+  "last_dispatch": "2026-11-11T09:34:07Z",
+  "last_tick": "2026-11-11T09:34:07Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,6 +247,34 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-11T09:34:07Z",
+      "history": [
+        {
+          "at": "2026-11-11T09:34:03Z",
+          "detail": "retract two live rows the referees rejected: valuation summed as raised",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-11T09:34:07Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261111T093403Z-retract",
+      "inputs": {
+        "reason": "Amount was a valuation, not money raised (two referees agreed, 2026-11-11). The round stays listed on its other row.",
+        "signal_id": "2654e70c27de5aab326fb3acb97eaa25,e44b5e20578cbfe90998aa9a775f4e5f"
+      },
+      "priority": 0,
+      "reason": "retract two live rows the referees rejected: valuation summed as raised",
+      "requested_at": "2026-11-11T09:34:03Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "retract.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-04T00:51:27Z",
