@@ -1,0 +1,64 @@
+{
+ "key": "amount/2654e70c27de5aab326fb3acb97eaa25",
+ "label": "Percent Labs $1,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "company_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source repeatedly states the seed funding round was \"undisclosed\" and \"The amount raised was not disclosed.\" The \"over $1 million\" figure refers to the company's VALUATION, not the amount raised. The text says \"closed an undisclosed seed funding round at a valuation exceeding $1 million\" - clearly distinguishing valuation from raise amount. Per rule 3, a valuation is not a raise. No actual funding amount is stated in the source."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states: 'The amount raised was not disclosed.' This indicates that no specific funding amount was provided for this event, making it impossible to confirm the stored amount as a company_raise."
+  }
+ },
+ "row": {
+  "company": "Percent Labs",
+  "headline": "Syrian foodtech Percent Labs closes seed round at over $1 million valuation",
+  "summary": "Syrian foodtech startup Percent Labs has closed an undisclosed seed funding round at a valuation exceeding $1 million, backed by Syrian angel investors based abroad. The company develops and operates multiple delivery-focused food brands through a shared cloud kitchen infrastructure.",
+  "funding_amount": "over $1 million",
+  "funding_amount_usd": 1000000,
+  "funding_stage": "seed",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "http://wamda.com/2026/11/syrian-foodtech-percent-labs-closes-seed-round-1-million-valuation",
+  "source_name": "Wamda",
+  "published_date": null,
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": "SY",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-11-03 23:40:51"
+ },
+ "cost_usd": 0.01682,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010455,
+  "openai/gpt-4o": 0.006365000000000001
+ },
+ "evidence_url": "https://web.archive.org/web/20261104012025/https://www.wamda.com/2026/11/syrian-foodtech-percent-labs-closes-seed-round-1-million-valuation",
+ "evidence_chars": 6359,
+ "action": "reject",
+ "correction": null,
+ "live_row_needs_retraction": true,
+ "note": "two-model adjudication of amount/2654e70c27de5aab326fb3acb97eaa25, both referees say reject. anthropic/claude-sonnet-4.5: The source repeatedly states the seed funding round was \"undisclosed\" and \"The amount raised was not disclosed.\" The \"over $1 million\" figure refers to the company's VALUATION, not the amount raised. The text says \"close; openai/gpt-4o: The source states: 'The amount raised was not disclosed.' This indicates that no specific funding amount was provided for this event, making it impossible to confirm the stored amount as a company_raise.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-11-11T09:20:21+00:00"
+}

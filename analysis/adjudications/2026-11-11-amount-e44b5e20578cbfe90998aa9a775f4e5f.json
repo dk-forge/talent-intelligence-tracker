@@ -1,0 +1,64 @@
+{
+ "key": "amount/e44b5e20578cbfe90998aa9a775f4e5f",
+ "label": "Kalepa $470,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source states Kalepa \"is valued at $470 million in a new funding round\" and the German headline says \"wird...mit 470 Millionen Dollar bewertet\" (is valued at $470 million). This is explicitly a VALUATION figure, not the amount raised. Rule 3 is clear: \"A VALUATION IS NOT A RAISE.\" The source does not state the actual investment amount received, only what the company is worth after funding. Without the raise amount, this must be rejected."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 90,
+   "reasoning": "The source text states 'The AI-powered insurance startup Kalepa is valued at $470 million in a new funding round.' This indicates a valuation, not a raise. The text does not specify the amount of new capital raised, only the valuation of the company, which does not meet the criteria for 'company_raise'."
+  }
+ },
+ "row": {
+  "company": "Kalepa",
+  "headline": "Das KI-gestützte Versicherungs-Start-up Kalepa wird in einer neuen Finanzierungsrunde mit 470 Millionen Dollar bewertet",
+  "summary": "The AI-powered insurance startup Kalepa is valued at $470 million in a new funding round. The article does not specify the funding stage or disclose hiring plans.",
+  "funding_amount": "$470 million",
+  "funding_amount_usd": 470000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.tradingview.com/news/reuters.com,2026:newsml_L5N46M14J:0/",
+  "source_name": "TradingView",
+  "published_date": "2026-11-05",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-11-06 22:29:24"
+ },
+ "cost_usd": 0.011671,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.007338000000000001,
+  "openai/gpt-4o": 0.0043324999999999995
+ },
+ "evidence_url": "stored-row-text",
+ "evidence_chars": 861,
+ "action": "reject",
+ "correction": null,
+ "live_row_needs_retraction": true,
+ "note": "two-model adjudication of amount/e44b5e20578cbfe90998aa9a775f4e5f, both referees say reject. anthropic/claude-sonnet-4.5: The source states Kalepa \"is valued at $470 million in a new funding round\" and the German headline says \"wird...mit 470 Millionen Dollar bewertet\" (is valued at $470 million). This is explicitly a VALUATION figure, not ; openai/gpt-4o: The source text states 'The AI-powered insurance startup Kalepa is valued at $470 million in a new funding round.' This indicates a valuation, not a raise. The text does not specify the amount of new capital raised, only",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-11-11T09:20:33+00:00"
+}
