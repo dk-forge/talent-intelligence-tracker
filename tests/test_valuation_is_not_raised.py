@@ -57,3 +57,51 @@ def test_the_write_path_keeps_a_real_raise():
     signal = _build(head, "Kalepa has raised $75M in Series B funding.", "$75M")
     assert signal.funding_amount_usd == 75_000_000
     assert signal.money_basis == money_raised.COMPANY_RAISE
+
+
+def test_the_stored_valuations_are_cleared_by_the_rederivation():
+    """The rows stored before the write path learned this are fixed by the
+    repo's standing correction, correct-funding-amount.yml, which re-derives
+    funding_amount_usd with the write path's own rules and clears it live."""
+    import correct_funding_amount as correct
+
+    kalepa = {"funding_amount": "$470 million", "funding_amount_usd": 470_000_000,
+              "country": "US", "headline": KALEPA_HEAD, "summary": KALEPA_SUM}
+    percent = {"funding_amount": "over $1 million", "funding_amount_usd": 1_000_000,
+               "country": "SY", "headline": PERCENT_HEAD, "summary": PERCENT_SUM}
+    assert correct.rederivation(kalepa) == (470_000_000, None)
+    assert correct.rederivation(percent) == (1_000_000, None)
+
+
+def test_the_rederivation_leaves_a_real_raise_alone():
+    import correct_funding_amount as correct
+
+    row = {"funding_amount": "$75M", "funding_amount_usd": 75_000_000, "country": "US",
+           "headline": "Kalepa Raises $75M Series B at $470M Valuation",
+           "summary": "Kalepa has raised $75M in Series B funding."}
+    assert correct.rederivation(row) is None
+
+
+def test_a_corrected_raise_beside_a_valuation_string_is_kept():
+    """Velaura's string is its valuation; its stored figure is the corrected
+    raise. Re-deriving from the string must neither restore the valuation nor
+    clear the raise."""
+    import correct_funding_amount as correct
+
+    row = {"funding_amount": "more than $1 billion", "funding_amount_usd": 110_000_000,
+           "country": "US", "money_basis": "company_raise",
+           "headline": "Chip designer Velaura AI valued at more than $1 billion in funding round",
+           "summary": "Velaura AI has been valued at more than $1 billion in a recent funding round."}
+    assert correct.rederivation(row) is None
+
+
+def test_only_a_raise_is_judged_for_a_valuation():
+    """'a donation valued at $250 million' is not a company's price; the row is
+    not summed as raised anyway, so its figure is left alone."""
+    import correct_funding_amount as correct
+
+    row = {"funding_amount": "$250 million", "funding_amount_usd": 250_000_000,
+           "country": "US", "money_basis": "outbound_investment",
+           "headline": "NVIDIA Commits $250 Million to UK Research",
+           "summary": "NVIDIA announced a compute donation valued at $250 million."}
+    assert correct.rederivation(row) is None
