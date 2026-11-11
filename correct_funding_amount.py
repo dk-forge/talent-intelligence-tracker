@@ -106,7 +106,7 @@ import sys
 
 import requests
 
-from pipeline import publish, schema, store, validate, vocab
+from pipeline import money_raised, publish, schema, store, validate, vocab
 
 #: The one column this pass may move. Named as a constant so the payload, the
 #: clear list and the refusal messages cannot drift apart.
@@ -179,6 +179,15 @@ def rederivation(row: dict):
     # '$' beside 'millones' on a Colombian row (pesos) is cleared here too.
     parsed = vocab.funding_usd_for_country(row.get("funding_amount") or "",
                                            row.get("country"))
+    # The write path's other rule (2026-11-11): on a raise, a figure the source
+    # attaches only to a valuation is not money raised. When the STRING is the
+    # valuation it is no evidence for the dollar figure: keep the stored one
+    # (often the referee-corrected raise) unless it, too, is valuation-only.
+    if row.get("money_basis") in (money_raised.COMPANY_RAISE, None):
+        texts = (row.get("headline"), row.get("summary"))
+        if parsed is not None and money_raised.figure_is_valuation(parsed, *texts):
+            keep = stored is not None and not money_raised.figure_is_valuation(stored, *texts)
+            parsed = stored if keep else None
     if parsed == stored:
         return None
     return stored, parsed

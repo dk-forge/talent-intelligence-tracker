@@ -131,7 +131,7 @@ from __future__ import annotations
 
 import re
 
-from . import capital_event
+from . import capital_event, vocab
 
 #: The verdict that is summed. Exactly one value, asked for by name.
 COMPANY_RAISE = "company_raise"
@@ -560,3 +560,55 @@ def note(kind: str) -> None:
     """Count one exclusion. Called by whatever acted on the verdict."""
     if kind in STATS:
         STATS[kind] += 1
+
+
+# A VALUATION IS NOT MONEY RAISED (2026-11-11).
+#
+# "Kalepa ... is valued at $470 million in a new funding round" was stored as
+# $470M raised, and "Percent Labs closes seed round at over $1 million
+# valuation" as $1M raised (the round itself was undisclosed). basis() asks
+# WHAT KIND of money a row is; it cannot see that the figure on a genuine round
+# is the company's price, not its raise. These two patterns answer that, and
+# correct_money_basis.py's published-page check uses the same objects, so the
+# write path and the check can never disagree.
+
+#: The figure a source attaches to a valuation.
+VALUATION_FIGURE = re.compile(
+    r"(?:valuation\s+(?:of|exceeding|above|topping)|valued\s+at|valuing\s+(?:it|the\s+company|\w+)\s+at|"
+    r"Bewertung\s+(?:von|bei\s+rund)|valorisation\s+de|valuación\s+de)\s+"
+    r"(?:about\s+|around\s+|over\s+|nearly\s+|more\s+than\s+|rund\s+)?(" + _AMOUNT_RUN + r")"
+    r"|(" + _AMOUNT_RUN + r")\s+(?:post-money\s+|pre-money\s+)?valuation\b", re.I)
+
+#: A figure the source attaches to a raise verb or a round name. A figure equal
+#: to one of these is a raise however many other numbers the sentence carries
+#: ("raises $65B at $965B valuation" is $65B raised).
+RAISE_FIGURE = re.compile(
+    r"\b(?:raise[sd]?|raising|secure[sd]?|land(?:s|ed)?|close[sd]?|closing|net(?:s|ted)?|"
+    r"bag(?:s|ged)?|attract(?:s|ed)?|garner(?:s|ed)?|receive[sd]?|wins?|won|gets?|got|"
+    r"levanta|capta|recauda|lève|sammelt)\s+"
+    r"(?:a\s+|an\s+|another\s+|over\s+|nearly\s+|about\s+|more\s+than\s+|up\s+to\s+|"
+    r"fresh\s+|new\s+|additional\s+|its\s+|a\s+further\s+)?(" + _AMOUNT_RUN + r")"
+    r"|(" + _AMOUNT_RUN + r")\s+(?:series\s+[a-k]|seed|pre[- ]?seed|funding|financing|"
+    r"investment\s+(?:from|led\s+by)|round|raise)\b", re.I)
+
+
+def figures(pattern: re.Pattern, text: str) -> set[int]:
+    """Every USD figure `pattern` captures in `text`."""
+    out: set[int] = set()
+    for match in pattern.finditer(text or ""):
+        for group in match.groups():
+            if group:
+                usd = vocab.parse_funding_usd(group)
+                if usd:
+                    out.add(int(usd))
+    return out
+
+
+def figure_is_valuation(amount_usd: int | None, *texts: str | None) -> bool:
+    """True when the source attaches `amount_usd` to a valuation and to no
+    raise: the figure is the company's price, and it must never be summed."""
+    if not amount_usd:
+        return False
+    text = " \n ".join(t for t in texts if t)
+    amount = int(amount_usd)
+    return amount in figures(VALUATION_FIGURE, text) and amount not in figures(RAISE_FIGURE, text)
