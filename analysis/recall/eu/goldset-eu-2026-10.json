@@ -21,7 +21,8 @@
     "Central and eastern Europe has funding rows only: no leadership announcement from that group could be verified from an allowed publisher within the window.",
     "Exchange-listed companies' announcements were read on the press-release copy and are labelled press_release, not filing, because the copy read was the wire release.",
     "Portuguese rows come from one national business daily, which is the national_news cell almost on its own.",
-    "One candidate (a Bulgarian satellite round) was left out because its only verifiable page was on a funding platform, which this family may not cite."
+    "One candidate (a Bulgarian satellite round) was left out because its only verifiable page was on a funding platform, which this family may not cite.",
+    "50 of 50 items cite a publisher already in the tracker's source registry (data/feeds.csv or data/sources_catalogue.csv, checked 2026-11-11), because the publishers that allow an automated reader are largely the ones the tracker already collects from. Read the figure as recall within the publishers the tracker reads, not reach beyond them; no item comes from a publisher outside it, so this set cannot say anything about reach."
   ],
   "dropped_unreachable": [],
   "items": [

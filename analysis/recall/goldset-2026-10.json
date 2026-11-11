@@ -16,7 +16,8 @@
     "Latin America is thin (four events): the regional startup press for the month could largely not be verified from an allowed page with an in-window date, and several candidate pages turned out to be older articles re-dated in sitemaps.",
     "Six funding rows are debt (securitisations, term loans, mezzanine), which some readers would not count as a funding round.",
     "Funding rows with no published amount carry amount_disclosed=false and cannot contribute an amount defect either way.",
-    "The European rows overlap the Europe family set assembled the same day, so the two figures are not independent of each other."
+    "The European rows overlap the Europe family set assembled the same day, so the two figures are not independent of each other.",
+    "132 of 152 items cite a publisher already in the tracker's source registry (data/feeds.csv or data/sources_catalogue.csv, checked 2026-11-11), because the publishers that allow an automated reader are largely the ones the tracker already collects from. Read the figure as recall within the publishers the tracker reads, not reach beyond them; the 20 items from other publishers are too few for a separate rate (10 of 20 held)."
   ],
   "dropped_unreachable": [],
   "items": [

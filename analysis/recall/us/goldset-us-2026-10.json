@@ -28,7 +28,9 @@
     "Several of the main US startup wires and city business journals refuse automated readers in robots.txt and were not used; trade coverage leans on the publishers that allow it, so press releases are close to half the set.",
     "Austin rows come largely from one local outlet's daily roundups, so the Austin cell is narrower in source than the others.",
     "A dateline gives the place of the release; where a release was datelined in a metro it is placed there.",
-    "Fifty-two events give a worst-case 95% interval about 26 points wide; a metro cell is an indication, not a rate."
+    "Fifty-two events give a worst-case 95% interval about 26 points wide; a metro cell is an indication, not a rate.",
+    "43 of 52 items cite a publisher already in the tracker's source registry (data/feeds.csv or data/sources_catalogue.csv, checked 2026-11-11), because the publishers that allow an automated reader are largely the ones the tracker already collects from. Read the figure as recall within the publishers the tracker reads, not reach beyond them; the 9 items from other publishers are too few for a separate rate (5 of 9 held).",
+    "Eleven rows (seven Austin, four rest of US) cite a regional outlet's daily roundup rather than the company's own announcement; the event, date and amount were confirmed on the roundup page, but it is a secondary source."
   ],
   "dropped_unreachable": [],
   "items": [

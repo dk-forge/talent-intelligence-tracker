@@ -71,3 +71,31 @@ def test_us_items_carry_a_metro_and_the_set_declares_both_signals():
     data = goldset.load(SETS["2026-10-us-v1"][0])
     assert set(data["signal_types"]) == {"funding", "leadership"}
     assert all(item.get("metro") for item in data["items"])
+
+
+# Second-referee review, 2026-11-11. The October passes read only publishers
+# that allow an automated reader, and those turned out to be largely the ones
+# the tracker already collects from: of the items, 132/152 (world), 43/52 (US)
+# and 50/50 (EU) cite a publisher in data/feeds.csv or data/sources_catalogue.csv.
+# A figure measured on that population is recall WITHIN the publishers we read,
+# not reach beyond them, and the published caveats must say so in numbers.
+OVERLAP_AT_REVIEW = {"2026-10-v1": "132 of 152",
+                     "2026-10-us-v1": "43 of 52",
+                     "2026-10-eu-v1": "50 of 50"}
+
+
+def test_caveats_state_the_source_registry_overlap(sealed):
+    stated = OVERLAP_AT_REVIEW[sealed["version"]]
+    hits = [c for c in sealed.get("caveats", [])
+            if "source registry" in c and stated in c and "not reach" in c]
+    assert hits, (f"{sealed['version']} must carry a caveat naming its overlap "
+                  f"with the source registry ({stated}) and that the figure is "
+                  f"recall within those publishers, not reach")
+
+
+def test_us_caveats_disclose_the_daily_roundup_rows():
+    data = goldset.load(SETS["2026-10-us-v1"][0])
+    roundups = [i for i in data["items"]
+                if "roundup" in i["source_url"] or "funding-news-today" in i["source_url"]]
+    assert len(roundups) == 11
+    assert any("daily roundup" in c and "Eleven rows" in c for c in data["caveats"])
