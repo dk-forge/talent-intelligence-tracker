@@ -193,7 +193,7 @@ function tit_funded_week_jsonld(array $f, $url) {
         'mainEntityOfPage' => $url,
         'datePublished' => $published,
         'dateModified' => $modified,
-        'author' => array('@type' => 'Organization', 'name' => 'Talent Intelligence Tracker'),
+        'author' => array('@type' => 'Organization', 'name' => 'Ask The Recruiter research team'),
         'publisher' => array('@type' => 'Organization', 'name' => 'Ask The Recruiter', 'url' => 'https://asktherecruiter.com/'),
         'mainEntity' => array('@type' => 'ItemList', 'itemListOrder' => 'https://schema.org/ItemListOrderDescending',
                               'numberOfItems' => count($items), 'itemListElement' => $items),
