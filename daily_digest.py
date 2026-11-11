@@ -35,6 +35,7 @@ from datetime import date, datetime, timedelta, timezone
 from pipeline import count_meaning as cm
 from pipeline import digest_quality as dq
 from pipeline import schema
+from pipeline import planned_hiring
 from pipeline import tiers
 
 
@@ -512,13 +513,15 @@ def _load(db_path, since, until):
     conn = schema.connect_ro(db_path)
     try:
         rows = conn.execute(
-            """SELECT * FROM signals
-                WHERE is_current = 1 AND captured_at >= ? AND captured_at < ?
-                ORDER BY captured_at DESC""",
+            "SELECT * FROM signals"
+            " WHERE is_current = 1 AND captured_at >= ? AND captured_at < ?"
+            + planned_hiring.public_sql() +
+            " ORDER BY captured_at DESC",
             (since.isoformat(), until.isoformat())).fetchall()
         ytd_start = datetime(until.year, 1, 1, tzinfo=timezone.utc).isoformat()
         ytd_total = conn.execute(
-            "SELECT COUNT(*) FROM signals WHERE is_current = 1 AND captured_at >= ?",
+            "SELECT COUNT(*) FROM signals WHERE is_current = 1 AND captured_at >= ?"
+            + planned_hiring.public_sql(),
             (ytd_start,)).fetchone()[0]
         return rows, ytd_total
     finally:

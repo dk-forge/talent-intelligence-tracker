@@ -139,7 +139,7 @@ def test_live_sources_are_only_the_ones_with_collectors():
 # this file exists to prevent, in the direction that flatters us. Move it out of
 # this set in the same change that schedules it.
 _DORMANT_COLLECTORS = {"tripwire_chase", "benchmark_chase", "irs_form_990",
-                       "us_exec_wire", "denmark_cvr"}
+                       "us_exec_wire", "denmark_cvr", "state_incentives"}
 
 
 def _registered_collector_keys():

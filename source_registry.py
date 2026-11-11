@@ -941,6 +941,19 @@ COLLECTOR_BY_SOURCE_NAME = {
 }
 
 
+# Collectors that are built and registered in run_collect but are NOT live
+# sources: nothing schedules them and the sources page must not claim them.
+# Keyed by collector, valued by what it reads.
+DORMANT_COLLECTORS = {
+    # State job-creation incentive awards, a PLANNED hiring signal. Rows are
+    # stored with site_event 'planned_hiring' and kept off every public output
+    # until PLANNED_HIRING_ENABLED is on (pipeline/planned_hiring.py).
+    "state_incentives": (
+        "Texas Enterprise Fund award releases (gov.texas.gov) and Empire State "
+        "Development Excelsior Jobs Program awards (data.ny.gov 26ei-n4eb)"),
+}
+
+
 # A backfill reads the SAME publisher through a different door, and the rows it
 # stores carry the door's name rather than the source's.
 #

@@ -13,7 +13,7 @@ import time
 
 import requests
 
-from . import guardrails
+from . import guardrails, planned_hiring
 
 # ModSecurity on this host blocks python-requests outright. Anything talking to
 # the WP host must look like a browser or every call returns an inexplicable
@@ -380,6 +380,8 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None,
         f"SELECT content_hash, {cols} FROM signals "
         "WHERE is_current = 1 AND published_at IS NOT NULL AND ("
         + " OR ".join(f"{c} IS NOT NULL" for c in ENRICHABLE) + ") "
+        # Hidden planned-hiring rows (pipeline/planned_hiring.py) never leave.
+        + planned_hiring.public_sql() + " "
         "ORDER BY row_id ASC"
     )
     if limit:
@@ -483,7 +485,10 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None,
 def unpublished(conn, limit: int | None = None) -> list[dict]:
     sql = (
         f"SELECT row_id, {', '.join(FIELDS)} FROM signals "
-        "WHERE is_current = 1 AND published_at IS NULL "
+        "WHERE is_current = 1 AND published_at IS NULL"
+        # Planned-hiring rows stay unpublished until PLANNED_HIRING_ENABLED is
+        # on; published_at stays NULL, so they go out on the first run after.
+        + planned_hiring.public_sql() + " "
         "ORDER BY row_id ASC"
     )
     if limit:

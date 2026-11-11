@@ -28,6 +28,7 @@ from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
                         israel_registrar, national_press,
                         opendart_korea, primary_chase, sec_edgar,
                         sec_execcomp, sec_form_d, singapore_acra, spain_borme,
+                        state_incentives,
                         tripwire_chase, uk_paygap, us_exec_wire)
 from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       gate_ledger, leadership_intl, prefilter, publish, schema,
@@ -170,6 +171,11 @@ SOURCES = {
     # regulator's own filing) says, so the list is a place to look and never
     # a fact. See collectors/primary_chase.py.
     "primary_chase": primary_chase,
+    # DORMANT: nothing schedules it. State job-creation incentive awards (Texas
+    # Enterprise Fund releases, NY Excelsior Jobs Program rows), stored as a
+    # PLANNED hiring signal and hidden from every public output until
+    # PLANNED_HIRING_ENABLED is on. Derived, spends nothing.
+    "state_incentives": state_incentives,
 }
 
 RUNS_PER_DAY = 2
