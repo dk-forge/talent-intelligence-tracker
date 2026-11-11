@@ -646,8 +646,16 @@ function check($condition, $message) {
  * The same change takes the ~11 KB country/state name maps OUT of the inline
  * `var TIT` (they ship once, on the element), which this markup-only budget
  * does not see, so the live page gets lighter overall.
+ *
+ * RAISED 195,600 -> 199,600 on 2026-11-11 (card contract 1.1.0), for 4,150
+ * measured bytes (195,029 before, 199,179 now, same pinned clock). Every card
+ * now says when this tracker first listed it, a <time class="tit-card-listed">
+ * of about 83 bytes on each of the fifty first-paint cards. That line is the
+ * feature: a reader citing an update needs when we carried it, apart from the
+ * source date. 421 of headroom on the usual basis. The next addition raises
+ * this number and writes down why.
  */
-const TIT_DASH_BYTE_BUDGET = 195600;
+const TIT_DASH_BYTE_BUDGET = 199600;
 
 /*
  * THE INSTANT THE BYTE BUDGET IS MEASURED AT, and it is a Wednesday on purpose.

@@ -444,7 +444,7 @@ function tit_dashboard_facts($table) {
         // repaint. See docs/card-contract.json.
         "SELECT signal_id, headline, talent_readthrough, company, company_key, pillar, signal_direction,
                 city, country, hq_city, hq_country, confidence, source_url, source_name,
-                archive_url, collector, published_date, industry, funding_amount_usd, language
+                archive_url, collector, published_date, industry, funding_amount_usd, language, captured_at
            FROM {$table} WHERE {$base}
           ORDER BY " . (function_exists('tit_headcount_lead_sql') ? tit_headcount_lead_sql() . ',' : '') . "
                    CASE materiality WHEN 'high' THEN 0 WHEN 'medium' THEN 1
@@ -4873,6 +4873,19 @@ function tit_boilerplate_readthroughs() {
     );
 }
 
+/**
+ * The UTC date this tracker first listed a row, as YYYY-MM-DD, or '' (card
+ * contract 1.1.0, card-listed). captured_at is written once on insert and never
+ * on update. Anything that is not a real date returns '' so the card prints
+ * nothing: never a guess, never the source's published_date standing in.
+ * Mirrors listedCell() in dashboard.js; tests/test_card_first_listed.py.
+ */
+function tit_card_listed_date($captured_at) {
+    if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})/', (string) $captured_at, $m)) return '';
+    if (!checkdate((int) $m[2], (int) $m[3], (int) $m[1])) return '';
+    return $m[0];
+}
+
 function tit_card_html($r) {
     $directions  = tit_direction_labels();
     $confidences = tit_confidence_labels();
@@ -4957,6 +4970,12 @@ function tit_card_html($r) {
                  esc_html(date_i18n('j M Y', strtotime($when))));
       } else {
           echo '<span class="tit-card-when tit-card-nowhere">Date not stated</span>';
+      }
+      $listed = tit_card_listed_date($r['captured_at'] ?? '');
+      if ($listed !== '') {
+          printf('<time class="tit-card-listed" datetime="%s">First listed %s</time>',
+                 esc_attr($listed),
+                 esc_html(gmdate('j M Y', strtotime($listed . ' 00:00:00 UTC'))));
       }
       ?>
       <span class="tit-card-src"><a href="<?php echo esc_url($r['source_url']); ?>"<?php echo tit_hreflang_attr($r); ?> rel="nofollow noopener" target="_blank"><?php

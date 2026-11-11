@@ -632,6 +632,19 @@
       esc(String(+d[2]) + ' ' + (MONTHS[+d[1] - 1] || '') + ' ' + d[0]) + '</time>';
   }
 
+  // When THIS TRACKER first listed the row (card contract 1.1.0, card-listed):
+  // captured_at, written once on insert and never on update, read by its UTC
+  // date. Beside the source's date, never instead of it. No captured_at, or one
+  // that is not a real date, renders nothing: never a guess and never the
+  // published_date standing in. Mirrors tit_card_listed_date() in
+  // shortcodes.php; tests/test_card_first_listed.py runs both.
+  function listedCell(r) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String((r && r.captured_at) || ''));
+    if (!m || +m[1] < 1 || +m[2] < 1 || +m[2] > 12 || +m[3] < 1) return '';
+    return '<time class="tit-card-listed" datetime="' + esc(m[0]) + '">First listed ' +
+      esc(String(+m[3]) + ' ' + MONTHS[+m[2] - 1] + ' ' + m[1]) + '</time>';
+  }
+
   // The archived copy, and only ever as a SECOND link beside the publisher's
   // own. Source links rot: outlets unpublish, URL schemes change, domains
   // lapse. When that happens a sourced claim silently becomes an unsourced one,
@@ -781,6 +794,7 @@
           ? '<p class="tit-card-rt tit-rt">' + esc(r.talent_readthrough) + '</p>' : '') +
         '<div class="tit-card-foot">' +
           whenCell(r) +
+          listedCell(r) +
           '<span class="tit-card-src">' + srcAnchor(r) +
             archivedLink(r) + '</span>' +
         '</div>' +

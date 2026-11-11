@@ -62,7 +62,7 @@ COMPANY_PHP = PLUGIN / "includes" / "company.php"
 # The contract as this repo last agreed to it. If this fails, the file changed:
 # either you meant it (update this, update TECHLOG, and copy the file to the
 # sibling) or you did not (revert).
-CONTRACT_SHA256 = "5ce62ea8d11073b132af83696e222f0a2c4184fba646c5f0adcb9c06f7493af2"
+CONTRACT_SHA256 = "b37ccf2bcd7e460b5e25a4dc8fc9b290ed347ae59484faedd6b50d871db2f461"
 
 PREFIX = "tit"
 
@@ -156,12 +156,14 @@ JS_TOKEN = {
     "card-rt": r'class="tit-card-rt',
     "card-foot": r'class="tit-card-foot"',
     "card-when": r"\bwhenCell\(",
+    "card-listed": r"\blistedCell\(",
     "card-src": r'class="tit-card-src"',
 }
 PHP_TOKEN = dict(JS_TOKEN, **{
     "card-industry": r'class="tit-card-industry"',
     "card-amt": r"tit-card-amt",
     "card-when": r"tit-card-when",
+    "card-listed": r"tit-card-listed",
 })
 
 

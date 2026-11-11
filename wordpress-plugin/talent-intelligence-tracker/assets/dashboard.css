@@ -641,6 +641,7 @@
 .tit-card-foot { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;
   margin:9px 0 0; font-size:12.5px; line-height:1.35; color:var(--tit-mut); }
 .tit-card-when { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tit-card-listed { font-variant-numeric:tabular-nums; white-space:nowrap; }
 .tit-card-src { min-width:0; overflow-wrap:anywhere; }
 .tit-wrap .tit-card-src a { color:var(--tit-blue); font-weight:600; }
 
