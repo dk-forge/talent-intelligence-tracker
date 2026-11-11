@@ -45,6 +45,29 @@ function tit_sources_template() {
 }
 add_action('template_redirect', 'tit_sources_template');
 
+/* /methodology/ had no route, so WordPress's 404 guesser sent it to the
+   sibling tracker's methodology page (found live 2026-11-11). This product's
+   method is the sources page, so the obvious URL goes there. */
+const TIT_METHODOLOGY_PATH = 'talent-intelligence-tracker/methodology';
+
+function tit_methodology_rewrite() {
+    add_rewrite_rule('^' . TIT_METHODOLOGY_PATH . '/?$', 'index.php?tit_methodology=1', 'top');
+}
+add_action('init', 'tit_methodology_rewrite');
+
+function tit_methodology_query_var($vars) {
+    $vars[] = 'tit_methodology';
+    return $vars;
+}
+add_filter('query_vars', 'tit_methodology_query_var');
+
+function tit_methodology_template() {
+    if (!get_query_var('tit_methodology')) return;
+    wp_safe_redirect(tit_sources_url(), 301);
+    exit;
+}
+add_action('template_redirect', 'tit_methodology_template', 1);
+
 /**
  * The registry names a source for a reader; the pipeline names its collector
  * for a machine. This is the join between them, and it is DERIVED from the

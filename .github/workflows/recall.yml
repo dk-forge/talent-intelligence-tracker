@@ -40,6 +40,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   recall:
@@ -165,6 +166,14 @@ jobs:
       # identity cache on 2026-07-28/29. The concurrency group does not make a
       # copy safe: it cannot see a human pushing from a laptop, and a run it
       # queues is stale by exactly as long as it waited (see merge_db.py).
+      - name: Open, edit or close the "Recall gold set is due" issue
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python recall_goldset_issue.py --issue
+
       - name: Commit the measurement
         if: ${{ !cancelled() }}
         run: |
