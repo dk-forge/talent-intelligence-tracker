@@ -54,9 +54,12 @@ def test_each_set_is_valid_and_declares_its_family(sealed):
     assert sealed["sealed"] is True
     assert sealed["assembled_on"] >= "2026-09-12"
     assert sealed["version"] in SETS
-    assert sealed["_path"] == sealed["_family"].latest_goldset(), (
-        "the August set must be the newest one in its family's directory, "
-        "or it is not the one being measured")
+    # Superseded by the October 2026 set (tests/test_recall_sets_2026_10.py
+    # pins which set is now measured). Retired sets are never deleted: a
+    # published figure must stay re-derivable from the exact list it used.
+    assert sealed["_path"] in goldset.all_paths(os.path.dirname(sealed["_path"])), (
+        "the August set must stay on disk and loadable, or its published "
+        "figure can no longer be re-derived")
 
 
 def test_every_item_was_accepted_by_both_referees(sealed):

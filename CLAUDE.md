@@ -598,6 +598,12 @@ authority removes the wait, not the standard.
     a human step by design, and the page says so.
   - **Never re-use one set forever.** It converges, and then it measures memory
     rather than reach. The run detects that and asks for a replacement.
+  - **State the source overlap on every new set.** Before a set's figure is
+    published, count how many items cite a publisher already in
+    `data/feeds.csv` / `data/sources_catalogue.csv` and put that count in the
+    set's `caveats` (which the page shows). A set drawn mostly from publishers
+    we already read measures recall within them, not reach beyond them; say so
+    in the caveat. The October 2026 sets were 132/152, 43/52 and 50/50.
 - **Coverage is measured PER POPULATION, and the populations stay separate.**
   `analysis/recall/family.py` is the ONE definition of which populations are
   measured and where each one's gold sets, results, page data and health entry
