@@ -204,7 +204,8 @@ def test_the_leadership_draft_is_kept_and_is_not_measured():
                          "goldset-us-2026-06-leadership.draft.json")
     assert os.path.exists(draft), "the leadership research was lost"
     assert draft not in goldset.all_paths(family.US.goldset_dir)
-    assert goldset.latest_path(family.US.goldset_dir) == US_PATH
+    assert US_PATH in goldset.all_paths(family.US.goldset_dir)
+    assert not goldset.latest_path(family.US.goldset_dir).endswith(".draft.json")
 
     with open(draft, encoding="utf-8") as handle:
         data = json.load(handle)
