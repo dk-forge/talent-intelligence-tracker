@@ -1,0 +1,567 @@
+{
+ "ran_at": "2026-11-12T08:19:34+01:00",
+ "ran_on": "2026-11-12",
+ "plan": {
+  "cycle": 632,
+  "planned_on": "2026-11-12",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-09 against gold set 2026-07-v2",
+  "countries": [
+   {
+    "iso2": "SE",
+    "name": "Sweden",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "NL",
+    "name": "Netherlands",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "AE",
+    "name": "United Arab Emirates",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "CH",
+    "name": "Switzerland",
+    "tier": "covered",
+    "measured": {
+     "total": 1,
+     "held": 1,
+     "held_pct": 100.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "SE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "NL",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "AE",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "CH",
+   "tier": "covered",
+   "measured": {
+    "total": 1,
+    "held": 1,
+    "held_pct": 100.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 17,
+  "held": 11,
+  "missing": 6,
+  "unusable": 0,
+  "usable": 17
+ },
+ "by_country": {
+  "AE": {
+   "leads": 4,
+   "held": 2,
+   "missing": 2,
+   "unusable": 0
+  },
+  "CH": {
+   "leads": 6,
+   "held": 4,
+   "missing": 2,
+   "unusable": 0
+  },
+  "SE": {
+   "leads": 4,
+   "held": 2,
+   "missing": 2,
+   "unusable": 0
+  },
+  "NL": {
+   "leads": 3,
+   "held": 3,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.023,
+  "queries": 4,
+  "usd_per_query": 0.0057,
+  "usd_per_lead": 0.0014,
+  "usd_per_candidate_miss": 0.0038,
+  "lifetime_usd": 0.8865,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:SE",
+   "leads": 4,
+   "usd": 0.00567,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 337,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:NL",
+   "leads": 3,
+   "usd": 0.00558,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 242,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:AE",
+   "leads": 5,
+   "usd": 0.0058,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 335,
+   "completion_tokens": 465,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:CH",
+   "leads": 6,
+   "usd": 0.00592,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 586,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Green City Farming",
+   "claimed_country": "SE",
+   "claimed_city": "Gothenburg",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-11",
+   "claimed_amount": "SEK 7.5 million",
+   "claimed_stage": "",
+   "claimed_outlet": "FreshPlaza",
+   "claimed_url": "https://www.freshplaza.com/north-america/article/9745570/the-funding-round-came-together-through-strong-relationships-with-our-existing-investor-base/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Juritas",
+   "claimed_country": "SE",
+   "claimed_city": "Stockholm",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-06",
+   "claimed_amount": "\u20ac1.4M",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "FinSMEs",
+   "claimed_url": "https://www.finsmes.com/2026/11/juritas-raises-e1-4m-in-pre-seed-funding.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "6d3b489b3fbf4cf081e4469c3881a270",
+    "company": "Juritas",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-11-06",
+    "source_url": "https://www.finsmes.com/2026/11/juritas-raises-e1-4m-in-pre-seed-funding.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Sortrace",
+   "claimed_country": "SE",
+   "claimed_city": "Stockholm",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-02",
+   "claimed_amount": "$800K",
+   "claimed_stage": "",
+   "claimed_outlet": "FinSMEs",
+   "claimed_url": "https://www.finsmes.com/2026/11/sortrace-raises-approx-800k-in-funding.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "SE",
+   "dimension_tier": "zero",
+   "claimed_company": "Bj\u00f6rn Ax\u00e9n",
+   "claimed_country": "SE",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-26",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Notified Newsroom",
+   "claimed_url": "https://newsroom.notified.com/news/448300/bjorn-axen-announces-the-appointment-of-onur",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c081e275c7071209b9588283da9e5663",
+    "company": "Bj\u00f6rn Ax\u00e9n",
+    "pillar": "leadership_change",
+    "country": "SE",
+    "published_date": "2026-10-19",
+    "source_url": "https://www.businessoffashion.com/news/beauty/swedish-hair-brand-bjorn-axen-names-new-ceo/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Photon Bridge",
+   "claimed_country": "NL",
+   "claimed_city": "Eindhoven",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-21",
+   "claimed_amount": "\u20ac10M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Bits&Chips",
+   "claimed_url": "https://bits-chips.com/article/photon-bridge-raises-e10m-to-scale-lasers-for-ai-interconnects/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "72223387d251a1c559bd9062d27d0b3d",
+    "company": "Photon",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-13",
+    "source_url": "https://pulse2.com/photon-raises-4-5-million-seed-round-to-build-messaging-infrastructure-for-ai-agents/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Anaheim Bio",
+   "claimed_country": "NL",
+   "claimed_city": "Leiden",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-05",
+   "claimed_amount": "\u20ac40M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Finsmes",
+   "claimed_url": "https://www.finsmes.com/2026/11/anaheim-bio-raises-e40m-in-series-a-funding.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a33fce4cfb3c0673fcc2d461678e7250",
+    "company": "Anaheim",
+    "pillar": "leadership_change",
+    "country": "US",
+    "published_date": "2026-09-22",
+    "source_url": "https://www.hs.fi/urheilu/art-2000012292667.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NL",
+   "dimension_tier": "zero",
+   "claimed_company": "Hardt Hyperloop",
+   "claimed_country": "NL",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-03",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Bits&Chips",
+   "claimed_url": "https://bits-chips.com/article/hardt-hyperloop-secures-funding-for-restart-after-bankruptcy/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "f2ab879e3fc0421b25d882e861997771",
+    "company": "Hardt Hyperloop",
+    "pillar": "company_development",
+    "country": "NL",
+    "published_date": "2026-11-03",
+    "source_url": "https://ioplus.nl/en/posts/hardt-hyperloop-makes-a-comeback-with-a-multi-million-investment"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "AD Ports Group",
+   "claimed_country": "AE",
+   "claimed_city": "Abu Dhabi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-02",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "AD Ports Group",
+   "claimed_url": "https://www.adportsgroup.com/news-and-media/2026/11/02/ad-ports-group-appoints-dr-afif-saif-al-yafei-as-group-chief-executive-officer/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c2ac64eb87144144f8d31d25d4d91229",
+    "company": "AD Ports Group",
+    "pillar": "leadership_change",
+    "country": null,
+    "published_date": "2026-11-02",
+    "source_url": "https://www.diariodelpuerto.com/logistica/afif-saif-al-yafei-nombrado-nuevo-ceo-de-ad-ports-group-FL26876672"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "Al Etihad Payments",
+   "claimed_country": "AE",
+   "claimed_city": "Abu Dhabi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-04",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Economic Times HRME",
+   "claimed_url": "https://hrme.economictimes.indiatimes.com/news/industry/al-etihad-payments-appoints-aref-al-ramli-as-chief-executive-officer-to-lead-next-phase/135531811",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "Robo.ai Inc.",
+   "claimed_country": "AE",
+   "claimed_city": "Dubai",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-03",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "StockTitan",
+   "claimed_url": "https://www.stocktitan.net/sec-filings/AIIO/6-k-robo-ai-inc-current-report-foreign-issuer-625a5e18455e.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "AE",
+   "dimension_tier": "zero",
+   "claimed_company": "Unifrutti Group",
+   "claimed_country": "AE",
+   "claimed_city": "Abu Dhabi",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-10",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Utusan Malaysia / PR Newswire",
+   "claimed_url": "https://www.utusan.com.my/pr-newswire-en/2026/11/unifrutti-group-appoints-jose-antonio-gomez-bazan-as-group-chief-executive-officer/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d265bc07832b78c050bb71221c1647ca",
+    "company": "Unifrutti Group",
+    "pillar": "leadership_change",
+    "country": null,
+    "published_date": "2026-11-10",
+    "source_url": "https://www.portalfruticola.com/noticias/2026/11/10/unifrutti-jose-gomez/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CH",
+   "dimension_tier": "covered",
+   "claimed_company": "Atlas Bio",
+   "claimed_country": "CH",
+   "claimed_city": "Zurich",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-27",
+   "claimed_amount": "$12.5M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "tech.eu",
+   "claimed_url": "https://tech.eu/2026/10/27/swiss-startup-atlas-bio-secures-125m-to-tackle-drug-developments-70-failure-rate-and-move-beyond-animal-testing/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3de7594c60fed0c04fae9b53d173b5fe",
+    "company": "Atlas",
+    "pillar": "how_we_work",
+    "country": "PL",
+    "published_date": "2026-10-08",
+    "source_url": "https://www.pb.pl/atlas-przejmuje-zaklad-w-debicy-i-ma-kolejne-cele-pb-rozmowa-1268475"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CH",
+   "dimension_tier": "covered",
+   "claimed_company": "Enact Intelligence",
+   "claimed_country": "CH",
+   "claimed_city": "Zurich",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-22",
+   "claimed_amount": "\u20ac26.68 million",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "EU-Startups",
+   "claimed_url": "https://www.eu-startups.com/2026/10/backed-by-yann-lecun-and-arthur-mensch-swiss-physical-ai-startup-enact-intelligence-exits-stealth-with-e26-68-million/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "fba098d536a45f7c22e8659894b39158",
+    "company": "Enact",
+    "pillar": "company_development",
+    "country": "CH",
+    "published_date": "2026-10-22",
+    "source_url": "https://brutkasten.com/artikel/30-mio-runde-mistral-founder-investiert-in-zuercher-startup-das-roboter-baut-die-kraft-fuehlen"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CH",
+   "dimension_tier": "covered",
+   "claimed_company": "Nouscom",
+   "claimed_country": "CH",
+   "claimed_city": "Basel",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-23",
+   "claimed_amount": "$135 million",
+   "claimed_stage": "series_d",
+   "claimed_outlet": "Startupticker.ch",
+   "claimed_url": "https://www.startupticker.ch/index.php/en/newsletter-archive/when-success-is-no-fluke",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "494e11698e9f3a433572b6678b0b6c3c",
+    "company": "Nouscom",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-19",
+    "source_url": "https://www.tradingview.com/news/reuters.com,2026:newsml_FWN46306O:0-nouscom-raises-120-million-in-oversubscribed-series-d-financing/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CH",
+   "dimension_tier": "covered",
+   "claimed_company": "AL-S Pharma AG",
+   "claimed_country": "CH",
+   "claimed_city": "Zurich",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Business Wire",
+   "claimed_url": "https://www.hastingstribune.com/ap/business/al-s-pharma-appoints-harry-welten-as-chief-executive-officer/article_67492edc-805b-5458-95a6-da31b37d0d0e.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CH",
+   "dimension_tier": "covered",
+   "claimed_company": "Swiss Re",
+   "claimed_country": "CH",
+   "claimed_city": "Zurich",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Swiss Re",
+   "claimed_url": "https://www.swissre.com/dam/jcr:70782871-d4f1-4758-a844-f9b3142685eb/pr-20260806-hy-2026-press-release-en.pdf",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CH",
+   "dimension_tier": "covered",
+   "claimed_company": "Light Frame",
+   "claimed_country": "CH",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-10",
+   "claimed_amount": "$5.1 million",
+   "claimed_stage": "seed",
+   "claimed_outlet": "finews.com",
+   "claimed_url": "https://www.finews.com/news/english-news/74398-ex-alpian-ceo-schuyler-weiss-light-frame-seed-funding-fintech-banking-software",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "b0d657e7e58c87ca03d33309a7e6a3a3",
+    "company": "Light Frame",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-11-11",
+    "source_url": "https://ggba.swiss/en/light-frame-raises-usd-5-1-million-to-modernize-private-banking-technology/"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}
