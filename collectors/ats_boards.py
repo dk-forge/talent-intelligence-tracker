@@ -390,7 +390,17 @@ def function_for_title(title: str) -> str | None:
 # Keys are prefixed so the label and the classified fields can be rebuilt from
 # the key alone, and so a city and a country of the same name cannot collide.
 
-_SPLIT = re.compile(r"\s*(?:[,;|/()]|\s-\s|\bor\b)\s*", re.I)
+# Underscores separate too: some boards key locations as office codes
+# ("AZ_Mesa_HQ", "California_Remote"), and read as one word they named nothing.
+_SPLIT = re.compile(r"\s*(?:[,;|/()_]|\s-\s|\bor\b)\s*", re.I)
+# A trailing US ZIP ("Scottsdale, Arizona 85255") hid the state from every
+# lookup below. Only the digits go; the words before them are kept.
+_ZIP = re.compile(r"\s+\d{5}(?:-\d{4})?$")
+
+# Bump when place_key or what a provider feeds it changes. A baseline written
+# under another version placed its postings differently, so a per-place delta
+# against it measures the parser, not the board (see _top_place).
+PLACE_VERSION = 2
 
 
 def place_key(*candidates: str) -> str:
@@ -402,6 +412,14 @@ def place_key(*candidates: str) -> str:
     piece of geography the posting actually stated.
     """
     parts: list[str] = []
+    # Tokens that came AFTER a separator in their own string: "Ontario" in
+    # "Kitchener, Ontario". Only a qualifier may be read as a province, because
+    # a bare province name at the front of a string is as often a street or a
+    # company office label as it is a place.
+    qualifiers: set[str] = set()
+    # Tokens that carried a US ZIP. "Atlanta, Georgia 30326" is the state, and
+    # the ZIP is the proof; without one, "Georgia" stays the country.
+    zipped: set[str] = set()
     for candidate in candidates:
         whole = str(candidate or "").strip()
         # The WHOLE string first, before any splitting. A board writes
@@ -414,10 +432,15 @@ def place_key(*candidates: str) -> str:
             if hit:
                 return f"city:{hit[0]}"
             parts.append(whole)
-        for token in _SPLIT.split(whole):
-            token = token.strip()
+        for index, token in enumerate(_SPLIT.split(whole)):
+            raw = token.strip()
+            token = _ZIP.sub("", raw)
+            if token != raw:
+                zipped.add(token)
             if token:
                 parts.append(token)
+                if index:
+                    qualifiers.add(token)
 
     for token in parts:
         hit = vocab.normalize_city(token)
@@ -441,9 +464,20 @@ def place_key(*candidates: str) -> str:
         # letters after a comma means the state every time.
         if len(token) == 2 and vocab.normalize_state(token):
             return "country:US"
+        if token in zipped and vocab.normalize_state(token):
+            return "country:US"
         code = vocab.normalize_country(token)
         if code:
             return f"country:{code}"
+        # A US state written out ("Arlington, Virginia", "Kent, Washington")
+        # is the United States. Checked AFTER the country lookup, so the one
+        # state that is also a country (Georgia) keeps its existing reading.
+        if vocab.normalize_state(token):
+            return "country:US"
+        if token in qualifiers:
+            code = vocab.place_qualifier_country(token)
+            if code:
+                return f"country:{code}"
     if any(re.search(r"\bremote\b", token, re.I) for token in parts):
         return "remote:"
     return ""
@@ -693,6 +727,24 @@ def structured_work_mode(value) -> str | None:
         key.replace("-", ""))
 
 
+def _greenhouse_metadata_locations(job: dict) -> list[str]:
+    """Values of any custom field whose NAME says location, in board order.
+
+    Read only as a fallback behind `location.name` (place_key tries its
+    candidates in order), so a board whose location field already names a
+    place is unchanged. A field holding a work mode ("In-Office") resolves to
+    nothing and costs nothing.
+    """
+    out: list[str] = []
+    for field in job.get("metadata") or []:
+        if not re.search(r"locat", str(field.get("name") or ""), re.I):
+            continue
+        value = field.get("value")
+        values = value if isinstance(value, list) else [value]
+        out.extend(str(v) for v in values if isinstance(v, str) and v.strip())
+    return out
+
+
 def fetch_postings(entry: dict) -> list[dict]:
     """One employer's open roles, normalised to
     {place, function, salary, mode, mode_source}.
@@ -710,12 +762,17 @@ def fetch_postings(entry: dict) -> list[dict]:
     if ats == "greenhouse":
         for job in _get(API_URLS[ats].format(slug=slug), delay=delay).get("jobs") or []:
             location = ((job.get("location") or {}).get("name") or "")
+            # Greenhouse lets an employer keep the real place in a custom
+            # field and put a work arrangement in `location`: Cloudflare's 473
+            # postings say "Hybrid" there and "Washington DC, US" under
+            # metadata "Job Posting Location", so 470 of them placed nowhere.
+            extra = _greenhouse_metadata_locations(job)
             # Greenhouse types NOTHING about work mode. The location name is
             # the only place an employer can say it, so this is the one live
             # ATS read from prose, and most of its postings say nothing —
             # which is recorded as nothing.
             out.append({
-                "place": place_key(location),
+                "place": place_key(location, *extra),
                 "function": function_for_title(job.get("title", "")),
                 "salary": _greenhouse_salary(job),
                 "mode": work_mode_from_text(location),
@@ -863,7 +920,8 @@ def snapshot(postings: list[dict]) -> dict:
             if job.get("place"):
                 mode_places[job["place"]] = mode_places.get(job["place"], 0) + 1
 
-    snap = {"total": len(postings), "places": places, "functions": functions}
+    snap = {"total": len(postings), "places": places, "functions": functions,
+            "place_version": PLACE_VERSION}
 
     if by_currency:
         # One band per board: the currency most of the priced roles are in.
@@ -905,6 +963,32 @@ def snapshot(postings: list[dict]) -> dict:
 # A place has to carry most of the priced roles before the band is attributed
 # to it. Below this the band is stored with no location at all.
 DOMINANT_SHARE = 0.6
+
+
+def _home_country(snap: dict) -> tuple[str, int] | None:
+    """("country:XX", n) when one country holds most of the board.
+
+    The denominator is EVERY posting, placed or not, so a board that mostly
+    says nothing about place gets no country rather than the country of its
+    few placed roles. A row with no place delta still has a home, and leaving
+    it blank was a third of a daily edition's "country not recorded".
+    """
+    total = snap.get("total") or 0
+    by_country: dict[str, int] = {}
+    for key, count in (snap.get("places") or {}).items():
+        kind, _, value = key.partition(":")
+        code = ""
+        if kind == "country":
+            code = value
+        elif kind == "city":
+            hit = vocab.normalize_city(value)
+            code = hit[2] if hit else ""
+        if code:
+            by_country[code] = by_country.get(code, 0) + count
+    if not by_country or total <= 0:
+        return None
+    code, count = max(by_country.items(), key=lambda kv: kv[1])
+    return (f"country:{code}", count) if count / total >= DOMINANT_SHARE else None
 
 
 def _dominant(counts: dict[str, int], total: int) -> str:
@@ -1239,6 +1323,11 @@ def _material(delta: int, base_total: int) -> bool:
 
 
 def _top_place(current: dict, baseline: dict) -> tuple[str, int]:
+    if baseline.get("place_version") != current.get("place_version"):
+        # The two counts were placed by different parsers. The first run after
+        # the Greenhouse metadata fix would otherwise report Cloudflare "up 300
+        # in Austin" off a 12-role move.
+        return "", 0
     best_key, best_delta = "", 0
     for key, count in (current.get("places") or {}).items():
         delta = count - (baseline.get("places") or {}).get(key, 0)
@@ -1272,6 +1361,7 @@ def _hiring_item(entry: dict, current: dict, baseline: dict, today: str) -> dict
     label = place_label(key) if place_delta >= MIN_PLACE_DELTA else ""
     functions = _grown_functions(current, baseline)
 
+    home = "" if label else _home_country(current)
     where = f" in {label}" if label else ""
     # HONESTY: a board-scan delta is an OBSERVATION, not a hiring act. The count
     # rose because the employer's board LISTED more active postings than our
@@ -1288,6 +1378,9 @@ def _hiring_item(entry: dict, current: dict, baseline: dict, today: str) -> dict
     )
     if label:
         body += (f"The largest single movement was {label}, up {place_delta}. ")
+    if home:
+        body += (f"{home[1]} of its {current['total']} open roles are in "
+                 f"{place_label(home[0])}. ")
     if functions:
         body += ("Roles grew in " + ", ".join(
             vocab.FUNCTION_LABELS.get(f, f) for f in functions) + ". ")
@@ -1307,7 +1400,7 @@ def _hiring_item(entry: dict, current: dict, baseline: dict, today: str) -> dict
         "company": company,
         "kind": "hiring",
         "delta": delta,
-        "place_key": key if label else "",
+        "place_key": key if label else (home[0] if home else ""),
         "functions": functions,
         "collector": COLLECTOR,
         "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
