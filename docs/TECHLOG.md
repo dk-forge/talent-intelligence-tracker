@@ -1,3 +1,22 @@
+## 2026-11-12 - Job boards: Greenhouse location metadata, written-out US states, and a home country for a board-growth row
+
+**Class:** parser-gap
+**Guard:** `tests/test_ats_boards.py::GreenhouseLocationFields`, `::HomeCountry` (recorded fixtures `ats_greenhouse_cloudflare.json`, `ats_greenhouse_twosix.json`; 8 of 9 fail on the old collector)
+
+Owner review of the 12 Nov daily edition: "Cloudflare: 12 roles, open listings, country not recorded". The collector was NOT undercounting: it read all 473 postings (the Greenhouse v1 jobs endpoint returns the whole board in one response, `meta.total` agrees), and 12 is the net change since the last emitted baseline (461 to 473), which the row's own headline says. The email's "12 roles, open listings" label is the sibling composer's, and is noted for it. What was broken is placement: 3 of 473 Cloudflare postings placed anywhere, because Cloudflare writes a work arrangement in `location.name` ("Hybrid", "Distributed", "In-Office") and the city in a custom field (`metadata["Job Posting Location"]`, e.g. "Washington DC, US").
+
+Across the committed board state Greenhouse placed 92% of 23,633 postings (Ashby 99%, Lever and SmartRecruiters 100%), with 13 boards under half. Sampling the worst five on 2026-11-12 found three more shapes, all fixed in `place_key`:
+
+- a written-out US state ("Arlington, Virginia", "Kent, Washington") resolved to nothing, because only two-letter codes were read as states. `normalize_state` already accepted names; it is now asked after the country lookup, so Georgia keeps reading as the country unless a ZIP proves the state;
+- a trailing ZIP ("Scottsdale, Arizona 85255") hid the state; the digits are stripped;
+- office codes joined by underscores ("AZ_Mesa_HQ", "California_Remote") were one unreadable word; `_` now separates.
+
+After the fix, on the live payloads: Cloudflare 484/484 placed, Two Six 88/88, Stoke Space 68/68, Verra Mobility 96/97, Amwins 89/93.
+
+A board-growth row with no single place moving by 3 or more used to carry no country at all. It now takes the board's home country when one country holds at least `DOMINANT_SHARE` (60%) of ALL postings, placed or not, and the body says so with both figures. Cloudflare is 57% US and still gets no country, which is the honest answer for a board spread across six countries.
+
+`PLACE_VERSION` is stamped on every snapshot. A per-place delta against a baseline written by another parser version measures the parser, not the board, so `_top_place` names no moving place across a version change (the first run after this fix would otherwise have reported Cloudflare "up 160 in Austin" off a 12-role move).
+
 ## 2026-11-11 - State incentive awards: a planned-hiring signal, hidden behind PLANNED_HIRING_ENABLED
 
 **What.** `collectors/state_incentives.py` (new, DORMANT: registered in `run_collect.SOURCES` and `source_registry.DORMANT_COLLECTORS`, no cron, not a live source on the sources page). TX: Texas Enterprise Fund awards from the Governor's releases on gov.texas.gov (press-release listing walked, a post counts only if its title is "Governor Abbott Announces <Company> Expansion ... In <Place>" AND it carries the "TEF grant of $X" sentence, so a later speech cannot re-store an old award). NY: Empire State Development Excelsior Jobs Program rows of the Database of Economic Incentives (data.ny.gov 26ei-n4eb, `job_creation_commitments_ftes`, dated by `start_date`); the older rerf-sf77 list has a commitment column but no date and stopped in 2023, so it is not used. Job count only from exact wording in the award paragraph ("create 500 jobs", "for 448 of the new jobs"); hedged wording ("more than", "nearly", "up to") stores the award with no headcount. Clawback/recapture releases and Terminated/Closed/penalised NY rows are excluded. Each row: `site_event` 'planned_hiring', `headcount_scope` 'promised' (only with a count), `money_basis` 'state_funding', source_url the release (TX) or the dataset row (NY), labelled "planned hiring signal (state incentive award)". Both values live in `pipeline/planned_hiring.py`, not the classifier vocabulary, and `validate.build_signal` lets only this collector write them. `planned_hiring.public_sql()` is added to `publish.unpublished`, `publish.enrich_published` and both `daily_digest` queries: with the flag off (the default) the rows never leave the database and stay `published_at` NULL, so they go out on the first publish after the owner turns it on.

@@ -1158,3 +1158,89 @@ class TheSeriesReachesAProfilePage(_Boards):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GreenhouseLocationFields(unittest.TestCase):
+    """Daily edition 2026-11-12 printed "Cloudflare: 12 roles, open listings,
+    country not recorded". The collector had read all 473 postings; only 3 of
+    them placed anywhere, because Cloudflare keeps "Hybrid" in `location` and
+    the city in a custom metadata field. Recorded fixtures, no live call."""
+
+    def setUp(self):
+        self._get = ats_boards._get
+        self._allowed = ats_boards.board_allowed
+        ats_boards.board_allowed = lambda entry: True
+
+    def tearDown(self):
+        ats_boards._get = self._get
+        ats_boards.board_allowed = self._allowed
+
+    def _postings(self, fixture, slug):
+        ats_boards._get = lambda url, **kw: _fixture(fixture)
+        return ats_boards.fetch_postings(
+            {"ats": "greenhouse", "slug": slug, "company": slug})
+
+    def test_a_location_kept_in_metadata_places_the_posting(self):
+        postings = self._postings("ats_greenhouse_cloudflare.json", "cloudflare")
+        placed = [p for p in postings if p["place"]]
+        # Before the fix: 1 of 60 (the one posting whose location field says
+        # "Singapore"). Every posting in this fixture names a place somewhere.
+        self.assertEqual(len(placed), len(postings))
+
+    def test_a_written_out_us_state_is_the_united_states(self):
+        postings = self._postings("ats_greenhouse_twosix.json", "twosix")
+        self.assertTrue(all(p["place"] for p in postings))
+        for location in ("Arlington, Virginia", "Kent, Washington",
+                         "Cape Canaveral, Florida"):
+            self.assertEqual(ats_boards.place_key(location), "country:US", location)
+
+    def test_office_codes_and_zip_codes_still_name_the_state(self):
+        for location in ("AZ_Mesa_HQ", "California_Remote",
+                         "18700 North Hayden Road Suite 405 Scottsdale, Arizona 85255",
+                         "3630 Peachtree Road Suite 1700 Atlanta, Georgia 30326"):
+            self.assertEqual(ats_boards.place_key(location), "country:US", location)
+        self.assertEqual(ats_boards.place_key("Australia_Melbour_Office"), "country:AU")
+
+    def test_georgia_without_a_zip_is_still_the_country(self):
+        self.assertEqual(ats_boards.place_key("Tbilisi, Georgia"), "country:GE")
+        self.assertEqual(ats_boards.place_key("Georgia"), "country:GE")
+
+    def test_a_work_mode_in_location_metadata_places_nothing(self):
+        job = {"title": "Underwriter", "location": {"name": "In-Office"},
+               "metadata": [{"name": "Work Location", "value": ["In-Office"]}]}
+        self.assertEqual(ats_boards.place_key(
+            job["location"]["name"],
+            *ats_boards._greenhouse_metadata_locations(job)), "")
+
+
+class HomeCountry(unittest.TestCase):
+    """A board-growth row with no single place moving still has a country when
+    most of the board is in one."""
+
+    def _item(self, places, total=100):
+        current = {"total": total, "places": places, "functions": {},
+                   "place_version": ats_boards.PLACE_VERSION}
+        baseline = {"total": total - 20, "places": places, "functions": {},
+                    "date": "2026-11-01", "place_version": ats_boards.PLACE_VERSION}
+        entry = {"ats": "greenhouse", "slug": "x", "company": "X"}
+        return ats_boards._hiring_item(entry, current, baseline, "2026-11-12")
+
+    def test_a_mostly_american_board_is_filed_in_the_united_states(self):
+        item = self._item({"country:US": 50, "city:Austin": 20, "city:Lisbon": 5})
+        self.assertEqual(item["place_key"], "country:US")
+        self.assertEqual(ats_boards.as_classified(item)["country"], "United States")
+        self.assertIn("70 of its 100 open roles are in United States", item["raw_text"])
+
+    def test_a_spread_board_gets_no_country_rather_than_a_guess(self):
+        item = self._item({"country:US": 57, "city:Lisbon": 20, "city:Singapore": 23})
+        self.assertEqual(item["place_key"], "")
+
+    def test_unplaced_postings_count_against_the_home_share(self):
+        # 10 placed of 100: the board says almost nothing about place.
+        self.assertEqual(self._item({"country:US": 10})["place_key"], "")
+
+    def test_a_baseline_from_an_older_parser_names_no_moving_place(self):
+        current = {"total": 120, "functions": {}, "place_version": ats_boards.PLACE_VERSION,
+                   "places": {"city:Austin": 100}}
+        old = {"total": 100, "functions": {}, "places": {}, "date": "2026-11-01"}
+        self.assertEqual(ats_boards._top_place(current, old), ("", 0))

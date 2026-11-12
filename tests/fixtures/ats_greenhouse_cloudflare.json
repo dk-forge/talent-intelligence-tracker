@@ -1,0 +1,1078 @@
+{
+ "jobs": [
+  {
+   "title": "Account Executive, FedCiv",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Washington DC, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Account Executive, Indonesia",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Singapore"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "AI Security Research & Red Team Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US",
+      "New York, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Associate, Strategic Finance & Investor Relations",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "San Francisco, CA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Dubai, UAE"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - Arabic Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Dubai, UAE"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": " Business Development Representative (BDR) ",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": " Business Development Representative (BDR), LATAM Portuguese Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": " Business Development Representative (BDR), LATAM Spanish Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - Danish, Norwegian or Swedish Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK",
+      "Sweden"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - Dutch Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Amsterdam, Netherlands"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - German Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "Munich, Germany"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - Hebrew Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK",
+      "Sweden"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - Korea",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Seoul, South Korea"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Development Representative - Turkish Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Dubai, UAE"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Business Operations Manager",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "San Francisco, CA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Capacity Planning Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Chief of Staff to Chief Strategy Officer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "New York, US",
+      "San Francisco, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Client Executive, SLED",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "Dallas, TX",
+      "Houston, TX"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Commercial Sales Director, West",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "Los Angeles, CA",
+      "Phoenix, AZ",
+      "Seattle, WA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Engineer AI/ Start Up's",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "San Francisco, CA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Engineer, Enterprise - Austin/Dallas,TX or Raleigh, NC",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "Dallas, TX",
+      "Raleigh, NC"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Engineer, Korea",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Seoul, South Korea"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Experience Manager",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Experience Manager - Dutch or Swedish Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Experience Manager - French and Spanish or Portuguese Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Experience Manager - German Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Experience Manager - Hebrew Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Experience Manager - Russian Speaking",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Reliability Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Singapore"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Security Compliance Specialist",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "New York, NY"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Solutions Engineer",
+   "location": {
+    "name": "In-Office"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Bengaluru, India"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Customer Solutions Strategy Lead",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "Dallas, TX",
+      "New York, NY"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Analyst",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Center Architect",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Center Design Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Center Infrastructure Management (DCIM) Administrator - Infrastructure Operations",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Atlanta, US",
+      "Denver, US",
+      "Washington DC, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Center Network Operations Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Singapore",
+      "Sydney, Australia"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Center Operations Engineer",
+   "location": {
+    "name": "In-Office"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Boston, MA",
+      "Dallas, TX",
+      "Salt Lake City, UT"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Center Strategy - Edge",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "New York, NY",
+      "San Francisco, CA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Data Scientist",
+   "location": {
+    "name": "In-Office"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Bengaluru, India"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "DCSC Automation Specialist",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Atlanta, US",
+      "Austin, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Deal Desk Manager",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US",
+      "Denver, CO",
+      "Seattle, WA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Deal Desk Manager, APAC",
+   "location": {
+    "name": "Singapore"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Singapore, Singapore"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Deal Desk Manager, EMEA",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Deal Intelligence Analyst",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Developer GTM Strategy Manager, Technical Programs",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, US",
+      "New York, US",
+      "San Francisco, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Digital Natives Account Executive",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Switzerland"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Digital Natives Account Executive",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Digital Presales Customer Engineer",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Kuala Lumpur, Malaysia"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Director, Growth Sales (AI & Digital Natives) ",
+   "location": {
+    "name": "Distributed"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Atlanta, GA",
+      "Miami, FL"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Director of Sales, Named (Toronto)",
+   "location": {
+    "name": "Distributed"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Toronto, Canada"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Director of Structured Finance",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "New York, NY",
+      "San Francisco, CA"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Director, Strategic Finance & Investor Relations",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "New York, US",
+      "San Francisco, US",
+      "US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Engineering Manager, Agentic Commerce",
+   "location": {
+    "name": "Hybrid; In-Office"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal",
+      "London, UK"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Engineering Manager, Agentic Internet & Data Insights",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Lisbon, Portugal"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Engineering Manager, Bots & Fraud",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX",
+      "Denver, CO",
+      "New York, NY",
+      "Washington DC, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Engineering Manager, Data Center Operations",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Atlanta, GA",
+      "Austin, US",
+      "New York, NY",
+      "San Francisco, CA",
+      "Seattle, WA",
+      "Washington DC, US"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  },
+  {
+   "title": "Engineering Manager, Revenue Engineering",
+   "location": {
+    "name": "Hybrid"
+   },
+   "pay_input_ranges": [],
+   "metadata": [
+    {
+     "id": 8654220,
+     "name": "Job Posting Location",
+     "value": [
+      "Austin, TX"
+     ],
+     "value_type": "multi_select"
+    }
+   ]
+  }
+ ],
+ "meta": {
+  "total": 60
+ },
+ "_recorded": "2026-11-12 boards-api.greenhouse.io, trimmed to title/location/location metadata"
+}
