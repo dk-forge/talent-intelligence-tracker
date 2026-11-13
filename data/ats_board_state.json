@@ -445,7 +445,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 35
+     "total": 36
     }
    ],
    "last": {
@@ -458,7 +458,7 @@
      "marketing": 1,
      "operations": 2,
      "product": 5,
-     "sales": 12
+     "sales": 13
     },
     "mode_known": 8,
     "mode_place": "city:New York",
@@ -469,7 +469,7 @@
     "place_version": 2,
     "places": {
      "city:Belfast": 2,
-     "city:London": 19,
+     "city:London": 20,
      "city:New York": 14
     },
     "salary": {
@@ -480,15 +480,15 @@
      "other_currencies": [],
      "place": "city:New York"
     },
-    "total": 35
+    "total": 36
    },
    "slug": "9fin",
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "35 open roles on 2026-11-13 against 31 on 2026-10-14: a move of +4 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 4,
-    "direction": "flat",
+    "basis": "36 open roles on 2026-11-13 against 31 on 2026-10-14: +5 (16%) across 31 readings over 30 days",
+    "delta": 5,
+    "direction": "rising",
     "from": {
      "date": "2026-10-14",
      "total": 31
@@ -496,7 +496,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 35
+     "total": 36
     },
     "window_days": 30
    },
@@ -9574,7 +9574,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 126
+     "total": 124
     }
    ],
    "last": {
@@ -9582,7 +9582,7 @@
     "functions": {
      "data_ai": 2,
      "design": 3,
-     "engineering": 38,
+     "engineering": 36,
      "finance": 7,
      "hr_people": 5,
      "marketing": 5,
@@ -9590,12 +9590,12 @@
      "product": 10,
      "sales": 38
     },
-    "mode_known": 71,
+    "mode_known": 69,
     "mode_place": "",
-    "mode_structured": 71,
+    "mode_structured": 69,
     "modes": {
      "hybrid": 4,
-     "onsite": 60,
+     "onsite": 58,
      "remote": 7
     },
     "place_version": 2,
@@ -9603,7 +9603,7 @@
      "city:Amsterdam": 2,
      "city:Austin": 2,
      "city:Dallas": 1,
-     "city:London": 14,
+     "city:London": 12,
      "city:New York": 23,
      "city:San Francisco": 64,
      "city:Sao Paulo": 1,
@@ -9629,7 +9629,7 @@
      ],
      "place": "city:San Francisco"
     },
-    "total": 126
+    "total": 124
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -9686,8 +9686,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "126 open roles on 2026-11-13 against 140 on 2026-10-14: -14 (10%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -14,
+    "basis": "124 open roles on 2026-11-13 against 140 on 2026-10-14: -16 (11%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -16,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -9696,7 +9696,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 126
+     "total": 124
     },
     "window_days": 30
    },
@@ -17397,7 +17397,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 92
+     "total": 93
     }
    ],
    "last": {
@@ -17405,30 +17405,30 @@
     "functions": {
      "engineering": 57,
      "finance": 4,
-     "hr_people": 1,
+     "hr_people": 2,
      "legal_compliance": 2,
      "marketing": 1,
      "operations": 15,
      "product": 5,
      "sales": 5
     },
-    "mode_known": 90,
+    "mode_known": 91,
     "mode_place": "",
-    "mode_structured": 90,
+    "mode_structured": 91,
     "modes": {
-     "onsite": 88,
+     "onsite": 89,
      "remote": 2
     },
     "place_version": 2,
     "places": {
      "city:Boston": 21,
-     "city:London": 52,
+     "city:London": 53,
      "city:San Diego": 4,
      "city:Vancouver": 11,
      "country:DE": 2,
      "country:US": 2
     },
-    "total": 92
+    "total": 93
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -17461,8 +17461,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "92 open roles on 2026-11-13 against 108 on 2026-10-14: -16 (15%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -16,
+    "basis": "93 open roles on 2026-11-13 against 108 on 2026-10-14: -15 (14%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -15,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -17471,7 +17471,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 92
+     "total": 93
     },
     "window_days": 30
    },
@@ -18451,14 +18451,14 @@
     },
     {
      "date": "2026-11-13",
-     "total": 45
+     "total": 46
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
      "data_ai": 9,
-     "design": 1,
+     "design": 2,
      "engineering": 1,
      "finance": 3,
      "it_infrastructure": 1,
@@ -18466,18 +18466,18 @@
      "product": 6,
      "sales": 9
     },
-    "mode_known": 45,
+    "mode_known": 46,
     "mode_place": "city:Denver",
-    "mode_structured": 45,
+    "mode_structured": 46,
     "modes": {
-     "hybrid": 45
+     "hybrid": 46
     },
     "place_version": 2,
     "places": {
-     "city:Denver": 44,
+     "city:Denver": 45,
      "city:Madison": 1
     },
-    "total": 45
+    "total": 46
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -18506,8 +18506,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "45 open roles on 2026-11-13 against 48 on 2026-10-14: a move of -3 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -3,
+    "basis": "46 open roles on 2026-11-13 against 48 on 2026-10-14: a move of -2 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -2,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -18516,7 +18516,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 45
+     "total": 46
     },
     "window_days": 30
    },
@@ -19010,7 +19010,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 338
+     "total": 339
     }
    ],
    "last": {
@@ -19028,18 +19028,18 @@
      "product": 14,
      "sales": 44
     },
-    "mode_known": 331,
+    "mode_known": 332,
     "mode_place": "",
-    "mode_structured": 331,
+    "mode_structured": 332,
     "modes": {
-     "onsite": 331
+     "onsite": 332
     },
     "place_version": 2,
     "places": {
      "city:Atlanta": 1,
      "city:Chicago": 13,
      "city:Copenhagen": 3,
-     "city:Denver": 14,
+     "city:Denver": 15,
      "city:Dubai": 4,
      "city:Houston": 8,
      "city:London": 39,
@@ -19061,9 +19061,9 @@
     },
     "salary": {
      "currency": "USD",
-     "listed": 157,
-     "median_max": 230000,
-     "median_min": 172550,
+     "listed": 158,
+     "median_max": 227000,
+     "median_min": 172125,
      "other_currencies": [
       "EUR",
       "GBP",
@@ -19072,7 +19072,7 @@
      ],
      "place": "city:New York"
     },
-    "total": 338
+    "total": 339
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -19134,8 +19134,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "338 open roles on 2026-11-13 against 299 on 2026-10-14: +39 (13%) across 31 readings over 30 days",
-    "delta": 39,
+    "basis": "339 open roles on 2026-11-13 against 299 on 2026-10-14: +40 (13%) across 31 readings over 30 days",
+    "delta": 40,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -19144,7 +19144,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 338
+     "total": 339
     },
     "window_days": 30
    },
@@ -25113,13 +25113,13 @@
     },
     {
      "date": "2026-11-13",
-     "total": 32
+     "total": 34
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
-     "engineering": 4,
+     "engineering": 6,
      "finance": 1,
      "it_infrastructure": 4,
      "marketing": 3,
@@ -25127,11 +25127,11 @@
      "product": 1,
      "sales": 2
     },
-    "mode_known": 30,
+    "mode_known": 32,
     "mode_place": "country:US",
-    "mode_structured": 30,
+    "mode_structured": 32,
     "modes": {
-     "hybrid": 6,
+     "hybrid": 8,
      "onsite": 7,
      "remote": 17
     },
@@ -25143,17 +25143,17 @@
      "city:Stuttgart": 1,
      "city:Washington DC": 1,
      "country:DE": 4,
-     "country:US": 23
+     "country:US": 25
     },
     "salary": {
      "currency": "USD",
-     "listed": 32,
-     "median_max": 182000,
-     "median_min": 157500,
+     "listed": 34,
+     "median_max": 202000,
+     "median_min": 167500,
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 32
+    "total": 34
    },
    "mode_baseline": {
     "date": "2026-10-13",
@@ -25198,8 +25198,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "32 open roles on 2026-11-13 against 30 on 2026-10-14: a move of +2 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 2,
+    "basis": "34 open roles on 2026-11-13 against 30 on 2026-10-14: a move of +4 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 4,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -25208,7 +25208,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 32
+     "total": 34
     },
     "window_days": 30
    },
@@ -25723,7 +25723,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 835
+     "total": 831
     }
    ],
    "last": {
@@ -25743,13 +25743,13 @@
      "operations": 27,
      "product": 9,
      "research": 70,
-     "sales": 24
+     "sales": 21
     },
-    "mode_known": 610,
+    "mode_known": 606,
     "mode_place": "city:San Francisco",
-    "mode_structured": 605,
+    "mode_structured": 601,
     "modes": {
-     "hybrid": 559,
+     "hybrid": 555,
      "onsite": 27,
      "remote": 24
     },
@@ -25758,14 +25758,14 @@
      "city:Abu Dhabi": 1,
      "city:Bangalore": 2,
      "city:Dublin": 14,
-     "city:London": 37,
+     "city:London": 35,
      "city:Madrid": 2,
      "city:Mumbai": 1,
      "city:Munich": 16,
      "city:New Delhi": 3,
      "city:New York": 35,
-     "city:Paris": 9,
-     "city:San Francisco": 552,
+     "city:Paris": 8,
+     "city:San Francisco": 551,
      "city:Sao Paulo": 9,
      "city:Seattle": 17,
      "city:Seoul": 7,
@@ -25782,7 +25782,7 @@
     },
     "salary": {
      "currency": "USD",
-     "listed": 644,
+     "listed": 643,
      "median_max": 365000,
      "median_min": 252000,
      "other_currencies": [
@@ -25792,7 +25792,7 @@
      ],
      "place": "city:San Francisco"
     },
-    "total": 835
+    "total": 831
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -25864,8 +25864,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "835 open roles on 2026-11-13 against 807 on 2026-10-14: a move of +28 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 28,
+    "basis": "831 open roles on 2026-11-13 against 807 on 2026-10-14: a move of +24 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 24,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -25874,7 +25874,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 835
+     "total": 831
     },
     "window_days": 30
    },
@@ -30054,32 +30054,32 @@
     },
     {
      "date": "2026-11-13",
-     "total": 180
+     "total": 179
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
      "data_ai": 5,
-     "design": 7,
+     "design": 6,
      "engineering": 39,
      "executive": 1,
      "finance": 3,
      "hr_people": 4,
      "it_infrastructure": 1,
-     "legal_compliance": 11,
+     "legal_compliance": 12,
      "marketing": 7,
      "operations": 2,
      "product": 7,
-     "sales": 86
+     "sales": 85
     },
-    "mode_known": 180,
+    "mode_known": 179,
     "mode_place": "city:New York",
-    "mode_structured": 180,
+    "mode_structured": 179,
     "modes": {
      "hybrid": 141,
      "onsite": 13,
-     "remote": 26
+     "remote": 25
     },
     "place_version": 2,
     "places": {
@@ -30090,13 +30090,13 @@
      "city:Toronto": 4,
      "city:Washington DC": 1,
      "country:CA": 1,
-     "country:US": 16
+     "country:US": 15
     },
     "salary": {
      "currency": "USD",
-     "listed": 160,
-     "median_max": 275000,
-     "median_min": 170000,
+     "listed": 158,
+     "median_max": 270500,
+     "median_min": 169000,
      "other_currencies": [
       "CAD",
       "GBP",
@@ -30104,7 +30104,7 @@
      ],
      "place": "city:New York"
     },
-    "total": 180
+    "total": 179
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -30156,8 +30156,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "180 open roles on 2026-11-13 against 162 on 2026-10-14: +18 (11%) across 31 readings over 30 days",
-    "delta": 18,
+    "basis": "179 open roles on 2026-11-13 against 162 on 2026-10-14: +17 (10%) across 31 readings over 30 days",
+    "delta": 17,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -30166,7 +30166,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 180
+     "total": 179
     },
     "window_days": 30
    },
@@ -32730,7 +32730,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 25
+     "total": 26
     }
    ],
    "last": {
@@ -32739,14 +32739,14 @@
      "engineering": 3,
      "finance": 3,
      "it_infrastructure": 1,
-     "operations": 15,
+     "operations": 16,
      "product": 1
     },
-    "mode_known": 25,
+    "mode_known": 26,
     "mode_place": "",
-    "mode_structured": 25,
+    "mode_structured": 26,
     "modes": {
-     "onsite": 16,
+     "onsite": 17,
      "remote": 9
     },
     "place_version": 2,
@@ -32758,7 +32758,7 @@
      "city:Miami": 4,
      "city:San Francisco": 1,
      "city:San Jose CA": 1,
-     "country:US": 1
+     "country:US": 2
     },
     "salary": {
      "currency": "USD",
@@ -32768,7 +32768,7 @@
      "other_currencies": [],
      "place": "city:Los Angeles"
     },
-    "total": 25
+    "total": 26
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -32814,8 +32814,8 @@
    "source_name": "Ashby job board",
    "status": "ok",
    "trajectory": {
-    "basis": "25 open roles on 2026-11-13 against 33 on 2026-10-14: -8 (24%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -8,
+    "basis": "26 open roles on 2026-11-13 against 33 on 2026-10-14: -7 (21%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -7,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -32824,7 +32824,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 25
+     "total": 26
     },
     "window_days": 30
    },
@@ -42301,7 +42301,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 219
+     "total": 217
     }
    ],
    "last": {
@@ -42310,7 +42310,7 @@
      "customer_support": 1,
      "data_ai": 15,
      "design": 9,
-     "engineering": 110,
+     "engineering": 109,
      "executive": 1,
      "finance": 1,
      "it_infrastructure": 11,
@@ -42320,20 +42320,20 @@
      "product": 18,
      "sales": 8
     },
-    "mode_known": 212,
+    "mode_known": 210,
     "mode_place": "remote:",
     "mode_structured": 0,
     "modes": {
-     "remote": 212
+     "remote": 210
     },
     "place_version": 2,
     "places": {
      "city:London": 1,
      "city:New York": 2,
      "city:San Francisco": 4,
-     "remote:": 212
+     "remote:": 210
     },
-    "total": 219
+    "total": 217
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -42367,8 +42367,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "219 open roles on 2026-11-13 against 205 on 2026-10-14: a move of +14 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 14,
+    "basis": "217 open roles on 2026-11-13 against 205 on 2026-10-14: a move of +12 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 12,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -42377,7 +42377,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 219
+     "total": 217
     },
     "window_days": 30
    },
@@ -43410,7 +43410,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 214
+     "total": 216
     }
    ],
    "last": {
@@ -43419,7 +43419,7 @@
      "customer_support": 8,
      "data_ai": 27,
      "design": 6,
-     "engineering": 35,
+     "engineering": 37,
      "finance": 2,
      "hr_people": 2,
      "it_infrastructure": 5,
@@ -43429,11 +43429,11 @@
      "product": 9,
      "sales": 9
     },
-    "mode_known": 19,
+    "mode_known": 21,
     "mode_place": "country:US",
     "mode_structured": 0,
     "modes": {
-     "remote": 19
+     "remote": 21
     },
     "place_version": 2,
     "places": {
@@ -43464,15 +43464,15 @@
      "country:IE": 4,
      "country:IN": 1,
      "country:JP": 2,
-     "country:US": 77,
+     "country:US": 79,
      "country:VN": 1,
      "remote:": 4
     },
     "salary": {
      "currency": "USD",
-     "listed": 94,
-     "median_max": 240000,
-     "median_min": 200000,
+     "listed": 96,
+     "median_max": 238500,
+     "median_min": 198000,
      "other_currencies": [
       "CAD",
       "EUR",
@@ -43481,14 +43481,14 @@
      ],
      "place": "country:US"
     },
-    "total": 214
+    "total": 216
    },
    "slug": "airbnb",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "214 open roles on 2026-11-13 against 165 on 2026-10-14: +49 (30%) across 31 readings over 30 days",
-    "delta": 49,
+    "basis": "216 open roles on 2026-11-13 against 165 on 2026-10-14: +51 (31%) across 31 readings over 30 days",
+    "delta": 51,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -43497,7 +43497,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 214
+     "total": 216
     },
     "window_days": 30
    },
@@ -47454,7 +47454,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 670
+     "total": 671
     }
    ],
    "last": {
@@ -47470,7 +47470,7 @@
      "it_infrastructure": 79,
      "legal_compliance": 19,
      "manufacturing": 1,
-     "marketing": 21,
+     "marketing": 22,
      "operations": 38,
      "product": 11,
      "research": 14,
@@ -47501,7 +47501,7 @@
      "city:Seattle": 2,
      "city:Seoul": 12,
      "city:Singapore": 11,
-     "city:Sydney": 14,
+     "city:Sydney": 15,
      "city:Tokyo": 14,
      "city:Washington DC": 13,
      "city:Zurich": 5,
@@ -47521,14 +47521,14 @@
      ],
      "place": "city:San Francisco"
     },
-    "total": 670
+    "total": 671
    },
    "slug": "anthropic",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "670 open roles on 2026-11-13 against 648 on 2026-10-14: a move of +22 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 22,
+    "basis": "671 open roles on 2026-11-13 against 648 on 2026-10-14: a move of +23 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 23,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -47537,7 +47537,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 670
+     "total": 671
     },
     "window_days": 30
    },
@@ -58771,7 +58771,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 349
+     "total": 346
     }
    ],
    "last": {
@@ -58799,11 +58799,11 @@
     "place_version": 2,
     "places": {
      "city:Atlanta": 1,
-     "city:Austin": 58,
+     "city:Austin": 57,
      "city:Berlin": 4,
      "city:Boston": 1,
      "city:Bucharest": 1,
-     "city:Chicago": 63,
+     "city:Chicago": 62,
      "city:Denver": 1,
      "city:Dubai": 2,
      "city:Jakarta": 1,
@@ -58818,18 +58818,18 @@
      "city:Singapore": 4,
      "city:Sydney": 6,
      "city:Tokyo": 11,
-     "city:Toronto": 18,
+     "city:Toronto": 17,
      "city:Vancouver": 1,
      "country:MX": 2
     },
-    "total": 349
+    "total": 346
    },
    "slug": "braze",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "349 open roles on 2026-11-13 against 323 on 2026-10-14: a move of +26 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 26,
+    "basis": "346 open roles on 2026-11-13 against 323 on 2026-10-14: a move of +23 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 23,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -58838,7 +58838,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 349
+     "total": 346
     },
     "window_days": 30
    },
@@ -62885,7 +62885,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 1638
+     "total": 1652
     }
    ],
    "last": {
@@ -62924,7 +62924,7 @@
      "city:Fort Worth": 1,
      "city:Houston": 15,
      "city:Indianapolis": 5,
-     "city:Kansas City": 5,
+     "city:Kansas City": 6,
      "city:Las Vegas": 18,
      "city:Miami": 3,
      "city:Milwaukee": 1,
@@ -62942,19 +62942,20 @@
      "city:San Francisco": 1,
      "city:San Jose CA": 2,
      "city:Seattle": 3,
+     "city:St. Louis": 1,
      "city:Tampa": 6,
      "city:Tempe": 75,
-     "country:US": 1301,
+     "country:US": 1313,
      "remote:": 1
     },
-    "total": 1638
+    "total": 1652
    },
    "slug": "carvana",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "1638 open roles on 2026-11-13 against 1776 on 2026-10-14: a move of -138 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -138,
+    "basis": "1652 open roles on 2026-11-13 against 1776 on 2026-10-14: a move of -124 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -124,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -62963,7 +62964,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 1638
+     "total": 1652
     },
     "window_days": 30
    },
@@ -65040,7 +65041,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 478
+     "total": 477
     }
    ],
    "last": {
@@ -65048,7 +65049,7 @@
     "functions": {
      "data_ai": 8,
      "design": 1,
-     "engineering": 186,
+     "engineering": 185,
      "executive": 4,
      "finance": 4,
      "hr_people": 9,
@@ -65060,11 +65061,11 @@
      "sales": 147,
      "supply_chain": 3
     },
-    "mode_known": 475,
+    "mode_known": 474,
     "mode_place": "",
     "mode_structured": 0,
     "modes": {
-     "hybrid": 372,
+     "hybrid": 371,
      "onsite": 44,
      "remote": 59
     },
@@ -65072,7 +65073,7 @@
     "places": {
      "city:Amsterdam": 9,
      "city:Atlanta": 21,
-     "city:Austin": 163,
+     "city:Austin": 162,
      "city:Bangalore": 15,
      "city:Beijing": 3,
      "city:Boston": 1,
@@ -65119,7 +65120,7 @@
      "country:SE": 2,
      "country:US": 10
     },
-    "total": 478
+    "total": 477
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -65158,8 +65159,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "478 open roles on 2026-11-13 against 446 on 2026-10-14: a move of +32 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 32,
+    "basis": "477 open roles on 2026-11-13 against 446 on 2026-10-14: a move of +31 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 31,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -65168,7 +65169,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 478
+     "total": 477
     },
     "window_days": 30
    },
@@ -65622,13 +65623,13 @@
     },
     {
      "date": "2026-11-13",
-     "total": 13
+     "total": 12
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
-     "clinical_healthcare": 3,
+     "clinical_healthcare": 2,
      "finance": 2,
      "legal_compliance": 1,
      "marketing": 1,
@@ -65636,17 +65637,17 @@
     },
     "place_version": 2,
     "places": {
-     "city:Boulder": 3,
+     "city:Boulder": 2,
      "country:US": 10
     },
-    "total": 13
+    "total": 12
    },
    "slug": "cogentbiosciences",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "13 open roles on 2026-11-13 against 15 on 2026-10-14: a move of -2 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -2,
+    "basis": "12 open roles on 2026-11-13 against 15 on 2026-10-14: a move of -3 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -3,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -65655,7 +65656,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 13
+     "total": 12
     },
     "window_days": 30
    },
@@ -66164,32 +66165,32 @@
     },
     {
      "date": "2026-11-13",
-     "total": 268
+     "total": 266
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
-     "customer_support": 22,
-     "data_ai": 22,
+     "customer_support": 21,
+     "data_ai": 21,
      "design": 3,
      "engineering": 70,
      "executive": 3,
      "finance": 14,
      "hr_people": 3,
-     "it_infrastructure": 22,
+     "it_infrastructure": 23,
      "legal_compliance": 30,
      "marketing": 6,
      "operations": 16,
      "product": 17,
      "sales": 4
     },
-    "mode_known": 242,
+    "mode_known": 241,
     "mode_place": "country:US",
     "mode_structured": 0,
     "modes": {
-     "hybrid": 30,
-     "remote": 212
+     "hybrid": 28,
+     "remote": 213
     },
     "place_version": 2,
     "places": {
@@ -66197,9 +66198,9 @@
      "city:Dublin": 2,
      "city:London": 4,
      "city:Luxembourg": 5,
-     "city:Manila": 21,
-     "city:New York": 20,
-     "city:San Francisco": 5,
+     "city:Manila": 20,
+     "city:New York": 19,
+     "city:San Francisco": 4,
      "city:Singapore": 9,
      "country:AE": 3,
      "country:AR": 1,
@@ -66210,11 +66211,11 @@
      "country:IE": 2,
      "country:IL": 1,
      "country:IN": 10,
-     "country:US": 158
+     "country:US": 159
     },
     "salary": {
      "currency": "USD",
-     "listed": 155,
+     "listed": 156,
      "median_max": 218900,
      "median_min": 186065,
      "other_currencies": [
@@ -66230,7 +66231,7 @@
      ],
      "place": "country:US"
     },
-    "total": 268
+    "total": 266
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -66297,8 +66298,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "268 open roles on 2026-11-13 against 226 on 2026-10-14: +42 (19%) across 31 readings over 30 days",
-    "delta": 42,
+    "basis": "266 open roles on 2026-11-13 against 226 on 2026-10-14: +40 (18%) across 31 readings over 30 days",
+    "delta": 40,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -66307,7 +66308,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 268
+     "total": 266
     },
     "window_days": 30
    },
@@ -66762,7 +66763,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 63
+     "total": 62
     }
    ],
    "last": {
@@ -66772,31 +66773,31 @@
      "finance": 1,
      "hr_people": 1,
      "marketing": 1,
-     "sales": 23,
+     "sales": 22,
      "supply_chain": 1
     },
     "place_version": 2,
     "places": {
      "city:New York": 2,
      "country:GB": 1,
-     "country:US": 60
+     "country:US": 59
     },
     "salary": {
      "currency": "USD",
-     "listed": 62,
+     "listed": 61,
      "median_max": 200000,
      "median_min": 170000,
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 63
+    "total": 62
    },
    "slug": "compasspathways",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "63 open roles on 2026-11-13 against 150 on 2026-10-14: -87 (58%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -87,
+    "basis": "62 open roles on 2026-11-13 against 150 on 2026-10-14: -88 (59%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -88,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -66805,7 +66806,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 63
+     "total": 62
     },
     "window_days": 30
    },
@@ -67268,7 +67269,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 69
+     "total": 70
     }
    ],
    "last": {
@@ -67276,12 +67277,12 @@
     "functions": {
      "design": 4,
      "engineering": 1,
-     "it_infrastructure": 19
+     "it_infrastructure": 20
     },
     "place_version": 2,
     "places": {
      "city:Charlotte": 3,
-     "city:Washington DC": 8,
+     "city:Washington DC": 9,
      "country:US": 55
     },
     "salary": {
@@ -67292,14 +67293,14 @@
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 69
+    "total": 70
    },
    "slug": "comstock",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "69 open roles on 2026-11-13 against 66 on 2026-10-14: a move of +3 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 3,
+    "basis": "70 open roles on 2026-11-13 against 66 on 2026-10-14: a move of +4 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 4,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -67308,7 +67309,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 69
+     "total": 70
     },
     "window_days": 30
    },
@@ -68308,7 +68309,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 304
+     "total": 305
     }
    ],
    "last": {
@@ -68323,7 +68324,7 @@
      "legal_compliance": 15,
      "manufacturing": 1,
      "marketing": 4,
-     "operations": 13,
+     "operations": 14,
      "product": 6,
      "sales": 11
     },
@@ -68352,16 +68353,16 @@
      "city:Toronto": 1,
      "city:Washington DC": 4,
      "country:JP": 1,
-     "country:US": 33
+     "country:US": 34
     },
-    "total": 304
+    "total": 305
    },
    "slug": "coreweave",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "304 open roles on 2026-11-13 against 305 on 2026-10-14: a move of -1 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -1,
+    "basis": "305 open roles on 2026-11-13 against 305 on 2026-10-14: a move of +0 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 0,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -68370,7 +68371,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 304
+     "total": 305
     },
     "window_days": 30
    },
@@ -70811,7 +70812,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 233
+     "total": 234
     }
    ],
    "last": {
@@ -70824,7 +70825,7 @@
      "legal_compliance": 1,
      "manufacturing": 20,
      "marketing": 3,
-     "sales": 86,
+     "sales": 87,
      "supply_chain": 4
     },
     "place_version": 2,
@@ -70836,7 +70837,7 @@
      "city:New York": 1,
      "city:Phoenix": 2,
      "city:Tampa": 1,
-     "country:US": 220
+     "country:US": 221
     },
     "salary": {
      "currency": "USD",
@@ -70846,14 +70847,14 @@
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 233
+    "total": 234
    },
    "slug": "curaleaf",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "233 open roles on 2026-11-13 against 280 on 2026-10-14: -47 (17%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -47,
+    "basis": "234 open roles on 2026-11-13 against 280 on 2026-10-14: -46 (16%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -46,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -70862,7 +70863,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 233
+     "total": 234
     },
     "window_days": 30
    },
@@ -71412,7 +71413,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 909
+     "total": 906
     }
    ],
    "last": {
@@ -71449,7 +71450,7 @@
      "city:Austin": 7,
      "city:Bangalore": 76,
      "city:Belgrade": 15,
-     "city:Bellevue": 39,
+     "city:Bellevue": 38,
      "city:Berlin": 11,
      "city:Boston": 5,
      "city:Brisbane": 1,
@@ -71461,14 +71462,14 @@
      "city:Herzliya": 2,
      "city:Houston": 1,
      "city:Kansas City": 1,
-     "city:London": 43,
+     "city:London": 42,
      "city:Los Angeles": 2,
      "city:Madrid": 2,
      "city:Melbourne": 5,
      "city:Mexico City": 1,
      "city:Milan": 5,
      "city:Montreal": 1,
-     "city:Mountain View": 87,
+     "city:Mountain View": 86,
      "city:Mumbai": 3,
      "city:Munich": 15,
      "city:New Delhi": 1,
@@ -71511,7 +71512,7 @@
     },
     "salary": {
      "currency": "USD",
-     "listed": 447,
+     "listed": 445,
      "median_max": 250208,
      "median_min": 182000,
      "other_currencies": [
@@ -71520,14 +71521,14 @@
      ],
      "place": ""
     },
-    "total": 909
+    "total": 906
    },
    "slug": "databricks",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "909 open roles on 2026-11-13 against 895 on 2026-10-14: a move of +14 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 14,
+    "basis": "906 open roles on 2026-11-13 against 895 on 2026-10-14: a move of +11 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 11,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -71536,7 +71537,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 909
+     "total": 906
     },
     "window_days": 30
    },
@@ -72048,7 +72049,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 386
+     "total": 385
     }
    ],
    "last": {
@@ -72091,7 +72092,7 @@
      "city:London": 10,
      "city:Madrid": 4,
      "city:Melbourne": 2,
-     "city:Mexico City": 4,
+     "city:Mexico City": 3,
      "city:Mumbai": 2,
      "city:New York": 93,
      "city:Paris": 20,
@@ -72124,14 +72125,14 @@
      "other_currencies": [],
      "place": ""
     },
-    "total": 386
+    "total": 385
    },
    "slug": "datadog",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "386 open roles on 2026-11-13 against 439 on 2026-10-14: -53 (12%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -53,
+    "basis": "385 open roles on 2026-11-13 against 439 on 2026-10-14: -54 (12%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -54,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -72140,7 +72141,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 386
+     "total": 385
     },
     "window_days": 30
    },
@@ -74407,7 +74408,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 59
+     "total": 60
     }
    ],
    "last": {
@@ -74437,14 +74438,14 @@
      "city:Beijing": 8,
      "city:London": 2,
      "city:New York": 38,
-     "city:Pittsburgh": 5,
+     "city:Pittsburgh": 6,
      "city:Seattle": 1,
      "city:Tokyo": 2,
      "country:US": 2
     },
     "salary": {
      "currency": "USD",
-     "listed": 42,
+     "listed": 43,
      "median_max": 247300,
      "median_min": 182800,
      "other_currencies": [
@@ -74454,14 +74455,14 @@
      ],
      "place": "city:New York"
     },
-    "total": 59
+    "total": 60
    },
    "slug": "duolingo",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "59 open roles on 2026-11-13 against 59 on 2026-10-14: a move of +0 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 0,
+    "basis": "60 open roles on 2026-11-13 against 59 on 2026-10-14: a move of +1 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 1,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -74470,7 +74471,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 59
+     "total": 60
     },
     "window_days": 30
    },
@@ -76941,7 +76942,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 399
+     "total": 400
     }
    ],
    "last": {
@@ -76955,7 +76956,7 @@
      "it_infrastructure": 51,
      "marketing": 11,
      "product": 24,
-     "sales": 71
+     "sales": 72
     },
     "place_version": 2,
     "places": {
@@ -76998,12 +76999,12 @@
      "country:PT": 22,
      "country:RO": 7,
      "country:SA": 2,
-     "country:US": 107,
+     "country:US": 108,
      "country:ZA": 1
     },
     "salary": {
      "currency": "USD",
-     "listed": 114,
+     "listed": 115,
      "median_max": 179200,
      "median_min": 113300,
      "other_currencies": [
@@ -77016,14 +77017,14 @@
      ],
      "place": "country:US"
     },
-    "total": 399
+    "total": 400
    },
    "slug": "elastic",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "399 open roles on 2026-11-13 against 374 on 2026-10-14: a move of +25 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 25,
+    "basis": "400 open roles on 2026-11-13 against 374 on 2026-10-14: a move of +26 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 26,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -77032,7 +77033,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 399
+     "total": 400
     },
     "window_days": 30
    },
@@ -78495,7 +78496,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 38
+     "total": 40
     }
    ],
    "last": {
@@ -78508,26 +78509,26 @@
      "it_infrastructure": 2,
      "marketing": 1,
      "operations": 2,
-     "sales": 5
+     "sales": 7
     },
-    "mode_known": 37,
+    "mode_known": 39,
     "mode_place": "",
     "mode_structured": 0,
     "modes": {
-     "hybrid": 25,
+     "hybrid": 27,
      "onsite": 1,
      "remote": 11
     },
     "place_version": 2,
     "places": {
      "city:Austin": 1,
-     "city:Dallas": 12,
+     "city:Dallas": 13,
      "city:Miami": 1,
-     "city:New York": 9,
+     "city:New York": 10,
      "country:US": 8,
      "remote:": 7
     },
-    "total": 38
+    "total": 40
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -78563,8 +78564,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "38 open roles on 2026-11-13 against 31 on 2026-10-14: +7 (23%) across 31 readings over 30 days",
-    "delta": 7,
+    "basis": "40 open roles on 2026-11-13 against 31 on 2026-10-14: +9 (29%) across 31 readings over 30 days",
+    "delta": 9,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -78573,7 +78574,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 38
+     "total": 40
     },
     "window_days": 30
    },
@@ -87850,7 +87851,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 14
+     "total": 12
     }
    ],
    "last": {
@@ -87858,7 +87859,7 @@
     "functions": {
      "engineering": 1,
      "finance": 1,
-     "it_infrastructure": 2,
+     "it_infrastructure": 1,
      "operations": 1,
      "sales": 3
     },
@@ -87869,26 +87870,26 @@
      "city:Mexico City": 4,
      "city:Tokyo": 1,
      "city:Toronto": 1,
-     "city:Vancouver": 2,
-     "country:CA": 3,
+     "city:Vancouver": 1,
+     "country:CA": 2,
      "country:MX": 1
     },
     "salary": {
      "currency": "CAD",
-     "listed": 6,
-     "median_max": 79650,
-     "median_min": 60750,
+     "listed": 4,
+     "median_max": 116250,
+     "median_min": 83050,
      "other_currencies": [],
      "place": ""
     },
-    "total": 14
+    "total": 12
    },
    "slug": "hootsuite",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "14 open roles on 2026-11-13 against 4 on 2026-10-14: +10 (250%) across 31 readings over 30 days",
-    "delta": 10,
+    "basis": "12 open roles on 2026-11-13 against 4 on 2026-10-14: +8 (200%) across 31 readings over 30 days",
+    "delta": 8,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -87897,7 +87898,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 14
+     "total": 12
     },
     "window_days": 30
    },
@@ -91613,18 +91614,19 @@
     },
     {
      "date": "2026-11-13",
-     "total": 109
+     "total": 110
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
-     "customer_support": 4,
-     "engineering": 50,
+     "customer_support": 3,
+     "engineering": 51,
      "executive": 1,
      "finance": 2,
      "it_infrastructure": 7,
      "manufacturing": 1,
+     "marketing": 1,
      "operations": 3,
      "product": 3,
      "sales": 5,
@@ -91646,7 +91648,7 @@
      "city:Oxford": 22,
      "city:San Francisco": 4,
      "city:Santa Clara": 7,
-     "city:Seoul": 1,
+     "city:Seoul": 2,
      "city:Singapore": 1,
      "country:US": 43
     },
@@ -91658,14 +91660,14 @@
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 109
+    "total": 110
    },
    "slug": "ionq",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "109 open roles on 2026-11-13 against 132 on 2026-10-14: -23 (17%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -23,
+    "basis": "110 open roles on 2026-11-13 against 132 on 2026-10-14: -22 (17%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -22,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -91674,7 +91676,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 109
+     "total": 110
     },
     "window_days": 30
    },
@@ -94204,7 +94206,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 34
+     "total": 33
     }
    ],
    "last": {
@@ -94224,7 +94226,7 @@
     },
     "place_version": 2,
     "places": {
-     "city:New York": 12,
+     "city:New York": 11,
      "city:Pittsburgh": 5,
      "country:CA": 4,
      "country:US": 8,
@@ -94232,20 +94234,20 @@
     },
     "salary": {
      "currency": "USD",
-     "listed": 17,
-     "median_max": 175000,
+     "listed": 16,
+     "median_max": 172500,
      "median_min": 140000,
      "other_currencies": [],
      "place": "city:New York"
     },
-    "total": 34
+    "total": 33
    },
    "slug": "keelinfrastructure",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "34 open roles on 2026-11-13 against 32 on 2026-10-14: a move of +2 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 2,
+    "basis": "33 open roles on 2026-11-13 against 32 on 2026-10-14: a move of +1 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 1,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -94254,7 +94256,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 34
+     "total": 33
     },
     "window_days": 30
    },
@@ -95258,25 +95260,25 @@
     },
     {
      "date": "2026-11-13",
-     "total": 29
+     "total": 28
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
      "data_ai": 5,
-     "engineering": 7,
+     "engineering": 6,
      "finance": 1,
      "it_infrastructure": 1,
      "legal_compliance": 1,
      "operations": 2,
      "sales": 1
     },
-    "mode_known": 24,
+    "mode_known": 23,
     "mode_place": "remote:",
     "mode_structured": 0,
     "modes": {
-     "remote": 24
+     "remote": 23
     },
     "place_version": 2,
     "places": {
@@ -95284,9 +95286,9 @@
      "country:GB": 1,
      "country:SE": 1,
      "country:US": 1,
-     "remote:": 21
+     "remote:": 20
     },
-    "total": 29
+    "total": 28
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -95317,8 +95319,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "29 open roles on 2026-11-13 against 31 on 2026-10-14: a move of -2 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -2,
+    "basis": "28 open roles on 2026-11-13 against 31 on 2026-10-14: a move of -3 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -3,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -95327,7 +95329,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 29
+     "total": 28
     },
     "window_days": 30
    },
@@ -101709,7 +101711,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 387
+     "total": 388
     }
    ],
    "last": {
@@ -101725,7 +101727,7 @@
      "it_infrastructure": 28,
      "legal_compliance": 5,
      "marketing": 15,
-     "operations": 13,
+     "operations": 14,
      "product": 19,
      "research": 2,
      "sales": 72,
@@ -101779,7 +101781,7 @@
      "city:Washington DC": 1,
      "city:Zurich": 2,
      "country:BR": 1,
-     "country:CA": 2,
+     "country:CA": 3,
      "country:CH": 1,
      "country:DE": 4,
      "country:FR": 1,
@@ -101802,14 +101804,14 @@
      ],
      "place": ""
     },
-    "total": 387
+    "total": 388
    },
    "slug": "mongodb",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "387 open roles on 2026-11-13 against 393 on 2026-10-14: a move of -6 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -6,
+    "basis": "388 open roles on 2026-11-13 against 393 on 2026-10-14: a move of -5 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -5,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -101818,7 +101820,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 387
+     "total": 388
     },
     "window_days": 30
    },
@@ -102853,7 +102855,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 58
+     "total": 57
     }
    ],
    "last": {
@@ -102869,21 +102871,21 @@
      "operations": 3,
      "sales": 1
     },
-    "mode_known": 42,
+    "mode_known": 41,
     "mode_place": "city:Cardiff",
     "mode_structured": 0,
     "modes": {
-     "remote": 42
+     "remote": 41
     },
     "place_version": 2,
     "places": {
      "city:Barcelona": 5,
      "city:Cardiff": 34,
      "city:Dublin": 4,
-     "city:London": 9,
+     "city:London": 8,
      "country:GB": 6
     },
-    "total": 58
+    "total": 57
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -102920,8 +102922,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "58 open roles on 2026-11-13 against 66 on 2026-10-14: -8 (12%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -8,
+    "basis": "57 open roles on 2026-11-13 against 66 on 2026-10-14: -9 (14%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -9,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -102930,7 +102932,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 58
+     "total": 57
     },
     "window_days": 30
    },
@@ -107247,7 +107249,7 @@
      "customer_support": 2,
      "data_ai": 14,
      "design": 9,
-     "engineering": 111,
+     "engineering": 109,
      "executive": 3,
      "finance": 7,
      "hr_people": 3,
@@ -107256,16 +107258,16 @@
      "marketing": 7,
      "operations": 10,
      "product": 12,
-     "sales": 69
+     "sales": 71
     },
     "place_version": 2,
     "places": {
      "city:Bangalore": 97,
      "city:Barcelona": 2,
-     "city:Bellevue": 51,
+     "city:Bellevue": 52,
      "city:Boston": 2,
      "city:Brisbane": 1,
-     "city:Chicago": 15,
+     "city:Chicago": 16,
      "city:Dallas": 1,
      "city:Dublin": 18,
      "city:Kansas City": 1,
@@ -107275,13 +107277,13 @@
      "city:Mumbai": 2,
      "city:New Delhi": 1,
      "city:New York": 4,
-     "city:San Francisco": 45,
+     "city:San Francisco": 44,
      "city:Seoul": 2,
      "city:Singapore": 7,
      "city:Sydney": 8,
      "city:Tel Aviv": 2,
      "city:Tokyo": 9,
-     "city:Toronto": 50,
+     "city:Toronto": 49,
      "city:Warsaw": 2,
      "city:Washington DC": 13,
      "country:DE": 1,
@@ -107291,9 +107293,9 @@
     },
     "salary": {
      "currency": "USD",
-     "listed": 105,
-     "median_max": 239000,
-     "median_min": 174000,
+     "listed": 106,
+     "median_max": 234150,
+     "median_min": 170000,
      "other_currencies": [
       "CAD",
       "EUR"
@@ -114546,7 +114548,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 153
+     "total": 152
     }
    ],
    "last": {
@@ -114578,7 +114580,7 @@
      "city:Cleveland": 2,
      "city:Dallas": 5,
      "city:Denver": 2,
-     "city:Houston": 5,
+     "city:Houston": 4,
      "city:Kansas City": 1,
      "city:London": 2,
      "city:Los Angeles": 14,
@@ -114595,14 +114597,14 @@
      "country:US": 37,
      "remote:": 1
     },
-    "total": 153
+    "total": 152
    },
    "slug": "reformation",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "153 open roles on 2026-11-13 against 172 on 2026-10-14: -19 (11%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -19,
+    "basis": "152 open roles on 2026-11-13 against 172 on 2026-10-14: -20 (12%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -20,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -114611,7 +114613,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 153
+     "total": 152
     },
     "window_days": 30
    },
@@ -117640,14 +117642,14 @@
     },
     {
      "date": "2026-11-13",
-     "total": 273
+     "total": 274
     }
    ],
    "last": {
     "date": "2026-11-13",
     "functions": {
      "customer_support": 1,
-     "data_ai": 24,
+     "data_ai": 25,
      "design": 11,
      "engineering": 137,
      "executive": 2,
@@ -117676,12 +117678,12 @@
      "city:Singapore": 3,
      "city:Vancouver": 1,
      "country:JP": 1,
-     "country:US": 248,
+     "country:US": 249,
      "remote:": 4
     },
     "salary": {
      "currency": "USD",
-     "listed": 240,
+     "listed": 241,
      "median_max": 295250,
      "median_min": 243290,
      "other_currencies": [
@@ -117689,14 +117691,14 @@
      ],
      "place": "country:US"
     },
-    "total": 273
+    "total": 274
    },
    "slug": "roblox",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "273 open roles on 2026-11-13 against 258 on 2026-10-14: a move of +15 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 15,
+    "basis": "274 open roles on 2026-11-13 against 258 on 2026-10-14: a move of +16 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 16,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -117705,7 +117707,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 273
+     "total": 274
     },
     "window_days": 30
    },
@@ -118181,7 +118183,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 550
+     "total": 549
     }
    ],
    "last": {
@@ -118189,7 +118191,7 @@
     "functions": {
      "data_ai": 6,
      "design": 3,
-     "engineering": 294,
+     "engineering": 293,
      "executive": 2,
      "finance": 2,
      "hr_people": 9,
@@ -118208,26 +118210,26 @@
      "city:Toronto": 5,
      "city:Washington DC": 2,
      "country:NZ": 6,
-     "country:US": 453
+     "country:US": 452
     },
     "salary": {
      "currency": "USD",
-     "listed": 301,
-     "median_max": 162000,
+     "listed": 300,
+     "median_max": 163500,
      "median_min": 115200,
      "other_currencies": [
       "CAD"
      ],
      "place": "country:US"
     },
-    "total": 550
+    "total": 549
    },
    "slug": "rocketlab",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "550 open roles on 2026-11-13 against 585 on 2026-10-14: a move of -35 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -35,
+    "basis": "549 open roles on 2026-11-13 against 585 on 2026-10-14: a move of -36 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -36,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -118236,7 +118238,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 550
+     "total": 549
     },
     "window_days": 30
    },
@@ -120402,7 +120404,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 169
+     "total": 171
     }
    ],
    "last": {
@@ -120421,7 +120423,7 @@
      "operations": 8,
      "product": 9,
      "research": 2,
-     "sales": 7,
+     "sales": 9,
      "supply_chain": 1
     },
     "place_version": 2,
@@ -120439,28 +120441,28 @@
      "city:San Diego": 1,
      "city:San Francisco": 60,
      "city:St. Louis": 1,
-     "city:Washington DC": 18,
+     "city:Washington DC": 19,
      "country:CA": 4,
      "country:GB": 7,
      "country:IN": 1,
-     "country:US": 10
+     "country:US": 11
     },
     "salary": {
      "currency": "USD",
-     "listed": 109,
+     "listed": 111,
      "median_max": 254000,
      "median_min": 196000,
      "other_currencies": [],
      "place": ""
     },
-    "total": 169
+    "total": 171
    },
    "slug": "scaleai",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "169 open roles on 2026-11-13 against 183 on 2026-10-14: a move of -14 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": -14,
+    "basis": "171 open roles on 2026-11-13 against 183 on 2026-10-14: a move of -12 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": -12,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -120469,7 +120471,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 169
+     "total": 171
     },
     "window_days": 30
    },
@@ -121931,7 +121933,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 266
+     "total": 268
     }
    ],
    "last": {
@@ -121947,11 +121949,11 @@
      "product": 24,
      "sales": 1
     },
-    "mode_known": 120,
+    "mode_known": 121,
     "mode_place": "",
     "mode_structured": 0,
     "modes": {
-     "remote": 120
+     "remote": 121
     },
     "place_version": 2,
     "places": {
@@ -121961,14 +121963,14 @@
      "country:BR": 35,
      "country:CA": 1,
      "country:CL": 22,
-     "country:CO": 25,
+     "country:CO": 26,
      "country:DE": 1,
      "country:ES": 1,
      "country:FR": 1,
      "country:IN": 6,
      "country:MX": 38,
      "country:NL": 1,
-     "country:PE": 25,
+     "country:PE": 26,
      "country:PL": 3,
      "country:RS": 3,
      "country:TR": 16,
@@ -121983,7 +121985,7 @@
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 266
+    "total": 268
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -122033,8 +122035,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "266 open roles on 2026-11-13 against 249 on 2026-10-14: a move of +17 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 17,
+    "basis": "268 open roles on 2026-11-13 against 249 on 2026-10-14: a move of +19 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 19,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -122043,7 +122045,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 266
+     "total": 268
     },
     "window_days": 30
    },
@@ -125951,7 +125953,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 24
+     "total": 25
     }
    ],
    "last": {
@@ -125964,31 +125966,31 @@
      "it_infrastructure": 2,
      "manufacturing": 1,
      "marketing": 1,
-     "operations": 2,
+     "operations": 3,
      "supply_chain": 1
     },
     "place_version": 2,
     "places": {
      "city:Las Vegas": 9,
      "city:New York": 4,
-     "country:US": 11
+     "country:US": 12
     },
     "salary": {
      "currency": "USD",
-     "listed": 15,
-     "median_max": 180000,
-     "median_min": 120000,
+     "listed": 16,
+     "median_max": 185000,
+     "median_min": 116500,
      "other_currencies": [],
      "place": ""
     },
-    "total": 24
+    "total": 25
    },
    "slug": "sphereentertainment",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "24 open roles on 2026-11-13 against 32 on 2026-10-14: -8 (25%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -8,
+    "basis": "25 open roles on 2026-11-13 against 32 on 2026-10-14: -7 (22%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -7,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -125997,7 +125999,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 24
+     "total": 25
     },
     "window_days": 30
    },
@@ -128487,7 +128489,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 784
+     "total": 785
     }
    ],
    "last": {
@@ -128500,8 +128502,8 @@
      "executive": 11,
      "finance": 18,
      "hr_people": 18,
-     "it_infrastructure": 37,
-     "legal_compliance": 27,
+     "it_infrastructure": 36,
+     "legal_compliance": 28,
      "marketing": 29,
      "operations": 48,
      "product": 38,
@@ -128528,7 +128530,7 @@
      "city:Brussels": 1,
      "city:Bucharest": 5,
      "city:Chicago": 54,
-     "city:Dublin": 80,
+     "city:Dublin": 81,
      "city:London": 43,
      "city:Luxembourg": 3,
      "city:Madrid": 2,
@@ -128537,7 +128539,7 @@
      "city:Paris": 2,
      "city:San Francisco": 104,
      "city:Sao Paulo": 3,
-     "city:Seattle": 37,
+     "city:Seattle": 36,
      "city:Singapore": 57,
      "city:Sydney": 16,
      "city:Taipei": 3,
@@ -128562,14 +128564,14 @@
      "country:US": 47,
      "remote:": 45
     },
-    "total": 784
+    "total": 785
    },
    "slug": "stripe",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "784 open roles on 2026-11-13 against 723 on 2026-10-14: a move of +61 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 61,
+    "basis": "785 open roles on 2026-11-13 against 723 on 2026-10-14: a move of +62 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 62,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -128578,7 +128580,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 784
+     "total": 785
     },
     "window_days": 30
    },
@@ -130887,7 +130889,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 357
+     "total": 351
     }
    ],
    "last": {
@@ -130895,7 +130897,7 @@
     "functions": {
      "data_ai": 5,
      "design": 3,
-     "engineering": 55,
+     "engineering": 58,
      "finance": 5,
      "hr_people": 4,
      "it_infrastructure": 9,
@@ -130903,7 +130905,7 @@
      "marketing": 4,
      "operations": 3,
      "product": 6,
-     "sales": 229,
+     "sales": 223,
      "supply_chain": 1
     },
     "mode_known": 54,
@@ -130916,12 +130918,12 @@
     "place_version": 2,
     "places": {
      "city:Ann Arbor": 1,
-     "city:Atlanta": 2,
-     "city:Austin": 5,
+     "city:Atlanta": 1,
+     "city:Austin": 6,
      "city:Baltimore": 2,
      "city:Bangalore": 11,
      "city:Birmingham UK": 1,
-     "city:Boston": 8,
+     "city:Boston": 7,
      "city:Brisbane": 1,
      "city:Calgary": 2,
      "city:Cambridge MA": 1,
@@ -130943,10 +130945,9 @@
      "city:Miami": 1,
      "city:Nashville": 1,
      "city:New Orleans": 1,
-     "city:New York": 3,
+     "city:New York": 1,
      "city:Oakland": 1,
      "city:Orlando": 2,
-     "city:Philadelphia": 1,
      "city:Portland": 2,
      "city:Sacramento": 4,
      "city:San Antonio": 1,
@@ -130959,7 +130960,7 @@
      "city:Tampa": 1,
      "city:Toronto": 4,
      "city:Vancouver": 3,
-     "city:Washington DC": 4,
+     "city:Washington DC": 2,
      "country:CA": 4,
      "country:TW": 2,
      "country:US": 177,
@@ -130976,14 +130977,14 @@
      ],
      "place": "country:US"
     },
-    "total": 357
+    "total": 351
    },
    "slug": "toast",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "357 open roles on 2026-11-13 against 309 on 2026-10-14: +48 (16%) across 31 readings over 30 days",
-    "delta": 48,
+    "basis": "351 open roles on 2026-11-13 against 309 on 2026-10-14: +42 (14%) across 31 readings over 30 days",
+    "delta": 42,
     "direction": "rising",
     "from": {
      "date": "2026-10-14",
@@ -130992,7 +130993,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 357
+     "total": 351
     },
     "window_days": 30
    },
@@ -135062,7 +135063,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 78
+     "total": 76
     }
    ],
    "last": {
@@ -135078,28 +135079,28 @@
      "product": 4,
      "sales": 5
     },
-    "mode_known": 72,
+    "mode_known": 70,
     "mode_place": "country:US",
     "mode_structured": 0,
     "modes": {
-     "remote": 72
+     "remote": 70
     },
     "place_version": 2,
     "places": {
      "city:Austin": 1,
      "city:Columbus": 6,
      "city:New York": 1,
-     "country:US": 70
+     "country:US": 68
     },
     "salary": {
      "currency": "USD",
-     "listed": 71,
+     "listed": 69,
      "median_max": 230900,
      "median_min": 166900,
      "other_currencies": [],
      "place": "country:US"
     },
-    "total": 78
+    "total": 76
    },
    "mode_baseline": {
     "date": "2026-08-15",
@@ -135141,8 +135142,8 @@
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "78 open roles on 2026-11-13 against 92 on 2026-10-14: -14 (15%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
-    "delta": -14,
+    "basis": "76 open roles on 2026-11-13 against 92 on 2026-10-14: -16 (17%) across 31 readings over 30 days. A board that shrinks is not evidence of job cuts: roles leave a board when they are filled, withdrawn or reposted.",
+    "delta": -16,
     "direction": "falling",
     "from": {
      "date": "2026-10-14",
@@ -135151,7 +135152,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 78
+     "total": 76
     },
     "window_days": 30
    },
@@ -143219,7 +143220,7 @@
     },
     {
      "date": "2026-11-13",
-     "total": 375
+     "total": 373
     }
    ],
    "last": {
@@ -143228,21 +143229,21 @@
      "customer_support": 1,
      "data_ai": 4,
      "design": 5,
-     "engineering": 140,
+     "engineering": 139,
      "executive": 1,
      "finance": 7,
      "hr_people": 3,
      "it_infrastructure": 56,
      "marketing": 6,
      "operations": 5,
-     "product": 7,
+     "product": 6,
      "sales": 77
     },
-    "mode_known": 140,
+    "mode_known": 139,
     "mode_place": "",
     "mode_structured": 0,
     "modes": {
-     "remote": 140
+     "remote": 139
     },
     "place_version": 2,
     "places": {
@@ -143259,7 +143260,7 @@
      "city:New York": 8,
      "city:Osaka": 1,
      "city:Perth": 2,
-     "city:Pune": 4,
+     "city:Pune": 3,
      "city:Santa Clara": 64,
      "city:Singapore": 9,
      "city:Sydney": 1,
@@ -143286,12 +143287,12 @@
      "country:PL": 1,
      "country:SE": 2,
      "country:TH": 1,
-     "country:US": 74,
+     "country:US": 73,
      "country:ZA": 1
     },
     "salary": {
      "currency": "USD",
-     "listed": 164,
+     "listed": 163,
      "median_max": 215000,
      "median_min": 154875,
      "other_currencies": [
@@ -143302,14 +143303,14 @@
      ],
      "place": ""
     },
-    "total": 375
+    "total": 373
    },
    "slug": "zscaler",
    "source_name": "Greenhouse job board",
    "status": "ok",
    "trajectory": {
-    "basis": "375 open roles on 2026-11-13 against 365 on 2026-10-14: a move of +10 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
-    "delta": 10,
+    "basis": "373 open roles on 2026-11-13 against 365 on 2026-10-14: a move of +8 across 31 readings, below the 5-role and 10% floors this tracker calls a change",
+    "delta": 8,
     "direction": "flat",
     "from": {
      "date": "2026-10-14",
@@ -143318,7 +143319,7 @@
     "observations": 31,
     "to": {
      "date": "2026-11-13",
-     "total": 375
+     "total": 373
     },
     "window_days": 30
    },
@@ -146893,18 +146894,18 @@
      "city:Melbourne": 14,
      "city:New Delhi": 5,
      "city:San Diego": 34,
-     "city:Seattle": 92,
+     "city:Seattle": 91,
      "city:Taipei": 6,
      "city:Tokyo": 3,
      "city:Warsaw": 2,
-     "city:Washington DC": 71,
+     "city:Washington DC": 72,
      "country:US": 21
     },
     "salary": {
      "currency": "USD",
      "listed": 250,
      "median_max": 240000,
-     "median_min": 151000,
+     "median_min": 152401,
      "other_currencies": [
       "GBP"
      ],
@@ -148051,15 +148052,15 @@
     "AE": 50,
     "AR": 51,
     "AT": 11,
-    "AU": 317,
+    "AU": 318,
     "BE": 26,
     "BG": 1,
     "BR": 148,
-    "CA": 817,
+    "CA": 814,
     "CH": 73,
     "CL": 30,
     "CN": 82,
-    "CO": 95,
+    "CO": 96,
     "CR": 9,
     "CZ": 17,
     "DE": 355,
@@ -148067,29 +148068,29 @@
     "EE": 3,
     "ES": 219,
     "FI": 4,
-    "FR": 187,
-    "GB": 1193,
+    "FR": 186,
+    "GB": 1189,
     "GE": 12,
     "GR": 26,
     "HK": 20,
     "HR": 1,
     "HU": 7,
     "ID": 9,
-    "IE": 392,
+    "IE": 393,
     "IL": 95,
-    "IN": 946,
+    "IN": 945,
     "IS": 8,
     "IT": 41,
     "JP": 455,
     "KE": 3,
     "KH": 3,
-    "KR": 465,
+    "KR": 466,
     "KW": 8,
     "LB": 3,
     "LU": 10,
     "LV": 16,
     "MT": 1,
-    "MX": 188,
+    "MX": 187,
     "MY": 33,
     "NA": 3,
     "NG": 45,
@@ -148097,8 +148098,8 @@
     "NO": 19,
     "NP": 14,
     "NZ": 98,
-    "PE": 26,
-    "PH": 55,
+    "PE": 27,
+    "PH": 54,
     "PL": 137,
     "PT": 85,
     "QA": 6,
@@ -148112,7 +148113,7 @@
     "TR": 16,
     "TW": 227,
     "UA": 41,
-    "US": 17362,
+    "US": 17372,
     "UY": 1,
     "VE": 1,
     "VN": 12,
@@ -148120,61 +148121,61 @@
    },
    "employers": 268,
    "family": {
-    "clinical_healthcare": 377,
-    "customer_support": 335,
+    "clinical_healthcare": 376,
+    "customer_support": 333,
     "data_ai": 1033,
     "design": 325,
-    "engineering": 6780,
+    "engineering": 6779,
     "executive": 154,
     "finance": 536,
-    "hr_people": 438,
+    "hr_people": 439,
     "it_infrastructure": 1444,
-    "legal_compliance": 479,
+    "legal_compliance": 481,
     "manufacturing": 288,
-    "marketing": 818,
-    "operations": 1221,
-    "product": 846,
+    "marketing": 820,
+    "operations": 1225,
+    "product": 845,
     "research": 144,
-    "sales": 4009,
+    "sales": 4007,
     "supply_chain": 212
    },
    "state": {
     "AK": 2,
     "AL": 61,
     "AR": 36,
-    "AZ": 374,
-    "CA": 5595,
-    "CO": 333,
+    "AZ": 375,
+    "CA": 5592,
+    "CO": 335,
     "CT": 52,
-    "DC": 262,
+    "DC": 264,
     "DE": 8,
-    "FL": 334,
+    "FL": 338,
     "GA": 215,
     "HI": 7,
     "IA": 17,
     "ID": 37,
-    "IL": 526,
-    "IN": 190,
+    "IL": 527,
+    "IN": 191,
     "KS": 13,
-    "KY": 62,
+    "KY": 63,
     "LA": 25,
-    "MA": 698,
+    "MA": 696,
     "MD": 260,
     "ME": 7,
-    "MI": 60,
+    "MI": 61,
     "MN": 94,
-    "MO": 102,
+    "MO": 105,
     "MS": 22,
     "MT": 3,
-    "NC": 226,
+    "NC": 228,
     "ND": 11,
     "NE": 15,
     "NH": 7,
-    "NJ": 181,
+    "NJ": 182,
     "NM": 38,
     "NV": 103,
-    "NY": 1964,
-    "OH": 261,
+    "NY": 1961,
+    "OH": 264,
     "OK": 36,
     "OR": 7,
     "PA": 181,
@@ -148182,16 +148183,16 @@
     "SC": 23,
     "SD": 6,
     "TN": 90,
-    "TX": 1283,
+    "TX": 1282,
     "UT": 140,
     "VA": 450,
     "VT": 105,
-    "WA": 754,
+    "WA": 753,
     "WI": 23,
     "WV": 4,
     "WY": 8
    },
-   "total": 26553
+   "total": 26555
   }
  },
  "version": 1
