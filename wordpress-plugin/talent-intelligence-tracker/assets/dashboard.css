@@ -1537,6 +1537,16 @@ rect.tit-mk-u, .tit-mk-swatch.tit-mk-u { fill:var(--tit-mk-u); background:var(--
    a trend nobody can rely on seeing. The sparkline is width:100% and its
    viewBox does not preserve aspect ratio, so it cannot bleed on a phone. */
 .tit-board-volume { margin:18px 0 0; }
+/* Open roles now (open_roles.php). Short lines, links in the tracker's link
+   token, the place in the muted token; both pass 7:1 on the light ground. */
+.tit-open-roles { margin:18px 0 0; }
+.tit-open-roles-list { list-style:none; margin:8px 0 6px; padding:0; }
+.tit-open-roles-list li { padding:8px 0; border-top:1px solid var(--tit-line); line-height:1.45; }
+.tit-open-roles-list li:first-child { border-top:0; }
+.tit-open-roles-list a { color:var(--tit-link); font-weight:600; text-decoration:underline; text-underline-offset:2px; }
+.tit-open-roles-list a:hover, .tit-open-roles-list a:focus-visible { color:var(--tit-link-hover); }
+.tit-open-roles-where { color:var(--tit-mut); font-size:.92em; white-space:nowrap; }
+
 .tit-board-volume .tit-h2 { font-size:15px; font-weight:800; letter-spacing:.02em;
   text-transform:uppercase; color:var(--tit-faint); margin:0 0 10px; }
 .tit-board { margin:0 0 14px; padding:14px 16px; border:1px solid var(--tit-line);
