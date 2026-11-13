@@ -3487,6 +3487,22 @@
   "collector": ""
  },
  {
+  "name": "Dynamic Business",
+  "url": "https://dynamicbusiness.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire"
+  ],
+  "coverage": "National",
+  "country": "Australia",
+  "rss": "https://dynamicbusiness.com/feed/",
+  "free": true,
+  "notes": "Small-business and startup news; funding rounds and executive moves. Probed 2026-11-13 for the recall audit: https://dynamicbusiness.com/feed/ answers 200 application/rss+xml with 50 items (so do /feed and /rss.xml); robots.txt allows our agent for /feed/. A live, permitted feed. Wired 2026-11-13 on the owner's OK. robots.txt re-read the same day and allows our agent on /feed/; the collector re-checks robots.txt on every run. Probed through national_press's own fetch and parse path: 25 items, newest same-day, not a roundup, and every item parses with raw_text and the publisher's own article URL. The recall audit of 2026-11-13 named this publisher as the source of gold-set misses.",
+  "collector": ""
+ },
+ {
   "name": "E15",
   "url": "https://www.e15.cz",
   "status": "candidate",
@@ -7040,6 +7056,22 @@
   "rss": "https://latamlist.com/feed/",
   "free": true,
   "notes": "Wired 2026-07-30 from the recall rejection audit (publisher_unknown, 2 misses: row_funding:ual AR 2026-07-20, row_funding:siigo CO 2026-07-24). Verified through national_press's own fetch/parse path: robots.txt allows (only /wp-login.php and /wp-admin/ disallowed), rel=alternate declares the feed, 10 items, newest 0d, no domain drift. The outlet publishes no imprint and states no home country, so the region is recorded rather than a guessed seat; coverage=Regional means the dateline says regional either way. Its comments feed was seen and refused: 10 items whose newest is 1373d old.",
+  "collector": ""
+ },
+ {
+  "name": "Launch Base Africa",
+  "url": "https://launchbaseafrica.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire"
+  ],
+  "coverage": "National",
+  "country": "Kenya",
+  "rss": "https://launchbaseafrica.com/feed/",
+  "free": true,
+  "notes": "African startup and funding news. Probed 2026-11-13 for the recall audit: https://launchbaseafrica.com/feed/ answers 200 application/rss+xml with 50 items; robots.txt answered 200 with a User-agent: * group, though one later read was reset by the peer, so its rules for the feed path were not parsed to the end. A live feed; re-read robots.txt before wiring. Wired 2026-11-13 on the owner's OK. robots.txt re-read the same day and allows our agent on /feed/; the collector re-checks robots.txt on every run. Probed through national_press's own fetch and parse path: 25 items, newest 1 day, not a roundup, and every item parses with raw_text and the publisher's own article URL. The recall audit of 2026-11-13 named this publisher as the source of gold-set misses.",
   "collector": ""
  },
  {

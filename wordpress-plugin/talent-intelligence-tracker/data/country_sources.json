@@ -102,15 +102,11 @@
     "reason": "2026-07-29 not live (404, 0 items)"
    },
    {
-    "name": "Dynamic Business",
-    "reason": "2026-11-13 200 ok, held for owner (not wired)"
-   },
-   {
     "name": "InnovationAus",
     "reason": "2026-07-29 not live (403, 0 items)"
    }
   ],
-  "researched": 9
+  "researched": 10
  },
  "AW": {
   "live": [],
@@ -1067,15 +1063,11 @@
     "reason": "2026-07-29 not live (200, 0 items)"
    },
    {
-    "name": "Launch Base Africa",
-    "reason": "2026-11-13 200 ok, held for owner (not wired)"
-   },
-   {
     "name": "Techweez",
     "reason": "2026-08-02 not live (200, 0 items: JSON, not a feed) (https://techweez.com/wp-json/wp/v2/posts?per_page=20)"
    }
   ],
-  "researched": 5
+  "researched": 6
  },
  "KH": {
   "live": [],
