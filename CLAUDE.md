@@ -73,6 +73,19 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how
   you discover in month three that a source died in month one.
+- **One writer at a time, and dispatch them one at a time.** Every workflow
+  that writes the database shares the `talent-collect` concurrency group with
+  `cancel-in-progress: false`, because two writers both end with
+  reset-to-origin-then-copy-our-file-back and the second silently destroys the
+  first's rows. Never remove that group. But GitHub keeps only ONE pending run
+  per group: while one runs and a second waits, a third dispatch REPLACES the
+  waiting one, which finishes as `cancelled` with no failure and no
+  annotation. Thirteen writers vanished that way on 2026-07-29 under a
+  three-hour GDELT backfill. `dropped_runs.py` (daily, `dropped-runs.yml`)
+  now finds them and emails through the same keyed `/alert` path a dead
+  collector uses. It re-dispatches nothing on purpose: the API does not return
+  the inputs a dispatch was given, and `correct-sec-pillar` defaults to
+  `dry_run: true`, so a blind re-run reports success having changed nothing.
 - **Layoffs are NOT collected here.** They are read from the sibling's public
   API at render time. One source of truth per fact.
 - **Coverage is earned.** A market in the registry is not a covered market. It

@@ -81,18 +81,33 @@ def test_every_database_writer_shares_one_lock():
     So this asserts the PROPERTY rather than a name: every workflow that writes
     the database sits in the same group, whatever it is called, and none of
     them cancels a run already in progress.
+
+    A workflow counts as a writer if it NAMES the database or DECLARES the
+    group. The second half was added after the first half was found to miss
+    enrich.yml, which writes the database from a heredoc that never spells the
+    filename: it had joined the group by hand, and this test, whose whole job
+    is catching a writer with no group, could not see it either way.
     """
     from pathlib import Path
 
+    import sys
+
     import yaml
 
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from dropped_runs import writer_workflows
+
     workflows = Path(__file__).parent.parent / ".github/workflows"
+    # Shared with the watchdog on purpose, so the lock and the thing that
+    # watches the lock cannot disagree about what counts as a writer. It
+    # ignores comments: dropped-runs.yml explains the database at length and
+    # writes none of it.
+    writers = {p.rsplit("/", 1)[-1] for p in writer_workflows(workflows)}
     groups = {}
     for path in sorted(workflows.glob("*.yml")):
-        text = path.read_text()
-        if "talent_intel.db" not in text:
+        if path.name not in writers:
             continue
-        concurrency = (yaml.safe_load(text) or {}).get("concurrency") or {}
+        concurrency = (yaml.safe_load(path.read_text()) or {}).get("concurrency") or {}
         groups[path.name] = concurrency.get("group")
         assert concurrency.get("cancel-in-progress") is False, path.name
 
@@ -102,3 +117,34 @@ def test_every_database_writer_shares_one_lock():
         "database writers are split across concurrency groups, so they do not "
         f"exclude each other: {groups}"
     )
+
+
+def test_the_dropped_run_watchdog_stays_out_of_the_lock():
+    """The watchdog must not be queued behind what it is watching.
+
+    It writes nothing, so it does not need the group. Putting it in
+    `talent-collect` would park it behind an hours-long backfill and let it be
+    evicted by the very bug it exists to report, which would be silent in
+    exactly the same way. It only needs to be able to READ runs.
+    """
+    from pathlib import Path
+
+    import yaml
+
+    path = Path(__file__).parent.parent / ".github/workflows/dropped-runs.yml"
+    assert path.exists(), "the dropped-run watchdog is gone"
+    wf = yaml.safe_load(path.read_text())
+
+    assert "concurrency" not in wf, (
+        "the watchdog is in a concurrency group, so a long writer can drop it")
+
+    permissions = wf.get("permissions") or {}
+    assert permissions.get("actions") == "read", (
+        "listing runs and their jobs is the whole job; it needs actions: read")
+    assert permissions.get("contents") == "read", (
+        "the watchdog must never be able to write the repository")
+
+    # A watchdog nobody schedules is a watchdog nobody hears. This is the one
+    # alert path for a failure mode that produces no red run to notice.
+    schedule = (wf.get("on") or wf.get(True) or {}).get("schedule")
+    assert schedule, "the watchdog is not scheduled, so it will never fire"

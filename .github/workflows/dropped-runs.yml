@@ -1,0 +1,67 @@
+name: dropped-run watchdog
+
+# The alert for a writer that was dispatched and never ran.
+#
+# Every workflow that writes data/talent_intel.db shares the `talent-collect`
+# concurrency group, which is correct and stays. But GitHub keeps only ONE
+# pending run per group: while one runs and a second waits, a third dispatch
+# REPLACES the waiting one, which completes as `cancelled`. No failure, no
+# annotation, and `gh run list` shows something that reads like a deliberate
+# cancel. On 2026-07-29 a GDELT backfill held the lock for over three hours and
+# thirteen dispatched writers vanished inside that window, two of them the
+# correct-sec-pillar job that owes 548 published rows their right pillar.
+#
+# This job stays GREEN when it finds drops, matching health-digest.yml. The
+# email is the alert; a red daily run on top of it only teaches the owner to
+# ignore a red daily run. It fails only when the watchdog itself cannot run.
+#
+# NOTE THE ABSENT CONCURRENCY GROUP, and do not "fix" it. This workflow writes
+# nothing, so it does not need the lock. Putting it in `talent-collect` would
+# queue the watchdog behind the very backfill it is watching and let it be
+# evicted by the exact bug it exists to detect. tests/test_workflows.py asserts
+# it stays out.
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # daily, between the 06:00 and 18:00 collects
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Find and print, send no email'
+        type: boolean
+        default: false
+      hours:
+        description: 'How far back to look (default 26)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  actions: read   # listing runs and their jobs is the whole job
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # requests is only needed for the alert POST; the API read is stdlib.
+      - run: pip install -r requirements.txt
+
+      - name: Look for dropped writers
+        env:
+          PYTHONUNBUFFERED: '1'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          ARGS=""
+          [ "${{ inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
+          [ -n "${{ inputs.hours }}" ] && ARGS="$ARGS --hours ${{ inputs.hours }}"
+          python dropped_runs.py $ARGS
