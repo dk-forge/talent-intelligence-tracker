@@ -1,0 +1,1677 @@
+{
+ "measured_at": "2026-11-13T07:15:01Z",
+ "measured_on": "2026-11-13",
+ "api_base": "https://asktherecruiter.com/blog/wp-json/talent/v1",
+ "goldset": {
+  "version": "2026-10-eu-v1",
+  "digest": "0d8a3d9ed7ced143",
+  "window": {
+   "start": "2026-10-01",
+   "end": "2026-10-31"
+  },
+  "assembled_on": "2026-11-11",
+  "url": "https://github.com/dk-forge/talent-intelligence-tracker/blob/main/analysis/recall/eu/goldset-eu-2026-10.json",
+  "signal_types": null,
+  "held_out": "Sampled independently of our own coverage: no pass saw our database, stored rows or collector list, and no row cites an aggregator, a deal database or another tracker.",
+  "caveats": [
+   "Most countries carry only a few events, so a single country cell is an indication and not a rate.",
+   "Central and eastern Europe has funding rows only: no leadership announcement from that group could be verified from an allowed publisher within the window.",
+   "Exchange-listed companies' announcements were read on the press-release copy and are labelled press_release, not filing, because the copy read was the wire release.",
+   "Portuguese rows come from one national business daily, which is the national_news cell almost on its own.",
+   "One candidate (a Bulgarian satellite round) was left out because its only verifiable page was on a funding platform, which this family may not cite.",
+   "50 of 50 items cite a publisher already in the tracker's source registry (data/feeds.csv or data/sources_catalogue.csv, checked 2026-11-11), because the publishers that allow an automated reader are largely the ones the tracker already collects from. Read the figure as recall within the publishers the tracker reads, not reach beyond them; no item comes from a publisher outside it, so this set cannot say anything about reach."
+  ],
+  "counts": {
+   "total": 50,
+   "signal_type": {
+    "funding": 32,
+    "leadership": 18
+   },
+   "geography": {
+    "non-US": 50
+   },
+   "country": {
+    "IT": 3,
+    "PT": 5,
+    "MT": 1,
+    "FR": 4,
+    "IE": 5,
+    "GB": 6,
+    "NO": 4,
+    "FI": 3,
+    "SK": 1,
+    "DE": 4,
+    "EE": 1,
+    "CH": 2,
+    "DK": 1,
+    "CZ": 1,
+    "ES": 3,
+    "AT": 1,
+    "PL": 2,
+    "LT": 1,
+    "SI": 1,
+    "NL": 1
+   },
+   "source_type": {
+    "trade_press": 25,
+    "national_news": 5,
+    "press_release": 20
+   },
+   "size_band": {
+    "small": 37,
+    "large": 13
+   },
+   "metro": {}
+  }
+ },
+ "summary": {
+  "overall": {
+   "total": 50,
+   "found": 6,
+   "found_partial": 23,
+   "missed": 21,
+   "held": 29,
+   "held_pct": 58.0,
+   "clean_pct": 12.0,
+   "held_interval": {
+    "pct": 58.0,
+    "low_pct": 44.2,
+    "high_pct": 70.6,
+    "width_pct": 26.4,
+    "successes": 29,
+    "total": 50
+   }
+  },
+  "by_signal_type": {
+   "funding": {
+    "total": 32,
+    "found": 1,
+    "found_partial": 22,
+    "missed": 9,
+    "held": 23,
+    "held_pct": 71.9,
+    "clean_pct": 3.1,
+    "held_interval": {
+     "pct": 71.9,
+     "low_pct": 54.6,
+     "high_pct": 84.4,
+     "width_pct": 29.8,
+     "successes": 23,
+     "total": 32
+    }
+   },
+   "leadership": {
+    "total": 18,
+    "found": 5,
+    "found_partial": 1,
+    "missed": 12,
+    "held": 6,
+    "held_pct": 33.3,
+    "clean_pct": 27.8,
+    "held_interval": {
+     "pct": 33.3,
+     "low_pct": 16.3,
+     "high_pct": 56.3,
+     "width_pct": 40.0,
+     "successes": 6,
+     "total": 18
+    }
+   }
+  },
+  "by_geography": {
+   "non-US": {
+    "total": 50,
+    "found": 6,
+    "found_partial": 23,
+    "missed": 21,
+    "held": 29,
+    "held_pct": 58.0,
+    "clean_pct": 12.0,
+    "held_interval": {
+     "pct": 58.0,
+     "low_pct": 44.2,
+     "high_pct": 70.6,
+     "width_pct": 26.4,
+     "successes": 29,
+     "total": 50
+    }
+   }
+  },
+  "by_country": {
+   "AT": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "CH": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 1,
+    "held_pct": 50.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 9.5,
+     "high_pct": 90.5,
+     "width_pct": 81.1,
+     "successes": 1,
+     "total": 2
+    }
+   },
+   "CZ": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "DE": {
+    "total": 4,
+    "found": 3,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 4,
+    "held_pct": 100.0,
+    "clean_pct": 75.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 51.0,
+     "high_pct": 100.0,
+     "width_pct": 49.0,
+     "successes": 4,
+     "total": 4
+    }
+   },
+   "DK": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "EE": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "ES": {
+    "total": 3,
+    "found": 0,
+    "found_partial": 2,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "FI": {
+    "total": 3,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 33.3,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "FR": {
+    "total": 4,
+    "found": 0,
+    "found_partial": 4,
+    "missed": 0,
+    "held": 4,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 51.0,
+     "high_pct": 100.0,
+     "width_pct": 49.0,
+     "successes": 4,
+     "total": 4
+    }
+   },
+   "GB": {
+    "total": 6,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 6,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 39.0,
+     "width_pct": 39.0,
+     "successes": 0,
+     "total": 6
+    }
+   },
+   "IE": {
+    "total": 5,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 3,
+    "held": 2,
+    "held_pct": 40.0,
+    "clean_pct": 20.0,
+    "held_interval": {
+     "pct": 40.0,
+     "low_pct": 11.8,
+     "high_pct": 76.9,
+     "width_pct": 65.2,
+     "successes": 2,
+     "total": 5
+    }
+   },
+   "IT": {
+    "total": 3,
+    "found": 0,
+    "found_partial": 3,
+    "missed": 0,
+    "held": 3,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 43.9,
+     "high_pct": 100.0,
+     "width_pct": 56.1,
+     "successes": 3,
+     "total": 3
+    }
+   },
+   "LT": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "MT": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "NL": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "NO": {
+    "total": 4,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 4,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 49.0,
+     "width_pct": 49.0,
+     "successes": 0,
+     "total": 4
+    }
+   },
+   "PL": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 1,
+    "held_pct": 50.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 9.5,
+     "high_pct": 90.5,
+     "width_pct": 81.1,
+     "successes": 1,
+     "total": 2
+    }
+   },
+   "PT": {
+    "total": 5,
+    "found": 1,
+    "found_partial": 2,
+    "missed": 2,
+    "held": 3,
+    "held_pct": 60.0,
+    "clean_pct": 20.0,
+    "held_interval": {
+     "pct": 60.0,
+     "low_pct": 23.1,
+     "high_pct": 88.2,
+     "width_pct": 65.2,
+     "successes": 3,
+     "total": 5
+    }
+   },
+   "SI": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "SK": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   }
+  },
+  "by_source_type": {
+   "national_news": {
+    "total": 5,
+    "found": 1,
+    "found_partial": 2,
+    "missed": 2,
+    "held": 3,
+    "held_pct": 60.0,
+    "clean_pct": 20.0,
+    "held_interval": {
+     "pct": 60.0,
+     "low_pct": 23.1,
+     "high_pct": 88.2,
+     "width_pct": 65.2,
+     "successes": 3,
+     "total": 5
+    }
+   },
+   "press_release": {
+    "total": 20,
+    "found": 3,
+    "found_partial": 3,
+    "missed": 14,
+    "held": 6,
+    "held_pct": 30.0,
+    "clean_pct": 15.0,
+    "held_interval": {
+     "pct": 30.0,
+     "low_pct": 14.5,
+     "high_pct": 51.9,
+     "width_pct": 37.3,
+     "successes": 6,
+     "total": 20
+    }
+   },
+   "trade_press": {
+    "total": 25,
+    "found": 2,
+    "found_partial": 18,
+    "missed": 5,
+    "held": 20,
+    "held_pct": 80.0,
+    "clean_pct": 8.0,
+    "held_interval": {
+     "pct": 80.0,
+     "low_pct": 60.9,
+     "high_pct": 91.1,
+     "width_pct": 30.3,
+     "successes": 20,
+     "total": 25
+    }
+   }
+  },
+  "by_size_band": {
+   "large": {
+    "total": 13,
+    "found": 4,
+    "found_partial": 5,
+    "missed": 4,
+    "held": 9,
+    "held_pct": 69.2,
+    "clean_pct": 30.8,
+    "held_interval": {
+     "pct": 69.2,
+     "low_pct": 42.4,
+     "high_pct": 87.3,
+     "width_pct": 44.9,
+     "successes": 9,
+     "total": 13
+    }
+   },
+   "small": {
+    "total": 37,
+    "found": 2,
+    "found_partial": 18,
+    "missed": 17,
+    "held": 20,
+    "held_pct": 54.1,
+    "clean_pct": 5.4,
+    "held_interval": {
+     "pct": 54.1,
+     "low_pct": 38.4,
+     "high_pct": 69.0,
+     "width_pct": 30.6,
+     "successes": 20,
+     "total": 37
+    }
+   }
+  },
+  "by_segment": {
+   "non-US funding": {
+    "total": 32,
+    "found": 1,
+    "found_partial": 22,
+    "missed": 9,
+    "held": 23,
+    "held_pct": 71.9,
+    "clean_pct": 3.1,
+    "held_interval": {
+     "pct": 71.9,
+     "low_pct": 54.6,
+     "high_pct": 84.4,
+     "width_pct": 29.8,
+     "successes": 23,
+     "total": 32
+    }
+   },
+   "non-US leadership": {
+    "total": 18,
+    "found": 5,
+    "found_partial": 1,
+    "missed": 12,
+    "held": 6,
+    "held_pct": 33.3,
+    "clean_pct": 27.8,
+    "held_interval": {
+     "pct": 33.3,
+     "low_pct": 16.3,
+     "high_pct": 56.3,
+     "width_pct": 40.0,
+     "successes": 6,
+     "total": 18
+    }
+   }
+  },
+  "defects": {
+   "amount_missing": 18,
+   "country_missing": 9
+  }
+ },
+ "candidates_seen_total": 51,
+ "items": [
+  {
+   "id": "europe_central_south:computis:2026-10-01",
+   "company": "Computis",
+   "country": "IT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "EconomyUp",
+   "source_url": "https://www.economyup.it/startup/zanichelli-venture-investe-su-computis-la-startup-che-porta-lai-nella-contabilita-delle-pmi/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 2M pre-seed led by Techshop Capital, with Zanichelli Venture",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "d4bfe4aaf132dab74bb442345934ad2a",
+    "company": "Computis",
+    "headline": "Zanichelli Venture invests in Computis, the startup that brings AI to SME accounting",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://www.economyup.it/startup/zanichelli-venture-investe-su-computis-la-startup-che-porta-lai-nella-contabilita-delle-pmi/"
+   }
+  },
+  {
+   "id": "europe_central_south:frank:2026-10-01",
+   "company": "Frank",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/01/insurtech-frank-capta-29-milhoes-de-investidores-para-desenvolver-operador-da-ia-para-mediadores/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 2.9M for the insurtech building an AI operator for insurance brokers",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:gentoo-media:2026-10-01",
+   "company": "Gentoo Media",
+   "country": "MT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/gentoo-media-inc-agrees-eur-50-million-senior-secured-loan-and-secures-full-underwriting-commitments-for-a-planned-eur-50-million-share-issue-to-refinance-its-december-2026-bonds-302895572.html",
+   "event_date": "2026-10-01",
+   "detail": "EUR 50M senior secured loan plus underwritten share issue to refinance bonds (debt)",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:inbolt:2026-10-01",
+   "company": "Inbolt",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Maddyness",
+   "source_url": "https://www.maddyness.com/2026/10/01/apres-stellantis-toyota-et-ford-inbolt-leve-11-millions-deuros-et-vise-les-data-centers/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 11M Series A extension for the Paris robot-vision startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "add08dcd2a31e4c810a8da49ce4764fa",
+    "company": "Inbolt",
+    "headline": "Inbolt Raises \u20ac11M in Funding - FinSMEs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-09-30",
+    "source_url": "https://www.finsmes.com/2026/09/inbolt-raises-e11m-in-funding.html"
+   }
+  },
+  {
+   "id": "europe_central_south:joe-ai:2026-10-01",
+   "company": "Joe AI",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Maddyness",
+   "source_url": "https://www.maddyness.com/2026/10/01/joe-ai-leve-2-millions-deuros-pour-automatiser-la-relation-client-dans-limmobilier/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 2M to automate real-estate customer relations",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "77b48da55c9e2768c1df7fdac130711f",
+    "company": "Joe AI",
+    "headline": "Joe AI raises 2 million euros to automate customer relations in real estate",
+    "country": "FR",
+    "hq_country": "FR",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://www.maddyness.com/2026/10/01/joe-ai-leve-2-millions-deuros-pour-automatiser-la-relation-client-dans-limmobilier/"
+   }
+  },
+  {
+   "id": "europe_central_south:sonae:2026-10-01",
+   "company": "Sonae",
+   "country": "PT",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/01/claudia-azevedo-vai-deixar-de-ser-ceo-da-sonae-joao-dolores-assume-lideranca/",
+   "event_date": "2026-10-01",
+   "detail": "Claudia Azevedo to step down as CEO; Joao Dolores to take over",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "96036ec04a512f521c451a4cfea58184",
+    "company": "Sonae",
+    "headline": "Cl\u00e1udia Azevedo vai deixar de ser CEO da Sonae. Jo\u00e3o Dolores assume lideran\u00e7a",
+    "country": "PT",
+    "hq_country": "PT",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://eco.sapo.pt/2026/10/01/claudia-azevedo-vai-deixar-de-ser-ceo-da-sonae-joao-dolores-assume-lideranca/"
+   }
+  },
+  {
+   "id": "europe_north:neuromod-devices:2026-10-01",
+   "company": "Neuromod Devices",
+   "country": "IE",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/new-senior-commercial-appointments-at-neuromod-302895885.html",
+   "event_date": "2026-10-01",
+   "detail": "Joe Ghiz appointed Chief Commercial Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:teciem:2026-10-01",
+   "company": "Teciem",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/teciem-accelerates-growth-with-appointments-of-chief-technology-officer-and-chief-customer-officer-302894354.html",
+   "event_date": "2026-10-01",
+   "detail": "Stefano Maestri appointed CTO and Strath Lanyon Chief Customer Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:aker-bp:2026-10-02",
+   "company": "Aker BP",
+   "country": "NO",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/aker-bp-appoints-new-executive-management-team-302897102.html",
+   "event_date": "2026-10-02",
+   "detail": "New executive management team appointed, effective 1 January 2027",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:nscale:2026-10-02",
+   "company": "Nscale",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nscale-appoints-tech-industry-veteran-justin-osofsky-as-chief-operating-officer-302897440.html",
+   "event_date": "2026-10-02",
+   "detail": "Justin Osofsky appointed Chief Operating Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:bislab:2026-10-04",
+   "company": "Bislab",
+   "country": "NO",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Shifter",
+   "source_url": "https://www.shifter.no/nyheter/bislab-henter-56-millioner-og-naer-tredobler-verdsettelsen/477879",
+   "event_date": "2026-10-04",
+   "detail": "NOK 56M raise for the Oslo credit bureau, valuing it at NOK 815M",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:cleavr:2026-10-06",
+   "company": "Cleavr",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Maddyness",
+   "source_url": "https://www.maddyness.com/2026/10/06/cleavr-leve-8-millions-deuros-pour-venir-a-bout-des-retards-de-paiement/",
+   "event_date": "2026-10-06",
+   "detail": "EUR 8M to tackle late B2B payments",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "37a4036f7d920c8d6a71788ed9e5598e",
+    "company": "CLEAVR",
+    "headline": "CLEAVR raises 8 million euros to automate invoice collection",
+    "country": "FR",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-07",
+    "source_url": "https://www.frenchweb.fr/cleavr-leve-8-millions-deuros-pour-automatiser-lencaissement-des-factures/463793"
+   }
+  },
+  {
+   "id": "europe_north:comparables-ai:2026-10-06",
+   "company": "Comparables.ai",
+   "country": "FI",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/comparables-ai-seed-funding/",
+   "event_date": "2026-10-06",
+   "detail": "$6M seed for the Helsinki M&A data platform",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "b391a88751b43823320502f29ced2f97",
+    "company": "Comparables.ai",
+    "headline": "Comparables.ai Raises $6 Million to Find M&A Deals With A.I.",
+    "country": "FI",
+    "hq_country": null,
+    "funding_amount_usd": "6000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://www.trendingtopics.eu/comparables-ai-seed-funding/"
+   }
+  },
+  {
+   "id": "europe_cee:sensible-biotechnologies:2026-10-07",
+   "company": "Sensible Biotechnologies",
+   "country": "SK",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/slovak-sensible-biotechnologies-secures-eur42m-for-cell-based-mrna-platform/",
+   "event_date": "2026-10-07",
+   "detail": "EUR 42M for a cell-based mRNA platform (Bratislava and Oxford labs)",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "52a746728b665b9663f728e5e6899132",
+    "company": "Sensible Biotechnologies",
+    "headline": "Sensible Biotechnologies Secures $47 Million to Advance Naturally Modified mRNA Platform and Unlock Next Generation of mRNA Medicines - BioSpace",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "47000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://www.biospace.com/press-releases/sensible-biotechnologies-secures-47-million-to-advance-naturally-modified-mrna-platform-and-unlock-next-generation-of-mrna-medicines"
+   }
+  },
+  {
+   "id": "europe_central_south:fresenius-medical-care:2026-10-07",
+   "company": "Fresenius Medical Care",
+   "country": "DE",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/shervin-j-korangy-appointed-ceo-of-fresenius-medical-care-to-lead-the-next-phase-of-strategic-development-and-long-term-profitable-growth-302901324.html",
+   "event_date": "2026-10-07",
+   "detail": "Shervin J. Korangy appointed CEO and Chair of the Management Board, succeeding Helen Giza",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "cca8904cbdfa0f83cebee2344ea13bff",
+    "company": "Fresenius Medical Care",
+    "headline": "Fresenius Medical Care nombra a Shervin Korangy como nuevo CEO",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-07",
+    "source_url": "https://mx.investing.com/news/company-news/fresenius-medical-care-nombra-a-shervin-korangy-como-nuevo-ceo-93CH-3790356"
+   }
+  },
+  {
+   "id": "europe_north:devexperts:2026-10-07",
+   "company": "Devexperts",
+   "country": "IE",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/devexperts-appoints-rainer-fuchsluger-as-global-group-ceo-to-accelerate-international-growth-and-advance-its-fintech-portfolio-302900916.html",
+   "event_date": "2026-10-07",
+   "detail": "Rainer Fuchsluger appointed Global Group CEO",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "f11d3a133b5fed6948fec2aaaaf8b26a",
+    "company": "Devexperts",
+    "headline": "Business movers: People starting new jobs in Ireland",
+    "country": "IE",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.irishexaminer.com/business/companies/arid-41924662.html"
+   }
+  },
+  {
+   "id": "europe_north:mintneuro:2026-10-07",
+   "company": "MintNeuro",
+   "country": "GB",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/mintneuro-raises-5-million-to-scale-purpose-built-chip-platform-for-neural-devices-and-brain-computer-interfaces-302900235.html",
+   "event_date": "2026-10-07",
+   "detail": "$5M investment round for neural-device chips",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_cee:golbriak-space:2026-10-08",
+   "company": "Golbriak Space",
+   "country": "EE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/estonias-golbriak-space-raises-eur4m-to-scale-laser-communications-for-satellites/",
+   "event_date": "2026-10-08",
+   "detail": "EUR 4M seed co-led by Join Capital and PhotonVentures",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "07448e4844a337b161d075b9989f8cd6",
+    "company": "Golbriak Space",
+    "headline": "Estonia's Golbriak Space Raises \u20ac4M to Scale Laser Communications for Satellites",
+    "country": "EE",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-08",
+    "source_url": "https://www.therecursive.com/estonias-golbriak-space-raises-eur4m-to-scale-laser-communications-for-satellites/"
+   }
+  },
+  {
+   "id": "europe_north:neela-biotech:2026-10-08",
+   "company": "Neela Biotech",
+   "country": "GB",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "UKTN",
+   "source_url": "https://www.uktech.news/biotech/cambridge-biotech-startup-neela-raises-2-1m-to-turn-waste-into-aviation-fuel-20261008",
+   "event_date": "2026-10-08",
+   "detail": "GBP 2.1M raise for the Cambridge waste-to-aviation-fuel biotech",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:neudata:2026-10-08",
+   "company": "Neudata",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/neudata-appoints-richard-barnett-as-chief-product-officer-302901639.html",
+   "event_date": "2026-10-08",
+   "detail": "Richard Barnett appointed Chief Product Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:unisieve:2026-10-09",
+   "company": "UniSieve",
+   "country": "CH",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/unisieve-schweizer-deeptech-firma-sammelt-9-mio-dollar-ein/",
+   "event_date": "2026-10-09",
+   "detail": "$9M for the Swiss deep-tech separation membranes company",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:tetrapharm:2026-10-09",
+   "company": "TETRAPHARM",
+   "country": "DK",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/tetrapharm-appoints-rolf-sass-sorensen-as-chief-executive-officer-302903348.html",
+   "event_date": "2026-10-09",
+   "detail": "Rolf Sass Sorensen appointed CEO, succeeding founder Martin Rose",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:1komma5:2026-10-12",
+   "company": "1Komma5",
+   "country": "DE",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/1komma5-70-million-euro-funding/",
+   "event_date": "2026-10-12",
+   "detail": "EUR 70M from existing and new backers for the Hamburg energy company",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e0582079f92c9442565a90491137c995",
+    "company": "1KOMMA5",
+    "headline": "Osborne Clarke advises G2 Venture Partners on Series C financing round of EUR 70 million from 1KOMMA5",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-19",
+    "source_url": "https://www.osborneclarke.com/de/news/osborne-clarke-beraet-g2-venture-partners-bei-series-c-finanzierungsrunde-ueber-eur-70"
+   }
+  },
+  {
+   "id": "europe_central_south:flai:2026-10-12",
+   "company": "Flai",
+   "country": "IT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "EconomyUp",
+   "source_url": "https://www.economyup.it/automotive/gli-agenti-ai-entrano-nel-crm-delle-concessionarie-perche-la-startup-flai-ha-ottenuto-27-milioni-di-dollari/",
+   "event_date": "2026-10-12",
+   "detail": "$27M for AI agents in car-dealer CRM",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "691c70c61dd9665d1b0a6cc9a0b685ff",
+    "company": "Flai",
+    "headline": "Flai Secures $27M Series A, 50K Appointments - SaasRise",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "27000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://www.saasrise.com/news/flai-raises-27m-series-a-as-ai-software-books-50000-dealer-appointments-monthly-e73c38cf-fa0a-4945-824b-61a9f5a98931"
+   }
+  },
+  {
+   "id": "europe_central_south:hope-care:2026-10-12",
+   "company": "Hope Care",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/12/cuatrecasas-assessora-hope-care-no-fecho-de-ronda-de-financiamento-de-seis-milhoes-de-euros/",
+   "event_date": "2026-10-12",
+   "detail": "EUR 6M financing round closed",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:n26:2026-10-12",
+   "company": "N26",
+   "country": "DE",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/n26-cfo-marc-hess-appointment/",
+   "event_date": "2026-10-12",
+   "detail": "Marc Hess appointed CFO of the Berlin digital bank",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "47d89dfdabb2d230661bc7795d4147f3",
+    "company": "N26",
+    "headline": "N26 concludes hiring spree with Marc Hess CFO appointment",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-12",
+    "source_url": "https://www.fintechfutures.com/job-cuts-new-hires/n26-concludes-hiring-spree-with-marc-hess-cfo-appointment"
+   }
+  },
+  {
+   "id": "europe_cee:flae-robotics:2026-10-13",
+   "company": "FLAE Robotics",
+   "country": "CZ",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/czech-startup-flae-robotics-raises-eur1m-to-scale-its-ai-hotel-agent-be-a/",
+   "event_date": "2026-10-13",
+   "detail": "EUR 1M for an AI hotel agent",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "3534bf8da7f5a8b50296c067bdc8133d",
+    "company": "Flae Robotics",
+    "headline": "\u010cesk\u00fd startup dostal nov\u00e9 pen\u00edze na to, aby roz\u0161\u00ed\u0159il um\u011blou inteligenci v hotel\u00edch. Jednou by z n\u00ed cht\u011bl humanoida.",
+    "country": "CZ",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-08",
+    "source_url": "https://www.lupa.cz/aktuality/cesky-startup-dostal-nove-penize-na-to-aby-rozsiril-umelou-inteligenci-v-hotelich-jednou-by-z-ni-chtel-humanoida/?utm_source=rss&utm_medium=text&utm_campaign=rss"
+   }
+  },
+  {
+   "id": "europe_central_south:causa-prima:2026-10-13",
+   "company": "Causa Prima",
+   "country": "ES",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "El Referente",
+   "source_url": "https://elreferente.es/actualidad/causa-prima-capta-18-millones-de-euros-en-una-nueva-ronda-liderada-por-base10-partners/",
+   "event_date": "2026-10-13",
+   "detail": "EUR 18M round led by Base10 Partners",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "694944005888a9c11075698007d6674a",
+    "company": "Causa Prima",
+    "headline": "Causa Prima, la fintech de agentes de IA, capta US$20M",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "20000000",
+    "published_date": "2026-10-13",
+    "source_url": "https://ecosistemastartup.com/causa-prima-la-fintech-de-agentes-de-ia-capta-us20m/"
+   }
+  },
+  {
+   "id": "europe_central_south:reebuild:2026-10-13",
+   "company": "reebuild",
+   "country": "AT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/reebuild-3-million-euro-seed/",
+   "event_date": "2026-10-13",
+   "detail": "EUR 3M seed for the Vienna construction-AI startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "28b532fd41d9574dda0bf331cb92ad70",
+    "company": "Reebuild",
+    "headline": "Reebuild Raises \u20ac3M in Seed Funding - FinSMEs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-13",
+    "source_url": "https://www.finsmes.com/2026/10/reebuild-raises-e3m-in-seed-funding.html"
+   }
+  },
+  {
+   "id": "europe_north:learnupon:2026-10-13",
+   "company": "LearnUpon",
+   "country": "IE",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Silicon Republic",
+   "source_url": "https://www.siliconrepublic.com/business/dublin-edtech-learnupon-bags-50m-growth-fund-for-agentic-learning-platform",
+   "event_date": "2026-10-13",
+   "detail": "$50M growth funding for the Dublin learning platform",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "89342210f1394b3b812a21171e1deb6c",
+    "company": "LearnUpon",
+    "headline": "Dublin-based LearnUpon secures \u20ac44.5 million to scale its agentic learning platform",
+    "country": "IE",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-16",
+    "source_url": "https://www.eu-startups.com/2026/10/dublin-based-learnupon-secures-e44-5-million-to-scale-its-agentic-learning-platform/"
+   }
+  },
+  {
+   "id": "europe_cee:coding-giants:2026-10-14",
+   "company": "Coding Giants",
+   "country": "PL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/warsaws-coding-giants-secures-up-to-eur6m-to-expand-beyond-europe/",
+   "event_date": "2026-10-14",
+   "detail": "Up to EUR 6M in venture debt from Orbit Capital",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:qilimanjaro-quantum-tech:2026-10-14",
+   "company": "Qilimanjaro Quantum Tech",
+   "country": "ES",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "El Referente",
+   "source_url": "https://elreferente.es/inversiones/qilimanjaro-quantum-tech-capta-196-millones-de-euros-en-el-primer-cierre-de-una-ronda-serie-a/",
+   "event_date": "2026-10-14",
+   "detail": "EUR 19.6M first close of a Series A",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "c19a368d8d8c114db1f154bce58447d7",
+    "company": "Qilimanjaro Quantum Tech",
+    "headline": "Qilimanjaro Quantum Tech raises 19.6 million euros in the first closing of a Series A round",
+    "country": "ES",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-14",
+    "source_url": "https://elreferente.es/inversiones/qilimanjaro-quantum-tech-capta-196-millones-de-euros-en-el-primer-cierre-de-una-ronda-serie-a/"
+   }
+  },
+  {
+   "id": "europe_north:ambio:2026-10-14",
+   "company": "Ambio",
+   "country": "FI",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/ambio-finnish-plastic-recycling-startup-raises-e5-1-million/",
+   "event_date": "2026-10-14",
+   "detail": "EUR 5.1M for the Finnish plastic-recycling startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e920dc203a825c03605cd01daca31ce7",
+    "company": "Ambio",
+    "headline": "Helsinki\u2019s Ambio raises \u20ac5.1 million to scale its AI-powered recycled plastics procurement platform",
+    "country": "FI",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-14",
+    "source_url": "https://www.eu-startups.com/2026/10/helsinkis-ambio-raises-e5-1-million-to-scale-its-ai-powered-recycled-plastics-procurement-platform/"
+   }
+  },
+  {
+   "id": "europe_cee:holo:2026-10-15",
+   "company": "Holo",
+   "country": "LT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/lithuanian-holo-raises-eur5m-to-put-small-business-marketing-on-autopilot/",
+   "event_date": "2026-10-15",
+   "detail": "EUR 5M for small-business marketing automation",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "3cb782535cb85fde57328d0b5823c36d",
+    "company": "Holo",
+    "headline": "Vilnius-based Holo raises \u20ac5 million to put marketing on autopilot for small businesses",
+    "country": "LT",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.eu-startups.com/2026/10/vilnius-based-holo-raises-e5-million-to-put-marketing-on-autopilot-for-small-businesses/"
+   }
+  },
+  {
+   "id": "europe_cee:kp-labs:2026-10-15",
+   "company": "KP Labs",
+   "country": "PL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/polish-kp-labs-raised-eur4-4m-from-momentum-capital-partners-to-solve-the-satellite-data-bottleneck/",
+   "event_date": "2026-10-15",
+   "detail": "PLN 19.4M (EUR 4.44M) growth equity from Momentum Capital Partners",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e0285d75fb7baab7501c7676592d3cc4",
+    "company": "KP Labs",
+    "headline": "Polish KP Labs Raised \u20ac4.4M From Momentum Capital Partners To Solve the Satellite Data Bottleneck",
+    "country": "PL",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.therecursive.com/polish-kp-labs-raised-eur4-4m-from-momentum-capital-partners-to-solve-the-satellite-data-bottleneck/"
+   }
+  },
+  {
+   "id": "europe_central_south:evotec:2026-10-15",
+   "company": "Evotec",
+   "country": "DE",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/evotec-appoints-dr-joanna-holbrook-as-chief-scientific-officer-and-member-of-the-management-board-302909597.html",
+   "event_date": "2026-10-15",
+   "detail": "Dr Joanna Holbrook appointed Chief Scientific Officer and Management Board member",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "d30b936a1f254480c968e0144899f82f",
+    "company": "Evotec",
+    "headline": "Evotec fills CSO vacancy; Sibylla and AL-S Pharma name new CEOs",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-16",
+    "source_url": "https://european-biotechnology.com/latest-news/evotec-fills-cso-vacancy-sibylla-and-al-s-pharma-name-new-ceos/"
+   }
+  },
+  {
+   "id": "europe_cee:fresh-32:2026-10-16",
+   "company": "FRESH 32",
+   "country": "SI",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/slovenias-fresh-32-raises-eur1-2m-to-challenge-nylon-toothbrush-bristles/",
+   "event_date": "2026-10-16",
+   "detail": "EUR 1.2M for alternative toothbrush bristles",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "f54536de39e4dc27b73b95e914882b69",
+    "company": "FRESH 32",
+    "headline": "SMOK Angels CEE wants to end the nylon era of 1938.",
+    "country": "SI",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-20",
+    "source_url": "https://mamstartup.pl/smok-angels-cee-chce-zakonczyc-nylonowa-ere-rodem-z-1938-r/"
+   }
+  },
+  {
+   "id": "europe_central_south:nouscom:2026-10-19",
+   "company": "Nouscom",
+   "country": "CH",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "EconomyUp",
+   "source_url": "https://www.economyup.it/innovazione/a-nouscom-120-milioni-per-intercettare-il-cancro-entrano-angelini-industries-bei-e-neva/",
+   "event_date": "2026-10-19",
+   "detail": "EUR 120M with Angelini Industries, the EIB and Neva; Basel HQ with research in Rome",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "494e11698e9f3a433572b6678b0b6c3c",
+    "company": "Nouscom",
+    "headline": "Nouscom Raises \u20ac120 Million In Oversubscribed Series D Financing - TradingView",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-19",
+    "source_url": "https://www.tradingview.com/news/reuters.com,2026:newsml_FWN46306O:0-nouscom-raises-120-million-in-oversubscribed-series-d-financing/"
+   }
+  },
+  {
+   "id": "europe_central_south:viralgen:2026-10-19",
+   "company": "Viralgen",
+   "country": "ES",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/viralgen-announces-planned-ceo-succession-302912026.html",
+   "event_date": "2026-10-19",
+   "detail": "Planned CEO succession: CEO Jimmy Vanhove moves to a Bayer role",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:cemai:2026-10-19",
+   "company": "CemAI",
+   "country": "IE",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/cemai-appoints-andrew-crose-as-ceo-to-lead-its-next-phase-of-growth-302912031.html",
+   "event_date": "2026-10-19",
+   "detail": "Andrew Crose appointed CEO, effective 12 October",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:upm:2026-10-19",
+   "company": "UPM",
+   "country": "FI",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/changes-in-upms-group-executive-team-aki-temmes-appointed-chief-financial-officer-of-upm-and-petri-hakanen-executive-vice-president-upm-fibres-302912576.html",
+   "event_date": "2026-10-19",
+   "detail": "Aki Temmes appointed CFO; Petri Hakanen EVP UPM Fibres",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:pigment:2026-10-21",
+   "company": "Pigment",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/pigment-raises-250m-at-2-3b-valuation-302914892.html",
+   "event_date": "2026-10-21",
+   "detail": "$250M Series E at a $2.3B valuation led by Scaleup Europe Fund",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "ec9756fe3f227b19ce608c3d831b5f74",
+    "company": "Pigment",
+    "headline": "Pigment Raises $250M at $2.3B Valuation - PR Newswire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "250000000",
+    "published_date": "2026-10-21",
+    "source_url": "https://www.prnewswire.com/news-releases/pigment-raises-250m-at-2-3b-valuation-302914892.html"
+   }
+  },
+  {
+   "id": "europe_north:estatemin:2026-10-21",
+   "company": "EstateMin",
+   "country": "IE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Silicon Republic",
+   "source_url": "https://www.siliconrepublic.com/start-ups/irish-founded-legal-tech-estatemin-raises-e1m-to-scale-in-the-us",
+   "event_date": "2026-10-21",
+   "detail": "EUR 1M to scale the Irish-founded legal-tech in the US",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_north:nel-asa:2026-10-21",
+   "company": "Nel ASA",
+   "country": "NO",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nel-asa-morten-holum-appointed-new-chief-executive-officer-302915940.html",
+   "event_date": "2026-10-21",
+   "detail": "Morten Holum appointed CEO, succeeding Hakon Volldal",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:beyond-vision:2026-10-22",
+   "company": "Beyond Vision",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/22/beyond-vision-levanta-28-milhoes-e-expande-na-trofa/",
+   "event_date": "2026-10-22",
+   "detail": "EUR 2.8M raise and expansion in Trofa",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "084a3fc7f8ad5b2520bee5315b876074",
+    "company": "Beyond Vision",
+    "headline": "Lisbon\u2019s Beyond Vision raises over \u20ac28 million to scale AI drones for civilian and defence markets",
+    "country": "PT",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-22",
+    "source_url": "https://www.eu-startups.com/2026/10/lisbons-beyond-vision-raises-over-e28-million-to-scale-ai-drones-for-civilian-and-defence-markets/"
+   }
+  },
+  {
+   "id": "europe_central_south:indurex:2026-10-22",
+   "company": "Indurex",
+   "country": "NL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/indurex-raises-7-million-to-bring-engineering-intelligence-to-critical-infrastructure-and-industrial-operations-302916960.html",
+   "event_date": "2026-10-22",
+   "detail": "EUR 7M for AI security of cyber-physical systems",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "bbf60e7e274378fb3758fab6d14dbd22",
+    "company": "Indurex",
+    "headline": "Amsterdam\u2019s Indurex raises \u20ac7 million to strengthen cybersecurity and safety across cyber-physical systems",
+    "country": "NL",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-22",
+    "source_url": "https://www.eu-startups.com/2026/10/amsterdams-indurex-raises-e7-million-to-strengthen-cybersecurity-and-safety-across-cyber-physical-systems/"
+   }
+  },
+  {
+   "id": "europe_north:photocure:2026-10-22",
+   "company": "Photocure",
+   "country": "NO",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/photocure-asa---new-cfo-appointed-302917202.html",
+   "event_date": "2026-10-22",
+   "detail": "Dennis Camporeale appointed CFO, effective 26 October",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "europe_central_south:intuitivo:2026-10-23",
+   "company": "Intuitivo",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/23/intuitivo-levanta-135-milhoes-e-quer-ajudar-tambem-docentes-do-brasil-na-avaliacao/",
+   "event_date": "2026-10-23",
+   "detail": "EUR 1.35M seed for the education assessment platform",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "d7c4f1a36f0522625eb2914b6b581f12",
+    "company": "Intuitivo",
+    "headline": "Portuguese EdTech Intuitivo raises \u20ac1.35 million to ease teachers\u2019 workload and expand into Brazil",
+    "country": "PT",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-23",
+    "source_url": "https://www.eu-startups.com/2026/10/portuguese-edtech-intuitivo-raises-e1-35-million-to-ease-teachers-workload-and-expand-into-brazil/"
+   }
+  },
+  {
+   "id": "europe_central_south:rina:2026-10-23",
+   "company": "RINA",
+   "country": "IT",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/rina-paolo-moretti-appointed-group-chief-executive-officer-302918137.html",
+   "event_date": "2026-10-23",
+   "detail": "Paolo Moretti appointed Group CEO, succeeding Carlo Luzzatto",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "a7ba9a534f83ba804dc550f6cc6a39a6",
+    "company": "RINA",
+    "headline": "RINA: Paolo Moretti appointed Group Chief Executive Officer",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-23",
+    "source_url": "https://www.hellenicshippingnews.com/rina-paolo-moretti-appointed-group-chief-executive-officer/"
+   }
+  },
+  {
+   "id": "europe_north:sciensus:2026-10-28",
+   "company": "Sciensus",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/sciensus-appoints-james-tugendhat-obe-as-chief-executive-officer-302922241.html",
+   "event_date": "2026-10-28",
+   "detail": "James Tugendhat OBE appointed CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  }
+ ],
+ "family": "eu"
+}

@@ -1,160 +1,52 @@
 {
- "generated_at": "2026-11-09T09:17:15+01:00",
- "measured_on": "2026-11-09",
- "goldset_version": "2026-07-v2",
+ "generated_at": "2026-11-13T08:13:14+01:00",
+ "measured_on": "2026-11-13",
+ "goldset_version": "2026-10-v1",
  "overall": {
-  "total": 169,
-  "found": 14,
-  "found_partial": 32,
-  "missed": 123,
-  "held": 46,
-  "held_pct": 27.2,
-  "clean_pct": 8.3,
+  "total": 152,
+  "found": 35,
+  "found_partial": 57,
+  "missed": 60,
+  "held": 92,
+  "held_pct": 60.5,
+  "clean_pct": 23.0,
   "held_interval": {
-   "pct": 27.2,
-   "low_pct": 21.1,
-   "high_pct": 34.4,
-   "width_pct": 13.3,
-   "successes": 46,
-   "total": 169
+   "pct": 60.5,
+   "low_pct": 52.6,
+   "high_pct": 67.9,
+   "width_pct": 15.4,
+   "successes": 92,
+   "total": 152
   }
  },
  "spread_group": "by_country",
  "zero_countries": [
   {
-   "key": "JP",
+   "key": "GB",
+   "total": 6,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "NO",
    "total": 4,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "KE",
-   "total": 4,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "ZA",
-   "total": 4,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "GH",
-   "total": 3,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "JM",
-   "total": 3,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "VN",
-   "total": 3,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "CL",
-   "total": 2,
    "held": 0,
    "held_pct": 0.0
   },
   {
    "key": "CN",
+   "total": 3,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "PK",
    "total": 2,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "ID",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "NG",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "SG",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "TH",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "TR",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "TW",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "UY",
-   "total": 2,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "AE",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "AR",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "AT",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "AZ",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "BD",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "BH",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "BO",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "CR",
+   "key": "CO",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -166,55 +58,19 @@
    "held_pct": 0.0
   },
   {
-   "key": "EE",
+   "key": "GH",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "ET",
+   "key": "ID",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "FI",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "GE",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "HR",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "IE",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "IQ",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "IS",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "IT",
+   "key": "JP",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -226,61 +82,7 @@
    "held_pct": 0.0
   },
   {
-   "key": "KZ",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "LK",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "LT",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "MA",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "MX",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "MY",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "NA",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "NL",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "NO",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "NP",
+   "key": "MT",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -292,55 +94,7 @@
    "held_pct": 0.0
   },
   {
-   "key": "OM",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "PE",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "PH",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "PT",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "PY",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "QA",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "RO",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "SE",
-   "total": 1,
-   "held": 0,
-   "held_pct": 0.0
-  },
-  {
-   "key": "SI",
+   "key": "RW",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -352,13 +106,19 @@
    "held_pct": 0.0
   },
   {
-   "key": "SV",
+   "key": "VN",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "UA",
+   "key": "ZA",
+   "total": 1,
+   "held": 0,
+   "held_pct": 0.0
+  },
+  {
+   "key": "ZM",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -366,37 +126,13 @@
  ],
  "weak_countries": [
   {
-   "key": "AU",
-   "total": 4,
-   "held": 1,
-   "held_pct": 25.0
+   "key": "IE",
+   "total": 5,
+   "held": 2,
+   "held_pct": 40.0
   },
   {
-   "key": "CA",
-   "total": 4,
-   "held": 1,
-   "held_pct": 25.0
-  },
-  {
-   "key": "PL",
-   "total": 4,
-   "held": 1,
-   "held_pct": 25.0
-  },
-  {
-   "key": "BR",
-   "total": 3,
-   "held": 1,
-   "held_pct": 33.3
-  },
-  {
-   "key": "GB",
-   "total": 3,
-   "held": 1,
-   "held_pct": 33.3
-  },
-  {
-   "key": "HU",
+   "key": "MY",
    "total": 3,
    "held": 1,
    "held_pct": 33.3
@@ -404,381 +140,358 @@
  ],
  "weak_source_types": [
   {
-   "key": "trade_press",
-   "total": 96,
-   "held": 26,
-   "held_pct": 27.1
-  },
-  {
-   "key": "national_news",
-   "total": 33,
-   "held": 6,
-   "held_pct": 18.2
-  },
-  {
    "key": "press_release",
-   "total": 30,
-   "held": 11,
-   "held_pct": 36.7
-  },
-  {
-   "key": "filing",
-   "total": 10,
-   "held": 3,
-   "held_pct": 30.0
+   "total": 65,
+   "held": 30,
+   "held_pct": 46.2
   }
  ],
  "weak_segments": [
   {
-   "key": "non-US funding",
-   "total": 92,
-   "held": 25,
-   "held_pct": 27.2
-  },
-  {
    "key": "non-US leadership",
-   "total": 43,
-   "held": 4,
-   "held_pct": 9.3
+   "total": 38,
+   "held": 13,
+   "held_pct": 34.2
   },
   {
    "key": "US leadership",
-   "total": 12,
-   "held": 5,
-   "held_pct": 41.7
+   "total": 8,
+   "held": 2,
+   "held_pct": 25.0
   }
  ],
  "field_defects": {
-  "country_missing": 22,
-  "amount_missing": 9,
-  "country_wrong": 5
+  "country_missing": 32,
+  "amount_missing": 26,
+  "country_wrong": 4,
+  "amount_mismatch": 2
  },
  "missed_examples": [
   {
-   "company": "Tsuruya Yoshinobu Co., Ltd.",
-   "country": "JP",
-   "signal_type": "leadership",
-   "source_name": "PR TIMES",
-   "source_url": "https://prtimes.jp/main/html/rd/p/000000169.000045479.html",
-   "event_date": "2026-07-01"
-  },
-  {
-   "company": "Queue",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "FinSMEs",
-   "source_url": "https://www.finsmes.com/2026/07/queue-raises-12-6m-in-seed-funding.html",
-   "event_date": "2026-07-01"
-  },
-  {
-   "company": "Northern Star Resources Limited",
-   "country": "AU",
-   "signal_type": "leadership",
-   "source_name": "Northern Star Resources ASX announcement",
-   "source_url": "https://www.nsrltd.com/media/tcthuz2b/appointment-of-managing-director-and-ceo-02-07-2026.pdf",
-   "event_date": "2026-07-02"
-  },
-  {
-   "company": "Kling AI (Kuaishou)",
-   "country": "CN",
-   "signal_type": "funding",
-   "source_name": "Bloomberg",
-   "source_url": "https://www.bloomberg.com/news/articles/2026-07-02/china-s-kling-ai-raises-2-billion-to-expand-ai-video-operations",
-   "event_date": "2026-07-02"
-  },
-  {
-   "company": "Alva Industries",
-   "country": "NO",
-   "signal_type": "funding",
-   "source_name": "Tech.eu",
-   "source_url": "https://tech.eu/2026/07/02/alva-industries-lands-eur16m-to-scale-next-generation-electric-motors/",
-   "event_date": "2026-07-02"
-  },
-  {
-   "company": "Librari",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "FinSMEs",
-   "source_url": "https://www.finsmes.com/2026/07/librari-raises-1-75m-in-pre-seed-funding.html",
-   "event_date": "2026-07-02"
-  },
-  {
-   "company": "dConstruct Technologies",
-   "country": "SG",
-   "signal_type": "funding",
-   "source_name": "TNGlobal (TechNode Global)",
-   "source_url": "https://technode.global/2026/07/03/singapores-dconstruct-raises-125m-series-a-as-robonexus-accelerator-concludes-inaugural-cohort/",
-   "event_date": "2026-07-03"
-  },
-  {
-   "company": "Sempra",
-   "country": "US",
-   "signal_type": "leadership",
-   "source_name": "SEC 8-K (Sempra, via StockTitan)",
-   "source_url": "https://www.stocktitan.net/sec-filings/SRE/8-k-sempra-reports-material-event-9372c3787e87.html",
-   "event_date": "2026-07-06"
-  },
-  {
-   "company": "Tangos AI",
-   "country": "IL",
-   "signal_type": "funding",
-   "source_name": "Calcalist CTech",
-   "source_url": "https://www.calcalistech.com/ctechnews/article/rk8uoy9mze",
-   "event_date": "2026-07-07"
-  },
-  {
-   "company": "BIZAY",
+   "company": "Frank",
    "country": "PT",
    "signal_type": "funding",
-   "source_name": "Tech.eu",
-   "source_url": "https://tech.eu/2026/07/07/bizay-secures-55m-to-fuel-us-growth-and-industry-consolidation/",
-   "event_date": "2026-07-07"
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/01/insurtech-frank-capta-29-milhoes-de-investidores-para-desenvolver-operador-da-ia-para-mediadores/",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Adherex Group",
-   "country": "US",
+   "company": "Gentoo Media",
+   "country": "MT",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/gentoo-media-inc-agrees-eur-50-million-senior-secured-loan-and-secures-full-underwriting-commitments-for-a-planned-eur-50-million-share-issue-to-refinance-its-december-2026-bonds-302895572.html",
+   "event_date": "2026-10-01"
+  },
+  {
+   "company": "Askari General Insurance",
+   "country": "PK",
    "signal_type": "leadership",
-   "source_name": "Adhesives & Sealants Industry",
-   "source_url": "https://www.adhesivesmag.com/articles/102516-adherex-group-names-new-chief-executive-officer",
-   "event_date": "2026-07-07"
+   "source_name": "Profit (Pakistan Today)",
+   "source_url": "https://profit.pakistantoday.com.pk/2026/10/01/askari-general-insurance-names-new-chairman-after-51percent-stake-transfer",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "FORE Biotherapeutics",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Business Wire",
-   "source_url": "https://www.businesswire.com/news/home/20260707991286/en/FORE-Biotherapeutics-Announces-Closing-of-Upsized-$67.4-Million-Series-D-2-Extension-Financing-and-Highlights-Recent-Plixorafenib-Achievements",
-   "event_date": "2026-07-07"
-  },
-  {
-   "company": "Bridgement",
-   "country": "ZA",
-   "signal_type": "funding",
-   "source_name": "Launch Base Africa",
-   "source_url": "https://launchbaseafrica.com/2026/07/07/bridgement-lands-20-3m-as-south-africas-banks-double-down-on-ai-lending/",
-   "event_date": "2026-07-07"
-  },
-  {
-   "company": "Royal Bank of Canada",
-   "country": "CA",
+   "company": "Hengyuan Refining",
+   "country": "MY",
    "signal_type": "leadership",
-   "source_name": "Cision Newswire Canada",
-   "source_url": "https://www.newswire.ca/news-releases/tarek-a-robbiati-to-be-appointed-to-royal-bank-of-canada-s-board-of-directors-895481189.html",
-   "event_date": "2026-07-08"
+   "source_name": "The Star",
+   "source_url": "https://www.thestar.com.my/business/business-news/2026/10/01/hengyuan-refining-appoints-erkki-ranta-as-ceo",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Velocity",
-   "country": "IL",
-   "signal_type": "funding",
-   "source_name": "Calcalist CTech",
-   "source_url": "https://www.calcalistech.com/ctechnews/article/rjbsaioxfl",
-   "event_date": "2026-07-08"
-  },
-  {
-   "company": "Young Group",
-   "country": "IT",
-   "signal_type": "funding",
-   "source_name": "I3P (Politecnico di Torino incubator)",
-   "source_url": "https://www.i3p.it/en/news/young-group-closes-22-5-million-euro-capital-increase-led-azimut",
-   "event_date": "2026-07-08"
-  },
-  {
-   "company": "Nexu",
-   "country": "MX",
-   "signal_type": "funding",
-   "source_name": "LatamList",
-   "source_url": "https://latamlist.com/nexu-secures-143m-credit-line-from-hsbc/",
-   "event_date": "2026-07-08"
-  },
-  {
-   "company": "BellRing Brands, Inc.",
-   "country": "US",
+   "company": "Neuromod Devices",
+   "country": "IE",
    "signal_type": "leadership",
-   "source_name": "GlobeNewswire",
-   "source_url": "https://www.globenewswire.com/news-release/2026/07/08/3324474/0/en/bellring-brands-appoints-michael-axelrod-as-chief-executive-officer.html",
-   "event_date": "2026-07-08"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/new-senior-commercial-appointments-at-neuromod-302895885.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "M1X Global",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "FinSMEs",
-   "source_url": "https://www.finsmes.com/2026/07/m1x-global-raises-5-5m-in-seed-funding.html",
-   "event_date": "2026-07-08"
-  },
-  {
-   "company": "Keyper",
-   "country": "AE",
-   "signal_type": "funding",
-   "source_name": "Wamda",
-   "source_url": "https://www.wamda.com/2026/07/keyper-raises-11-million-series-digitise-uae-rental-market",
-   "event_date": "2026-07-09"
-  },
-  {
-   "company": "Mercado Bitcoin",
-   "country": "BR",
-   "signal_type": "funding",
-   "source_name": "LatamList",
-   "source_url": "https://latamlist.com/mercado-bitcoin-raises-20m-series-c-from-tether/",
-   "event_date": "2026-07-09"
-  },
-  {
-   "company": "Terry Town",
-   "country": "US",
+   "company": "NuSummit",
+   "country": "IN",
    "signal_type": "leadership",
-   "source_name": "ASI Central",
-   "source_url": "https://members.asicentral.com/news/industry-news/july-2026/terry-town-appoints-matt-bitran-to-chief-executive-officer/",
-   "event_date": "2026-07-09"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nusummit-appoints-kunal-purohit-as-managing-director-and-ceo-302894317.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Holiday Robotics",
-   "country": "KR",
-   "signal_type": "funding",
-   "source_name": "Seoul Economic Daily",
-   "source_url": "https://en.sedaily.com/technology/2026/07/13/humanoid-developer-holiday-robotics-raises-155-billion-won",
-   "event_date": "2026-07-13"
-  },
-  {
-   "company": "Chai Discovery",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Business Wire",
-   "source_url": "https://www.businesswire.com/news/home/20260713849009/en/Chai-Discovery-Announces-$400M-Series-C-to-Advance-AI-Driven-Molecular-Design",
-   "event_date": "2026-07-13"
-  },
-  {
-   "company": "MBX Biosciences, Inc.",
-   "country": "US",
-   "signal_type": "leadership",
-   "source_name": "GlobeNewswire",
-   "source_url": "https://www.globenewswire.com/news-release/2026/07/13/3326463/0/en/MBX-Biosciences-Announces-Executive-Leadership-Transition-to-Support-the-Company-s-Next-Phase-of-Growth.html",
-   "event_date": "2026-07-13"
-  },
-  {
-   "company": "Ravee Optics",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "FinSMEs",
-   "source_url": "https://www.finsmes.com/2026/07/ravee-optics-raises-6m-in-seed-funding.html",
-   "event_date": "2026-07-13"
-  },
-  {
-   "company": "LimX Dynamics",
-   "country": "CN",
-   "signal_type": "funding",
-   "source_name": "Caixin Global",
-   "source_url": "https://www.caixinglobal.com/2026-07-14/chinese-robotics-startup-raises-200-million-102464155.html",
-   "event_date": "2026-07-14"
-  },
-  {
-   "company": "IKEA Japan K.K.",
-   "country": "JP",
-   "signal_type": "leadership",
-   "source_name": "PR TIMES",
-   "source_url": "https://prtimes.jp/main/html/rd/p/000000412.000065734.html",
-   "event_date": "2026-07-14"
-  },
-  {
-   "company": "Pact Labs",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "FinSMEs",
-   "source_url": "https://www.finsmes.com/2026/07/pact-labs-raises-7m-in-series-a-funding.html",
-   "event_date": "2026-07-14"
-  },
-  {
-   "company": "Aegis Brands Inc.",
-   "country": "CA",
-   "signal_type": "leadership",
-   "source_name": "Aegis Brands press release via Yahoo Finance",
-   "source_url": "https://finance.yahoo.com/small-business/articles/aegis-brands-announces-president-ceo-115000647.html",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "InsideDesk",
-   "country": "CA",
-   "signal_type": "funding",
-   "source_name": "BetaKit",
-   "source_url": "https://betakit.com/insidedesk-closes-12-6-million-usd-to-grow-its-dental-payments-platform/",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "Convatec Group plc",
+   "company": "Teciem",
    "country": "GB",
    "signal_type": "leadership",
-   "source_name": "Investegate (London Stock Exchange RNS)",
-   "source_url": "https://www.investegate.co.uk/announcement/rns/convatec-group--ctec/cfo-succession-and-ned-appointment/9668996",
-   "event_date": "2026-07-15"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/teciem-accelerates-growth-with-appointments-of-chief-technology-officer-and-chief-customer-officer-302894354.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Hemispheric",
-   "country": "IL",
-   "signal_type": "funding",
-   "source_name": "Calcalist CTech",
-   "source_url": "https://www.calcalistech.com/ctechnews/article/rjentgbege",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "Starlight Engine",
-   "country": "JP",
-   "signal_type": "funding",
-   "source_name": "BRIDGE (thebridge.jp)",
-   "source_url": "https://thebridge.jp/en/2026/07/starlight-engine-raises-%C2%A560-6-billion-led-by-global-brain-to-promote-fusion-power-demonstration-fast",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "Monumental",
-   "country": "NL",
-   "signal_type": "funding",
-   "source_name": "Tech.eu",
-   "source_url": "https://tech.eu/2026/07/15/monumental-secures-32m-series-b-to-accelerate-construction-automation/",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "Think",
-   "country": "SA",
-   "signal_type": "funding",
-   "source_name": "Wamda",
-   "source_url": "https://www.wamda.com/2026/07/think-gears-gcc-expansion-8-million-pre-seed-funding",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "Float",
-   "country": "SE",
-   "signal_type": "funding",
-   "source_name": "Tech.eu",
-   "source_url": "https://tech.eu/2026/07/15/float-raises-eur45m-series-a-to-bridge-europes-funding-gap/",
-   "event_date": "2026-07-15"
-  },
-  {
-   "company": "Senra Systems",
+   "company": "PaleBlueDot AI",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/senra-systems-announces-65-million-series-b-plans-for-third-manufacturing-facility-302825664.html",
-   "event_date": "2026-07-15"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/palebluedot-ai-raises-200m-series-c-round-to-scale-super-intelligence-infrastructure-platform-302896601.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Hyperion Robotics",
-   "country": "FI",
+   "company": "Arceus Legal",
+   "country": "US",
    "signal_type": "funding",
-   "source_name": "Finnish AI Region (FAIR EDIH)",
-   "source_url": "https://www.fairedih.fi/en/2026/07/16/hyperion-robotics-raises-e6-4m-to-bring-ai-powered-manufacturing-to-european-infrastructure/",
-   "event_date": "2026-07-16"
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/01/ai-driven-law-firm-arceus-legal-raises-17m-to-move-beyond-contract-work/",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "BlueNexus",
-   "country": "AU",
+   "company": "SedMed",
+   "country": "US",
    "signal_type": "funding",
-   "source_name": "SmartCompany (StartupSmart)",
-   "source_url": "https://www.smartcompany.com.au/startupsmart/australian-startup-raises-july-2026-bluenexus-hyades-esgaagent/",
-   "event_date": "2026-07-17"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/108-biocapital-leads-sedmed-inc-financing-with-4-million-investment-302893368.html",
+   "event_date": "2026-10-01"
+  },
+  {
+   "company": "Field Digital",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/field-digital-expands-leadership-team-with-appointment-of-chief-financial-and-chief-legal-officers-302895173.html",
+   "event_date": "2026-10-01"
+  },
+  {
+   "company": "valU",
+   "country": "EG",
+   "signal_type": "funding",
+   "source_name": "Launch Base Africa",
+   "source_url": "https://launchbaseafrica.com/2026/10/02/fresh-off-its-jordan-launch-cairos-valu-lands-18m-in-latest-securitisation-deal/",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "Aker BP",
+   "country": "NO",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/aker-bp-appoints-new-executive-management-team-302897102.html",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "Nscale",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nscale-appoints-tech-industry-veteran-justin-osofsky-as-chief-operating-officer-302897440.html",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "snag",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "AlleyWatch",
+   "source_url": "https://www.alleywatch.com/2026/10/snag-sublets-nyc-lease-takeover-marketplace-flexible-rentals-selin-sonmez/",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "PlanHub",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/planhub-names-nicholas-daniel-as-chief-executive-officer-302897386.html",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "Celaid Therapeutics",
+   "country": "JP",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/celaid-therapeutics-completes-second-close-of-series-b-financing-round-302893509.html",
+   "event_date": "2026-10-04"
+  },
+  {
+   "company": "Bislab",
+   "country": "NO",
+   "signal_type": "funding",
+   "source_name": "Shifter",
+   "source_url": "https://www.shifter.no/nyheter/bislab-henter-56-millioner-og-naer-tredobler-verdsettelsen/477879",
+   "event_date": "2026-10-04"
+  },
+  {
+   "company": "Cold Solutions Rwanda",
+   "country": "RW",
+   "signal_type": "funding",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/cold-solutions-rwanda-secures-18m-kigali-cold-chain-facility/",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "Farm to Feed",
+   "country": "KE",
+   "signal_type": "funding",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/kenyan-agtech-farm-to-feed-secures-171k-proparco/",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "SORAM Afrique",
+   "country": "SN",
+   "signal_type": "funding",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/senegalese-soram-afrique-raises-1-36m-saviu/",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "Wuchi Wami",
+   "country": "ZM",
+   "signal_type": "funding",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/zambian-honey-producer-wuchi-wami-inside-capital-investment/",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "JULO",
+   "country": "ID",
+   "signal_type": "funding",
+   "source_name": "DealStreetAsia",
+   "source_url": "https://www.dealstreetasia.com/stories/indonesia-julo-raises-funds-497036/",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "Consano Bio",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/consano-bio-raises-more-than-15-million-in-oversubscribed-financing-to-advance-c-1101-in-chronic-painful-lumbosacral-radiculopathy-chronic-sciatica-302897596.html",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "Insmed",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/insmed-announces-cfo-transition-302897548.html",
+   "event_date": "2026-10-05"
+  },
+  {
+   "company": "Beyond Appliances",
+   "country": "IN",
+   "signal_type": "funding",
+   "source_name": "Entrackr",
+   "source_url": "https://entrackr.com/news/fireside-leads-rs-110-cr-series-b-round-in-beyond-appliances-12627573",
+   "event_date": "2026-10-06"
+  },
+  {
+   "company": "Vinci4D",
+   "country": "US",
+   "signal_type": "funding",
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/06/vinci-reels-in-250m-for-its-engineering-simulation-platform/",
+   "event_date": "2026-10-06"
+  },
+  {
+   "company": "Censys",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/censys-appoints-jeff-hackett-as-chief-financial-officer-302898115.html",
+   "event_date": "2026-10-06"
+  },
+  {
+   "company": "MintNeuro",
+   "country": "GB",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/mintneuro-raises-5-million-to-scale-purpose-built-chip-platform-for-neural-devices-and-brain-computer-interfaces-302900235.html",
+   "event_date": "2026-10-07"
+  },
+  {
+   "company": "Shipt",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/shipt-names-raj-kapoor-as-next-chief-executive-officer-302901231.html",
+   "event_date": "2026-10-07"
+  },
+  {
+   "company": "Neela Biotech",
+   "country": "GB",
+   "signal_type": "funding",
+   "source_name": "UKTN",
+   "source_url": "https://www.uktech.news/biotech/cambridge-biotech-startup-neela-raises-2-1m-to-turn-waste-into-aviation-fuel-20261008",
+   "event_date": "2026-10-08"
+  },
+  {
+   "company": "MarketsandMarkets",
+   "country": "IN",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/marketsandmarkets-appoints-shreyance-modi-as-chief-financial-officer-302902192.html",
+   "event_date": "2026-10-08"
+  },
+  {
+   "company": "Neudata",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/neudata-appoints-richard-barnett-as-chief-product-officer-302901639.html",
+   "event_date": "2026-10-08"
+  },
+  {
+   "company": "UniSieve",
+   "country": "CH",
+   "signal_type": "funding",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/unisieve-schweizer-deeptech-firma-sammelt-9-mio-dollar-ein/",
+   "event_date": "2026-10-09"
+  },
+  {
+   "company": "TETRAPHARM",
+   "country": "DK",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/tetrapharm-appoints-rolf-sass-sorensen-as-chief-executive-officer-302903348.html",
+   "event_date": "2026-10-09"
+  },
+  {
+   "company": "Avient",
+   "country": "US",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/avient-appoints-mike-frank-as-chief-executive-officer-302903472.html",
+   "event_date": "2026-10-09"
+  },
+  {
+   "company": "Hope Care",
+   "country": "PT",
+   "signal_type": "funding",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/12/cuatrecasas-assessora-hope-care-no-fecho-de-ronda-de-financiamento-de-seis-milhoes-de-euros/",
+   "event_date": "2026-10-12"
+  },
+  {
+   "company": "CLASSYS",
+   "country": "KR",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/classys-appoints-former-bain--company-partner-jung-hee-bae-as-chief-commercial-officer-to-accelerate-global-expansion-and-growth-302905444.html",
+   "event_date": "2026-10-12"
+  },
+  {
+   "company": "RAM Holdings",
+   "country": "MY",
+   "signal_type": "leadership",
+   "source_name": "The Star",
+   "source_url": "https://www.thestar.com.my/business/business-news/2026/10/12/ram-holdings-announces-group-ceo-retirement-leadership-succession",
+   "event_date": "2026-10-12"
+  },
+  {
+   "company": "DCC Holdings",
+   "country": "ZA",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/kholo-capital-provides-r275-million-us17-million-mezzanine-debt-funding-to-dcc-holdings-to-support-refinancing-and-future-growth-302906681.html",
+   "event_date": "2026-10-13"
   }
  ],
- "missed_total": 123,
+ "missed_total": 60,
  "next_goldset": {
-  "due": true,
-  "reason": "the current set covers a window that closed 104 days ago, so it no longer describes what we reach today",
+  "due": false,
+  "reason": "the current set is still current and still moving",
   "suggested_window": {
    "start": "2026-10-01",
    "end": "2026-10-31"

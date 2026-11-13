@@ -1,311 +1,214 @@
 {
- "generated_at": "2026-11-09T09:18:02+01:00",
- "measured_on": "2026-11-09",
- "goldset_version": "2026-06-us-v1",
+ "generated_at": "2026-11-13T08:14:06+01:00",
+ "measured_on": "2026-11-13",
+ "goldset_version": "2026-10-us-v1",
  "overall": {
-  "total": 51,
-  "found": 5,
-  "found_partial": 17,
-  "missed": 29,
-  "held": 22,
-  "held_pct": 43.1,
-  "clean_pct": 9.8,
+  "total": 52,
+  "found": 4,
+  "found_partial": 28,
+  "missed": 20,
+  "held": 32,
+  "held_pct": 61.5,
+  "clean_pct": 7.7,
   "held_interval": {
-   "pct": 43.1,
-   "low_pct": 30.5,
-   "high_pct": 56.7,
-   "width_pct": 26.2,
-   "successes": 22,
-   "total": 51
+   "pct": 61.5,
+   "low_pct": 48.0,
+   "high_pct": 73.5,
+   "width_pct": 25.6,
+   "successes": 32,
+   "total": 52
   }
  },
  "spread_group": "by_metro",
  "zero_countries": [],
  "weak_countries": [
   {
-   "key": "Rest of US",
-   "total": 14,
-   "held": 6,
-   "held_pct": 42.9
-  },
-  {
-   "key": "San Francisco",
-   "total": 13,
-   "held": 3,
-   "held_pct": 23.1
+   "key": "Austin",
+   "total": 9,
+   "held": 4,
+   "held_pct": 44.4
   }
  ],
- "weak_source_types": [
+ "weak_source_types": [],
+ "weak_segments": [
   {
-   "key": "press_release",
-   "total": 25,
-   "held": 12,
-   "held_pct": 48.0
-  },
-  {
-   "key": "trade_press",
-   "total": 24,
-   "held": 10,
-   "held_pct": 41.7
-  },
-  {
-   "key": "national_news",
-   "total": 2,
+   "key": "US leadership",
+   "total": 3,
    "held": 0,
    "held_pct": 0.0
   }
  ],
- "weak_segments": [
-  {
-   "key": "US funding",
-   "total": 51,
-   "held": 22,
-   "held_pct": 43.1
-  }
- ],
  "field_defects": {
-  "country_missing": 13,
-  "country_wrong": 3,
-  "amount_mismatch": 1
+  "country_missing": 26,
+  "amount_missing": 1,
+  "country_wrong": 1
  },
  "missed_examples": [
   {
-   "company": "Bland",
+   "company": "Field Digital",
    "country": "US",
-   "signal_type": "funding",
-   "source_name": "Fortune",
-   "source_url": "https://fortune.com/2026/06/16/voice-ai-bland-50-million-after-being-rejected-by-180-investors/",
-   "event_date": "2026-06-16"
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/field-digital-expands-leadership-team-with-appointment-of-chief-financial-and-chief-legal-officers-302895173.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Odyssey",
+   "company": "SedMed",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "TechCrunch",
-   "source_url": "https://techcrunch.com/2026/06/17/world-model-maker-odyssey-nabs-1-45b-valuation-backed-by-amazon-and-other-big-names/",
-   "event_date": "2026-06-17"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/108-biocapital-leads-sedmed-inc-financing-with-4-million-investment-302893368.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Peregrine Technologies",
+   "company": "Arceus Legal",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "Peregrine Technologies",
-   "source_url": "https://peregrine.io/resources/peregrine-technologies-raises-250-million-series-d-at-68-billion-valuation",
-   "event_date": "2026-06-22"
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/01/ai-driven-law-firm-arceus-legal-raises-17m-to-move-beyond-contract-work/",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Osanni Bio",
+   "company": "PaleBlueDot AI",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "Osanni Bio (press release carried by BioSpace)",
-   "source_url": "https://www.biospace.com/press-releases/osanni-bio-closes-190-million-series-b-financing-led-by-patient-square-capital",
-   "event_date": "2026-06-23"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/palebluedot-ai-raises-200m-series-c-round-to-scale-super-intelligence-infrastructure-platform-302896601.html",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Hang Ten Systems",
+   "company": "snag",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "TechCrunch",
-   "source_url": "https://techcrunch.com/2026/06/24/former-infosys-chief-has-a-new-startup-that-wants-to-challenge-the-it-services-world/",
-   "event_date": "2026-06-24"
+   "source_name": "AlleyWatch",
+   "source_url": "https://www.alleywatch.com/2026/10/snag-sublets-nyc-lease-takeover-marketplace-flexible-rentals-selin-sonmez/",
+   "event_date": "2026-10-02"
   },
   {
-   "company": "Patronus AI",
+   "company": "Consano Bio",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "TechCrunch",
-   "source_url": "https://techcrunch.com/2026/06/25/patronus-ai-lands-50m-to-build-digital-worlds-that-stress-test-ai-agents/",
-   "event_date": "2026-06-25"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/consano-bio-raises-more-than-15-million-in-oversubscribed-financing-to-advance-c-1101-in-chronic-painful-lumbosacral-radiculopathy-chronic-sciatica-302897596.html",
+   "event_date": "2026-10-05"
   },
   {
-   "company": "Aseon Labs",
+   "company": "Aventra Defense Systems",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "TechCrunch",
-   "source_url": "https://techcrunch.com/2026/06/26/this-silicon-valley-startup-has-raised-10m-to-build-pitstops-to-clean-and-charge-robotaxis/",
-   "event_date": "2026-06-26"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/aventra-raises-17-5m-to-scale-production-of-piranha-delivering-affordable-mass-and-precision-to-us-and-allied-operators-302899968.html",
+   "event_date": "2026-10-06"
   },
   {
-   "company": "Queue",
+   "company": "Geaux River",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "The Robot Report",
-   "source_url": "https://www.therobotreport.com/queue-raises-funding-fully-autonomous-pharmacy/",
-   "event_date": "2026-06-30"
+   "source_name": "Technical.ly",
+   "source_url": "https://technical.ly/entrepreneurship/geaux-river-raises-300k-towboat-tech-new-orleans/",
+   "event_date": "2026-10-06"
   },
   {
-   "company": "Prime Intellect",
+   "company": "Vinci4D",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "TechCrunch",
-   "source_url": "https://techcrunch.com/2026/07/08/prime-intellect-raises-130m-series-a-to-help-enterprises-build-their-own-ai-agents/",
-   "event_date": "2026-07-08"
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/06/vinci-reels-in-250m-for-its-engineering-simulation-platform/",
+   "event_date": "2026-10-06"
   },
   {
-   "company": "Chai Discovery",
+   "company": "Agentiq Sports",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "Pulse 2.0",
-   "source_url": "https://pulse2.com/chai-discovery-raises-400-million-series-c-to-advance-ai-driven-molecular-design/",
-   "event_date": "2026-07-14"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/agentiq-raises-4-million-to-launch-fan-to-athlete-investment-platform-302898371.html",
+   "event_date": "2026-10-07"
   },
   {
-   "company": "Taktile",
+   "company": "Sant\u00e9",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "Fortune",
-   "source_url": "https://fortune.com/2026/06/24/exclusive-taktile-goldman-sachs-ai-bank-insurance-funding/",
-   "event_date": "2026-06-24"
+   "source_name": "AlleyWatch",
+   "source_url": "https://www.alleywatch.com/2026/10/sante-wine-spirits-retail-software-ai-liquor-store-pos-darren-fike/",
+   "event_date": "2026-10-07"
   },
   {
-   "company": "Norm Ai",
+   "company": "Mistlabs",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/norm-ai-raises-120-million-at-a-1-2-billion-valuation-led-by-khosla-ventures-to-deliver-the-full-stack-model-for-legal-ai-302819152.html",
-   "event_date": "2026-07-07"
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/12/mistlabs-takes-its-ambi-ai-system-out-of-beta-on-apple-devices-with-26m-in-funding/",
+   "event_date": "2026-10-12"
   },
   {
-   "company": "Pearl Health",
+   "company": "Austin Sensing Company",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/pearl-health-raises-110-million-to-expand-its-ai-platform-helping-providers-deliver-better-outcomes-at-lower-cost-for-medicare-patients-302820795.html",
-   "event_date": "2026-07-08"
+   "source_name": "Silicon Hills News",
+   "source_url": "https://www.siliconhillsnews.com/2026/10/17/silicon-hills-daily-roundup-saturday-oct-17-2026/",
+   "event_date": "2026-10-15"
   },
   {
-   "company": "Vendelux",
+   "company": "Expressable",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "Vendelux newsroom",
-   "source_url": "https://vendelux.com/series-b-announcement",
-   "event_date": "2026-07-08"
+   "source_name": "Silicon Hills News",
+   "source_url": "https://www.siliconhillsnews.com/2026/10/19/silicon-hills-news-daily-roundup-monday-oct-19-2026/",
+   "event_date": "2026-10-19"
   },
   {
-   "company": "InstaLILY AI",
+   "company": "Stellios Technologies",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "ACCESS Newswire",
-   "source_url": "https://www.accessnewswire.com/newsroom/en/computers-technology-and-internet/instalily-raises-60-million-series-b-and-launches-lily-the-worlds-1190835",
-   "event_date": "2026-07-14"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/stellios-technologies-emerges-from-stealth-with-5m-pre-seed-round-to-rebuild-americas-high-energy-power-industry-302913339.html",
+   "event_date": "2026-10-20"
   },
   {
-   "company": "Speakeasy",
+   "company": "Delegance Brokerage",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/speakeasy-announces-8-8mm-raise-to-power-the-growing-irl-economy--live-experience-industry-302825648.html",
-   "event_date": "2026-07-15"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/delegance-raises-3-1-million-to-challenge-traditional-insurance-broker-commissions-302913409.html",
+   "event_date": "2026-10-20"
   },
   {
-   "company": "Wonder",
+   "company": "FORT Robotics",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/wonder-announces-650-million-series-d-round-at-a-9-billion-pre-money-valuation-302827208.html",
-   "event_date": "2026-07-16"
+   "source_name": "Technical.ly",
+   "source_url": "https://technical.ly/entrepreneurship/fort-robotics-raises-20m-ahead-of-spac-merger/",
+   "event_date": "2026-10-22"
   },
   {
-   "company": "Fora",
+   "company": "XBiotech",
    "country": "US",
-   "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/fora-raises-60m-at-1-billion-valuation-defining-a-new-category-of-entrepreneurs-302827629.html",
-   "event_date": "2026-07-16"
+   "signal_type": "leadership",
+   "source_name": "Silicon Hills News",
+   "source_url": "https://www.siliconhillsnews.com/2026/10/25/silicon-hills-news-daily-roundup-sunday-oct-25-2026/",
+   "event_date": "2026-10-23"
   },
   {
-   "company": "Traysar",
+   "company": "Formic",
    "country": "US",
    "signal_type": "funding",
-   "source_name": "Traysar",
-   "source_url": "https://traysar.com/news/traysar-raises-25m-seed",
-   "event_date": "2026-06-16"
+   "source_name": "Tech Startups",
+   "source_url": "https://techstartups.com/2026/10/23/startup-funding-news-today-october-23-2026-helion-slingshot-xona-warhound-tractian-more/",
+   "event_date": "2026-10-23"
   },
   {
-   "company": "Intellectible",
+   "company": "Q2 Holdings",
    "country": "US",
-   "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/intellectible-closes-3-million-seed-round-to-scale-ai-revenue-operations-for-enterprise-service-providers-302803624.html",
-   "event_date": "2026-06-17"
-  },
-  {
-   "company": "Adaptive Insurance",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Insurance Innovation Reporter",
-   "source_url": "https://iireporter.com/adaptive-raises-5m-for-specialty-climate-products/",
-   "event_date": "2026-07-09"
-  },
-  {
-   "company": "Arpio",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Arpio newsroom",
-   "source_url": "https://arpio.io/series-a-announcement/",
-   "event_date": "2026-06-03"
-  },
-  {
-   "company": "Hydra Host",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Refresh Miami",
-   "source_url": "https://refreshmiami.com/news/hydra-host-raises-100m-to-turn-overlooked-data-centers-into-ai-powerhouses/",
-   "event_date": "2026-06-15"
-  },
-  {
-   "company": "Mantle Energy",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "Dallas Innovates",
-   "source_url": "https://dallasinnovates.com/hunt-energys-dallas-based-subsidiary-mantle-energy-raises-5m-seed-funding/",
-   "event_date": "2026-06-24"
-  },
-  {
-   "company": "Auger",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "GeekWire",
-   "source_url": "https://www.geekwire.com/2026/supply-chain-startup-auger-led-by-ex-amazon-operations-chief-raises-50m-and-lands-big-customers/",
-   "event_date": "2026-07-09"
-  },
-  {
-   "company": "Auxilium Health",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "PR Newswire",
-   "source_url": "https://www.prnewswire.com/news-releases/auxilium-health-closes-oversubscribed-3-4-million-seed-round-to-advance-its-aer-biomaterial-platform-302824986.html",
-   "event_date": "2026-07-14"
-  },
-  {
-   "company": "Brinc Drones",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "GeekWire",
-   "source_url": "https://www.geekwire.com/2026/motorola-leads-125m-round-for-brinc-fueling-911-drone-expansion-amid-u-s-import-crackdown/",
-   "event_date": "2026-07-14"
-  },
-  {
-   "company": "logcat.ai",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "GeekWire",
-   "source_url": "https://www.geekwire.com/2026/the-code-ai-forgot-logcat-ai-raises-2-55m-to-put-agents-to-work-on-device-operating-systems/",
-   "event_date": "2026-07-16"
-  },
-  {
-   "company": "TYBR Health",
-   "country": "US",
-   "signal_type": "funding",
-   "source_name": "InnovationMap",
-   "source_url": "https://houston.innovationmap.com/tybr-health-30m-series-a-2677279203.html",
-   "event_date": "2026-07-28"
+   "signal_type": "leadership",
+   "source_name": "Silicon Hills News",
+   "source_url": "https://www.siliconhillsnews.com/2026/10/29/silicon-hills-daily-roundup-wednesday-oct-28-2026/",
+   "event_date": "2026-10-28"
   }
  ],
- "missed_total": 29,
+ "missed_total": 20,
  "next_goldset": {
-  "due": true,
-  "reason": "the current set covers a window that closed 101 days ago, so it no longer describes what we reach today",
+  "due": false,
+  "reason": "the current set is still current and still moving",
   "suggested_window": {
    "start": "2026-10-01",
    "end": "2026-10-31"

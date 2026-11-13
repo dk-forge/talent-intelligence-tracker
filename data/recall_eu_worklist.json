@@ -1,46 +1,46 @@
 {
- "generated_at": "2026-11-09T09:18:39+01:00",
- "measured_on": "2026-11-09",
- "goldset_version": "2026-08-eu-v1",
+ "generated_at": "2026-11-13T08:15:01+01:00",
+ "measured_on": "2026-11-13",
+ "goldset_version": "2026-10-eu-v1",
  "overall": {
-  "total": 46,
-  "found": 3,
-  "found_partial": 21,
-  "missed": 22,
-  "held": 24,
-  "held_pct": 52.2,
-  "clean_pct": 6.5,
+  "total": 50,
+  "found": 6,
+  "found_partial": 23,
+  "missed": 21,
+  "held": 29,
+  "held_pct": 58.0,
+  "clean_pct": 12.0,
   "held_interval": {
-   "pct": 52.2,
-   "low_pct": 38.1,
-   "high_pct": 65.9,
-   "width_pct": 27.7,
-   "successes": 24,
-   "total": 46
+   "pct": 58.0,
+   "low_pct": 44.2,
+   "high_pct": 70.6,
+   "width_pct": 26.4,
+   "successes": 29,
+   "total": 50
   }
  },
  "spread_group": "by_country",
  "zero_countries": [
   {
-   "key": "IT",
-   "total": 3,
+   "key": "GB",
+   "total": 6,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "PL",
-   "total": 3,
+   "key": "NO",
+   "total": 4,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "BE",
-   "total": 2,
+   "key": "DK",
+   "total": 1,
    "held": 0,
    "held_pct": 0.0
   },
   {
-   "key": "ES",
+   "key": "MT",
    "total": 1,
    "held": 0,
    "held_pct": 0.0
@@ -48,233 +48,206 @@
  ],
  "weak_countries": [
   {
-   "key": "DE",
+   "key": "IE",
    "total": 5,
    "held": 2,
    "held_pct": 40.0
-  },
-  {
-   "key": "NO",
-   "total": 3,
-   "held": 1,
-   "held_pct": 33.3
-  },
-  {
-   "key": "PT",
-   "total": 3,
-   "held": 1,
-   "held_pct": 33.3
   }
  ],
  "weak_source_types": [
   {
-   "key": "filing",
-   "total": 8,
-   "held": 3,
-   "held_pct": 37.5
-  },
-  {
-   "key": "national_news",
-   "total": 8,
-   "held": 2,
-   "held_pct": 25.0
-  }
- ],
- "weak_segments": [
-  {
-   "key": "non-US leadership",
+   "key": "press_release",
    "total": 20,
    "held": 6,
    "held_pct": 30.0
   }
  ],
+ "weak_segments": [
+  {
+   "key": "non-US leadership",
+   "total": 18,
+   "held": 6,
+   "held_pct": 33.3
+  }
+ ],
  "field_defects": {
-  "amount_missing": 14,
-  "country_missing": 5,
-  "country_wrong": 4
+  "amount_missing": 18,
+  "country_missing": 9
  },
  "missed_examples": [
   {
-   "company": "ChemoMetec A/S",
-   "country": "DK",
-   "signal_type": "leadership",
-   "source_name": "GlobeNewswire (ChemoMetec company announcement)",
-   "source_url": "https://www.globenewswire.com/news-release/2026/08/01/3337124/0/da/Udn%C3%A6vnelse-af-ny-CFO.html",
-   "event_date": "2026-08-01"
-  },
-  {
-   "company": "ENAV S.p.A.",
-   "country": "IT",
-   "signal_type": "leadership",
-   "source_name": "Teleborsa",
-   "source_url": "https://www.teleborsa.it/News/2026/08/03/enav-al-ceo-de-biasio-attribuita-anche-la-carica-di-direttore-generale-157.html",
-   "event_date": "2026-08-03"
-  },
-  {
-   "company": "FuVeX",
-   "country": "ES",
-   "signal_type": "funding",
-   "source_name": "Capital",
-   "source_url": "https://capital.es/empresas/fuvex-capta-3-millones-para-inspeccionar-el-70-de-la-red-electrica-espanola-en-2027/204873/",
-   "event_date": "2026-08-05"
-  },
-  {
-   "company": "PagoPa S.p.A.",
-   "country": "IT",
-   "signal_type": "leadership",
-   "source_name": "MilanoFinanza",
-   "source_url": "https://www.milanofinanza.it/news/pagopa-pantaleoni-amministratore-delegato-e-pimpinella-presidente-202608051241362451",
-   "event_date": "2026-08-05"
-  },
-  {
-   "company": "PKO Bank Hipoteczny S.A.",
-   "country": "PL",
-   "signal_type": "leadership",
-   "source_name": "ESPI current report via StockWatch.pl",
-   "source_url": "https://www.stockwatch.pl/komunikaty-spolek/pko-bank-hipoteczny-spolka-akcyjna,powolanie-prezesa-zarzadu-pko-banku-hipoteczn-2026-08-06,espi,20260806_172945_0000355795",
-   "event_date": "2026-08-06"
-  },
-  {
-   "company": "e-Novia S.p.A.",
-   "country": "IT",
-   "signal_type": "leadership",
-   "source_name": "Teleborsa",
-   "source_url": "https://www.teleborsa.it/News/2026/08/07/e-novia-alessio-torelli-nominato-amministratore-delegato-229.html",
-   "event_date": "2026-08-07"
-  },
-  {
-   "company": "Funventure",
-   "country": "PL",
-   "signal_type": "funding",
-   "source_name": "MamStartup",
-   "source_url": "https://mamstartup.pl/krakowskie-studio-od-miners-settlement-przekonalo-do-siebie-inwestorow/",
-   "event_date": "2026-08-07"
-  },
-  {
-   "company": "Defined.ai",
-   "country": "PT",
-   "signal_type": "leadership",
-   "source_name": "ECO",
-   "source_url": "https://eco.sapo.pt/2026/08/07/defined-ai-mexe-na-lideranca-executiva-com-duas-saidas/",
-   "event_date": "2026-08-07"
-  },
-  {
-   "company": "GalgoSheets",
+   "company": "Frank",
    "country": "PT",
    "signal_type": "funding",
    "source_name": "ECO",
-   "source_url": "https://eco.sapo.pt/2026/08/10/galgosheets-levanta-150-mil-euros-para-combater-ineficiencia-no-tvde/",
-   "event_date": "2026-08-10"
+   "source_url": "https://eco.sapo.pt/2026/10/01/insurtech-frank-capta-29-milhoes-de-investidores-para-desenvolver-operador-da-ia-para-mediadores/",
+   "event_date": "2026-10-01"
   },
   {
-   "company": "Metal Morph",
+   "company": "Gentoo Media",
+   "country": "MT",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/gentoo-media-inc-agrees-eur-50-million-senior-secured-loan-and-secures-full-underwriting-commitments-for-a-planned-eur-50-million-share-issue-to-refinance-its-december-2026-bonds-302895572.html",
+   "event_date": "2026-10-01"
+  },
+  {
+   "company": "Neuromod Devices",
+   "country": "IE",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/new-senior-commercial-appointments-at-neuromod-302895885.html",
+   "event_date": "2026-10-01"
+  },
+  {
+   "company": "Teciem",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/teciem-accelerates-growth-with-appointments-of-chief-technology-officer-and-chief-customer-officer-302894354.html",
+   "event_date": "2026-10-01"
+  },
+  {
+   "company": "Aker BP",
+   "country": "NO",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/aker-bp-appoints-new-executive-management-team-302897102.html",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "Nscale",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nscale-appoints-tech-industry-veteran-justin-osofsky-as-chief-operating-officer-302897440.html",
+   "event_date": "2026-10-02"
+  },
+  {
+   "company": "Bislab",
+   "country": "NO",
+   "signal_type": "funding",
+   "source_name": "Shifter",
+   "source_url": "https://www.shifter.no/nyheter/bislab-henter-56-millioner-og-naer-tredobler-verdsettelsen/477879",
+   "event_date": "2026-10-04"
+  },
+  {
+   "company": "MintNeuro",
+   "country": "GB",
+   "signal_type": "funding",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/mintneuro-raises-5-million-to-scale-purpose-built-chip-platform-for-neural-devices-and-brain-computer-interfaces-302900235.html",
+   "event_date": "2026-10-07"
+  },
+  {
+   "company": "Neela Biotech",
    "country": "GB",
    "signal_type": "funding",
    "source_name": "UKTN",
-   "source_url": "https://www.uktech.news/climate-tech/metal-morph-raises-pre-seed-round-to-turn-wastewater-into-supply-chains-20260813",
-   "event_date": "2026-08-13"
+   "source_url": "https://www.uktech.news/biotech/cambridge-biotech-startup-neela-raises-2-1m-to-turn-waste-into-aviation-fuel-20261008",
+   "event_date": "2026-10-08"
   },
   {
-   "company": "bit.bio",
+   "company": "Neudata",
    "country": "GB",
    "signal_type": "leadership",
-   "source_name": "BusinessCloud",
-   "source_url": "https://businesscloud.co.uk/news/growing-cambridge-medtech-appoints-first-cto/",
-   "event_date": "2026-08-15"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/neudata-appoints-richard-barnett-as-chief-product-officer-302901639.html",
+   "event_date": "2026-10-08"
   },
   {
-   "company": "Heidelberger Druckmaschinen AG",
-   "country": "DE",
-   "signal_type": "leadership",
-   "source_name": "EQS-News via onvista",
-   "source_url": "https://www.onvista.de/news/2026/08-18-eqs-news-christoph-burkhard-wird-zum-1-oktober-2026-neuer-finanzvorstand-der-heidelberger-druckmaschinen-ag-0-37-26544007",
-   "event_date": "2026-08-18"
-  },
-  {
-   "company": "MOBOTIX AG",
-   "country": "DE",
-   "signal_type": "leadership",
-   "source_name": "EQS-News via onvista",
-   "source_url": "https://www.onvista.de/news/2026/08-18-eqs-news-veraenderung-im-vorstand-cfo-coo-klaus-kiener-scheidet-einvernehmlich-zum-30-september-2026-aus-die-bisherige-leiterin-finanzen-madeleine-kraus-uebernimmt-das-cfo-ressort-zum-1-oktober-2026-0-37-26544185",
-   "event_date": "2026-08-18"
-  },
-  {
-   "company": "Oceanloop",
-   "country": "DE",
-   "signal_type": "funding",
-   "source_name": "Hatch Blue",
-   "source_url": "https://www.hatch.blue/news/oceanloop-secures-up-to-eu38-5-million-to-scale-its-land-based-aquaculture-technology-and-europes-first-farmed-giant-grouper",
-   "event_date": "2026-08-18"
-  },
-  {
-   "company": "Breetec",
-   "country": "BE",
-   "signal_type": "leadership",
-   "source_name": "Made in (Limburg)",
-   "source_url": "https://www.made-in.be/limburg/steven-maes-stapt-in-als-ceo-bij-breetec/",
-   "event_date": "2026-08-20"
-  },
-  {
-   "company": "UpGrid AG",
+   "company": "UniSieve",
    "country": "CH",
    "signal_type": "funding",
-   "source_name": "Startupticker.ch",
-   "source_url": "https://startupticker.ch/en/news/frisches-geld-und-starkes-wachstum-fuer-upgrid",
-   "event_date": "2026-08-20"
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/unisieve-schweizer-deeptech-firma-sammelt-9-mio-dollar-ein/",
+   "event_date": "2026-10-09"
   },
   {
-   "company": "BitVault SA",
-   "country": "CH",
-   "signal_type": "funding",
-   "source_name": "Startupticker.ch",
-   "source_url": "https://www.startupticker.ch/en/news/bitvault-launches-bitcoin-self-custody-app-worldwide-backed-by-chf-500-000-in-funding",
-   "event_date": "2026-08-21"
-  },
-  {
-   "company": "SkinBioTherapeutics plc",
-   "country": "GB",
+   "company": "TETRAPHARM",
+   "country": "DK",
    "signal_type": "leadership",
-   "source_name": "BusinessCloud",
-   "source_url": "https://businesscloud.co.uk/live-blog/new-cfo-at-crisis-firm-skinbiotherapeutics/",
-   "event_date": "2026-08-24"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/tetrapharm-appoints-rolf-sass-sorensen-as-chief-executive-officer-302903348.html",
+   "event_date": "2026-10-09"
   },
   {
-   "company": "Volve",
-   "country": "NO",
+   "company": "Hope Care",
+   "country": "PT",
    "signal_type": "funding",
-   "source_name": "Tech.eu",
-   "source_url": "https://tech.eu/2026/08/25/volve-lands-3m-to-expand-construction-tendering-ai-across-europe/",
-   "event_date": "2026-08-25"
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/12/cuatrecasas-assessora-hope-care-no-fecho-de-ronda-de-financiamento-de-seis-milhoes-de-euros/",
+   "event_date": "2026-10-12"
   },
   {
-   "company": "Blastr Green Steel AS",
-   "country": "NO",
-   "signal_type": "leadership",
-   "source_name": "Blastr Green Steel (company newsroom)",
-   "source_url": "https://blastr.no/news/leadership-update-from-the-board-of-blastr",
-   "event_date": "2026-08-26"
-  },
-  {
-   "company": "mcr S.A.",
+   "company": "Coding Giants",
    "country": "PL",
-   "signal_type": "leadership",
-   "source_name": "Raport biezacy via Bankier.pl",
-   "source_url": "https://www.bankier.pl/wiadomosc/mcr-S-A-Powolanie-czlonkow-Zarzadu-mcr-S-A-na-nowa-wspolna-kadencje-9187624.html",
-   "event_date": "2026-08-26"
+   "signal_type": "funding",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/warsaws-coding-giants-secures-up-to-eur6m-to-expand-beyond-europe/",
+   "event_date": "2026-10-14"
   },
   {
-   "company": "Embridge Group (formerly M-Tech)",
-   "country": "BE",
+   "company": "Viralgen",
+   "country": "ES",
    "signal_type": "leadership",
-   "source_name": "Made in (Limburg)",
-   "source_url": "https://made-in.be/limburg/nieuwe-ceo-voor-embridge-m-tech/",
-   "event_date": "2026-08-27"
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/viralgen-announces-planned-ceo-succession-302912026.html",
+   "event_date": "2026-10-19"
+  },
+  {
+   "company": "CemAI",
+   "country": "IE",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/cemai-appoints-andrew-crose-as-ceo-to-lead-its-next-phase-of-growth-302912031.html",
+   "event_date": "2026-10-19"
+  },
+  {
+   "company": "UPM",
+   "country": "FI",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/changes-in-upms-group-executive-team-aki-temmes-appointed-chief-financial-officer-of-upm-and-petri-hakanen-executive-vice-president-upm-fibres-302912576.html",
+   "event_date": "2026-10-19"
+  },
+  {
+   "company": "EstateMin",
+   "country": "IE",
+   "signal_type": "funding",
+   "source_name": "Silicon Republic",
+   "source_url": "https://www.siliconrepublic.com/start-ups/irish-founded-legal-tech-estatemin-raises-e1m-to-scale-in-the-us",
+   "event_date": "2026-10-21"
+  },
+  {
+   "company": "Nel ASA",
+   "country": "NO",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nel-asa-morten-holum-appointed-new-chief-executive-officer-302915940.html",
+   "event_date": "2026-10-21"
+  },
+  {
+   "company": "Photocure",
+   "country": "NO",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/photocure-asa---new-cfo-appointed-302917202.html",
+   "event_date": "2026-10-22"
+  },
+  {
+   "company": "Sciensus",
+   "country": "GB",
+   "signal_type": "leadership",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/sciensus-appoints-james-tugendhat-obe-as-chief-executive-officer-302922241.html",
+   "event_date": "2026-10-28"
   }
  ],
- "missed_total": 22,
+ "missed_total": 21,
  "next_goldset": {
-  "due": true,
-  "reason": "the current set covers a window that closed 70 days ago, so it no longer describes what we reach today",
+  "due": false,
+  "reason": "the current set is still current and still moving",
   "suggested_window": {
    "start": "2026-10-01",
    "end": "2026-10-31"

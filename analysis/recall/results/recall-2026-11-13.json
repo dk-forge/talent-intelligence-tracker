@@ -1,0 +1,4692 @@
+{
+ "measured_at": "2026-11-13T07:13:14Z",
+ "measured_on": "2026-11-13",
+ "api_base": "https://asktherecruiter.com/blog/wp-json/talent/v1",
+ "goldset": {
+  "version": "2026-10-v1",
+  "digest": "6e8a254e9b650f6d",
+  "window": {
+   "start": "2026-10-01",
+   "end": "2026-10-31"
+  },
+  "assembled_on": "2026-11-11",
+  "url": "https://github.com/dk-forge/talent-intelligence-tracker/blob/main/analysis/recall/goldset-2026-10.json",
+  "signal_types": null,
+  "held_out": null,
+  "caveats": [
+   "Many countries carry one or two events, so a country cell is an indication and not a rate; the regional totals are what can be read.",
+   "Coverage reflects which publishers allow an automated reader as much as where events happened: several national dailies, two large Asian and African startup outlets and some exchange portals refuse one, so their countries are under-represented and will look better covered than they are.",
+   "Latin America is thin (four events): the regional startup press for the month could largely not be verified from an allowed page with an in-window date, and several candidate pages turned out to be older articles re-dated in sitemaps.",
+   "Six funding rows are debt (securitisations, term loans, mezzanine), which some readers would not count as a funding round.",
+   "Funding rows with no published amount carry amount_disclosed=false and cannot contribute an amount defect either way.",
+   "The European rows overlap the Europe family set assembled the same day, so the two figures are not independent of each other.",
+   "132 of 152 items cite a publisher already in the tracker's source registry (data/feeds.csv or data/sources_catalogue.csv, checked 2026-11-11), because the publishers that allow an automated reader are largely the ones the tracker already collects from. Read the figure as recall within the publishers the tracker reads, not reach beyond them; the 20 items from other publishers are too few for a separate rate (10 of 20 held)."
+  ],
+  "counts": {
+   "total": 152,
+   "signal_type": {
+    "funding": 106,
+    "leadership": 46
+   },
+   "geography": {
+    "non-US": 128,
+    "US": 24
+   },
+   "country": {
+    "IN": 6,
+    "LU": 1,
+    "IT": 3,
+    "PT": 5,
+    "MT": 1,
+    "FR": 4,
+    "PK": 2,
+    "MY": 3,
+    "IE": 5,
+    "GB": 6,
+    "CA": 5,
+    "US": 24,
+    "EG": 3,
+    "NO": 4,
+    "BD": 1,
+    "JP": 1,
+    "RW": 1,
+    "KE": 2,
+    "NG": 5,
+    "SN": 1,
+    "ZM": 1,
+    "SG": 4,
+    "ID": 1,
+    "UA": 1,
+    "SA": 5,
+    "FI": 3,
+    "SK": 1,
+    "DE": 4,
+    "EE": 1,
+    "ET": 1,
+    "TZ": 1,
+    "TW": 1,
+    "CH": 2,
+    "DK": 1,
+    "TR": 1,
+    "KR": 1,
+    "ZA": 1,
+    "CZ": 1,
+    "ES": 3,
+    "AT": 1,
+    "CN": 3,
+    "UY": 1,
+    "TH": 1,
+    "PL": 2,
+    "AE": 4,
+    "LT": 1,
+    "VN": 1,
+    "SI": 1,
+    "IL": 3,
+    "MX": 1,
+    "PH": 1,
+    "HR": 1,
+    "CY": 1,
+    "IS": 1,
+    "SE": 1,
+    "AU": 3,
+    "KW": 1,
+    "NL": 1,
+    "CO": 1,
+    "NZ": 1,
+    "BR": 1,
+    "GH": 1,
+    "HK": 1,
+    "MA": 1
+   },
+   "source_type": {
+    "trade_press": 73,
+    "national_news": 14,
+    "press_release": 65
+   },
+   "size_band": {
+    "small": 111,
+    "large": 41
+   },
+   "metro": {}
+  }
+ },
+ "summary": {
+  "overall": {
+   "total": 152,
+   "found": 35,
+   "found_partial": 57,
+   "missed": 60,
+   "held": 92,
+   "held_pct": 60.5,
+   "clean_pct": 23.0,
+   "held_interval": {
+    "pct": 60.5,
+    "low_pct": 52.6,
+    "high_pct": 67.9,
+    "width_pct": 15.4,
+    "successes": 92,
+    "total": 152
+   }
+  },
+  "by_signal_type": {
+   "funding": {
+    "total": 106,
+    "found": 25,
+    "found_partial": 52,
+    "missed": 29,
+    "held": 77,
+    "held_pct": 72.6,
+    "clean_pct": 23.6,
+    "held_interval": {
+     "pct": 72.6,
+     "low_pct": 63.5,
+     "high_pct": 80.2,
+     "width_pct": 16.7,
+     "successes": 77,
+     "total": 106
+    }
+   },
+   "leadership": {
+    "total": 46,
+    "found": 10,
+    "found_partial": 5,
+    "missed": 31,
+    "held": 15,
+    "held_pct": 32.6,
+    "clean_pct": 21.7,
+    "held_interval": {
+     "pct": 32.6,
+     "low_pct": 20.9,
+     "high_pct": 47.0,
+     "width_pct": 26.2,
+     "successes": 15,
+     "total": 46
+    }
+   }
+  },
+  "by_geography": {
+   "US": {
+    "total": 24,
+    "found": 3,
+    "found_partial": 9,
+    "missed": 12,
+    "held": 12,
+    "held_pct": 50.0,
+    "clean_pct": 12.5,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 31.4,
+     "high_pct": 68.6,
+     "width_pct": 37.1,
+     "successes": 12,
+     "total": 24
+    }
+   },
+   "non-US": {
+    "total": 128,
+    "found": 32,
+    "found_partial": 48,
+    "missed": 48,
+    "held": 80,
+    "held_pct": 62.5,
+    "clean_pct": 25.0,
+    "held_interval": {
+     "pct": 62.5,
+     "low_pct": 53.9,
+     "high_pct": 70.4,
+     "width_pct": 16.5,
+     "successes": 80,
+     "total": 128
+    }
+   }
+  },
+  "by_country": {
+   "AE": {
+    "total": 4,
+    "found": 3,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 4,
+    "held_pct": 100.0,
+    "clean_pct": 75.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 51.0,
+     "high_pct": 100.0,
+     "width_pct": 49.0,
+     "successes": 4,
+     "total": 4
+    }
+   },
+   "AT": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "AU": {
+    "total": 3,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 33.3,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "BD": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "BR": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "CA": {
+    "total": 5,
+    "found": 0,
+    "found_partial": 4,
+    "missed": 1,
+    "held": 4,
+    "held_pct": 80.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 80.0,
+     "low_pct": 37.6,
+     "high_pct": 96.4,
+     "width_pct": 58.8,
+     "successes": 4,
+     "total": 5
+    }
+   },
+   "CH": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 1,
+    "held_pct": 50.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 9.5,
+     "high_pct": 90.5,
+     "width_pct": 81.1,
+     "successes": 1,
+     "total": 2
+    }
+   },
+   "CN": {
+    "total": 3,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 3,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 56.1,
+     "width_pct": 56.1,
+     "successes": 0,
+     "total": 3
+    }
+   },
+   "CO": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "CY": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "CZ": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "DE": {
+    "total": 4,
+    "found": 3,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 4,
+    "held_pct": 100.0,
+    "clean_pct": 75.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 51.0,
+     "high_pct": 100.0,
+     "width_pct": 49.0,
+     "successes": 4,
+     "total": 4
+    }
+   },
+   "DK": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "EE": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "EG": {
+    "total": 3,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 33.3,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "ES": {
+    "total": 3,
+    "found": 0,
+    "found_partial": 2,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "ET": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "FI": {
+    "total": 3,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 33.3,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "FR": {
+    "total": 4,
+    "found": 0,
+    "found_partial": 4,
+    "missed": 0,
+    "held": 4,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 51.0,
+     "high_pct": 100.0,
+     "width_pct": 49.0,
+     "successes": 4,
+     "total": 4
+    }
+   },
+   "GB": {
+    "total": 6,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 6,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 39.0,
+     "width_pct": 39.0,
+     "successes": 0,
+     "total": 6
+    }
+   },
+   "GH": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "HK": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "HR": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "ID": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "IE": {
+    "total": 5,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 3,
+    "held": 2,
+    "held_pct": 40.0,
+    "clean_pct": 20.0,
+    "held_interval": {
+     "pct": 40.0,
+     "low_pct": 11.8,
+     "high_pct": 76.9,
+     "width_pct": 65.2,
+     "successes": 2,
+     "total": 5
+    }
+   },
+   "IL": {
+    "total": 3,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 2,
+    "held_pct": 66.7,
+    "clean_pct": 33.3,
+    "held_interval": {
+     "pct": 66.7,
+     "low_pct": 20.8,
+     "high_pct": 93.9,
+     "width_pct": 73.1,
+     "successes": 2,
+     "total": 3
+    }
+   },
+   "IN": {
+    "total": 6,
+    "found": 1,
+    "found_partial": 2,
+    "missed": 3,
+    "held": 3,
+    "held_pct": 50.0,
+    "clean_pct": 16.7,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 18.8,
+     "high_pct": 81.2,
+     "width_pct": 62.5,
+     "successes": 3,
+     "total": 6
+    }
+   },
+   "IS": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "IT": {
+    "total": 3,
+    "found": 0,
+    "found_partial": 3,
+    "missed": 0,
+    "held": 3,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 43.9,
+     "high_pct": 100.0,
+     "width_pct": 56.1,
+     "successes": 3,
+     "total": 3
+    }
+   },
+   "JP": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "KE": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 1,
+    "held_pct": 50.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 9.5,
+     "high_pct": 90.5,
+     "width_pct": 81.1,
+     "successes": 1,
+     "total": 2
+    }
+   },
+   "KR": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "KW": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "LT": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "LU": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "MA": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "MT": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "MX": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "MY": {
+    "total": 3,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 2,
+    "held": 1,
+    "held_pct": 33.3,
+    "clean_pct": 33.3,
+    "held_interval": {
+     "pct": 33.3,
+     "low_pct": 6.1,
+     "high_pct": 79.2,
+     "width_pct": 73.1,
+     "successes": 1,
+     "total": 3
+    }
+   },
+   "NG": {
+    "total": 5,
+    "found": 3,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 4,
+    "held_pct": 80.0,
+    "clean_pct": 60.0,
+    "held_interval": {
+     "pct": 80.0,
+     "low_pct": 37.6,
+     "high_pct": 96.4,
+     "width_pct": 58.8,
+     "successes": 4,
+     "total": 5
+    }
+   },
+   "NL": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "NO": {
+    "total": 4,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 4,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 49.0,
+     "width_pct": 49.0,
+     "successes": 0,
+     "total": 4
+    }
+   },
+   "NZ": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "PH": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "PK": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 2,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 65.8,
+     "width_pct": 65.8,
+     "successes": 0,
+     "total": 2
+    }
+   },
+   "PL": {
+    "total": 2,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 1,
+    "held": 1,
+    "held_pct": 50.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 9.5,
+     "high_pct": 90.5,
+     "width_pct": 81.1,
+     "successes": 1,
+     "total": 2
+    }
+   },
+   "PT": {
+    "total": 5,
+    "found": 1,
+    "found_partial": 2,
+    "missed": 2,
+    "held": 3,
+    "held_pct": 60.0,
+    "clean_pct": 20.0,
+    "held_interval": {
+     "pct": 60.0,
+     "low_pct": 23.1,
+     "high_pct": 88.2,
+     "width_pct": 65.2,
+     "successes": 3,
+     "total": 5
+    }
+   },
+   "RW": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "SA": {
+    "total": 5,
+    "found": 4,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 5,
+    "held_pct": 100.0,
+    "clean_pct": 80.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 56.6,
+     "high_pct": 100.0,
+     "width_pct": 43.4,
+     "successes": 5,
+     "total": 5
+    }
+   },
+   "SE": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "SG": {
+    "total": 4,
+    "found": 1,
+    "found_partial": 3,
+    "missed": 0,
+    "held": 4,
+    "held_pct": 100.0,
+    "clean_pct": 25.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 51.0,
+     "high_pct": 100.0,
+     "width_pct": 49.0,
+     "successes": 4,
+     "total": 4
+    }
+   },
+   "SI": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "SK": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "SN": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "TH": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "TR": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "TW": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "TZ": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "UA": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 1,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "US": {
+    "total": 24,
+    "found": 3,
+    "found_partial": 9,
+    "missed": 12,
+    "held": 12,
+    "held_pct": 50.0,
+    "clean_pct": 12.5,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 31.4,
+     "high_pct": 68.6,
+     "width_pct": 37.1,
+     "successes": 12,
+     "total": 24
+    }
+   },
+   "UY": {
+    "total": 1,
+    "found": 1,
+    "found_partial": 0,
+    "missed": 0,
+    "held": 1,
+    "held_pct": 100.0,
+    "clean_pct": 100.0,
+    "held_interval": {
+     "pct": 100.0,
+     "low_pct": 20.7,
+     "high_pct": 100.0,
+     "width_pct": 79.3,
+     "successes": 1,
+     "total": 1
+    }
+   },
+   "VN": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "ZA": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   },
+   "ZM": {
+    "total": 1,
+    "found": 0,
+    "found_partial": 0,
+    "missed": 1,
+    "held": 0,
+    "held_pct": 0.0,
+    "clean_pct": 0.0,
+    "held_interval": {
+     "pct": 0.0,
+     "low_pct": 0.0,
+     "high_pct": 79.3,
+     "width_pct": 79.3,
+     "successes": 0,
+     "total": 1
+    }
+   }
+  },
+  "by_source_type": {
+   "national_news": {
+    "total": 14,
+    "found": 4,
+    "found_partial": 3,
+    "missed": 7,
+    "held": 7,
+    "held_pct": 50.0,
+    "clean_pct": 28.6,
+    "held_interval": {
+     "pct": 50.0,
+     "low_pct": 26.8,
+     "high_pct": 73.2,
+     "width_pct": 46.4,
+     "successes": 7,
+     "total": 14
+    }
+   },
+   "press_release": {
+    "total": 65,
+    "found": 9,
+    "found_partial": 21,
+    "missed": 35,
+    "held": 30,
+    "held_pct": 46.2,
+    "clean_pct": 13.8,
+    "held_interval": {
+     "pct": 46.2,
+     "low_pct": 34.6,
+     "high_pct": 58.1,
+     "width_pct": 23.6,
+     "successes": 30,
+     "total": 65
+    }
+   },
+   "trade_press": {
+    "total": 73,
+    "found": 22,
+    "found_partial": 33,
+    "missed": 18,
+    "held": 55,
+    "held_pct": 75.3,
+    "clean_pct": 30.1,
+    "held_interval": {
+     "pct": 75.3,
+     "low_pct": 64.4,
+     "high_pct": 83.8,
+     "width_pct": 19.4,
+     "successes": 55,
+     "total": 73
+    }
+   }
+  },
+  "by_size_band": {
+   "large": {
+    "total": 41,
+    "found": 11,
+    "found_partial": 14,
+    "missed": 16,
+    "held": 25,
+    "held_pct": 61.0,
+    "clean_pct": 26.8,
+    "held_interval": {
+     "pct": 61.0,
+     "low_pct": 45.7,
+     "high_pct": 74.3,
+     "width_pct": 28.6,
+     "successes": 25,
+     "total": 41
+    }
+   },
+   "small": {
+    "total": 111,
+    "found": 24,
+    "found_partial": 43,
+    "missed": 44,
+    "held": 67,
+    "held_pct": 60.4,
+    "clean_pct": 21.6,
+    "held_interval": {
+     "pct": 60.4,
+     "low_pct": 51.1,
+     "high_pct": 69.0,
+     "width_pct": 17.9,
+     "successes": 67,
+     "total": 111
+    }
+   }
+  },
+  "by_segment": {
+   "US funding": {
+    "total": 16,
+    "found": 2,
+    "found_partial": 8,
+    "missed": 6,
+    "held": 10,
+    "held_pct": 62.5,
+    "clean_pct": 12.5,
+    "held_interval": {
+     "pct": 62.5,
+     "low_pct": 38.6,
+     "high_pct": 81.5,
+     "width_pct": 42.9,
+     "successes": 10,
+     "total": 16
+    }
+   },
+   "US leadership": {
+    "total": 8,
+    "found": 1,
+    "found_partial": 1,
+    "missed": 6,
+    "held": 2,
+    "held_pct": 25.0,
+    "clean_pct": 12.5,
+    "held_interval": {
+     "pct": 25.0,
+     "low_pct": 7.1,
+     "high_pct": 59.1,
+     "width_pct": 51.9,
+     "successes": 2,
+     "total": 8
+    }
+   },
+   "non-US funding": {
+    "total": 90,
+    "found": 23,
+    "found_partial": 44,
+    "missed": 23,
+    "held": 67,
+    "held_pct": 74.4,
+    "clean_pct": 25.6,
+    "held_interval": {
+     "pct": 74.4,
+     "low_pct": 64.6,
+     "high_pct": 82.3,
+     "width_pct": 17.8,
+     "successes": 67,
+     "total": 90
+    }
+   },
+   "non-US leadership": {
+    "total": 38,
+    "found": 9,
+    "found_partial": 4,
+    "missed": 25,
+    "held": 13,
+    "held_pct": 34.2,
+    "clean_pct": 23.7,
+    "held_interval": {
+     "pct": 34.2,
+     "low_pct": 21.2,
+     "high_pct": 50.1,
+     "width_pct": 28.9,
+     "successes": 13,
+     "total": 38
+    }
+   }
+  },
+  "defects": {
+   "country_missing": 32,
+   "amount_missing": 26,
+   "country_wrong": 4,
+   "amount_mismatch": 2
+  }
+ },
+ "candidates_seen_total": 237,
+ "items": [
+  {
+   "id": "apac_funding:seeds-fincap:2026-10-01",
+   "company": "Seeds Fincap",
+   "country": "IN",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Entrackr",
+   "source_url": "https://entrackr.com/news/seeds-fincap-raises-rs-100-cr-in-series-b-led-by-michael-susan-dell-foundation-12611889",
+   "event_date": "2026-10-01",
+   "detail": "Rs 100 Cr Series B led by the Michael & Susan Dell Foundation",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "151519089475a558699d06838cef8bb8",
+    "company": "Seeds Fincap",
+    "headline": "Seeds Fincap raises Rs 100 Cr in Series B led by Michael & Susan Dell Foundation",
+    "country": "IN",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://entrackr.com/news/seeds-fincap-raises-rs-100-cr-in-series-b-led-by-michael-susan-dell-foundation-12611889"
+   }
+  },
+  {
+   "id": "apac_funding:zaperon:2026-10-01",
+   "company": "Zaperon",
+   "country": "IN",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Entrackr",
+   "source_url": "https://entrackr.com/snippets/ipv-leads-rs-7-cr-seed-round-in-cybersecurity-startup-zaperon-12612485",
+   "event_date": "2026-10-01",
+   "detail": "Rs 7 Cr seed led by IPV",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "816d55f646e017a44bc3afe63062b4f0",
+    "company": "Zaperon",
+    "headline": "IPV leads Rs 7 Cr seed round in cybersecurity startup Zaperon",
+    "country": "IN",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://entrackr.com/snippets/ipv-leads-rs-7-cr-seed-round-in-cybersecurity-startup-zaperon-12612485"
+   }
+  },
+  {
+   "id": "cee_funding:osavul:2026-10-01",
+   "company": "Osavul",
+   "country": "LU",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/nato-trusted-osavul-raises-eur8-5m-to-spot-hybrid-attacks-before-they-strike/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 8.5M for hybrid-threat detection; Ukraine-born, Luxembourg-headquartered",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "65b922aa1f199a60492d93d5f8f1d1c7",
+    "company": "Osavul",
+    "headline": "Osavul\u2019s AI predicted a sabotage attack on a European railway before it happened.",
+    "country": "UA",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-19",
+    "source_url": "https://www.therecursive.com/osavul-ceo-government-realizes-it-cannot-protect-everyone/"
+   }
+  },
+  {
+   "id": "eu_funding:computis:2026-10-01",
+   "company": "Computis",
+   "country": "IT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "EconomyUp",
+   "source_url": "https://www.economyup.it/startup/zanichelli-venture-investe-su-computis-la-startup-che-porta-lai-nella-contabilita-delle-pmi/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 2M pre-seed led by Techshop Capital, with Zanichelli Venture",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "d4bfe4aaf132dab74bb442345934ad2a",
+    "company": "Computis",
+    "headline": "Zanichelli Venture invests in Computis, the startup that brings AI to SME accounting",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://www.economyup.it/startup/zanichelli-venture-investe-su-computis-la-startup-che-porta-lai-nella-contabilita-delle-pmi/"
+   }
+  },
+  {
+   "id": "eu_funding:frank:2026-10-01",
+   "company": "Frank",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/01/insurtech-frank-capta-29-milhoes-de-investidores-para-desenvolver-operador-da-ia-para-mediadores/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 2.9M for the insurtech building an AI operator for insurance brokers",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:gentoo-media:2026-10-01",
+   "company": "Gentoo Media",
+   "country": "MT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/gentoo-media-inc-agrees-eur-50-million-senior-secured-loan-and-secures-full-underwriting-commitments-for-a-planned-eur-50-million-share-issue-to-refinance-its-december-2026-bonds-302895572.html",
+   "event_date": "2026-10-01",
+   "detail": "EUR 50M senior secured loan plus underwritten share issue to refinance bonds (debt)",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:inbolt:2026-10-01",
+   "company": "Inbolt",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Maddyness",
+   "source_url": "https://www.maddyness.com/2026/10/01/apres-stellantis-toyota-et-ford-inbolt-leve-11-millions-deuros-et-vise-les-data-centers/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 11M Series A extension for the Paris robot-vision startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "add08dcd2a31e4c810a8da49ce4764fa",
+    "company": "Inbolt",
+    "headline": "Inbolt Raises \u20ac11M in Funding - FinSMEs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-09-30",
+    "source_url": "https://www.finsmes.com/2026/09/inbolt-raises-e11m-in-funding.html"
+   }
+  },
+  {
+   "id": "eu_funding:joe-ai:2026-10-01",
+   "company": "Joe AI",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Maddyness",
+   "source_url": "https://www.maddyness.com/2026/10/01/joe-ai-leve-2-millions-deuros-pour-automatiser-la-relation-client-dans-limmobilier/",
+   "event_date": "2026-10-01",
+   "detail": "EUR 2M to automate real-estate customer relations",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "77b48da55c9e2768c1df7fdac130711f",
+    "company": "Joe AI",
+    "headline": "Joe AI raises 2 million euros to automate customer relations in real estate",
+    "country": "FR",
+    "hq_country": "FR",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://www.maddyness.com/2026/10/01/joe-ai-leve-2-millions-deuros-pour-automatiser-la-relation-client-dans-limmobilier/"
+   }
+  },
+  {
+   "id": "intl_leadership:askari-general-insurance:2026-10-01",
+   "company": "Askari General Insurance",
+   "country": "PK",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "Profit (Pakistan Today)",
+   "source_url": "https://profit.pakistantoday.com.pk/2026/10/01/askari-general-insurance-names-new-chairman-after-51percent-stake-transfer",
+   "event_date": "2026-10-01",
+   "detail": "New chairman appointed after a 51% stake transfer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:hengyuan-refining:2026-10-01",
+   "company": "Hengyuan Refining",
+   "country": "MY",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "The Star",
+   "source_url": "https://www.thestar.com.my/business/business-news/2026/10/01/hengyuan-refining-appoints-erkki-ranta-as-ceo",
+   "event_date": "2026-10-01",
+   "detail": "Erkki Ranta reappointed CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:neuromod-devices:2026-10-01",
+   "company": "Neuromod Devices",
+   "country": "IE",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/new-senior-commercial-appointments-at-neuromod-302895885.html",
+   "event_date": "2026-10-01",
+   "detail": "Joe Ghiz appointed Chief Commercial Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:nusummit:2026-10-01",
+   "company": "NuSummit",
+   "country": "IN",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nusummit-appoints-kunal-purohit-as-managing-director-and-ceo-302894317.html",
+   "event_date": "2026-10-01",
+   "detail": "Kunal Purohit appointed Managing Director and CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:sonae:2026-10-01",
+   "company": "Sonae",
+   "country": "PT",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/01/claudia-azevedo-vai-deixar-de-ser-ceo-da-sonae-joao-dolores-assume-lideranca/",
+   "event_date": "2026-10-01",
+   "detail": "Claudia Azevedo to step down as CEO; Joao Dolores to take over",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "96036ec04a512f521c451a4cfea58184",
+    "company": "Sonae",
+    "headline": "Cl\u00e1udia Azevedo vai deixar de ser CEO da Sonae. Jo\u00e3o Dolores assume lideran\u00e7a",
+    "country": "PT",
+    "hq_country": "PT",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://eco.sapo.pt/2026/10/01/claudia-azevedo-vai-deixar-de-ser-ceo-da-sonae-joao-dolores-assume-lideranca/"
+   }
+  },
+  {
+   "id": "intl_leadership:teciem:2026-10-01",
+   "company": "Teciem",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/teciem-accelerates-growth-with-appointments-of-chief-technology-officer-and-chief-customer-officer-302894354.html",
+   "event_date": "2026-10-01",
+   "detail": "Stefano Maestri appointed CTO and Strath Lanyon Chief Customer Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:oscp:2026-10-01",
+   "company": "OSCP",
+   "country": "CA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/oscp-closes-series-a-financing-led-by-new-science-ventures-302894958.html",
+   "event_date": "2026-10-01",
+   "detail": "Series A led by New Science Ventures (amount not disclosed)",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e870feb70786b3fdda212981648deeb7",
+    "company": "OSCP",
+    "headline": "OSCP schlie\u00dft Serie-A-Finanzierungsrunde unter der F\u00fchrung von New Science Ventures ab",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://www.eqs-news.com/de/news/corporate/oscp-schliesst-serie-a-finanzierungsrunde-unter-der-fuehrung-von-new-science-ventures-ab/dc4e3d4e-d6ac-44c9-8f69-99e35277c638_de"
+   }
+  },
+  {
+   "id": "us_funding_large:homeward:2026-10-01",
+   "company": "Homeward",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/homeward-secures-120-million-series-d-equity-and-330-million-in-debt-to-expand-cash-offer-and-bridge-financing-solutions-for-real-estate-agents-and-their-clients-302895128.html",
+   "event_date": "2026-10-01",
+   "detail": "$120M Series D equity plus $330M asset-backed debt facilities",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "b11565fe5f28751bd031065277f8846d",
+    "company": "Homeward",
+    "headline": "Homeward Secures $120 Million in Series D Funding",
+    "country": null,
+    "hq_country": "US",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-01",
+    "source_url": "https://ventureburn.com/homeward-secures-120-million-series-d-funding/"
+   }
+  },
+  {
+   "id": "us_funding_large:palebluedot-ai:2026-10-01",
+   "company": "PaleBlueDot AI",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/palebluedot-ai-raises-200m-series-c-round-to-scale-super-intelligence-infrastructure-platform-302896601.html",
+   "event_date": "2026-10-01",
+   "detail": "$200M Series C led by ComputeCore at a $3.2B valuation",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_funding_large:volantis:2026-10-01",
+   "company": "Volantis",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/volantis-raises-88m-series-a-to-demolish-the-ai-memory-wall-with-photonics-302895940.html",
+   "event_date": "2026-10-01",
+   "detail": "$88M Series A co-led by Lachy Groom and Abstract Ventures",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "0061bc67c6a91aa724824354883816c6",
+    "company": "Volantis",
+    "headline": "Volantis raises $88 million for tech to connect AI, memory chips",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "88000000",
+    "published_date": "2026-10-01",
+    "source_url": "https://economictimes.indiatimes.com/tech/funding/volantis-raises-88-million-for-tech-to-connect-ai-memory-chips/articleshow/134620919.cms"
+   }
+  },
+  {
+   "id": "us_funding_small:arceus-legal:2026-10-01",
+   "company": "Arceus Legal",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/01/ai-driven-law-firm-arceus-legal-raises-17m-to-move-beyond-contract-work/",
+   "event_date": "2026-10-01",
+   "detail": "$17M funding for the AI-driven law firm",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_funding_small:elio-mortgage:2026-10-01",
+   "company": "Elio Mortgage",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "AlleyWatch",
+   "source_url": "https://www.alleywatch.com/2026/10/elio-mortgage-ai-native-mortgage-origination-lending-embedded-automation-brokerage-platform/",
+   "event_date": "2026-10-01",
+   "detail": "$5.1M pre-seed led by Motive Partners and Social Leverage",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "136de233cb8556c4d2ea20a89f0efdd0",
+    "company": "Elio Mortgage",
+    "headline": "Elio Mortgage Raises $5.1M to Build an AI-Native Mortgage Brokerage Around Loan Officers",
+    "country": null,
+    "hq_country": "US",
+    "funding_amount_usd": "5100000",
+    "published_date": "2026-10-01",
+    "source_url": "https://www.alleywatch.com/2026/10/elio-mortgage-ai-native-mortgage-origination-lending-embedded-automation-brokerage-platform/"
+   }
+  },
+  {
+   "id": "us_funding_small:parakeet-health:2026-10-01",
+   "company": "Parakeet Health",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/parakeet-health-raises-10-million-series-a-following-10x-growth-and-rapid-enterprise-adoption-302895793.html",
+   "event_date": "2026-10-01",
+   "detail": "$10M Series A led by Canvas Ventures; total funding $13M",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "74bc1dccc3ae3367f9afef6fcfa0f42b",
+    "company": "Parakeet Health",
+    "headline": "Parakeet Health raises $10M to automate patient outreach",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-10-01",
+    "source_url": "https://endpoints.news/parakeet-health-raises-10m-to-automate-patient-outreach/"
+   }
+  },
+  {
+   "id": "us_funding_small:sedmed:2026-10-01",
+   "company": "SedMed",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/108-biocapital-leads-sedmed-inc-financing-with-4-million-investment-302893368.html",
+   "event_date": "2026-10-01",
+   "detail": "$4M financing led by 108 BioCapital",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_leadership:field-digital:2026-10-01",
+   "company": "Field Digital",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/field-digital-expands-leadership-team-with-appointment-of-chief-financial-and-chief-legal-officers-302895173.html",
+   "event_date": "2026-10-01",
+   "detail": "Ed Reginelli appointed CFO and Veronica McGregor Chief Legal Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:valu:2026-10-02",
+   "company": "valU",
+   "country": "EG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Launch Base Africa",
+   "source_url": "https://launchbaseafrica.com/2026/10/02/fresh-off-its-jordan-launch-cairos-valu-lands-18m-in-latest-securitisation-deal/",
+   "event_date": "2026-10-02",
+   "detail": "$18M securitisation deal (debt) for the Cairo fintech",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:aker-bp:2026-10-02",
+   "company": "Aker BP",
+   "country": "NO",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/aker-bp-appoints-new-executive-management-team-302897102.html",
+   "event_date": "2026-10-02",
+   "detail": "New executive management team appointed, effective 1 January 2027",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:nscale:2026-10-02",
+   "company": "Nscale",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nscale-appoints-tech-industry-veteran-justin-osofsky-as-chief-operating-officer-302897440.html",
+   "event_date": "2026-10-02",
+   "detail": "Justin Osofsky appointed Chief Operating Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_funding_large:supabase:2026-10-02",
+   "company": "Supabase",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/supabase-announces-150m-in-new-funding-and-turso-acquisition-302896752.html",
+   "event_date": "2026-10-02",
+   "detail": "$150M new funding led by GIC, with CapitalG; also acquires Turso",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong"
+   ],
+   "matched": {
+    "signal_id": "6a34597199e47cb3ec47a31e36f95a0d",
+    "company": "Supabase",
+    "headline": "Supabase holt 150 Mio. Dollar und kauft Turso f\u00fcr KI-Agenten",
+    "country": null,
+    "hq_country": "SG",
+    "funding_amount_usd": "150000000",
+    "published_date": "2026-10-03",
+    "source_url": "https://www.trendingtopics.eu/supabase-150-millionen-turso/"
+   }
+  },
+  {
+   "id": "us_funding_small:biotia:2026-10-02",
+   "company": "Biotia",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "AlleyWatch",
+   "source_url": "https://www.alleywatch.com/2026/10/biotia-infectious-disease-diagnostics-uti-testing-clinical-metagenomics-niamh-ohara/",
+   "event_date": "2026-10-02",
+   "detail": "$9M oversubscribed financing for infectious disease diagnostics",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "e8f0f3ac6412eac444b350050473c423",
+    "company": "Biotia",
+    "headline": "Biotia Raises $9M to Close the Diagnostic Gap for Recurrent and Culture-Negative UTIs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "9000000",
+    "published_date": "2026-10-02",
+    "source_url": "https://www.alleywatch.com/2026/10/biotia-infectious-disease-diagnostics-uti-testing-clinical-metagenomics-niamh-ohara/"
+   }
+  },
+  {
+   "id": "us_funding_small:snag:2026-10-02",
+   "company": "snag",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "AlleyWatch",
+   "source_url": "https://www.alleywatch.com/2026/10/snag-sublets-nyc-lease-takeover-marketplace-flexible-rentals-selin-sonmez/",
+   "event_date": "2026-10-02",
+   "detail": "$4M seed led by Slow Ventures",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_leadership:planhub:2026-10-02",
+   "company": "PlanHub",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/planhub-names-nicholas-daniel-as-chief-executive-officer-302897386.html",
+   "event_date": "2026-10-02",
+   "detail": "Nicholas Daniel appointed CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_leadership:verra-mobility:2026-10-02",
+   "company": "Verra Mobility",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/verra-mobility-appoints-jon-newhard-as-chief-executive-officer-302897155.html",
+   "event_date": "2026-10-02",
+   "detail": "Jon Newhard appointed President and CEO, effective 1 November",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "7a91c1de152566661cb26526eafe4279",
+    "company": "Verra Mobility",
+    "headline": "Verra Mobility nomeia Jon Newhard como novo CEO - Investing.com Brasil - Finan\u00e7as, C\u00e2mbio e Investimentos",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-02",
+    "source_url": "https://br.investing.com/news/company-news/verra-mobility-nomeia-jon-newhard-como-novo-ceo-93CH-2081937"
+   }
+  },
+  {
+   "id": "intl_leadership:raidha-collections:2026-10-03",
+   "company": "Raidha Collections",
+   "country": "BD",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "The Business Standard",
+   "source_url": "https://www.tbsnews.net/economy/corporates/raidha-collections-got-its-new-ceo-1561431",
+   "event_date": "2026-10-03",
+   "detail": "New CEO appointed",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "e804e35d0a56eae43499a447f473c348",
+    "company": "Raidha Collections",
+    "headline": "Raidha Collections got its new CEO",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-03",
+    "source_url": "https://www.tbsnews.net/economy/corporates/raidha-collections-got-its-new-ceo-1561431"
+   }
+  },
+  {
+   "id": "apac_funding:celaid-therapeutics:2026-10-04",
+   "company": "Celaid Therapeutics",
+   "country": "JP",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/celaid-therapeutics-completes-second-close-of-series-b-financing-round-302893509.html",
+   "event_date": "2026-10-04",
+   "detail": "Second close of Series B: JPY 400M (about $2.6M) with Shionogi and Teikoku Ventures",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:bislab:2026-10-04",
+   "company": "Bislab",
+   "country": "NO",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Shifter",
+   "source_url": "https://www.shifter.no/nyheter/bislab-henter-56-millioner-og-naer-tredobler-verdsettelsen/477879",
+   "event_date": "2026-10-04",
+   "detail": "NOK 56M raise for the Oslo credit bureau, valuing it at NOK 815M",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:cold-solutions-rwanda:2026-10-05",
+   "company": "Cold Solutions Rwanda",
+   "country": "RW",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/cold-solutions-rwanda-secures-18m-kigali-cold-chain-facility/",
+   "event_date": "2026-10-05",
+   "detail": "Up to $18M for a Kigali cold-chain facility",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:farm-to-feed:2026-10-05",
+   "company": "Farm to Feed",
+   "country": "KE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/kenyan-agtech-farm-to-feed-secures-171k-proparco/",
+   "event_date": "2026-10-05",
+   "detail": "$171K from Proparco",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:ororo-waste-management:2026-10-05",
+   "company": "Ororo Waste Management",
+   "country": "NG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/ororo-waste-secures-1m-used-cooking-oil-collection-nigeria/",
+   "event_date": "2026-10-05",
+   "detail": "Up to NGN 1.4B (about $1M) for used-cooking-oil collection",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "772209b77daabfaa44849240febcc035",
+    "company": "Ororo Waste",
+    "headline": "This startup turns used cooking oil into cash. It just raised $1m for growth",
+    "country": "NG",
+    "hq_country": null,
+    "funding_amount_usd": "1000000",
+    "published_date": "2026-10-02",
+    "source_url": "https://thecondia.com/rising-tide-africa-funds-ororo-waste/"
+   }
+  },
+  {
+   "id": "africa_funding:soram-afrique:2026-10-05",
+   "company": "SORAM Afrique",
+   "country": "SN",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/senegalese-soram-afrique-raises-1-36m-saviu/",
+   "event_date": "2026-10-05",
+   "detail": "$1.36M from Saviu Ventures",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:wuchi-wami:2026-10-05",
+   "company": "Wuchi Wami",
+   "country": "ZM",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/05/zambian-honey-producer-wuchi-wami-inside-capital-investment/",
+   "event_date": "2026-10-05",
+   "detail": "Private equity investment in the Zambian honey producer (amount not disclosed)",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "apac_funding:ipid:2026-10-05",
+   "company": "IPID",
+   "country": "SG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "DealStreetAsia",
+   "source_url": "https://www.dealstreetasia.com/stories/sg-fintech-startup-ipid-raises-16m-in-series-a-funding-497091/",
+   "event_date": "2026-10-05",
+   "detail": "$16M Series A",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong"
+   ],
+   "matched": {
+    "signal_id": "0bfa615a1c50afbe893148318d3ab11e",
+    "company": "iPiD",
+    "headline": "Citi, HSBC back iPiD\u2019s US$16M round to make instant payments safer across borders",
+    "country": "US",
+    "hq_country": null,
+    "funding_amount_usd": "16000000",
+    "published_date": "2026-09-25",
+    "source_url": "https://e27.co/citi-hsbc-back-ipids-us16m-round-to-make-instant-payments-safer-across-borders-20260925/"
+   }
+  },
+  {
+   "id": "apac_funding:julo:2026-10-05",
+   "company": "JULO",
+   "country": "ID",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "DealStreetAsia",
+   "source_url": "https://www.dealstreetasia.com/stories/indonesia-julo-raises-funds-497036/",
+   "event_date": "2026-10-05",
+   "detail": "Funding from a Saratoga arm and others (amount not disclosed)",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "cee_funding:buntar-aerospace:2026-10-05",
+   "company": "Buntar Aerospace",
+   "country": "UA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/ukraines-buntar-aerospace-raises-eur14-3m-for-drones-built-to-operate-without-gps/",
+   "event_date": "2026-10-05",
+   "detail": "EUR 14.3M for GPS-independent drones",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "24af9ba736fe58c75ea849298305a7d4",
+    "company": "Buntar Aerospace",
+    "headline": "Ukraine\u2019s Buntar Aerospace Raises \u20ac14.3M for Drones Built to Operate Without GPS",
+    "country": "UA",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-05",
+    "source_url": "https://www.therecursive.com/ukraines-buntar-aerospace-raises-eur14-3m-for-drones-built-to-operate-without-gps/"
+   }
+  },
+  {
+   "id": "row_funding:project-suppliers:2026-10-05",
+   "company": "Project Suppliers",
+   "country": "SA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/saudi-project-suppliers-raises-1-million-pre-seed",
+   "event_date": "2026-10-05",
+   "detail": "$1M pre-seed",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "069685a633850bae1eb47143bff6aa51",
+    "company": "Project Suppliers",
+    "headline": "Saudi Project Suppliers raises $1 million pre-seed",
+    "country": "SA",
+    "hq_country": null,
+    "funding_amount_usd": "1000000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/saudi-project-suppliers-raises-1-million-pre-seed"
+   }
+  },
+  {
+   "id": "us_funding_small:clockwork-io:2026-10-05",
+   "company": "Clockwork.io",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/clockworkio-raises-31m-as-linkedin-together-ai-and-whitefiber-adopt-its-resilience-software-to-stop-wasting-gpu-hours-302897586.html",
+   "event_date": "2026-10-05",
+   "detail": "$31M new funding for AI workload fault-tolerance software",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "4cd7cfa2919e0b7a0a1bceb2e539c3dd",
+    "company": "Clockwork.io",
+    "headline": "Clockwork.io Raises $31 Million to Eliminate GPU Waste in AI Workloads and Training",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "31000000",
+    "published_date": "2026-10-05",
+    "source_url": "https://ventureburn.com/clockwork-raises-31-million-stop-ai-gpu-waste/"
+   }
+  },
+  {
+   "id": "us_funding_small:consano-bio:2026-10-05",
+   "company": "Consano Bio",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/consano-bio-raises-more-than-15-million-in-oversubscribed-financing-to-advance-c-1101-in-chronic-painful-lumbosacral-radiculopathy-chronic-sciatica-302897596.html",
+   "event_date": "2026-10-05",
+   "detail": "Oversubscribed financing of more than $15M",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_leadership:insmed:2026-10-05",
+   "company": "Insmed",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/insmed-announces-cfo-transition-302897548.html",
+   "event_date": "2026-10-05",
+   "detail": "CFO transition: Sara Bonstein to step down as CFO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "apac_funding:beyond-appliances:2026-10-06",
+   "company": "Beyond Appliances",
+   "country": "IN",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Entrackr",
+   "source_url": "https://entrackr.com/news/fireside-leads-rs-110-cr-series-b-round-in-beyond-appliances-12627573",
+   "event_date": "2026-10-06",
+   "detail": "Rs 110 Cr Series B led by Fireside Ventures",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:cleavr:2026-10-06",
+   "company": "Cleavr",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Maddyness",
+   "source_url": "https://www.maddyness.com/2026/10/06/cleavr-leve-8-millions-deuros-pour-venir-a-bout-des-retards-de-paiement/",
+   "event_date": "2026-10-06",
+   "detail": "EUR 8M to tackle late B2B payments",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "37a4036f7d920c8d6a71788ed9e5598e",
+    "company": "CLEAVR",
+    "headline": "CLEAVR raises 8 million euros to automate invoice collection",
+    "country": "FR",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-07",
+    "source_url": "https://www.frenchweb.fr/cleavr-leve-8-millions-deuros-pour-automatiser-lencaissement-des-factures/463793"
+   }
+  },
+  {
+   "id": "eu_funding:comparables-ai:2026-10-06",
+   "company": "Comparables.ai",
+   "country": "FI",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/comparables-ai-seed-funding/",
+   "event_date": "2026-10-06",
+   "detail": "$6M seed for the Helsinki M&A data platform",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "b391a88751b43823320502f29ced2f97",
+    "company": "Comparables.ai",
+    "headline": "Comparables.ai Raises $6 Million to Find M&A Deals With A.I.",
+    "country": "FI",
+    "hq_country": null,
+    "funding_amount_usd": "6000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://www.trendingtopics.eu/comparables-ai-seed-funding/"
+   }
+  },
+  {
+   "id": "us_funding_large:general-medicine:2026-10-06",
+   "company": "General Medicine",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/general-medicine-raises-120-million-to-build-the-healthcare-store-302899356.html",
+   "event_date": "2026-10-06",
+   "detail": "$120M Series B led by Andreessen Horowitz",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "be7edfff7ee75e7e72eeccfbc0e34f13",
+    "company": "General Medicine",
+    "headline": "General Medicine raises $120M for healthcare shop - MobiHealthNews",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "120000000",
+    "published_date": "2026-10-07",
+    "source_url": "https://www.mobihealthnews.com/news/general-medicine-raises-120m-healthcare-shop"
+   }
+  },
+  {
+   "id": "us_funding_large:kymathera:2026-10-06",
+   "company": "KymaThera",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/kymathera-announces-80-million-series-b-financing-to-advance-k-1728-a-next-generation-pan-mutant-selective-pi3k-inhibitor-for-cancer-and-vascular-malformations-302899716.html",
+   "event_date": "2026-10-06",
+   "detail": "$80M Series B led by Alta Partners",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "bb733bb3d22a2dcb4df7c1211d33a496",
+    "company": "KymaThera",
+    "headline": "KymaThera Raises $80 Million Series B, Bringing Total Funding To More Than $100 Million - Pulse 2.0",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "80000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://pulse2.com/kymathera-raises-80-million-series-b-bringing-total-funding-to-more-than-100-million/"
+   }
+  },
+  {
+   "id": "us_funding_large:vinci4d:2026-10-06",
+   "company": "Vinci4D",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/06/vinci-reels-in-250m-for-its-engineering-simulation-platform/",
+   "event_date": "2026-10-06",
+   "detail": "$250M Series B at $1.5B valuation jointly led by Advent, Temasek and Xora",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "us_leadership:censys:2026-10-06",
+   "company": "Censys",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/censys-appoints-jeff-hackett-as-chief-financial-officer-302898115.html",
+   "event_date": "2026-10-06",
+   "detail": "Jeff Hackett appointed CFO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:cloud9:2026-10-07",
+   "company": "Cloud9",
+   "country": "KE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/07/kenyan-fintech-cloud9-raises-500k-alliance/",
+   "event_date": "2026-10-07",
+   "detail": "$500K from Alliance in a $1M pre-seed round",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_mismatch"
+   ],
+   "matched": {
+    "signal_id": "8a6d01d84924c36215d47ada973422f6",
+    "company": "Cloud9",
+    "headline": "Cloud9 Hits $1 Million Funding Milestone After $500,000 Alliance Investment",
+    "country": "KE",
+    "hq_country": null,
+    "funding_amount_usd": "1000000",
+    "published_date": "2026-10-07",
+    "source_url": "https://techmoran.com/2026/10/07/cloud9-hits-1-million-funding-milestone-after-500000-alliance-investment/"
+   }
+  },
+  {
+   "id": "apac_funding:quanfluence:2026-10-07",
+   "company": "Quanfluence",
+   "country": "IN",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Entrackr",
+   "source_url": "https://entrackr.com/news/chiratae-ventures-leads-10-mn-round-in-photonic-quantum-startup-quanfluence-12631530",
+   "event_date": "2026-10-07",
+   "detail": "$10M round led by Chiratae Ventures",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "bcc795ef0e6d66e70e5ab5071116e872",
+    "company": "Quanfluence",
+    "headline": "Quanfluence Raises $10 Mn To Build Full-Stack Photonic Quantum Computer",
+    "country": "IN",
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-10-07",
+    "source_url": "https://inc42.com/buzz/quanfluence-raises-10-mn-to-build-full-stack-photonic-quantum-computer/"
+   }
+  },
+  {
+   "id": "cee_funding:sensible-biotechnologies:2026-10-07",
+   "company": "Sensible Biotechnologies",
+   "country": "SK",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/slovak-sensible-biotechnologies-secures-eur42m-for-cell-based-mrna-platform/",
+   "event_date": "2026-10-07",
+   "detail": "EUR 42M for a cell-based mRNA platform (Bratislava and Oxford labs)",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "52a746728b665b9663f728e5e6899132",
+    "company": "Sensible Biotechnologies",
+    "headline": "Sensible Biotechnologies Secures $47 Million to Advance Naturally Modified mRNA Platform and Unlock Next Generation of mRNA Medicines - BioSpace",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "47000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://www.biospace.com/press-releases/sensible-biotechnologies-secures-47-million-to-advance-naturally-modified-mrna-platform-and-unlock-next-generation-of-mrna-medicines"
+   }
+  },
+  {
+   "id": "eu_funding:mintneuro:2026-10-07",
+   "company": "MintNeuro",
+   "country": "GB",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/mintneuro-raises-5-million-to-scale-purpose-built-chip-platform-for-neural-devices-and-brain-computer-interfaces-302900235.html",
+   "event_date": "2026-10-07",
+   "detail": "$5M investment round for neural-device chips",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:devexperts:2026-10-07",
+   "company": "Devexperts",
+   "country": "IE",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/devexperts-appoints-rainer-fuchsluger-as-global-group-ceo-to-accelerate-international-growth-and-advance-its-fintech-portfolio-302900916.html",
+   "event_date": "2026-10-07",
+   "detail": "Rainer Fuchsluger appointed Global Group CEO",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "f11d3a133b5fed6948fec2aaaaf8b26a",
+    "company": "Devexperts",
+    "headline": "Business movers: People starting new jobs in Ireland",
+    "country": "IE",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.irishexaminer.com/business/companies/arid-41924662.html"
+   }
+  },
+  {
+   "id": "intl_leadership:fresenius-medical-care:2026-10-07",
+   "company": "Fresenius Medical Care",
+   "country": "DE",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/shervin-j-korangy-appointed-ceo-of-fresenius-medical-care-to-lead-the-next-phase-of-strategic-development-and-long-term-profitable-growth-302901324.html",
+   "event_date": "2026-10-07",
+   "detail": "Shervin J. Korangy appointed CEO and Chair of the Management Board, succeeding Helen Giza",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "cca8904cbdfa0f83cebee2344ea13bff",
+    "company": "Fresenius Medical Care",
+    "headline": "Fresenius Medical Care nombra a Shervin Korangy como nuevo CEO",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-07",
+    "source_url": "https://mx.investing.com/news/company-news/fresenius-medical-care-nombra-a-shervin-korangy-como-nuevo-ceo-93CH-3790356"
+   }
+  },
+  {
+   "id": "us_funding_large:parallel-systems:2026-10-07",
+   "company": "Parallel Systems",
+   "country": "US",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/parallel-systems-closes-100m-in-new-funding-to-fully-commercialize-autonomous-freight-rail-system-302900326.html",
+   "event_date": "2026-10-07",
+   "detail": "$100M Series C led by AVP",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "0e27fc68f12c01fef00b0082e0c94ccb",
+    "company": "Parallel Systems",
+    "headline": "SpaceX Alumni Develop Autonomous Freight Trains",
+    "country": "US",
+    "hq_country": null,
+    "funding_amount_usd": "100000000",
+    "published_date": "2026-10-09",
+    "source_url": "https://www.trendingtopics.eu/parallel-systems-spacex-alumni-develop-autonomous-freight-trains/"
+   }
+  },
+  {
+   "id": "us_leadership:general-dynamics:2026-10-07",
+   "company": "General Dynamics",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/deep-elected-ceo-of-general-dynamics-novakovic-to-executive-chairman-302901643.html",
+   "event_date": "2026-10-07",
+   "detail": "Board elected President Danny Deep CEO from 1 January 2027; Phebe Novakovic to executive chair",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "48815cf69f42fc70766ec173a9348ec4",
+    "company": "General Dynamics",
+    "headline": "General Dynamics elege Danny Deep como novo CEO a partir de 2027",
+    "country": null,
+    "hq_country": "US",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-07",
+    "source_url": "https://br.investing.com/news/stock-market-news/general-dynamics-elege-danny-deep-como-novo-ceo-a-partir-de-2027-2086129"
+   }
+  },
+  {
+   "id": "us_leadership:shipt:2026-10-07",
+   "company": "Shipt",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/shipt-names-raj-kapoor-as-next-chief-executive-officer-302901231.html",
+   "event_date": "2026-10-07",
+   "detail": "Raj Kapoor named CEO, effective 18 October",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "cee_funding:golbriak-space:2026-10-08",
+   "company": "Golbriak Space",
+   "country": "EE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/estonias-golbriak-space-raises-eur4m-to-scale-laser-communications-for-satellites/",
+   "event_date": "2026-10-08",
+   "detail": "EUR 4M seed co-led by Join Capital and PhotonVentures",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "07448e4844a337b161d075b9989f8cd6",
+    "company": "Golbriak Space",
+    "headline": "Estonia's Golbriak Space Raises \u20ac4M to Scale Laser Communications for Satellites",
+    "country": "EE",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-08",
+    "source_url": "https://www.therecursive.com/estonias-golbriak-space-raises-eur4m-to-scale-laser-communications-for-satellites/"
+   }
+  },
+  {
+   "id": "eu_funding:neela-biotech:2026-10-08",
+   "company": "Neela Biotech",
+   "country": "GB",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "UKTN",
+   "source_url": "https://www.uktech.news/biotech/cambridge-biotech-startup-neela-raises-2-1m-to-turn-waste-into-aviation-fuel-20261008",
+   "event_date": "2026-10-08",
+   "detail": "GBP 2.1M raise for the Cambridge waste-to-aviation-fuel biotech",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:ethio-telecom:2026-10-08",
+   "company": "Ethio Telecom",
+   "country": "ET",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Launch Base Africa",
+   "source_url": "https://launchbaseafrica.com/2026/10/08/ethio-telecom-ceo-minister/",
+   "event_date": "2026-10-08",
+   "detail": "CEO Frehiwot Tamiru leaves to lead the technology ministry",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "3a6dfdb6e92646300413748de668f99f",
+    "company": "Ethio Telecom",
+    "headline": "Ethio Telecom Acting CEO Named After 8-Year Tenure",
+    "country": null,
+    "hq_country": "ET",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-20",
+    "source_url": "https://www.riotimesonline.com/ethio-telecom-acting-ceo-tariku-demissie-2026/"
+   }
+  },
+  {
+   "id": "intl_leadership:marketsandmarkets:2026-10-08",
+   "company": "MarketsandMarkets",
+   "country": "IN",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/marketsandmarkets-appoints-shreyance-modi-as-chief-financial-officer-302902192.html",
+   "event_date": "2026-10-08",
+   "detail": "Shreyance Modi appointed CFO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:neudata:2026-10-08",
+   "company": "Neudata",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/neudata-appoints-richard-barnett-as-chief-product-officer-302901639.html",
+   "event_date": "2026-10-08",
+   "detail": "Richard Barnett appointed Chief Product Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:east-africa-foods:2026-10-09",
+   "company": "East Africa Foods",
+   "country": "TZ",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/09/east-africa-foods-raises-40m-agritech-expansion/",
+   "event_date": "2026-10-09",
+   "detail": "$40M to expand agritech operations",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "ece7b9aff11596a250f3efffc9c88cda",
+    "company": "East Africa Foods",
+    "headline": "Tanzania\u2019s East Africa Foods Raises $40M to Expand into Kenya as Twiga Foods Enters Administration",
+    "country": "TZ",
+    "hq_country": null,
+    "funding_amount_usd": "40000000",
+    "published_date": "2026-10-09",
+    "source_url": "https://techmoran.com/2026/10/09/tanzanias-east-africa-foods-raises-40m-to-expand-into-kenya/"
+   }
+  },
+  {
+   "id": "africa_funding:mnt-halan:2026-10-09",
+   "company": "MNT-Halan",
+   "country": "EG",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/09/mnt-halan-raises-82m-securitised-debt/",
+   "event_date": "2026-10-09",
+   "detail": "$82M through securitised debt issuances",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "a17514c296d73853265ccf78b87ef218",
+    "company": "MNT-Halan",
+    "headline": "MNT-Halan Raises $82 Million in Debt Ahead of Blockbuster 20% Cairo IPO",
+    "country": "EG",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-02",
+    "source_url": "https://ventureburn.com/mnt-halan-raises-82-million-debt-loan-cairo-ipo/"
+   }
+  },
+  {
+   "id": "africa_funding:vatar:2026-10-09",
+   "company": "Vatar",
+   "country": "NG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/09/vatar-raises-500k-10m-valuation-lagos-life/",
+   "event_date": "2026-10-09",
+   "detail": "$500K at a $10M valuation for the Lagos Life game maker",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "4d73be9beed4642b0594d6c7a25dab97",
+    "company": "Vatar",
+    "headline": "Company behind viral Nigerian game Lagos Life raises $500k",
+    "country": "NG",
+    "hq_country": null,
+    "funding_amount_usd": "500000",
+    "published_date": "2026-10-09",
+    "source_url": "https://thecondia.com/vatar-lagos-life-raises-500000-pre-seed/"
+   }
+  },
+  {
+   "id": "apac_funding:konst:2026-10-09",
+   "company": "KONST",
+   "country": "TW",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/konst-raises-30m-series-b-funding-led-by-adata-technology-to-scale-up-ai-data-center-buildout-in-asia-and-advance-its-token-factory-strategy-302903455.html",
+   "event_date": "2026-10-09",
+   "detail": "$30M Series B led by ADATA Technology",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "75f230ededfd98822c3919058c3d8a5f",
+    "company": "KONST",
+    "headline": "KONST Raises $30M Series B funding Led by ADATA Technology to Scale Up AI Data Center Buildout in Asia and Advance Its Token Factory Strategy - PR Newswire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "30000000",
+    "published_date": "2026-10-09",
+    "source_url": "https://www.prnewswire.com/news-releases/konst-raises-30m-series-b-funding-led-by-adata-technology-to-scale-up-ai-data-center-buildout-in-asia-and-advance-its-token-factory-strategy-302903455.html"
+   }
+  },
+  {
+   "id": "eu_funding:unisieve:2026-10-09",
+   "company": "UniSieve",
+   "country": "CH",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/unisieve-schweizer-deeptech-firma-sammelt-9-mio-dollar-ein/",
+   "event_date": "2026-10-09",
+   "detail": "$9M for the Swiss deep-tech separation membranes company",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:tetrapharm:2026-10-09",
+   "company": "TETRAPHARM",
+   "country": "DK",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/tetrapharm-appoints-rolf-sass-sorensen-as-chief-executive-officer-302903348.html",
+   "event_date": "2026-10-09",
+   "detail": "Rolf Sass Sorensen appointed CEO, succeeding founder Martin Rose",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:egaranti:2026-10-09",
+   "company": "egaranti",
+   "country": "TR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Webrazzi",
+   "source_url": "https://webrazzi.com/2026/10/09/garanti-teknolojilerine-odaklanan-egaranti-1-1-milyon-dolar-yatirim-aldi/",
+   "event_date": "2026-10-09",
+   "detail": "$1.1M for the Istanbul warranty-technology startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "8d23a48537740160d5e4e9a89520dad3",
+    "company": "egaranti",
+    "headline": "egaranti, Seri A \u00f6ncesi turda 1.1 milyon dolar yat\u0131r\u0131m ald\u0131",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "1100000",
+    "published_date": "2026-10-09",
+    "source_url": "https://egirisim.com/2026/10/09/egaranti-seri-a-oncesi-turda-1-1-milyon-dolar-yatirim-aldi/"
+   }
+  },
+  {
+   "id": "us_leadership:avient:2026-10-09",
+   "company": "Avient",
+   "country": "US",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/avient-appoints-mike-frank-as-chief-executive-officer-302903472.html",
+   "event_date": "2026-10-09",
+   "detail": "Mike Frank appointed President and CEO, effective immediately",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:autobia:2026-10-11",
+   "company": "Autobia",
+   "country": "SA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/saudi-autotech-autobia-raises-12-million-series-a-led-artal-capital",
+   "event_date": "2026-10-11",
+   "detail": "$12M Series A led by Artal Capital",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "5973c0423aad6cc0cebf68f48456f1f3",
+    "company": "Autobia",
+    "headline": "Saudi autotech Autobia raises $12 million Series A led by Artal Capital",
+    "country": "SA",
+    "hq_country": null,
+    "funding_amount_usd": "12000000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/saudi-autotech-autobia-raises-12-million-series-a-led-artal-capital"
+   }
+  },
+  {
+   "id": "apac_funding:neu-battery-materials:2026-10-12",
+   "company": "NEU Battery Materials",
+   "country": "SG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/neu-battery-materials-closes-oversubscribed-us7-6-million-funding-round-to-scale-lfp-recycling-and-strengthen-lithium-supply-chain-resilience-302905285.html",
+   "event_date": "2026-10-12",
+   "detail": "Oversubscribed $7.6M round co-led by Shift4Good and SGInnovate",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "0df5defd662fe7e7d26af55a4acbeb80",
+    "company": "NEU Battery Materials",
+    "headline": "NEU Battery Materials closes $7.6M funding round - Recycling Today",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "7600000",
+    "published_date": "2026-10-22",
+    "source_url": "https://www.recyclingtoday.com/news/neu-battery-materials-closes-funding-round/"
+   }
+  },
+  {
+   "id": "eu_funding:1komma5:2026-10-12",
+   "company": "1Komma5",
+   "country": "DE",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/1komma5-70-million-euro-funding/",
+   "event_date": "2026-10-12",
+   "detail": "EUR 70M from existing and new backers for the Hamburg energy company",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e0582079f92c9442565a90491137c995",
+    "company": "1KOMMA5",
+    "headline": "Osborne Clarke advises G2 Venture Partners on Series C financing round of EUR 70 million from 1KOMMA5",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-19",
+    "source_url": "https://www.osborneclarke.com/de/news/osborne-clarke-beraet-g2-venture-partners-bei-series-c-finanzierungsrunde-ueber-eur-70"
+   }
+  },
+  {
+   "id": "eu_funding:flai:2026-10-12",
+   "company": "Flai",
+   "country": "IT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "EconomyUp",
+   "source_url": "https://www.economyup.it/automotive/gli-agenti-ai-entrano-nel-crm-delle-concessionarie-perche-la-startup-flai-ha-ottenuto-27-milioni-di-dollari/",
+   "event_date": "2026-10-12",
+   "detail": "$27M for AI agents in car-dealer CRM",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "691c70c61dd9665d1b0a6cc9a0b685ff",
+    "company": "Flai",
+    "headline": "Flai Secures $27M Series A, 50K Appointments - SaasRise",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "27000000",
+    "published_date": "2026-10-06",
+    "source_url": "https://www.saasrise.com/news/flai-raises-27m-series-a-as-ai-software-books-50000-dealer-appointments-monthly-e73c38cf-fa0a-4945-824b-61a9f5a98931"
+   }
+  },
+  {
+   "id": "eu_funding:hope-care:2026-10-12",
+   "company": "Hope Care",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/12/cuatrecasas-assessora-hope-care-no-fecho-de-ronda-de-financiamento-de-seis-milhoes-de-euros/",
+   "event_date": "2026-10-12",
+   "detail": "EUR 6M financing round closed",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:classys:2026-10-12",
+   "company": "CLASSYS",
+   "country": "KR",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/classys-appoints-former-bain--company-partner-jung-hee-bae-as-chief-commercial-officer-to-accelerate-global-expansion-and-growth-302905444.html",
+   "event_date": "2026-10-12",
+   "detail": "Jung-hee Bae appointed Chief Commercial Officer",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:n26:2026-10-12",
+   "company": "N26",
+   "country": "DE",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/n26-cfo-marc-hess-appointment/",
+   "event_date": "2026-10-12",
+   "detail": "Marc Hess appointed CFO of the Berlin digital bank",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "47d89dfdabb2d230661bc7795d4147f3",
+    "company": "N26",
+    "headline": "N26 concludes hiring spree with Marc Hess CFO appointment",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-12",
+    "source_url": "https://www.fintechfutures.com/job-cuts-new-hires/n26-concludes-hiring-spree-with-marc-hess-cfo-appointment"
+   }
+  },
+  {
+   "id": "intl_leadership:ram-holdings:2026-10-12",
+   "company": "RAM Holdings",
+   "country": "MY",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "The Star",
+   "source_url": "https://www.thestar.com.my/business/business-news/2026/10/12/ram-holdings-announces-group-ceo-retirement-leadership-succession",
+   "event_date": "2026-10-12",
+   "detail": "Julie Ng appointed acting group CEO after the group CEO retired",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:dcc-holdings:2026-10-13",
+   "company": "DCC Holdings",
+   "country": "ZA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/kholo-capital-provides-r275-million-us17-million-mezzanine-debt-funding-to-dcc-holdings-to-support-refinancing-and-future-growth-302906681.html",
+   "event_date": "2026-10-13",
+   "detail": "R275M (US$17M) mezzanine debt from Kholo Capital (debt)",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "apac_funding:makeo:2026-10-13",
+   "company": "MakeO",
+   "country": "SG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "DealStreetAsia",
+   "source_url": "https://www.dealstreetasia.com/stories/sg-oral-care-firm-zenyums-parent-makeo-raises-10m-for-expansion-497923/",
+   "event_date": "2026-10-13",
+   "detail": "$10M for the parent of oral-care firm Zenyum",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_wrong"
+   ],
+   "matched": {
+    "signal_id": "7fa9aa99afbd4fc0d5e2db2d88842fa6",
+    "company": "MakeO",
+    "headline": "MakeO secures US$10M to scale Zenyum\u2019s dentist network across Asia",
+    "country": "IN",
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-10-13",
+    "source_url": "https://e27.co/makeo-secures-us10m-to-scale-zenyums-dentist-network-across-asia-20261013/"
+   }
+  },
+  {
+   "id": "cee_funding:flae-robotics:2026-10-13",
+   "company": "FLAE Robotics",
+   "country": "CZ",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/czech-startup-flae-robotics-raises-eur1m-to-scale-its-ai-hotel-agent-be-a/",
+   "event_date": "2026-10-13",
+   "detail": "EUR 1M for an AI hotel agent",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "3534bf8da7f5a8b50296c067bdc8133d",
+    "company": "Flae Robotics",
+    "headline": "\u010cesk\u00fd startup dostal nov\u00e9 pen\u00edze na to, aby roz\u0161\u00ed\u0159il um\u011blou inteligenci v hotel\u00edch. Jednou by z n\u00ed cht\u011bl humanoida.",
+    "country": "CZ",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-08",
+    "source_url": "https://www.lupa.cz/aktuality/cesky-startup-dostal-nove-penize-na-to-aby-rozsiril-umelou-inteligenci-v-hotelich-jednou-by-z-ni-chtel-humanoida/?utm_source=rss&utm_medium=text&utm_campaign=rss"
+   }
+  },
+  {
+   "id": "eu_funding:causa-prima:2026-10-13",
+   "company": "Causa Prima",
+   "country": "ES",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "El Referente",
+   "source_url": "https://elreferente.es/actualidad/causa-prima-capta-18-millones-de-euros-en-una-nueva-ronda-liderada-por-base10-partners/",
+   "event_date": "2026-10-13",
+   "detail": "EUR 18M round led by Base10 Partners",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "694944005888a9c11075698007d6674a",
+    "company": "Causa Prima",
+    "headline": "Causa Prima, la fintech de agentes de IA, capta US$20M",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "20000000",
+    "published_date": "2026-10-13",
+    "source_url": "https://ecosistemastartup.com/causa-prima-la-fintech-de-agentes-de-ia-capta-us20m/"
+   }
+  },
+  {
+   "id": "eu_funding:learnupon:2026-10-13",
+   "company": "LearnUpon",
+   "country": "IE",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "Silicon Republic",
+   "source_url": "https://www.siliconrepublic.com/business/dublin-edtech-learnupon-bags-50m-growth-fund-for-agentic-learning-platform",
+   "event_date": "2026-10-13",
+   "detail": "$50M growth funding for the Dublin learning platform",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "89342210f1394b3b812a21171e1deb6c",
+    "company": "LearnUpon",
+    "headline": "Dublin-based LearnUpon secures \u20ac44.5 million to scale its agentic learning platform",
+    "country": "IE",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-16",
+    "source_url": "https://www.eu-startups.com/2026/10/dublin-based-learnupon-secures-e44-5-million-to-scale-its-agentic-learning-platform/"
+   }
+  },
+  {
+   "id": "eu_funding:reebuild:2026-10-13",
+   "company": "reebuild",
+   "country": "AT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/reebuild-3-million-euro-seed/",
+   "event_date": "2026-10-13",
+   "detail": "EUR 3M seed for the Vienna construction-AI startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "28b532fd41d9574dda0bf331cb92ad70",
+    "company": "Reebuild",
+    "headline": "Reebuild Raises \u20ac3M in Seed Funding - FinSMEs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-13",
+    "source_url": "https://www.finsmes.com/2026/10/reebuild-raises-e3m-in-seed-funding.html"
+   }
+  },
+  {
+   "id": "intl_leadership:engro-powergen-qadirpur:2026-10-13",
+   "company": "Engro Powergen Qadirpur",
+   "country": "PK",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "Profit (Pakistan Today)",
+   "source_url": "https://profit.pakistantoday.com.pk/2026/10/13/engro-powergen-qadirpur-appoints-khurram-abdullah-as-new-ceo",
+   "event_date": "2026-10-13",
+   "detail": "Khurram Abdullah appointed CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:yiren-digital:2026-10-13",
+   "company": "Yiren Digital",
+   "country": "CN",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/yiren-digital-appoints-na-mei-as-acting-chief-executive-officer-302906975.html",
+   "event_date": "2026-10-13",
+   "detail": "Na Mei appointed Acting CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "latam_funding:scanntech:2026-10-13",
+   "company": "Scanntech",
+   "country": "UY",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/scanntech-a-leading-latin-american-retail-intelligence-platform-announces-180-million-series-f-financing-302907182.html",
+   "event_date": "2026-10-13",
+   "detail": "$180M Series F (founded in Uruguay in 1992)",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "0a43a6600abf87fa8d13dd62f154fb6b",
+    "company": "Scanntech",
+    "headline": "La uruguaya Scanntech cierra una ronda de US$180 millones para acelerar su expansi\u00f3n internacional",
+    "country": "UY",
+    "hq_country": null,
+    "funding_amount_usd": "180000000",
+    "published_date": "2026-10-15",
+    "source_url": "https://startupslatam.com/la-uruguaya-scanntech-cierra-una-ronda-de-us180-millones-liderada-por-l-catterton-para-acelerar-su-expansion-internacional/"
+   }
+  },
+  {
+   "id": "africa_funding:bisedge:2026-10-14",
+   "company": "Bisedge",
+   "country": "NG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/bisedge-secures-10-million-long-term-loan-from-finnfund-to-expand-electric-intralogistics-fleet-in-nigeria-and-east-africa-302902397.html",
+   "event_date": "2026-10-14",
+   "detail": "EUR 10M long-term loan from Finnfund (debt)",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:max:2026-10-14",
+   "company": "MAX",
+   "country": "NG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/14/max-raises-29m-series-b3-nithio-investment/",
+   "event_date": "2026-10-14",
+   "detail": "Series B3 extended with an investment from Nithio; round reported at $29M",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "75f7e178c050f99fbe5a22638cd192e4",
+    "company": "MAX",
+    "headline": "Nigerian EV Startup MAX Pushes Funding Round to $29 Million",
+    "country": "NG",
+    "hq_country": null,
+    "funding_amount_usd": "29000000",
+    "published_date": "2026-10-15",
+    "source_url": "https://techlabari.com/nigerian-ev-startup-max-pushes-funding-round-to-29-million/"
+   }
+  },
+  {
+   "id": "apac_funding:salary-hero:2026-10-14",
+   "company": "Salary Hero",
+   "country": "TH",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "DealStreetAsia",
+   "source_url": "https://www.dealstreetasia.com/stories/salary-hero-expands-in-malaysia-funding-498107/",
+   "event_date": "2026-10-14",
+   "detail": "$7.6M raise ahead of expansion into Malaysia",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "a4c08db4c0072a2fa359581669681b1a",
+    "company": "Salary Hero",
+    "headline": "Salary Hero lands US$7.6M Series A to take its fight against loan sharks to Malaysia",
+    "country": "TH",
+    "hq_country": null,
+    "funding_amount_usd": "7600000",
+    "published_date": "2026-10-14",
+    "source_url": "https://e27.co/salary-hero-lands-us7-6m-series-a-to-take-its-fight-against-loan-sharks-to-malaysia-20261014/"
+   }
+  },
+  {
+   "id": "cee_funding:coding-giants:2026-10-14",
+   "company": "Coding Giants",
+   "country": "PL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/warsaws-coding-giants-secures-up-to-eur6m-to-expand-beyond-europe/",
+   "event_date": "2026-10-14",
+   "detail": "Up to EUR 6M in venture debt from Orbit Capital",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:ambio:2026-10-14",
+   "company": "Ambio",
+   "country": "FI",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Trending Topics",
+   "source_url": "https://www.trendingtopics.eu/ambio-finnish-plastic-recycling-startup-raises-e5-1-million/",
+   "event_date": "2026-10-14",
+   "detail": "EUR 5.1M for the Finnish plastic-recycling startup",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e920dc203a825c03605cd01daca31ce7",
+    "company": "Ambio",
+    "headline": "Helsinki\u2019s Ambio raises \u20ac5.1 million to scale its AI-powered recycled plastics procurement platform",
+    "country": "FI",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-14",
+    "source_url": "https://www.eu-startups.com/2026/10/helsinkis-ambio-raises-e5-1-million-to-scale-its-ai-powered-recycled-plastics-procurement-platform/"
+   }
+  },
+  {
+   "id": "eu_funding:qilimanjaro-quantum-tech:2026-10-14",
+   "company": "Qilimanjaro Quantum Tech",
+   "country": "ES",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "El Referente",
+   "source_url": "https://elreferente.es/inversiones/qilimanjaro-quantum-tech-capta-196-millones-de-euros-en-el-primer-cierre-de-una-ronda-serie-a/",
+   "event_date": "2026-10-14",
+   "detail": "EUR 19.6M first close of a Series A",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "c19a368d8d8c114db1f154bce58447d7",
+    "company": "Qilimanjaro Quantum Tech",
+    "headline": "Qilimanjaro Quantum Tech raises 19.6 million euros in the first closing of a Series A round",
+    "country": "ES",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-14",
+    "source_url": "https://elreferente.es/inversiones/qilimanjaro-quantum-tech-capta-196-millones-de-euros-en-el-primer-cierre-de-una-ronda-serie-a/"
+   }
+  },
+  {
+   "id": "intl_leadership:smythe:2026-10-14",
+   "company": "SMYTHE",
+   "country": "CA",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/smythe-appoints-ana-mihaljevic-as-ceo-marking-new-chapter-of-growth-302907804.html",
+   "event_date": "2026-10-14",
+   "detail": "Ana Mihaljevic appointed CEO",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "460d42a316de00b7ec4e81cedb29eab8",
+    "company": "Smythe",
+    "headline": "Smythe names new CEO",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://in.fashionnetwork.com/news/Smythe-names-new-ceo,1876028.html"
+   }
+  },
+  {
+   "id": "row_funding:justad:2026-10-14",
+   "company": "JustAd",
+   "country": "AE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/uae-justad-attracts-5-million-expand-new-markets",
+   "event_date": "2026-10-14",
+   "detail": "$5M to expand into new markets",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "26790fd08469a394c4b7062b80f9b65c",
+    "company": "JustAd",
+    "headline": "UAE's JustAd attracts $5 million to expand into new markets",
+    "country": "AE",
+    "hq_country": null,
+    "funding_amount_usd": "5000000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/uae-justad-attracts-5-million-expand-new-markets"
+   }
+  },
+  {
+   "id": "cee_funding:holo:2026-10-15",
+   "company": "Holo",
+   "country": "LT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/lithuanian-holo-raises-eur5m-to-put-small-business-marketing-on-autopilot/",
+   "event_date": "2026-10-15",
+   "detail": "EUR 5M for small-business marketing automation",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "3cb782535cb85fde57328d0b5823c36d",
+    "company": "Holo",
+    "headline": "Vilnius-based Holo raises \u20ac5 million to put marketing on autopilot for small businesses",
+    "country": "LT",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.eu-startups.com/2026/10/vilnius-based-holo-raises-e5-million-to-put-marketing-on-autopilot-for-small-businesses/"
+   }
+  },
+  {
+   "id": "cee_funding:kp-labs:2026-10-15",
+   "company": "KP Labs",
+   "country": "PL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/polish-kp-labs-raised-eur4-4m-from-momentum-capital-partners-to-solve-the-satellite-data-bottleneck/",
+   "event_date": "2026-10-15",
+   "detail": "PLN 19.4M (EUR 4.44M) growth equity from Momentum Capital Partners",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "e0285d75fb7baab7501c7676592d3cc4",
+    "company": "KP Labs",
+    "headline": "Polish KP Labs Raised \u20ac4.4M From Momentum Capital Partners To Solve the Satellite Data Bottleneck",
+    "country": "PL",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.therecursive.com/polish-kp-labs-raised-eur4-4m-from-momentum-capital-partners-to-solve-the-satellite-data-bottleneck/"
+   }
+  },
+  {
+   "id": "intl_leadership:evotec:2026-10-15",
+   "company": "Evotec",
+   "country": "DE",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/evotec-appoints-dr-joanna-holbrook-as-chief-scientific-officer-and-member-of-the-management-board-302909597.html",
+   "event_date": "2026-10-15",
+   "detail": "Dr Joanna Holbrook appointed Chief Scientific Officer and Management Board member",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "d30b936a1f254480c968e0144899f82f",
+    "company": "Evotec",
+    "headline": "Evotec fills CSO vacancy; Sibylla and AL-S Pharma name new CEOs",
+    "country": null,
+    "hq_country": "DE",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-16",
+    "source_url": "https://european-biotechnology.com/latest-news/evotec-fills-cso-vacancy-sibylla-and-al-s-pharma-name-new-ceos/"
+   }
+  },
+  {
+   "id": "intl_leadership:quoc-cuong-gia-lai:2026-10-15",
+   "company": "Quoc Cuong Gia Lai",
+   "country": "VN",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "VietNamNet",
+   "source_url": "https://vietnamnet.vn/en/nguyen-thi-nhu-loan-returns-to-lead-vietnam-s-quoc-cuong-gia-lai-2565210.html",
+   "event_date": "2026-10-15",
+   "detail": "Nguyen Thi Nhu Loan replaces Nguyen Quoc Cuong as legal representative and leads as general director",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:turiya:2026-10-15",
+   "company": "Turiya",
+   "country": "MY",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "The Star",
+   "source_url": "https://www.thestar.com.my/business/business-news/2026/10/15/turiya-appoints-nor-shahmir-as-managing-director",
+   "event_date": "2026-10-15",
+   "detail": "Nor Shahmir Nor Shahid appointed managing director",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "f3e38440f68995bba202fe6b45902c10",
+    "company": "Turiya Bhd",
+    "headline": "Turiya Appoints Nor Shahmir As New Managing Director",
+    "country": "MY",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-15",
+    "source_url": "https://www.businesstoday.com.my/2026/10/15/turiya-appoints-nor-shahmir-as-new-managing-director/?utm_source=rss&utm_medium=rss&utm_campaign=turiya-appoints-nor-shahmir-as-new-managing-director"
+   }
+  },
+  {
+   "id": "cee_funding:fresh-32:2026-10-16",
+   "company": "FRESH 32",
+   "country": "SI",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/slovenias-fresh-32-raises-eur1-2m-to-challenge-nylon-toothbrush-bristles/",
+   "event_date": "2026-10-16",
+   "detail": "EUR 1.2M for alternative toothbrush bristles",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "f54536de39e4dc27b73b95e914882b69",
+    "company": "FRESH 32",
+    "headline": "SMOK Angels CEE wants to end the nylon era of 1938.",
+    "country": "SI",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-20",
+    "source_url": "https://mamstartup.pl/smok-angels-cee-chce-zakonczyc-nylonowa-ere-rodem-z-1938-r/"
+   }
+  },
+  {
+   "id": "il_funding:scinai-immunotherapeutics:2026-10-16",
+   "company": "Scinai Immunotherapeutics",
+   "country": "IL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/scinai-immunotherapeutics-announces-closing-of-4-0-million-financing-through-a-private-placement-and-warrant-inducement-302911221.html",
+   "event_date": "2026-10-16",
+   "detail": "Closing of $4.0M private placement and warrant inducement",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:lufax:2026-10-16",
+   "company": "Lufax",
+   "country": "CN",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/lufax-announces-appointment-of-chief-financial-officer-302911211.html",
+   "event_date": "2026-10-16",
+   "detail": "Jia Liu appointed CFO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "latam_leadership:grupo-gigante:2026-10-16",
+   "company": "Grupo Gigante",
+   "country": "MX",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "national_news",
+   "source_name": "Expansion",
+   "source_url": "https://expansion.mx/empresas/2026/10/16/gigante-nombra-jose-antonio-meade-presidente-del-consejo",
+   "event_date": "2026-10-16",
+   "detail": "Jose Antonio Meade named chairman of the board",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "11c053b12ef4a739b9cd92e4aa048fa9",
+    "company": "Grupo Gigante",
+    "headline": "Grupo Gigante designa a Jos\u00e9 Antonio Meade como presidente del consejo y anuncia nueva estructura",
+    "country": "MX",
+    "hq_country": "MX",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-16",
+    "source_url": "https://elceo.com/negocios/grupo-gigante-designa-jose-antonio-meade-presidente-consejo/"
+   }
+  },
+  {
+   "id": "apac_funding:salmon-group:2026-10-19",
+   "company": "Salmon Group",
+   "country": "PH",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/salmon-secures-140-million-php-8-8-billion-to-double-down-on-the-growth-opportunity-in-the-philippines-302912259.html",
+   "event_date": "2026-10-19",
+   "detail": "Additional $140M (PHP 8.8B) of financing",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "8c43b0eac4038714985874615e124d11",
+    "company": "Salmon Group",
+    "headline": "Salmon Group bags $140M funding for expansion, new products",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "140000000",
+    "published_date": "2026-10-19",
+    "source_url": "https://business.inquirer.net/616606/salmon-bank-bags-140m-funding-for-expansion-new-products"
+   }
+  },
+  {
+   "id": "eu_funding:nouscom:2026-10-19",
+   "company": "Nouscom",
+   "country": "CH",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "EconomyUp",
+   "source_url": "https://www.economyup.it/innovazione/a-nouscom-120-milioni-per-intercettare-il-cancro-entrano-angelini-industries-bei-e-neva/",
+   "event_date": "2026-10-19",
+   "detail": "EUR 120M with Angelini Industries, the EIB and Neva; Basel HQ with research in Rome",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "494e11698e9f3a433572b6678b0b6c3c",
+    "company": "Nouscom",
+    "headline": "Nouscom Raises \u20ac120 Million In Oversubscribed Series D Financing - TradingView",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-19",
+    "source_url": "https://www.tradingview.com/news/reuters.com,2026:newsml_FWN46306O:0-nouscom-raises-120-million-in-oversubscribed-series-d-financing/"
+   }
+  },
+  {
+   "id": "il_funding:high-lander:2026-10-19",
+   "company": "High Lander",
+   "country": "IL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/high-lander-announces-it-has-reached-a-total-of-30-million-in-funding-302912395.html",
+   "event_date": "2026-10-19",
+   "detail": "New strategic investment from EDGE Group bringing total funding to $30M (tranche size not disclosed)",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "fae6b4baac813ddc1fd71f1ad1268969",
+    "company": "High Lander",
+    "headline": "With investment from the UAE: $16 million for Israeli drone technology",
+    "country": "IL",
+    "hq_country": null,
+    "funding_amount_usd": "16000000",
+    "published_date": "2026-10-19",
+    "source_url": "https://www.geektime.co.il/high-lander-a-round-2026/"
+   }
+  },
+  {
+   "id": "intl_leadership:cemai:2026-10-19",
+   "company": "CemAI",
+   "country": "IE",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/cemai-appoints-andrew-crose-as-ceo-to-lead-its-next-phase-of-growth-302912031.html",
+   "event_date": "2026-10-19",
+   "detail": "Andrew Crose appointed CEO, effective 12 October",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:upm:2026-10-19",
+   "company": "UPM",
+   "country": "FI",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/changes-in-upms-group-executive-team-aki-temmes-appointed-chief-financial-officer-of-upm-and-petri-hakanen-executive-vice-president-upm-fibres-302912576.html",
+   "event_date": "2026-10-19",
+   "detail": "Aki Temmes appointed CFO; Petri Hakanen EVP UPM Fibres",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "intl_leadership:viralgen:2026-10-19",
+   "company": "Viralgen",
+   "country": "ES",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/viralgen-announces-planned-ceo-succession-302912026.html",
+   "event_date": "2026-10-19",
+   "detail": "Planned CEO succession: CEO Jimmy Vanhove moves to a Bayer role",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:popcorn-studio-ai:2026-10-19",
+   "company": "Popcorn Studio AI",
+   "country": "AE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/popcorn-ai-studio-secures-1-million-expand-ai-powered-filmmaking-platform",
+   "event_date": "2026-10-19",
+   "detail": "$1M pre-seed package",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "459a043ea01c3f8a18b0fbde75b41165",
+    "company": "Popcorn Studio AI",
+    "headline": "Popcorn Studio AI secures $1 million to expand AI-powered filmmaking platform",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "1000000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/popcorn-ai-studio-secures-1-million-expand-ai-powered-filmmaking-platform"
+   }
+  },
+  {
+   "id": "row_funding:vrtx:2026-10-19",
+   "company": "Vrtx",
+   "country": "SA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/saudi-vrtx-secures-3-6-million-embedded-finance-platform",
+   "event_date": "2026-10-19",
+   "detail": "$3.6M for an embedded finance platform",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "cb600da73e224fc0b0bb3fdf8836c9a9",
+    "company": "Vrtx",
+    "headline": "Saudi Vrtx secures $3.6 million for embedded finance platform",
+    "country": "SA",
+    "hq_country": null,
+    "funding_amount_usd": "3600000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/saudi-vrtx-secures-3-6-million-embedded-finance-platform"
+   }
+  },
+  {
+   "id": "cee_funding:daytona:2026-10-20",
+   "company": "Daytona",
+   "country": "HR",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/daytona-series-b-valuation-croatias-third-unicorn/",
+   "event_date": "2026-10-20",
+   "detail": "$60M Series B at a $1B valuation (Croatian-American; teams in Split and Zagreb)",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "970d7ee5410f88aac79ed8a4d994e0f6",
+    "company": "Daytona",
+    "headline": "Daytona, founded by Croatian IT experts, announced today that it has raised $60 million from investors, valuing it at one billion dollars.",
+    "country": "HR",
+    "hq_country": null,
+    "funding_amount_usd": "60000000",
+    "published_date": "2026-10-20",
+    "source_url": "https://www.klix.ba/biznis/startupi/hrvatska-dobila-treci-startup-vrijedan-milijardu-dolara-ulozio-i-samsungov-fond/261020307"
+   }
+  },
+  {
+   "id": "intl_leadership:wishpond-technologies:2026-10-20",
+   "company": "Wishpond Technologies",
+   "country": "CA",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/wishpond-appoints-jacky-he-as-chief-financial-officer-302914392.html",
+   "event_date": "2026-10-20",
+   "detail": "Jacky He appointed CFO, succeeding Adrian Lim",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:capquest:2026-10-20",
+   "company": "CapQuest",
+   "country": "AE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/capquest-closes-1-million-pre-seed-funding-expand-globally",
+   "event_date": "2026-10-20",
+   "detail": "$1M pre-seed led by Oraseya Capital and AMKM Family Office",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "b919d875932e45f1db235efe247764e0",
+    "company": "CapQuest",
+    "headline": "CapQuest closes $1 million pre-Seed funding to expand globally",
+    "country": "AE",
+    "hq_country": null,
+    "funding_amount_usd": "1000000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/capquest-closes-1-million-pre-seed-funding-expand-globally"
+   }
+  },
+  {
+   "id": "cee_funding:mika-games:2026-10-21",
+   "company": "Mika Games",
+   "country": "CY",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "The Recursive",
+   "source_url": "https://www.therecursive.com/wargaming-co-founders-mika-games-raises-10m-to-fund-mobile-studios-from-soft-launch-to-scale/",
+   "event_date": "2026-10-21",
+   "detail": "$10M to fund mobile game studios",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "d686f52d275c6b19b9b03c6fcd45cfac",
+    "company": "Mika Games",
+    "headline": "Wargaming Co-Founder\u2019s Mika Games Raises $10M to Fund Mobile Studios From Soft Launch to Scale",
+    "country": "CY",
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-10-21",
+    "source_url": "https://www.therecursive.com/wargaming-co-founders-mika-games-raises-10m-to-fund-mobile-studios-from-soft-launch-to-scale/"
+   }
+  },
+  {
+   "id": "eu_funding:arctic-therapeutics:2026-10-21",
+   "company": "Arctic Therapeutics",
+   "country": "IS",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/arctic-therapeutics-closes-oversubscribed-us21-5-million-financing-302915211.html",
+   "event_date": "2026-10-21",
+   "detail": "Oversubscribed $21.5M financing led by Pekron",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "5d6f0f69602a10d8963d2abf8719667a",
+    "company": "Arctic Therapeutics",
+    "headline": "Arctic Therapeutics raises $21.5M to take autoimmune programs to clinic",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "21500000",
+    "published_date": "2026-10-22",
+    "source_url": "https://european-biotechnology.com/latest-news/arctic-therapeutics-raises-21-5m-to-take-autoimmune-programs-to-clinic/"
+   }
+  },
+  {
+   "id": "eu_funding:estatemin:2026-10-21",
+   "company": "EstateMin",
+   "country": "IE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Silicon Republic",
+   "source_url": "https://www.siliconrepublic.com/start-ups/irish-founded-legal-tech-estatemin-raises-e1m-to-scale-in-the-us",
+   "event_date": "2026-10-21",
+   "detail": "EUR 1M to scale the Irish-founded legal-tech in the US",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:legora:2026-10-21",
+   "company": "Legora",
+   "country": "SE",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "trade_press",
+   "source_name": "SiliconANGLE",
+   "source_url": "https://siliconangle.com/2026/10/21/legal-ai-startup-legora-raises-550m-at-8-8b-to-change-the-face-of-law/",
+   "event_date": "2026-10-21",
+   "detail": "$550M Series E at an $8.8B valuation",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "c9f7beefa03d8e093951030f038217ce",
+    "company": "Legora",
+    "headline": "Legora raises $550 million Series E at $8.8 billion valuation to accelerate growth - Legora",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "550000000",
+    "published_date": "2026-10-21",
+    "source_url": "https://legora.com/blog/series-e"
+   }
+  },
+  {
+   "id": "eu_funding:pigment:2026-10-21",
+   "company": "Pigment",
+   "country": "FR",
+   "signal_type": "funding",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/pigment-raises-250m-at-2-3b-valuation-302914892.html",
+   "event_date": "2026-10-21",
+   "detail": "$250M Series E at a $2.3B valuation led by Scaleup Europe Fund",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "ec9756fe3f227b19ce608c3d831b5f74",
+    "company": "Pigment",
+    "headline": "Pigment Raises $250M at $2.3B Valuation - PR Newswire",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "250000000",
+    "published_date": "2026-10-21",
+    "source_url": "https://www.prnewswire.com/news-releases/pigment-raises-250m-at-2-3b-valuation-302914892.html"
+   }
+  },
+  {
+   "id": "intl_leadership:csl:2026-10-21",
+   "company": "CSL",
+   "country": "AU",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/csl-appoints-deborah-waterhouse-as-ceo--managing-director-302915172.html",
+   "event_date": "2026-10-21",
+   "detail": "Deborah Waterhouse appointed CEO and Managing Director from 1 February 2027",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "bfbd11973dab1d82fb7f8577dabd896f",
+    "company": "CSL",
+    "headline": "CSL vs BHP shares: Should you swap after CSL's new CEO appointment?",
+    "country": "AU",
+    "hq_country": "AU",
+    "funding_amount_usd": null,
+    "published_date": "2026-10-21",
+    "source_url": "https://www.fool.com.au/2026/10/22/csl-vs-bhp-shares-should-you-swap-after-csls-new-ceo-appointment/"
+   }
+  },
+  {
+   "id": "intl_leadership:nel-asa:2026-10-21",
+   "company": "Nel ASA",
+   "country": "NO",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/nel-asa-morten-holum-appointed-new-chief-executive-officer-302915940.html",
+   "event_date": "2026-10-21",
+   "detail": "Morten Holum appointed CEO, succeeding Hakon Volldal",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:vitalls:2026-10-21",
+   "company": "Vitalls",
+   "country": "AE",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/uae-healthtech-vitalls-secures-1-5-million-investment-est-growmore",
+   "event_date": "2026-10-21",
+   "detail": "$1.5M seed commitment from EST Growmore",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "6e8233166669d48cfd0c48f886b59c3d",
+    "company": "Vitalls",
+    "headline": "UAE healthtech Vitalls secures $1.5 million investment from EST Growmore",
+    "country": "AE",
+    "hq_country": null,
+    "funding_amount_usd": "1500000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/uae-healthtech-vitalls-secures-1-5-million-investment-est-growmore"
+   }
+  },
+  {
+   "id": "row_funding:theqa:2026-10-21",
+   "company": "theQA",
+   "country": "KW",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "Arab News",
+   "source_url": "https://www.arabnews.com/startups/startup-wrap-mena-attracts-fresh-funding-across-technology-sectors-3007746",
+   "event_date": "2026-10-21",
+   "detail": "More than $550K pre-seed for AI consumer research in Kuwait",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "39d63eb637dd0d0c8acd09bb76e000c2",
+    "company": "theQA",
+    "headline": "theQA raises over $550,000 to scale AI-driven consumer research in Kuwait",
+    "country": "KW",
+    "hq_country": null,
+    "funding_amount_usd": "550000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/theqa-raises-550000-scale-ai-driven-consumer-research-kuwait"
+   }
+  },
+  {
+   "id": "apac_funding:cuttable:2026-10-22",
+   "company": "Cuttable",
+   "country": "AU",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "B&T",
+   "source_url": "https://www.bandt.com.au/cuttable-raises-20m-in-series-a-funding-relaunches-ai-ad-platform/",
+   "event_date": "2026-10-22",
+   "detail": "A$20M Series A for the Melbourne adtech",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing",
+    "amount_mismatch"
+   ],
+   "matched": {
+    "signal_id": "fd60fadac4d1b4320bed0d75a5804128",
+    "company": "Cuttable",
+    "headline": "Cuttable raises $20 million to help brands post social media ads at scale",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "20000000",
+    "published_date": "2026-10-21",
+    "source_url": "https://www.smartcompany.com.au/startupsmart/cuttable-raises-20-million-series-ai-advertising-automation/"
+   }
+  },
+  {
+   "id": "eu_funding:beyond-vision:2026-10-22",
+   "company": "Beyond Vision",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/22/beyond-vision-levanta-28-milhoes-e-expande-na-trofa/",
+   "event_date": "2026-10-22",
+   "detail": "EUR 2.8M raise and expansion in Trofa",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "084a3fc7f8ad5b2520bee5315b876074",
+    "company": "Beyond Vision",
+    "headline": "Lisbon\u2019s Beyond Vision raises over \u20ac28 million to scale AI drones for civilian and defence markets",
+    "country": "PT",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-22",
+    "source_url": "https://www.eu-startups.com/2026/10/lisbons-beyond-vision-raises-over-e28-million-to-scale-ai-drones-for-civilian-and-defence-markets/"
+   }
+  },
+  {
+   "id": "eu_funding:indurex:2026-10-22",
+   "company": "Indurex",
+   "country": "NL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/indurex-raises-7-million-to-bring-engineering-intelligence-to-critical-infrastructure-and-industrial-operations-302916960.html",
+   "event_date": "2026-10-22",
+   "detail": "EUR 7M for AI security of cyber-physical systems",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "bbf60e7e274378fb3758fab6d14dbd22",
+    "company": "Indurex",
+    "headline": "Amsterdam\u2019s Indurex raises \u20ac7 million to strengthen cybersecurity and safety across cyber-physical systems",
+    "country": "NL",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-22",
+    "source_url": "https://www.eu-startups.com/2026/10/amsterdams-indurex-raises-e7-million-to-strengthen-cybersecurity-and-safety-across-cyber-physical-systems/"
+   }
+  },
+  {
+   "id": "il_funding:mave:2026-10-22",
+   "company": "Mave",
+   "country": "IL",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/mave-raises-34-million-to-build-the-agentic-secops-system-for-the-modern-enterprise-302916859.html",
+   "event_date": "2026-10-22",
+   "detail": "$34M including a $28M Series A led by Red Dot Capital Partners",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "afec3b510ffe9d6b66d596ad03c34eab",
+    "company": "Mave",
+    "headline": "Mave Raises $34 Million to Build the Agentic SecOps System for the Modern Enterprise - Morningstar",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "34000000",
+    "published_date": "2026-10-22",
+    "source_url": "https://www.morningstar.com/news/pr-newswire/20261022ln77859/mave-raises-34-million-to-build-the-agentic-secops-system-for-the-modern-enterprise"
+   }
+  },
+  {
+   "id": "intl_leadership:photocure:2026-10-22",
+   "company": "Photocure",
+   "country": "NO",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/photocure-asa---new-cfo-appointed-302917202.html",
+   "event_date": "2026-10-22",
+   "detail": "Dennis Camporeale appointed CFO, effective 26 October",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "latam_leadership:ecopetrol:2026-10-22",
+   "company": "Ecopetrol",
+   "country": "CO",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/ecopetrols-new-era-advances-with-the-appointment-of-the-executive-vice-president-of-energies-for-the-transition-and-two-legal-representatives-302916821.html",
+   "event_date": "2026-10-22",
+   "detail": "Executive Vice President of Energies for the Transition appointed, plus two legal representatives",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "row_funding:inve:2026-10-22",
+   "company": "INVE",
+   "country": "SA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/inve-raises-300000-outliers-vc-scale-eventtech-platform-gcc",
+   "event_date": "2026-10-22",
+   "detail": "$300K pre-seed from Outliers VC",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "46584a730c1cc4707f256c29385a59b0",
+    "company": "INVE",
+    "headline": "Saudi Event-Tech Startup INVE Raises $300,000 in Pre-Seed Funding from Outliers VC",
+    "country": "SA",
+    "hq_country": null,
+    "funding_amount_usd": "300000",
+    "published_date": "2026-10-23",
+    "source_url": "https://techmoran.com/2026/10/23/saudi-event-tech-startup-inve-raises-300000-in-pre-seed-funding-from-outliers-vc/"
+   }
+  },
+  {
+   "id": "apac_funding:supahuman:2026-10-23",
+   "company": "SupaHuman",
+   "country": "NZ",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Dynamic Business",
+   "source_url": "https://dynamicbusiness.com/funding-and-investment/weekly-funding-roundup-cuttable-syncrowin-supahuman-mach9-and-baba",
+   "event_date": "2026-10-23",
+   "detail": "NZ$2.6M Series A led by Movac",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "apac_funding:syncrowin:2026-10-23",
+   "company": "Syncrowin",
+   "country": "AU",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Dynamic Business",
+   "source_url": "https://dynamicbusiness.com/funding-and-investment/weekly-funding-roundup-cuttable-syncrowin-supahuman-mach9-and-baba",
+   "event_date": "2026-10-23",
+   "detail": "$3M pre-seed led by Collide Capital",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "eu_funding:intuitivo:2026-10-23",
+   "company": "Intuitivo",
+   "country": "PT",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "national_news",
+   "source_name": "ECO",
+   "source_url": "https://eco.sapo.pt/2026/10/23/intuitivo-levanta-135-milhoes-e-quer-ajudar-tambem-docentes-do-brasil-na-avaliacao/",
+   "event_date": "2026-10-23",
+   "detail": "EUR 1.35M seed for the education assessment platform",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "d7c4f1a36f0522625eb2914b6b581f12",
+    "company": "Intuitivo",
+    "headline": "Portuguese EdTech Intuitivo raises \u20ac1.35 million to ease teachers\u2019 workload and expand into Brazil",
+    "country": "PT",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-23",
+    "source_url": "https://www.eu-startups.com/2026/10/portuguese-edtech-intuitivo-raises-e1-35-million-to-ease-teachers-workload-and-expand-into-brazil/"
+   }
+  },
+  {
+   "id": "intl_leadership:rina:2026-10-23",
+   "company": "RINA",
+   "country": "IT",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/rina-paolo-moretti-appointed-group-chief-executive-officer-302918137.html",
+   "event_date": "2026-10-23",
+   "detail": "Paolo Moretti appointed Group CEO, succeeding Carlo Luzzatto",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "a7ba9a534f83ba804dc550f6cc6a39a6",
+    "company": "RINA",
+    "headline": "RINA: Paolo Moretti appointed Group Chief Executive Officer",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-23",
+    "source_url": "https://www.hellenicshippingnews.com/rina-paolo-moretti-appointed-group-chief-executive-officer/"
+   }
+  },
+  {
+   "id": "latam_funding:alice:2026-10-23",
+   "company": "Alice",
+   "country": "BR",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Contxto",
+   "source_url": "http://www.contxto.com/en/brazil/from-softbank-exit-to-world-bank-backing-brazils-alice-secures-40m-series-d/",
+   "event_date": "2026-10-23",
+   "detail": "$40M Series D",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "325a6a03e2247fbf81f774f86be1dd79",
+    "company": "Alice",
+    "headline": "Alice raises US$ 40M to be an AI-first healthtech",
+    "country": "BR",
+    "hq_country": null,
+    "funding_amount_usd": "40000000",
+    "published_date": "2026-10-19",
+    "source_url": "https://startups.com.br/negocios/rodada-de-investimento/alice-capta-us-40m-para-ser-healthtech-ai-first/"
+   }
+  },
+  {
+   "id": "row_funding:ghanem:2026-10-24",
+   "company": "Ghanem",
+   "country": "SA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/saudi-proptech-ghanem-raises-1-5-million-pre-seed-extension",
+   "event_date": "2026-10-24",
+   "detail": "$1.5M pre-seed extension for the Saudi proptech",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "09bba12281cf164f9f99e8d83cda23cb",
+    "company": "Ghanem",
+    "headline": "Saudi proptech Ghanem raises $1.5 million pre-seed extension",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "1500000",
+    "published_date": "2026-10-24",
+    "source_url": "https://www.wamda.com/2026/10/saudi-proptech-ghanem-raises-1-5-million-pre-seed-extension"
+   }
+  },
+  {
+   "id": "apac_funding:ailytics:2026-10-25",
+   "company": "Ailytics",
+   "country": "SG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/tin-men-capital-leads-us7-4m-series-a-for-vision-ai-startup-ailytics-to-expand-across-apac-us-and-gulf-302918668.html",
+   "event_date": "2026-10-25",
+   "detail": "$7.4M Series A led by Tin Men Capital",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "0b795bf580eeb35c45c9fbd4c3c2682e",
+    "company": "Ailytics",
+    "headline": "Ailytics bags US$7.4M Series A to make old CCTV cameras earn their keep",
+    "country": "SG",
+    "hq_country": null,
+    "funding_amount_usd": "7400000",
+    "published_date": "2026-10-26",
+    "source_url": "https://e27.co/ailytics-bags-us7-4m-series-a-to-make-old-cctv-cameras-earn-their-keep-20261026/"
+   }
+  },
+  {
+   "id": "africa_funding:vitara:2026-10-26",
+   "company": "Vitara",
+   "country": "GH",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Launch Base Africa",
+   "source_url": "https://launchbaseafrica.com/2026/10/26/vitara-agritech-funding/",
+   "event_date": "2026-10-26",
+   "detail": "EUR 1.8M equity from an AgriFI-led consortium with Acumen",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "apac_funding:omnichat:2026-10-26",
+   "company": "Omnichat",
+   "country": "HK",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/omnichat-raises-us10m-series-a-led-by-openspace-capital-to-scale-ai-agent-platform-and-drive-global-expansion-302919732.html",
+   "event_date": "2026-10-26",
+   "detail": "$10M Series A led by Openspace Capital",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "44070f38dbcf8f51bdb16fa07553e529",
+    "company": "Omnichat",
+    "headline": "Omnichat raises $10M Series A led by Openspace Capital, to scale AI agents - TNGlobal",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "10000000",
+    "published_date": "2026-10-27",
+    "source_url": "https://technode.global/2026/10/27/omnichat-raises-10m-series-a-led-by-openspace-capital-to-scale-ai-agents/"
+   }
+  },
+  {
+   "id": "row_funding:dropgenie:2026-10-26",
+   "company": "DropGenie",
+   "country": "CA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/dropgenie-secures-5-million-seed-financing-to-scale-functional-biology-platform-and-data-partnerships-302918853.html",
+   "event_date": "2026-10-26",
+   "detail": "$5M Seed+ with BDC Thrive Venture Fund and Skeleton Key",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "a37455432ab5607b85747dc55668a589",
+    "company": "DropGenie",
+    "headline": "DropGenie Raises $5M in Seed+ Funding - FinSMEs",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": "5000000",
+    "published_date": "2026-10-26",
+    "source_url": "https://www.finsmes.com/2026/10/dropgenie-raises-5m-in-seed-funding.html"
+   }
+  },
+  {
+   "id": "intl_leadership:tully-luxury-travel:2026-10-27",
+   "company": "Tully Luxury Travel",
+   "country": "CA",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/tully-luxury-travel-names-steven-salm-chief-executive-officer-founder-mary-jean-tully-steps-down-after-nearly-four-decades-and-continues-as-brand-ambassador-302920041.html",
+   "event_date": "2026-10-27",
+   "detail": "Steven Salm named CEO; founder Mary Jean Tully steps down",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "country_missing"
+   ],
+   "matched": {
+    "signal_id": "398079f6015e8b0e07567584c59a262e",
+    "company": "Tully Luxury Travel",
+    "headline": "Mary Jean Tully steps down as CEO of Tully Luxury Travel",
+    "country": null,
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-27",
+    "source_url": "https://www.travelweekly.com/Travel-News/Travel-Agent-Issues/mary-jean-tully-steps-down-as-ceo-of-tully-luxury-travel"
+   }
+  },
+  {
+   "id": "africa_funding:noornation:2026-10-28",
+   "company": "NoorNation",
+   "country": "EG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/egyptian-climatetech-noornation-secures-1-05-million-seed-funding",
+   "event_date": "2026-10-28",
+   "detail": "$1.05M seed for the Egyptian climatetech",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "2014b08b228ca956c9f81463dabab660",
+    "company": "NoorNation",
+    "headline": "Egyptian climatetech NoorNation secures $1.05 million seed funding",
+    "country": "EG",
+    "hq_country": null,
+    "funding_amount_usd": "1050000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/egyptian-climatetech-noornation-secures-1-05-million-seed-funding"
+   }
+  },
+  {
+   "id": "intl_leadership:sciensus:2026-10-28",
+   "company": "Sciensus",
+   "country": "GB",
+   "signal_type": "leadership",
+   "size_band": "small",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/sciensus-appoints-james-tugendhat-obe-as-chief-executive-officer-302922241.html",
+   "event_date": "2026-10-28",
+   "detail": "James Tugendhat OBE appointed CEO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  },
+  {
+   "id": "africa_funding:aba-life:2026-10-29",
+   "company": "ABA Life",
+   "country": "MA",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "Wamda",
+   "source_url": "https://www.wamda.com/2026/10/morocco-aba-life-secures-40-million-investment-admaius-capital-partners",
+   "event_date": "2026-10-29",
+   "detail": "$40M investment from Admaius Capital Partners",
+   "verdict": "FOUND",
+   "defects": [],
+   "matched": {
+    "signal_id": "976b4b0bf66357b6141e0a9e319cbedf",
+    "company": "ABA Life",
+    "headline": "Morocco's ABA Life secures $40 million investment from Admaius Capital Partners",
+    "country": "MA",
+    "hq_country": null,
+    "funding_amount_usd": "40000000",
+    "published_date": null,
+    "source_url": "http://wamda.com/2026/10/morocco-aba-life-secures-40-million-investment-admaius-capital-partners"
+   }
+  },
+  {
+   "id": "africa_funding:talent-nation:2026-10-30",
+   "company": "Talent Nation",
+   "country": "NG",
+   "signal_type": "funding",
+   "size_band": "small",
+   "source_type": "trade_press",
+   "source_name": "WeeTracker",
+   "source_url": "https://weetracker.com/2026/10/30/talent-nation-raises-pre-seed-funding-aboyeji/",
+   "event_date": "2026-10-30",
+   "detail": "Pre-seed round backed by Iyinoluwa Aboyeji (amount not disclosed)",
+   "verdict": "FOUND_PARTIAL",
+   "defects": [
+    "amount_missing"
+   ],
+   "matched": {
+    "signal_id": "0e17df289b3f0915b101c31dfc04817a",
+    "company": "Talent Nation",
+    "headline": "Aboyeji-backed AI engineering talent platform Talent Nation raises pre-seed funding",
+    "country": "NG",
+    "hq_country": null,
+    "funding_amount_usd": null,
+    "published_date": "2026-10-30",
+    "source_url": "https://disruptafrica.com/2026/10/30/aboyeji-backed-ai-engineering-talent-platform-talent-nation-raises-pre-seed-funding/?utm_source=rss&utm_medium=rss&utm_campaign=aboyeji-backed-ai-engineering-talent-platform-talent-nation-raises-pre-seed-funding"
+   }
+  },
+  {
+   "id": "intl_leadership:jinko-holdings:2026-10-30",
+   "company": "Jinko Holdings",
+   "country": "CN",
+   "signal_type": "leadership",
+   "size_band": "large",
+   "source_type": "press_release",
+   "source_name": "PR Newswire (company release)",
+   "source_url": "https://www.prnewswire.com/news-releases/jinko-holdings-announces-change-of-chief-financial-officer-and-appointment-of-new-director-302924850.html",
+   "event_date": "2026-10-30",
+   "detail": "CFO resigned; Kun Zhang appointed acting CFO",
+   "verdict": "MISSED",
+   "defects": [],
+   "matched": null
+  }
+ ],
+ "family": "world"
+}
