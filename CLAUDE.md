@@ -53,6 +53,22 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 - **No source URL, no record.** Enforced in `validate.py`, tested.
 - **The model never invents a number.** Any figure in a summary must appear
   verbatim in `raw_text` or the whole record is discarded, not repaired.
+- **A price is not a raise, and sourced is not the same as raised.** Every
+  guard here asks whether a number is IN the document; none of them asks what
+  the number IS. "Masimo to be Acquired by Danaher for $180.00 Per Share" was
+  published with `funding_amount_usd` = 9,900,000,000 — what Danaher is paying
+  FOR Masimo, verbatim from Masimo's own 8-K exhibit, at the top of the money
+  list. `validate.not_capital_raised` is the enforcement and it is
+  deterministic Python, not a prompt: an acquisition price, a per-share offer,
+  a merger consideration, a shelf ceiling, and money named in a filing the
+  record is not about (an Item 5.02 8-K that mentions a $1bn note issuance in
+  passing) all leave the funding columns empty. **The record survives** — the
+  deal is still a `company_development` row and the officer change is still a
+  leadership row; only the money goes. `correct_not_capital_raised.py` applies
+  the same function to the rows already published, and it WITHDRAWS them rather
+  than correcting them, because the site has no route that can blank a column
+  (`/correct` writes two columns, `/enrich` ignores an empty value on purpose)
+  and the corrected revision hashes to the row the site already holds.
 - **Confidence is capped by the source.** A news article cannot become
   `verified` however confident the model sounds. `reported` and `rumored` are
   never silently promoted.

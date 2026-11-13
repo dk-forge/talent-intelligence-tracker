@@ -18,7 +18,7 @@ Four checks, all of them arithmetic and pattern matching:
                 describe the same rows
   vehicle_name  funding rows whose issuer name is a vehicle that employs
                 nobody: a street address, a numbered series, an insurance
-                separate account, a synthetic GIC
+                separate account, a synthetic GIC, a blank-check company
 
 THE THREE RULES THAT SHAPE ALL OF IT.
 
@@ -657,7 +657,27 @@ PUBLISH_TIME_VEHICLE_PATTERNS = re.compile(
     # reaches here, so the only honest move at publish time is to make a person
     # look. Two live rows today, both Metropolitan Tower Life Insurance Co.
     r"|life\s+insurance\s+(?:co|company|corp)\b|insurance\s+&?\s*annuity"
-    r"|\bannuit(?:y|ies)\b",
+    r"|\bannuit(?:y|ies)\b"
+    # A blank-check company. A SPAC holds its IPO money in trust until it finds
+    # something to buy; it has a handful of officers and no staff, so its
+    # "raise" is not capital that funds a payroll and belongs in no talent
+    # figure. This is the same class as the vehicles above wearing a suit:
+    # "Irenic Acquisition Corp." carried $220M on an 8-K about an officer
+    # change (retracted with this change).
+    #
+    # MEASURED, on the whole table, 2026-07-29. `\bacquisition\s+corp\b`
+    # matches 41 distinct current names and every one is unmistakably a SPAC
+    # (Kensington Capital Acquisition Corp. VI, Churchill-style numbered
+    # vehicles, Renatus Tactical Acquisition Corp I). It touches TWO funding
+    # rows: Irenic, and BHAV Acquisition Corp at $2.0M off Form D — so the
+    # review burden it adds is one row, which is what makes it worth having.
+    #
+    # What is NOT here, and why: `capital\s+corp` reads the same way and is
+    # wrong. It matches SuRo Capital Corp, Rithm Capital Corp, Ladder Capital
+    # Corp, Uwharrie Capital Corp and Great Elm Capital Corp — BDCs and banks
+    # with real employees — for one extra SPAC. `acquisition\s+(?:co|company|
+    # holdings)` is left out for the same reason.
+    r"|\bacquisition\s+corp(?:oration)?\b",
     re.I,
 )
 
@@ -737,7 +757,8 @@ def check_vehicle_names(conn) -> list[Finding]:
             label=f"{row['company']} ${row['v']:,}",
             detail=(f"the issuer name matches {phrase!r}, the signature of an "
                     f"entity that employs nobody: a street address, a numbered "
-                    f"vehicle, an insurance separate account or a synthetic GIC. "
+                    f"vehicle, an insurance separate account, a synthetic GIC or "
+                    f"a blank-check company. "
                     f"Collector {row['collector']}. Read {row['source_url']} and "
                     f"either accept it as a real employer or retract the row."),
             value=float(row["v"] or 0),

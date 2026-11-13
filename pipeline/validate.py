@@ -384,6 +384,167 @@ def forced_pillar(collector: str, headline: str) -> str | None:
     return None
 
 
+# --- Money that is not capital raised --------------------------------------
+#
+# WHAT WENT WRONG. "Masimo to be Acquired by Danaher for $180.00 Per Share"
+# was stored with funding_amount "$9.9 billion" and funding_amount_usd
+# 9,900,000,000 — the price Danaher is paying FOR Masimo, taken from Masimo's
+# own 8-K exhibit 99.1, and counted as money Masimo raised. It sat at the top
+# of the money list until a human read the filing (retracted 2026-07-29).
+#
+# The model was not hallucinating: "$9.9 billion" is in the document, verbatim,
+# so `assert_figures_are_sourced` and `_sourced_figure` both passed. Every guard
+# in this file asks whether a number is IN the source. None of them asked what
+# the number IS. A price is a real figure about a real employer and it is not a
+# raise, and no amount of sourcing discipline can tell the two apart.
+#
+# So the test is deterministic, in Python, and here rather than in the prompt.
+# The prompt is tightened too (pipeline/classify.py), but a prompt is a request
+# and this is the enforcement: `deal_type` was empty on the Masimo row, which is
+# what asking politely bought us.
+#
+# TWO ARMS, because the figure is wrong in two different ways, and they do not
+# overlap.
+#
+#   1. THE DOCUMENT IS NOT ABOUT MONEY. collectors/sec_edgar.py fetches Item
+#      5.02 filings and writes its own headline saying so. An 8-K about an
+#      officer change can still mention a billion dollars in passing, and three
+#      live rows did: Compass, Inc. $1,000.0M (a genuine convertible note
+#      issuance, disclosed in a filing about an officer change), Yorkville
+#      $230M and Irenic $220M (blank-check trusts). The Compass money is real
+#      capital — that is the point. It is real capital that this record does
+#      not report, and putting it here puts "raised $1bn" on a leadership row
+#      and $1bn into the funding total. If we want that raise it has to come
+#      from the document that announces it.
+#
+#      Decided by calling `forced_pillar`, never by re-testing the headline, so
+#      "this document is an officer or director change" has exactly one
+#      definition in this file.
+#
+#   2. THE FIGURE IS A PRICE. Where the model REPLACED the collector's headline
+#      it found something specific in the filing, and arm 1 stands down — which
+#      is precisely the Masimo case. So this arm reads the words around the
+#      figure itself.
+#
+# THE ASYMMETRY IS DELIBERATE, and it is the opposite of the one in
+# `assert_employer_is_named`. There, a false reject loses a real employer
+# silently and forever, so anything ambiguous stays out of the list. Here a
+# false suppression costs one column on a row that still publishes with its
+# headline, summary, read-through and source link intact, while a false accept
+# puts a nine-figure number into a public total. So the patterns below lean
+# towards suppressing, and a phrase only has to be NEAR the figure.
+
+# What a price sounds like. Matched inside a window around the figure, never
+# against a whole document — "acquisition" appearing three paragraphs from a
+# funding round says nothing about the round.
+_DEAL_PRICE = re.compile(
+    # Being bought, or buying. The direction does not matter: neither party's
+    # purchase price is capital the employer raised.
+    r"\b(?:to\s+be|will\s+be|being|agreed\s+to\s+be)\s+acquired\b"
+    r"|\bagreed?\s+to\s+acquire\b|\bacquisition\s+of\b|\bacquire[sd]?\s+by\b"
+    r"|\bdefinitive\s+(?:merger\s+)?agreement\b|\bmerger\s+agreement\b"
+    r"|\bplan\s+of\s+merger\b|\bthe\s+merger\b|\bmerger\s+consideration\b"
+    r"|\btender\s+offer\b|\btakeover\b|\bbuy-?out\b|\bgo(?:ing)?[- ]private\b"
+    # The price itself, however the release words it.
+    r"|\bper[-\s]share\b|\ba\s+share\b|\bconsiderations?\b|\bpurchase\s+price\b"
+    r"|\benterprise\s+value\b|\bequity\s+value\b|\bimplied\s+valu\w*"
+    r"|\btransaction\s+valu(?:e|ed)\b|\bvalued\s+at\b|\ball[-\s]cash\b"
+    # A registration ceiling is permission to sell, not money received. A shelf
+    # says the company MAY offer up to $X over three years; on the day it is
+    # filed nothing has been raised, and "up to" is the whole difference.
+    r"|\bshelf\s+registration\b|\bregistration\s+statement\b|\bform\s+s-3\b"
+    r"|\bautomatic\s+shelf\b|\bfrom\s+time\s+to\s+time\b",
+    re.I,
+)
+
+# A headline that announces a deal AND prints a figure is a priced deal
+# headline, whether or not the stored figure is the one it prints. Masimo's
+# headline prints $180.00 per share while the stored figure was $9.9 billion,
+# so nothing that looked only at the figure's own surroundings in the headline
+# would have caught it there.
+_PRICE_IN_TEXT = re.compile(r"[$€£¥₹]\s?\d")
+
+# How far from the figure a phrase still counts. Wide enough to reach across a
+# clause ("...for $180.00 per share in cash, representing total consideration
+# of approximately $9.9 billion"), narrow enough that it is the sentence about
+# the figure and not the paragraph after it.
+_PRICE_WINDOW = 140
+
+
+def _figure_pattern(figure: str):
+    """The stored figure as it might be written in the document.
+
+    The model copies the characters the source used, but a figure travels
+    between "1,000.0", "1000.0" and "1 000.0" freely, so the separators are
+    optional rather than literal.
+    """
+    m = re.search(r"\d[\d,.]*", str(figure or ""))
+    if not m:
+        return None
+    parts = [p for p in re.split(r"[,.]", m.group(0)) if p]
+    if not parts:
+        return None
+    body = r"[,.\s]?".join(re.escape(p) for p in parts)
+    return re.compile(rf"(?<![\d.]){body}(?!\d)")
+
+
+def _figure_windows(figure: str, text: str, *, limit: int = 8) -> list[str]:
+    """The words around each place this figure appears in `text`."""
+    pattern = _figure_pattern(figure)
+    if not pattern or not text:
+        return []
+    windows = []
+    for m in pattern.finditer(text):
+        windows.append(text[max(0, m.start() - _PRICE_WINDOW):m.end() + _PRICE_WINDOW])
+        if len(windows) >= limit:
+            break
+    return windows
+
+
+def deal_price_term(figure: str, *, headline: str = "", summary: str = "",
+                    raw_text: str = "") -> str | None:
+    """The phrase that makes this figure a price, or None.
+
+    Reads the record's own headline and summary as well as the document,
+    because those are what the record CLAIMS the figure is. Masimo's summary
+    said "total consideration of $9.9 billion" in so many words.
+    """
+    headline = headline or ""
+    if _PRICE_IN_TEXT.search(headline):
+        hit = _DEAL_PRICE.search(headline)
+        if hit:
+            return hit.group(0).strip()
+
+    for text in (headline, summary or "", raw_text or ""):
+        for window in _figure_windows(figure, text):
+            hit = _DEAL_PRICE.search(window)
+            if hit:
+                return hit.group(0).strip()
+    return None
+
+
+def not_capital_raised(figure, *, collector: str, headline: str,
+                       summary: str = "", raw_text: str = "") -> str | None:
+    """Why this figure is not capital the employer raised, or None to store it.
+
+    The one place that decides it. `correct_not_capital_raised.py` calls this
+    rather than re-implementing it, so the rows already published and the rows
+    collected tomorrow can never be judged by two different rules.
+    """
+    if not str(figure or "").strip():
+        return None
+
+    if forced_pillar(collector, headline):
+        return ("the document is an officer or director change, so this figure "
+                "is money the record does not report")
+
+    term = deal_price_term(figure, headline=headline, summary=summary,
+                           raw_text=raw_text)
+    if term:
+        return f"deal consideration, not capital raised: {term!r}"
+    return None
+
+
 def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
     """Turn a classified candidate into a storable Signal, or raise Rejected.
 
@@ -560,13 +721,33 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     headcount = _sourced_int(classified.get("headcount"), raw_text)
     funding = _sourced_figure(classified.get("funding_amount"), raw_text)
 
+    # Sourced is not the same as raised. An acquisition price, a per-share
+    # offer, a merger consideration and a shelf ceiling are all real figures
+    # printed in a real filing, and none of them is capital this employer took
+    # in. See not_capital_raised for both arms and for why they are here rather
+    # than in the prompt.
+    #
+    # The record survives — the deal is still worth publishing as a
+    # company_development row, and the officer change is still a leadership
+    # row. It is only the money that is dropped, and the stage with it: the
+    # page's "Funding raised" tile counts a row that carries EITHER, so leaving
+    # a bare stage behind would keep the row in the funding count with no
+    # figure to show for it.
+    not_a_raise = not_capital_raised(
+        funding, collector=collector, headline=headline,
+        summary=summary, raw_text=raw_text)
+    if not_a_raise:
+        funding = None
+
     # The same funding figure as an integer of US dollars, re-derived in Python
     # from the string we just accepted. Deliberately not asked of the model:
     # 'never state a number that is not in the text' would forbid it converting
     # '$1.45 Million' to 1450000, so we do the conversion ourselves. NULL for
     # non-USD currencies rather than a guessed exchange rate.
     funding_usd = vocab.parse_funding_usd(funding) if funding else None
-    funding_stage = vocab.normalize_funding_stage(classified.get("funding_stage", "") or "")
+    funding_stage = (
+        None if not_a_raise
+        else vocab.normalize_funding_stage(classified.get("funding_stage", "") or ""))
 
     # Only meaningful alongside a number. A scope with no headcount describes
     # nothing, and storing it would put "Total workforce" on a row that never

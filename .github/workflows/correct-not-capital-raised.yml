@@ -1,0 +1,118 @@
+name: correct-not-capital-raised
+
+# Take the money off the published rows whose figure is not a raise: an
+# acquisition price, a per-share offer, a shelf ceiling, or money named in a
+# filing the record is not about. "Masimo to be Acquired by Danaher for $180.00
+# Per Share" was published carrying $9.9 billion of "funding" — the price
+# Danaher is paying for Masimo. See correct_not_capital_raised.py.
+#
+# The published row is WITHDRAWN rather than corrected: the site has no route
+# that can blank a column, and the corrected revision hashes to the row the
+# site already holds so it cannot be republished. The record survives locally
+# as a revision with the figure gone. The script explains all of it.
+#
+# QUEUE IT, never dispatch it directly — every writer shares one lock and a
+# direct dispatch can silently evict whatever is already waiting:
+#
+#   gh workflow run drain-writers.yml -f enqueue=correct-not-capital-raised.yml \
+#        -f inputs_json='{"dry_run":"false"}' -f reason='why'
+#
+# Runs here rather than from a laptop because this is where WP_API_KEY lives.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report what would change and write nothing'
+        type: boolean
+        default: true
+      limit:
+        description: 'Stop after N rows (blank for all)'
+        type: string
+        default: ''
+      force:
+        description: 'Proceed even if an implausible share of rows would change'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # ONE lock for every workflow that writes data/talent_intel.db, matching
+  # collect.yml, correct-sec-pillar.yml, retract.yml and the backfills.
+  group: talent-collect
+  # This WITHDRAWS published rows and appends their corrected revisions. A run
+  # killed halfway leaves rows withdrawn on the site and uncorrected locally,
+  # which the script resumes from cleanly — but only if it is allowed to finish
+  # rather than being cancelled by the next dispatch.
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    # Eight rows today, one withdrawal request each, plus a publish pass. The
+    # sweep is over every funding row so it stays proportionate if the class
+    # grows.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+
+      - name: Correct
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          set -o pipefail
+          ARGS=""
+          [ "${{ inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
+          [ "${{ inputs.force }}"   = "true" ] && ARGS="$ARGS --force"
+          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
+          # No `|| true`: a failed withdrawal must fail the run, not pass
+          # quietly, because it leaves a wrong figure live on the site.
+          python correct_not_capital_raised.py $ARGS
+
+      - name: Commit the database
+        if: ${{ inputs.dry_run != true && !cancelled() }}
+        run: |
+          git config user.name  'talent-intel-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add data/talent_intel.db
+          if git diff --staged --quiet; then
+            echo "No data change."
+            exit 0
+          fi
+
+          cp data/talent_intel.db "$RUNNER_TEMP/corrected.db"
+
+          # MERGE back, never copy back. This run's corrections are appended
+          # revisions keyed on (content_hash, revision), which is exactly what
+          # merge_db.py carries; copying the whole file over the reset would
+          # destroy every row another writer pushed while this one worked.
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python merge_db.py "$RUNNER_TEMP/corrected.db" data/talent_intel.db
+            git add data/talent_intel.db
+            if git diff --staged --quiet; then
+              echo "Remote already has these corrections."
+              exit 0
+            fi
+            git commit -q -m "data: drop funding figures that are not capital raised $(date -u +%Y-%m-%dT%H:%MZ)"
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — merging onto the current main."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push after 5 attempts. The rows were \
+          withdrawn from the site but their corrected revisions exist only on \
+          the runner, so the next run will withdraw them again and find \
+          nothing to withdraw."
+          exit 1

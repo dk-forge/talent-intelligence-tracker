@@ -50,6 +50,7 @@ on:
       - collect-structured
       - correct-form-d
       - correct-layoff-scope
+      - correct-not-capital-raised
       - correct-sec-pillar
       - enrich
       - link-check
