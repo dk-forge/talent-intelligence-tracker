@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-structured:main:7f3b40486e1a7c42": {
-      "first": 1794590471,
-      "last": 1794590471,
-      "subject": "CI RED: collect-structured: no error line could be extracted from the log"
-    },
     "drain-writers:main:2e81661ce7c364f0": {
       "first": 1794590539,
       "last": 1794590539,
@@ -41,6 +36,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-13T17:22:20+00:00",
+  "updated_at": "2026-11-13T17:32:52+00:00",
   "version": 1
 }
