@@ -1,3 +1,16 @@
+## 2026-11-13 - Open roles now: titles linking to the employer's own apply page
+
+**Class:** feature (owner ruling 2026-11-13, "yes, employer links"; 2026-11-12, no public listings)
+**Guard:** `tests/test_open_roles.py`
+
+The ats_boards collector already read every Greenhouse, Lever and Ashby board daily to count postings. It now keeps title, link, location text and posted date per posting and hands them to `open_roles.py`, which builds a bounded payload (five newest roles per employer, an email pool of up to ten per country and role family with at most two per employer, counts by country, state, city and family) and POSTs it to the keyed `talent/v1/open-roles`. No second scraper, no model, no database write.
+
+Closed roles leave within 24 hours three ways: the payload is rebuilt only from boards read that day and replaces the site copy whole; every link a reader could click is re-requested and a 404/410 drops it; the plugin hides every block once its copy is 30 hours old. The role-level file is gitignored, since the repo is public and an archive of adverts is a listings archive; only daily counts are kept, in `data/ats_board_state.json` under `open_roles_trend`, for the weekly trend line.
+
+Greenhouse links are built as `job-boards.greenhouse.io/<slug>/jobs/<id>`, not taken from `absolute_url`: Lyft's `absolute_url` pointed at a third-party site (careerpuck.com). Greenhouse still redirects there because that is Lyft's own setting, but the link we print is the employer's board.
+
+Terms record: `docs/SOURCE-TERMS-open-roles.md`. No `JobPosting` markup anywhere in the plugin (tested). The email half is sent by the sibling plugin and is specified in `docs/HANDOFF-open-roles-email.md`.
+
 ## 2026-11-12 - Job boards: Greenhouse location metadata, written-out US states, and a home country for a board-growth row
 
 **Class:** parser-gap

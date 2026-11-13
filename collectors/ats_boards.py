@@ -745,6 +745,14 @@ def _greenhouse_metadata_locations(job: dict) -> list[str]:
     return out
 
 
+def _epoch_ms_date(value) -> str:
+    """Lever states createdAt in epoch milliseconds; anything else is ''."""
+    try:
+        return datetime.fromtimestamp(int(value) / 1000, timezone.utc).isoformat()
+    except (TypeError, ValueError, OverflowError, OSError):
+        return ""
+
+
 def fetch_postings(entry: dict) -> list[dict]:
     """One employer's open roles, normalised to
     {place, function, salary, mode, mode_source}.
@@ -777,6 +785,19 @@ def fetch_postings(entry: dict) -> list[dict]:
                 "salary": _greenhouse_salary(job),
                 "mode": work_mode_from_text(location),
                 "mode_source": "prose",
+                # Role-level fields for open_roles.py (the "Open roles now"
+                # block and email section). Never counted, never stored as a
+                # signal; see open_roles.py for why they travel at all.
+                "title": job.get("title") or "",
+                # The Greenhouse board URL, built from slug and id, NOT
+                # `absolute_url`: that is whatever page the employer chose and
+                # is sometimes a third-party job site (Lyft's pointed at
+                # careerpuck.com). The board URL is the employer's own posting
+                # and redirects to their chosen page if they set one.
+                "url": (f"https://job-boards.greenhouse.io/{slug}/jobs/{job['id']}"
+                        if job.get("id") else job.get("absolute_url") or ""),
+                "location_text": location or (extra[0] if extra else ""),
+                "posted": job.get("first_published") or job.get("updated_at") or "",
             })
 
     elif ats == "lever":
@@ -798,6 +819,10 @@ def fetch_postings(entry: dict) -> list[dict]:
                 "salary": _lever_salary(job),
                 "mode": mode or work_mode_from_text(*locations),
                 "mode_source": "structured" if mode else "prose",
+                "title": job.get("text") or "",
+                "url": job.get("hostedUrl") or "",
+                "location_text": locations[0] if locations else "",
+                "posted": _epoch_ms_date(job.get("createdAt")),
             })
 
     elif ats == "workable":
@@ -845,6 +870,11 @@ def fetch_postings(entry: dict) -> list[dict]:
                 "salary": _salary(job),
                 "mode": mode or work_mode_from_text(job.get("location", "")),
                 "mode_source": "structured" if mode else "prose",
+                "title": job.get("title") or "",
+                "url": job.get("jobUrl") or "",
+                "location_text": job.get("location") or "",
+                "state_text": postal.get("addressRegion", "") or "",
+                "posted": job.get("publishedAt") or "",
             })
 
     elif ats == "smartrecruiters":
@@ -1501,6 +1531,11 @@ def collect(queries=None, *, dry_run: bool = False,
     quiet_by_ats: dict[str, int] = {}
     attempted_by_ats: dict[str, int] = {}
     read = 0
+    # Role-level rows for the "Open roles now" surfaces (open_roles.py). Only
+    # boards read successfully TODAY contribute, so a role that closed since
+    # the last run is simply absent: that is the 24-hour drop.
+    import open_roles  # lazy: a root module, and only this path needs it
+    todays_roles: list[dict] = []
 
     for entry in boards:
         board_id = f"{entry['ats']}:{entry['slug']}"
@@ -1565,6 +1600,7 @@ def collect(queries=None, *, dry_run: bool = False,
             continue
         record.pop("quiet_since", None)
         read += 1
+        todays_roles.extend(open_roles.roles_from_board(entry, record, postings))
 
         previous = record.get("last")
         baseline = record.get("baseline")
@@ -1660,7 +1696,9 @@ def collect(queries=None, *, dry_run: bool = False,
                 f"response shape for {ats}, not as a quiet day.")
 
     if persist if persist is not None else not dry_run:
+        open_roles.record_trend(store, todays_roles, day)
         save_state(store)
+        open_roles.save_today(todays_roles, day, read=read, failed=len(failures))
     else:
         print(f"[{COLLECTOR}] state NOT written (dry run) — {STATE_PATH}")
     return out

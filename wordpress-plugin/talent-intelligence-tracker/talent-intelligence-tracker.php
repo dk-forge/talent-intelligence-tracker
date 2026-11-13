@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.114.1
+ * Version: 1.115.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.114.1');
+define('TIT_VERSION', '1.115.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -87,6 +87,9 @@ tit_require('includes/funded_week.php');
 tit_require('includes/page_faq.php');
 tit_require('includes/embed.php');
 tit_require('includes/board_series.php');
+// Open roles now (owner 2026-11-13): counts and titles linking to the
+// employer's own apply page. No job pages here, no JobPosting markup.
+tit_require('includes/open_roles.php');
 // A US job-postings macro backdrop from Indeed Hiring Lab (CC BY 4.0), shown as
 // external context beside the tracker's own signals. Self-contained like
 // board_series.php: option-then-file read, its own keyed route, and it never
