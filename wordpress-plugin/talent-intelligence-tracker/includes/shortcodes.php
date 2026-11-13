@@ -4905,7 +4905,8 @@ function tit_card_html($r) {
   <div class="tit-card-rail">
     <span class="tit-card-employer"><?php
       $ck = $r['company_key'] ?? '';
-      if ($ck && function_exists('tit_company_url')) {
+      if ($ck && function_exists('tit_company_url')
+          && function_exists('tit_company_servable_slug') && tit_company_servable_slug($ck)) {
           printf('<a href="%s">%s</a>', esc_url(tit_company_url($ck)), esc_html($r['company']));
       } else {
           echo esc_html($r['company']);

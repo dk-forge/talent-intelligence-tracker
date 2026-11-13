@@ -488,3 +488,21 @@ def test_structured_data_is_not_emitted_on_a_noindex_profile():
 
 def test_the_status_line_has_a_style_of_its_own():
     assert ".tit-company .tit-status" in CSS
+
+
+def test_the_signal_card_only_links_an_employer_whose_page_exists():
+    """A card must never link to a /company/ URL that 404s.
+
+    Found live 2026-11-13: a card for an employer whose key is CJK only (no ASCII
+    slug, so tit_company_servable_slug() refuses it, on purpose, to keep it out of
+    the sitemap) still rendered a link, and /company/<percent-encoded>/ answered
+    404 on the main dashboard. by_location.php and places.php already guard the
+    link; the card did not.
+    """
+    shortcodes = (PLUGIN / "includes" / "shortcodes.php").read_text()
+    start = shortcodes.index('class="tit-card-employer"')
+    block = shortcodes[start:start + 700]
+    assert "tit_company_servable_slug(" in block, (
+        "the card links tit_company_url() without asking whether that page is "
+        "served: an unservable employer is a link to a 404"
+    )
