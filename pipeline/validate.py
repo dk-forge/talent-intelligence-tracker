@@ -73,7 +73,32 @@ class Signal:
 
 # A figure the model returns must appear in the source text. Matches 1,200 /
 # 1200 / 1.2bn / €5B / 5 billion.
-_NUMBER = re.compile(r"\d[\d,.]*\s*(?:bn|b|m|k|billion|million|thousand)?", re.I)
+#
+# The gap before the magnitude word is horizontal whitespace only, and the word
+# has to end at a word boundary. `\s*(?:bn|b|m|k|...)?` did neither, so a figure
+# sitting at the end of a paragraph swallowed the first letter of the NEXT
+# paragraph whenever that letter was b, k or m:
+#
+#   "...Appointment-AGM 28.07.2026\n\nK M Sugar Mills Ltd..."  ->  '28072026k'
+#
+# The summary quoting that same date yielded '28072026', so the two sides
+# disagreed and assert_figures_are_sourced discarded a record whose figure was
+# verbatim in the source — a silent false rejection worth one line of run
+# output. `sec_edgar` bodies and `national_press` article text are both shaped
+# that way, so this was never specific to one collector.
+_NUMBER = re.compile(
+    # [^\S\r\n] is "whitespace, but not a line break".
+    r"\d[\d,.]*(?:[^\S\r\n]*(?:billion|million|thousand|bn|b|m|k)\b)?", re.I)
+
+# ...but the word boundary alone would break the equivalence the check depends
+# on. Before it, "5 billion" matched only as far as "5 b" and so normalised to
+# the same token as "$5B"; with the boundary it normalises to "5billion" and a
+# summary saying "$5B" about a source saying "5 billion" becomes an invented
+# figure. So the magnitude is collapsed to one letter here instead, which also
+# settles "1.2bn" vs "1.2 billion" — two spellings that never matched each other
+# under the old regex.
+_MAGNITUDE = {"bn": "b", "billion": "b", "million": "m", "thousand": "k"}
+_MAGNITUDE_TAIL = re.compile(r"(billion|million|thousand|bn|b|m|k)$")
 
 # A single job advert is not market intelligence. GDELT surfaces job boards
 # freely, and one live run stored "Claims Strategy Manager - Remote at Allstate"
@@ -103,7 +128,11 @@ _BLOCKED_SOURCE_HOSTS = frozenset({
 
 
 def _normalize_number(token: str) -> str:
-    return re.sub(r"[,\s.]", "", token.lower())
+    digits = re.sub(r"[,\s.]", "", token.lower())
+    m = _MAGNITUDE_TAIL.search(digits)
+    if not m:
+        return digits
+    return digits[:m.start()] + _MAGNITUDE.get(m.group(1), m.group(1))
 
 
 def _numbers_in(text: str) -> set[str]:

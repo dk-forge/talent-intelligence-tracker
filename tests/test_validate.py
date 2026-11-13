@@ -96,6 +96,65 @@ def test_a_year_is_not_treated_as_an_invented_figure():
     assert signal.summary.endswith("2026.")
 
 
+# --- a figure at a paragraph break ------------------------------------------
+#
+# `_NUMBER` used to allow `\s*` between the digits and the magnitude suffix, and
+# `\s` matches a newline. So a figure ending a paragraph absorbed the first
+# letter of the next one whenever it was b, k or m, and the same figure quoted
+# in the summary did not — the record was discarded for containing a figure that
+# was verbatim in the source. Found live on 2026-07-30 building a BSE India
+# collector, but `sec_edgar` bodies and `national_press` article text are shaped
+# the same way, so it was never one collector's problem.
+
+@pytest.mark.parametrize("letter", ["K", "B", "M"])
+def test_a_figure_before_a_paragraph_break_is_not_glued_to_the_next_word(letter):
+    body = (f"Board Meeting Intimation Appointment-AGM 28.07.2026\n\n"
+            f"{letter} M Sugar Mills Ltd filed the intimation.")
+    quoted = "The filing is dated 28.07.2026."
+    assert validate._numbers_in(quoted) <= validate._numbers_in(body)
+    validate.assert_figures_are_sourced(quoted, body)
+
+
+@pytest.mark.parametrize("letter", ["K", "B", "M"])
+def test_the_paragraph_break_record_survives_the_whole_gate(letter):
+    body = (f"Appointment-AGM 28.07.2026\n\n"
+            f"{letter} M Sugar Mills Ltd (BSE scrip code 532673) filed it.")
+    signal = validate.build_signal(
+        classified(summary="The filing is dated 28.07.2026."),
+        raw(raw_text=body),
+        "national_press",
+    )
+    assert signal.summary.endswith("28.07.2026.")
+
+
+def test_a_magnitude_word_on_the_same_line_still_counts():
+    """The fix restricts the gap to horizontal whitespace; it does not remove
+    it. '5 billion' is still one figure, not a 5 and a word."""
+    assert validate._numbers_in("raised 5 billion") == {"5b"}
+
+
+@pytest.mark.parametrize("source,claim", [
+    ("The round raised 5 billion dollars.", "It raised $5B."),
+    ("The round raised $5B.", "It raised 5 billion."),
+    ("The round raised 1.2 billion dollars.", "It raised $1.2bn."),
+    ("The round raised 300 million dollars.", "It raised $300M."),
+    ("The round raised 40 thousand dollars.", "It raised 40k."),
+])
+def test_the_same_figure_spelled_two_ways_is_one_figure(source, claim):
+    """The word boundary alone would break this: 'billion' would stop matching
+    as 'b', and a summary saying '$5B' about a source saying '5 billion' would
+    be rejected as invented. The magnitude word is collapsed to one letter so
+    both spellings normalise to the same token."""
+    validate.assert_figures_are_sourced(claim, source)
+
+
+def test_a_number_the_source_never_stated_is_still_caught():
+    """The looser normalisation must not loosen the rule itself."""
+    with pytest.raises(validate.Rejected, match="not present in source"):
+        validate.assert_figures_are_sourced(
+            "It raised $9B.", "The round raised 5 billion dollars.")
+
+
 def test_news_source_cannot_be_promoted_to_verified():
     """Spec 2 rule 3: reported is never silently promoted."""
     signal = validate.build_signal(
