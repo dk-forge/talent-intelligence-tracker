@@ -35,12 +35,22 @@ THE FOUR RULES THAT SHAPE ALL OF IT.
    protect. It is not one. The source says "$8.6 billion IPO" and "Shanghai
    STAR Market IPO", and an IPO is not private funding by this product's own
    rule. So the canonical example of review working correctly was a review that
-   got it wrong, and the row is on the live site now. It is UNRESOLVED here on
-   purpose: a local retraction alone would take it off our copy while leaving
-   it on the page and remove it from every ops surface that would otherwise
-   nag, which is worse than the defect. It needs a session with credentials to
-   run `python3 retract.py <signal_id> "an IPO is not private funding"`, which
-   withdraws it on WordPress first and locally second.
+   got it wrong. RESOLVED 2026-08-04 (commit 4a6c7dc, `data: retract`):
+   `retract.py` withdrew it on WordPress first and locally second, so the
+   finding stays `rejected` in the ledger, the row is `is_current = 0` carrying
+   the reason in `notes`, and `_row_placement` reads it as ROW_GONE — decided,
+   withdrawn, on no surface and on no clock, which is correct.
+
+   THESE SIX LINES WERE STALE FOR TEN DAYS and cost a read-only audit on
+   2026-08-14 its whole conclusion: the docstring said the row was live, the
+   ledger said `rejected`, ROW_GONE hid it from every ops surface, and the
+   three together read as a rejected figure still in public that nothing would
+   ever nag about again. It was already withdrawn. A doc that tells a future
+   session to make a live-site change somebody already made is not a stale
+   comment, it is an instruction to act, and the checks that would contradict
+   it are silent BY DESIGN once the correction has landed. Ops surfaces cannot
+   proofread this file. If you resolve something a docstring names, say so here
+   in the same commit.
 
    The lesson underneath is the one worth keeping: an accepted finding is a
    human's answer and it is remembered forever, so a wrong answer is remembered
