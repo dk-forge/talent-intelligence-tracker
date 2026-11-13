@@ -16,13 +16,15 @@ that runs these, so a pytest-only file is a file that never runs.
 
 import re
 import sqlite3
-import sys
 import tempfile
-import types
 import unittest
 from pathlib import Path
 
-sys.modules.setdefault("requests", types.ModuleType("requests"))
+# publish.py needs the name at import time; the real library is preferred and a
+# stub is installed only when there is none. See tests/requests_stub.py.
+from tests.requests_stub import ensure_requests  # noqa: E402
+
+ensure_requests()
 
 from pipeline import prefilter, publish, schema, validate, vocab  # noqa: E402
 from tests import phpsource  # noqa: E402

@@ -34,8 +34,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # publish.py imports requests at module scope and requests is not installed on
 # the machine that runs these. identity.py imports it lazily for exactly that
-# reason, but validate -> publish still needs the stub in this process.
-sys.modules.setdefault("requests", types.ModuleType("requests"))
+# reason, but validate -> publish still needs the name to exist in this process.
+#
+# This used to be `sys.modules.setdefault("requests", types.ModuleType(...))`,
+# which is a no-op only when some EARLIER file already imported the real
+# library — true in a full suite run, false in a subset run, and when it was
+# false the bare ModuleType shadowed the real requests for every file loaded
+# afterwards. See tests/requests_stub.py.
+from tests.requests_stub import ensure_requests  # noqa: E402
+
+ensure_requests()
 
 from pipeline import identity, schema, validate, vocab  # noqa: E402
 

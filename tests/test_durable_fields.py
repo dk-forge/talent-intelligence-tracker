@@ -11,9 +11,7 @@ never runs.
 """
 
 import sqlite3
-import sys
 import tempfile
-import types
 import unittest
 from pathlib import Path
 
@@ -21,7 +19,11 @@ from pathlib import Path
 # function, and requests is not installed on the machine that runs these tests.
 # A stub keeps the payload allowlist testable here: skipping it instead would
 # mean the one test that catches "new column, forgot to send it" never runs.
-sys.modules.setdefault("requests", types.ModuleType("requests"))
+# It must never shadow the real library where one exists — see
+# tests/requests_stub.py for what the old setdefault cost.
+from tests.requests_stub import ensure_requests  # noqa: E402
+
+ensure_requests()
 
 from pipeline import publish, schema, validate, vocab  # noqa: E402
 
