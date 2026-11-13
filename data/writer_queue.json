@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-13T16:33:42Z",
-  "last_tick": "2026-11-13T16:52:51Z",
+  "last_dispatch": "2026-11-13T17:01:39Z",
+  "last_tick": "2026-11-13T17:01:39Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -249,44 +249,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-13T16:33:42Z",
-      "history": [
-        {
-          "at": "2026-11-13T16:24:21Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-13T16:33:42Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-13T16:36:23Z",
-          "detail": "run 43463951873",
-          "event": "bound"
-        }
-      ],
-      "id": "20261113T162421Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-13T16:24:21Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "43463951873",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-11-13T17:01:39Z",
       "history": [
         {
           "at": "2026-11-13T16:36:19Z",
           "detail": "dry run for the six aliases merged in #337 (abenojar tungsten, elax energie, kfh bahrain, skoda auto, vaeridion, vivofacil)",
           "event": "queued"
+        },
+        {
+          "at": "2026-11-13T17:01:39Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20261113T163619Z-correct-company-key",
@@ -298,7 +271,7 @@
       "requested_at": "2026-11-13T16:36:19Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "correct-company-key.yml"
     },
     {
@@ -345,44 +318,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "correct-company-key.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-06T16:33:30Z",
-      "history": [
-        {
-          "at": "2026-11-06T16:24:18Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-06T16:33:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-06T16:47:55Z",
-          "detail": "run 42253504496",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-06T17:00:30Z",
-          "detail": "run 42253504496",
-          "event": "landed"
-        }
-      ],
-      "id": "20261106T162418Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-06T17:00:30Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-06T16:24:18Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42253504496",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2657,6 +2592,44 @@
       "run_id": "43450742853",
       "state": "landed",
       "workflow": "backfill-funding-bulk.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-13T16:33:42Z",
+      "history": [
+        {
+          "at": "2026-11-13T16:24:21Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-13T16:33:42Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-13T16:36:23Z",
+          "detail": "run 43463951873",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-13T17:01:39Z",
+          "detail": "run 43463951873",
+          "event": "landed"
+        }
+      ],
+      "id": "20261113T162421Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-13T17:01:39Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-11-13T16:24:21Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "43463951873",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
