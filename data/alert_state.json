@@ -29,8 +29,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:18b50d1227a32b6a": {
+      "first": 1794534812,
+      "last": 1794534812,
+      "subject": "CI RED: tests: AssertionError: b'{\"c[51 chars]:52:44+00:00\", \"captured_at\": \"2026-11-13T01:5[1137 chars]l}]}' != b'{\"c[51 chars]:52:45+00:00\", \"captured_at\": \"2026-11-13T01:5[1137 "
     }
   },
-  "updated_at": "2026-11-11T19:16:49+00:00",
+  "updated_at": "2026-11-13T01:53:33+00:00",
   "version": 1
 }
