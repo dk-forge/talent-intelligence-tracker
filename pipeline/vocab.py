@@ -114,6 +114,10 @@ PRIMARY_SOURCE_DOMAINS = frozenset({
     # 403 to automated clients is a fact about link checking rather than a
     # reason to cite something else.
     "datacvr.virk.dk",
+    # www.nzbn.govt.nz is MBIE's own public page for an entity on the NZBN
+    # register, the register itself, so rows from collectors/nz_nzbn.py are
+    # primary. The collector reads api.business.govt.nz and cites this page.
+    "www.nzbn.govt.nz",
     # data.gov.sg is the Singapore government's own portal and the corporate
     # entities register on it is published BY the Accounting and Corporate
     # Regulatory Authority, the body companies incorporate with. Same class

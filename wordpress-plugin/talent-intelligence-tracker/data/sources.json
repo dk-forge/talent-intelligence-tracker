@@ -10312,7 +10312,7 @@
   ],
   "coverage": "Global",
   "country": "",
-  "rss": "",
+  "rss": "https://siliconangle.com/feed/",
   "free": true,
   "notes": "",
   "collector": ""
@@ -13061,6 +13061,22 @@
   "rss": "https://www.wamda.com/feed/",
   "free": true,
   "notes": "Feed fetched and parsed 2026-07-29. MENA including Oman, Jordan, Egypt, Saudi Arabia.",
+  "collector": ""
+ },
+ {
+  "name": "WeeTracker",
+  "url": "https://weetracker.com",
+  "status": "candidate",
+  "category": "Startup Ecosystem",
+  "signals": [
+   "Funding",
+   "Executive Hire"
+  ],
+  "coverage": "National",
+  "country": "Nigeria",
+  "rss": "https://weetracker.com/feed/",
+  "free": true,
+  "notes": "African startup and funding news. Probed 2026-11-13 for the recall audit: https://weetracker.com/feed/ answers 200 application/rss+xml with only 8 items, a shallow window for a daily read; robots.txt allows our agent for /feed/. A live, permitted feed. The recall audit of 2026-11-13 names this publisher as the source of 4 gold-set miss(es). Wired 2026-11-13 on the owner's instruction. Verified through the collector's own fetch and parse path: robots.txt allows it, the feed is not a roundup, and items parse with raw_text and the publisher's own article URL.",
   "collector": ""
  },
  {
