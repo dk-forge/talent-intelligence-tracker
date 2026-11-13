@@ -57,6 +57,11 @@ import pytest
 os.environ["TIT_IDENTITY_LOOKUP"] = "off"
 os.environ["TIT_PLUGIN_PREFLIGHT"] = "off"
 os.environ["TIT_LIVE_FIGURES"] = "off"
+# open_roles.save_today() writes the day's role file beside the ATS state file.
+# A test that runs ats_boards.collect() with persistence on (and save_state
+# stubbed) would otherwise drop it into the real data/ directory.
+import tempfile as _tempfile
+os.environ.setdefault("TIT_OPEN_ROLES", os.path.join(_tempfile.mkdtemp(prefix="tit-open-roles-"), "open_roles_today.json"))
 
 
 @pytest.fixture(autouse=True)
