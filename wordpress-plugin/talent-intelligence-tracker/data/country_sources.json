@@ -102,6 +102,10 @@
     "reason": "2026-07-29 not live (404, 0 items)"
    },
    {
+    "name": "Dynamic Business",
+    "reason": "2026-11-13 200 ok, held for owner (not wired)"
+   },
+   {
     "name": "InnovationAus",
     "reason": "2026-07-29 not live (403, 0 items)"
    }
@@ -710,7 +714,7 @@
    },
    {
     "name": "UKTN",
-    "reason": "2026-07-29 robots.txt disallows the feed path"
+    "reason": "2026-11-13 robots.txt disallows the feed path"
    },
    {
     "name": "Unleash",
@@ -1061,6 +1065,10 @@
    {
     "name": "Kenyan Wall Street",
     "reason": "2026-07-29 not live (200, 0 items)"
+   },
+   {
+    "name": "Launch Base Africa",
+    "reason": "2026-11-13 200 ok, held for owner (not wired)"
    },
    {
     "name": "Techweez",
@@ -1557,7 +1565,7 @@
    },
    {
     "name": "The Star (Business)",
-    "reason": "2026-07-29 not live (404, 0 items)"
+    "reason": "2026-11-13 not live (404, 0 items)"
    }
   ],
   "researched": 5
@@ -1584,7 +1592,12 @@
  },
  "NG": {
   "live": [],
-  "refused": [],
+  "refused": [
+   {
+    "name": "WeeTracker",
+    "reason": "2026-11-13 200 ok, held for owner (not wired)"
+   }
+  ],
   "researched": 8
  },
  "NI": {
@@ -1747,7 +1760,7 @@
    },
    {
     "name": "Profit (Pakistan Today)",
-    "reason": "2026-07-29 not live (404, 0 items)"
+    "reason": "2026-11-13 not live (404, 0 items)"
    }
   ],
   "researched": 6
@@ -2242,6 +2255,10 @@
    {
     "name": "Silicon Valley Business Journal",
     "reason": "2026-07-29 dead: HTTP 403 bot block"
+   },
+   {
+    "name": "SiliconANGLE",
+    "reason": "2026-11-13 200 ok, held for owner (not wired)"
    },
    {
     "name": "South Florida Business Journal",
