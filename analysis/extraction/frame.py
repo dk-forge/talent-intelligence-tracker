@@ -65,6 +65,7 @@ STRUCTURED_COLLECTORS = (
     "companies_house",
     "czechia_ares",
     "denmark_cvr",
+    "nz_nzbn",
     "edinet_japan",
     "estonia_ariregister",
     "irs_form_990",

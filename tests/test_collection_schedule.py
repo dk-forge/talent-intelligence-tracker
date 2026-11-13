@@ -42,7 +42,7 @@ def test_every_configured_source_is_enumerated_from_the_workflows():
     assert srcs["ats_boards"].cadence_hours == 24
     assert srcs["google_news"].workflow == "collect.yml"
     # Dormant by design: no cron, so not configured, so never a false alarm.
-    assert "denmark_cvr" not in srcs and "israel_registrar" not in srcs
+    assert "denmark_cvr" not in srcs and "nz_nzbn" not in srcs and "israel_registrar" not in srcs
     # Retired 2026-10-12 (owner ruling): its cron is gone, so never "never ran".
     assert "bse_india" not in srcs
 
