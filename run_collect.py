@@ -35,6 +35,19 @@ from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
                       store, validate)
 
 
+
+# Railway drops logs above 500 lines/sec and has crashed the service when a
+# big feed printed one line per filtered headline (13 Nov 2026). List a sample,
+# then one summary line; the per-run total is still printed at the end.
+FILTERED_LOG_SAMPLE = 20
+
+
+def filtered_log_line(n, item, reason):
+    """Return the log line for the n-th filtered item, or None past the sample."""
+    if n > FILTERED_LOG_SAMPLE:
+        return None
+    return f"  filtered  {item.get('headline','')[:60]}  ({reason})"
+
 def leadership_precheck_arms() -> bool:
     """Whether the cross-language appointment pre-check may actually SKIP.
 
@@ -663,7 +676,11 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             kept.append(item)
         else:
             filtered += 1
-            print(f"  filtered  {item.get('headline','')[:60]}  ({reason})")
+            line = filtered_log_line(filtered, item, reason)
+            if line:
+                print(line)
+    if filtered > FILTERED_LOG_SAMPLE:
+        print(f"  ... {filtered - FILTERED_LOG_SAMPLE} more filtered (not listed)")
 
     # The cap is a MONEY cap. A derived source spends nothing, and applying it
     # would have thrown away five sixths of a year of exec-comp filings for a
