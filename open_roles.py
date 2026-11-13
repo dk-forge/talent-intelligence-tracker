@@ -51,7 +51,7 @@ import os
 import re
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
+import threading
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -278,36 +278,67 @@ def email_pool(roles: list[dict]) -> list[dict]:
 DEAD = (404, 410)
 
 
-def _status(url: str, timeout: float) -> int | None:
+# Each job-board host gets ONE serial queue and its own delay. Lever publishes
+# Crawl-delay: 1 (the collector honours it on api.lever.co, ats_boards.ATS_DELAY),
+# and the first live run broke it here by firing 8 requests at once at the same
+# hosts, then ran ~10 minutes before the self-hosted runner lost its
+# connection (2026-11-13, run 43468894602).
+HOST_DELAY = {"jobs.lever.co": 1.1}
+DEFAULT_HOST_DELAY = 0.25
+LINK_TIMEOUT = (4, 6)       # connect, read: bounds every hop of every request
+MAX_REDIRECTS = 5
+
+
+def _status(url: str, timeout) -> int | None:
+    """HEAD, redirects followed (at most MAX_REDIRECTS). No GET fallback: a
+    body is never needed to tell a live page from a 404/410, and a streamed GET
+    is how a slow server holds a worker open."""
     import requests
     from collectors import ats_boards
-    headers = {"User-Agent": ats_boards.USER_AGENT}
     try:
-        resp = requests.head(url, headers=headers, timeout=timeout, allow_redirects=True)
-        if resp.status_code in (403, 405, 501):
-            resp = requests.get(url, headers=headers, timeout=timeout,
-                                allow_redirects=True, stream=True)
-            resp.close()
-        return resp.status_code
+        with requests.Session() as s:
+            s.max_redirects = MAX_REDIRECTS
+            resp = s.head(url, headers={"User-Agent": ats_boards.USER_AGENT},
+                          timeout=timeout, allow_redirects=True)
+            return resp.status_code
     except Exception:  # noqa: BLE001 - any failure is "could not tell"
         return None
 
 
-def check_links(urls: list[str], *, budget_s: float = 480, timeout: float = 12,
-                workers: int = 8, status=_status) -> dict:
-    """{url: status or None}. Unchecked when the time budget runs out."""
-    started = time.monotonic()
-    results: dict[str, int | None] = {}
+def check_links(urls: list[str], *, budget_s: float = 300, timeout=LINK_TIMEOUT,
+                delays: dict | None = None, status=_status) -> dict:
+    """{url: status, None (could not tell) or "skipped" (deadline)}.
 
-    def one(u):
-        if time.monotonic() - started > budget_s:
-            return u, "skipped"
-        return u, status(u, timeout)
+    One thread per host, requests in series with the host's delay between
+    them, so no host ever sees two at once. After `budget_s` every remaining
+    url is "skipped": kept, because each role was on the employer's own board
+    API minutes earlier, and a re-check that ran out of time has found nothing.
+    """
+    delays = HOST_DELAY if delays is None else delays
+    deadline = time.monotonic() + budget_s
+    by_host: dict[str, list[str]] = {}
+    for u in urls:
+        by_host.setdefault(urlparse(u).hostname or "", []).append(u)
+    results: dict[str, int | None | str] = {u: "skipped" for u in urls}
 
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        for u, s in pool.map(one, urls):
-            results[u] = s
-    return results
+    def walk(host: str, queue: list[str]) -> None:
+        gap = delays.get(host, DEFAULT_HOST_DELAY)
+        for n, u in enumerate(queue):
+            if n and gap:
+                time.sleep(gap)
+            if time.monotonic() >= deadline:
+                return
+            results[u] = status(u, timeout)
+
+    threads = [threading.Thread(target=walk, args=(h, q), daemon=True)
+               for h, q in by_host.items()]
+    for t in threads:
+        t.start()
+    for t in threads:
+        # A request in flight at the deadline gets at most one more bounded
+        # request's worth of time; a daemon thread never holds the process.
+        t.join(max(0.0, deadline - time.monotonic()) + 1.0)
+    return dict(results)
 
 
 # --- The payload ----------------------------------------------------------

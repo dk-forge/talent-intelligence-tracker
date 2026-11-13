@@ -49,7 +49,13 @@ verdict wins: remove the provider from `open_roles.ALLOWED_ATS` and
    successfully that day. A role the employer closed is absent from its own
    board API, so it is absent from ours.
 2. Every link a reader could click (five per company, the email pool) is
-   re-requested before publishing; a 404 or 410 drops the role.
+   re-requested before publishing, one request at a time per host with the
+   host's own delay (Lever 1.1 s, its published crawl-delay; others 0.25 s),
+   inside a 300 s deadline. A 404 or 410 drops the role; anything not reached
+   in time is kept, because it was on the board API minutes earlier.
+   **This re-check cannot see a closed Greenhouse role**: Greenhouse redirects
+   an unknown job id to the board page and answers 200 (measured 2026-11-13).
+   For Greenhouse, mechanism 1 is the guarantee and this one adds nothing.
 3. The plugin hides every block once its copy is older than 30 hours
    (`TIT_OPEN_ROLES_MAX_AGE_H`), so a failed run shows nothing, never
    yesterday's roles.
