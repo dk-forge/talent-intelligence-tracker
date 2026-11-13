@@ -375,13 +375,105 @@ def compute_materiality(
 _PILLAR_BY_DOCUMENT = {"sec_edgar": "leadership_change"}
 
 
+def collector_wrote_the_headline(collector: str, headline: str) -> bool:
+    """True when this record's headline came from the collector, not a publisher.
+
+    A filing has no headline in it, so collectors/sec_edgar.py writes the same
+    sentence onto every document it fetches: "<Company> 8-K filing (Item 5.02):
+    officer or director change". That sentence says what KIND of document this
+    is. It says nothing whatsoever about what the document SAYS — and every
+    rule that reads a headline as "the subject of the story" is, on this source,
+    reading a constant.
+
+    Same test as forced_pillar, exported rather than duplicated so the two
+    cannot drift, and so a rule that needs to know "is this headline evidence?"
+    can ask the question directly.
+    """
+    return (collector in _PILLAR_BY_DOCUMENT
+            and bool(_OFFICER_CHANGE.search(headline or "")))
+
+
 def forced_pillar(collector: str, headline: str) -> str | None:
     """The pillar this document has by construction, or None to let the model
     decide. See _PILLAR_BY_DOCUMENT."""
-    pillar = _PILLAR_BY_DOCUMENT.get(collector)
-    if pillar and _OFFICER_CHANGE.search(headline or ""):
-        return pillar
+    if collector_wrote_the_headline(collector, headline):
+        return _PILLAR_BY_DOCUMENT[collector]
     return None
+
+
+# --- The scope boundary ----------------------------------------------------
+#
+# This page's own footer says "Layoff and redundancy data is not collected
+# here; see the AI Layoff Tracker", and a Spanish Verizon story about 3,000
+# cuts was live on it anyway. The sibling owns workforce reduction; we own
+# everything else about the talent market.
+#
+# Three arms, because a cut can arrive three ways.
+#
+#  1. THE HEADLINE. A headline leads with its subject, so a reduction headline
+#     is a reduction story.
+#
+#  2. THE MODEL SAID SO. A headline that hides it ("Verizon announces
+#     restructuring") is caught by the model's own reading: direction
+#     'displacement' means the source said roles are going, which is the
+#     sibling's definition of a record.
+#
+#  3. THE HEADLINE IS NOT EVIDENCE. On a source where the collector writes the
+#     headline, arm 1 is not weak, it is INERT: it reads the same constant
+#     sentence every time and can never see the subject of the story. Arm 2
+#     then carries the whole boundary on its own, and it rests on the model
+#     having picked one enum value — which is a judgement, not the document.
+#
+#     Four 8-K rows went live this way (Atlassian, Groupon, IO Biotech, Lyra
+#     Therapeutics, all 2026-07-28). Each one is a real Item 5.02 officer
+#     change AND a restructuring: an 8-K carries several items, the collector
+#     searches for one of them and names it in the headline, and the rest of
+#     the document is invisible to a headline test. Groupon's summary said "a
+#     reduction of up to 400 positions globally" under a headline that said
+#     "officer or director change".
+#
+#     So where the headline is the collector's, the summary is read whatever
+#     the direction says. Narrow on purpose: the ordering heuristic inside
+#     workforce_reduction_term is calibrated for headlines, and a summary is
+#     prose that mentions last year's cut in a subordinate clause far more
+#     often than a headline does. Running arm 3 on every source would start
+#     rejecting in-scope stories for their background paragraph.
+#
+# A record can be BOTH a leadership change and out of scope, and this is the
+# order those two rules go in: forced_pillar decides which shelf a record
+# belongs on, and this decides whether it belongs in the shop at all.
+#
+# Every arm uses the same free vocabulary the prefilter uses, so most such
+# stories never reach here and never cost a classification.
+
+
+def out_of_scope_term(
+    *,
+    collector: str,
+    headline: str,
+    summary: str,
+    talent_readthrough: str,
+    signal_direction: str,
+) -> tuple[str, str] | None:
+    """(term, which arm) if this is a workforce reduction, else None.
+
+    Takes stored columns only — no raw_text, no model call — so retract.py can
+    ask the same question of a row that is already live and get the same answer
+    build_signal would give. See the comment above for the three arms.
+    """
+    cut = prefilter.workforce_reduction_term(headline)
+    if cut:
+        return cut, "headline"
+
+    if signal_direction == "displacement":
+        arm = "displacement"
+    elif collector_wrote_the_headline(collector, headline):
+        arm = f"{collector} headline is the collector's, not the story's"
+    else:
+        return None
+
+    cut = prefilter.workforce_reduction_term(f"{summary} {talent_readthrough}")
+    return (cut, arm) if cut else None
 
 
 def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Signal:
@@ -458,29 +550,21 @@ def build_signal(classified: dict, raw: dict, collector: str, conn=None) -> Sign
     # The summary restates the source and may not.
     assert_figures_are_sourced(summary, raw_text)
 
-    # The scope boundary. This page's own footer says "Layoff and redundancy
-    # data is not collected here; see the AI Layoff Tracker", and a Spanish
-    # Verizon story about 3,000 cuts was live on it anyway. The sibling owns
-    # workforce reduction; we own everything else about the talent market.
-    #
-    # Two arms, because a cut can arrive two ways. The headline is the subject
-    # of the story, so a reduction headline is a reduction story. And a
-    # headline that hides it ("Verizon announces restructuring") is caught by
-    # the model's own reading: direction 'displacement' means the source said
-    # roles are going, which is the sibling's definition of a record.
-    #
-    # Both arms use the same free vocabulary the prefilter uses, so most such
-    # stories never reach here and never cost a classification.
-    cut = prefilter.workforce_reduction_term(headline)
-    if cut:
-        raise Rejected(
-            f"workforce reduction is the sibling tracker's scope, not ours ({cut!r})")
-    if direction == "displacement":
-        cut = prefilter.workforce_reduction_term(f"{summary} {readthrough}")
-        if cut:
-            raise Rejected(
-                "workforce reduction is the sibling tracker's scope, not ours "
-                f"(displacement: {cut!r})")
+    # The scope boundary — three arms, all of them defined next to
+    # out_of_scope_term() so retract.py can ask the identical question of a row
+    # that is already live.
+    hit = out_of_scope_term(
+        collector=collector,
+        headline=headline,
+        summary=summary,
+        talent_readthrough=readthrough,
+        signal_direction=direction,
+    )
+    if hit:
+        cut, arm = hit
+        where = "" if arm == "headline" else f"{arm}: "
+        raise Rejected("workforce reduction is the sibling tracker's scope, "
+                       f"not ours ({where}{cut!r})")
 
     # Job location: from the source text only.
     city = region = None

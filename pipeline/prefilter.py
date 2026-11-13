@@ -520,24 +520,50 @@ _OFF_TOPIC = re.compile(r"\b(?:" + "|".join(_OFF_TOPIC_TERMS) + r")\b", re.I)
 # 49 Google News editions means the boundary has to hold in more than English.
 # A rule that only recognises "layoffs" lets every non-English cut through,
 # which is precisely how the Verizon row happened.
+
+# What a sub-editor puts between the verb and the people. Each English verb
+# below used to carry its own hand-written chain of these — "(?:up to\s+)?
+# (?:about\s+)?(?:some\s+)?(?:[\d,.]+\s+)?(?:more\s+)?(?:of its\s+)?" — which
+# is the same idea written once per verb, in a different order each time, and
+# it missed whichever word the writer happened not to think of. Atlassian's own
+# 8-K said "the elimination of certain roles, impacting approximately 10% of
+# the Company's workforce" and its read-through said "cutting approximately 10%
+# of its workforce": the verb was on the list, the noun was on the list, and
+# "certain" and "approximately" were what let a 10%-of-workforce cut onto a
+# page that promises it publishes none (live 2026-07-29, four rows).
+#
+# So the gap is written once and reused. Every token in it is a quantifier, a
+# determiner, a preposition or a number, which is what makes the repetition
+# safe: an ordinary noun in the way blocks the match, so "cut costs by closing
+# two sites" and "cuts for employers" still do not match. A percentage is one
+# of the number shapes, because a cut is stated as a share as often as a count.
+_CUT_GAP = (
+    r"(?:(?:up\s+to|about|approximately|around|roughly|nearly|almost|some|"
+    r"more\s+than|over|at\s+least|as\s+many\s+as|a\s+further|another|more|"
+    r"substantially\s+all|all|certain|its|their|the|of|in)\s+|[\d,.]+%?\s+)*"
+)
+
 _REDUCTION_TERMS = (
     # English
     r"lay[ -]?offs?", r"laid off", r"lays? off", r"laying off",
     r"job cuts?", r"jobs? cut", r"job losses", r"role cuts?", r"staff cuts?",
-    r"cut(?:s|ting)?\s+(?:up to\s+)?(?:about\s+)?(?:some\s+)?(?:[\d,.]+\s+)?"
-    r"(?:more\s+)?(?:of its\s+)?(?:jobs|roles|positions|posts|staff|workers|"
+    rf"cut(?:s|ting)?\s+{_CUT_GAP}"
+    r"(?:jobs|roles|positions|posts|staff|workers|"
     r"employees|workforce|headcount)",
     r"redundanc(?:y|ies)", r"made redundant",
     r"reduction in force", r"workforce reduction", r"headcount reduction",
     r"staff reductions?",
-    r"reduc\w+\s+(?:its\s+)?(?:workforce|headcount|staff|staffing)",
+    # Deliberately NOT including "employees" as the noun here: "reducing
+    # employees' pay" is a rewards story, which is a pillar this product owns.
+    rf"reduc\w+\s+{_CUT_GAP}"
+    r"(?:workforce|headcount|staff|staffing|jobs|roles|positions|posts)",
     r"downsiz\w+", r"retrench\w+",
-    r"shed(?:s|ding)?\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff|workers|positions)",
-    r"ax(?:e[sd]?|ing)\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff|posts|positions)",
-    r"slash(?:es|ing|ed)?\s+(?:[\d,.]+\s+)?(?:jobs|roles|staff|its workforce)",
-    r"eliminat\w+\s+(?:[\d,.]+\s+)?(?:jobs|roles|positions)",
+    rf"shed(?:s|ding)?\s+{_CUT_GAP}(?:jobs|roles|staff|workers|positions)",
+    rf"ax(?:e[sd]?|ing)\s+{_CUT_GAP}(?:jobs|roles|staff|posts|positions)",
+    rf"slash(?:es|ing|ed)?\s+{_CUT_GAP}(?:jobs|roles|staff|workforce)",
+    rf"eliminat\w+\s+{_CUT_GAP}(?:jobs|roles|positions|posts)",
     r"mass firings?", r"pink slips?",
-    r"terminat\w+\s+(?:[\d,.]+\s+)?(?:employees|workers|staff)",
+    rf"terminat\w+\s+{_CUT_GAP}(?:employees|workers|staff)",
     # Spanish
     r"desped\w+", r"despido\w*",
     r"recort(?:e|es|ar|a)\w*\s+(?:de\s+)?(?:empleos?|personal|plantilla|puestos)",

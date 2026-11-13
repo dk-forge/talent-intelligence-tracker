@@ -19,6 +19,14 @@ on:
         description: 'Retract every row whose source link is an outlet homepage'
         type: boolean
         default: false
+      out_of_scope:
+        description: 'Retract every live row the scope boundary refuses (workforce reduction belongs to the sibling tracker)'
+        type: boolean
+        default: false
+      dry_run:
+        description: 'List what would be withdrawn and write nothing'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -51,10 +59,17 @@ jobs:
           WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
           WP_API_KEY: ${{ secrets.WP_API_KEY }}
         run: |
+          # dry_run defaults to TRUE for this workflow: the rule-derived modes
+          # decide their own worklist, so the run that shows you the list has
+          # to be free. A single signal_id is unaffected either way.
+          DRY=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then DRY="--dry-run"; fi
           if [ "${{ inputs.bare_domains }}" = "true" ]; then
-            python retract.py --bare-domains "${{ inputs.reason }}"
+            python retract.py --bare-domains "${{ inputs.reason }}" $DRY
+          elif [ "${{ inputs.out_of_scope }}" = "true" ]; then
+            python retract.py --out-of-scope "${{ inputs.reason }}" $DRY
           else
-            python retract.py "${{ inputs.signal_id }}" "${{ inputs.reason }}"
+            python retract.py "${{ inputs.signal_id }}" "${{ inputs.reason }}" $DRY
           fi
 
       - name: Commit the database

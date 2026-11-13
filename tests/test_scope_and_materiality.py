@@ -170,6 +170,265 @@ class ScopeBoundary(unittest.TestCase):
         self.assertEqual(signal.pillar, "leadership_change")
 
 
+# The four rows that were live on 2026-07-29, verbatim from the table. Each is
+# a real 8-K Item 5.02 AND a restructuring: the collector searches for one item
+# and writes its name into the headline, so the rest of the document — the part
+# that says roles are going — is invisible to any rule that reads a headline.
+COLLECTOR_HEADLINE = "{} 8-K filing (Item 5.02): officer or director change"
+
+LIVE_8K_REDUCTIONS = {
+    "Atlassian Corporation": (
+        "Atlassian Corporation announced a restructuring that results in the "
+        "elimination of certain roles, impacting approximately 10% of the "
+        "Company’s workforce, aimed at rebalancing the company to accelerate "
+        "building the future of teamwork in the AI era.",
+        "Atlassian is cutting approximately 10% of its workforce globally as part "
+        "of a restructuring effort focused on AI and enterprise sales, with "
+        "position eliminations subject to local law and consultation requirements.",
+    ),
+    "Groupon, Inc.": (
+        "Groupon, Inc. announces a restructuring plan including a reduction of up "
+        "to 400 positions globally, with most reductions expected by the end of "
+        "the third quarter 2026.",
+        "Groupon cuts up to 400 roles globally, mostly by Q3 2026, as it "
+        "restructures to focus on AI.",
+    ),
+    "IO Biotech, Inc.": (
+        "IO Biotech, Inc. has announced a restructuring and workforce reduction "
+        "plan as part of efforts to reduce operating expenses, expecting to incur "
+        "one-time charges primarily related to employee termination costs.",
+        "IO Biotech is reducing its workforce globally as part of a restructuring "
+        "plan, with significant severance and termination costs expected in the "
+        "first quarter of 2026.",
+    ),
+    "Lyra Therapeutics, Inc.": (
+        "Lyra Therapeutics, Inc. has approved a plan to suspend development of "
+        "LYR-210 and implement a cost reduction plan, including a workforce "
+        "reduction affecting substantially all remaining employees.",
+        "Lyra Therapeutics cuts nearly all remaining roles in Watertown as it "
+        "suspends development of its lead product candidate.",
+    ),
+}
+
+# The other Atlassian 8-K in the same table: same collector, same boilerplate
+# headline, an actual director appointment. It is the reason this arm reads the
+# summary rather than blanket-rejecting the source.
+REAL_OFFICER_CHANGE = (
+    "Atlassian Corporation announced the appointment of Anil Sabharwal as a "
+    "director, effective February 1, 2026. Sabharwal is currently Vice President "
+    "of Product at Alphabet, Inc.",
+    "Atlassian appoints a new director from Alphabet, signaling a leadership "
+    "change in its board.",
+)
+
+
+class CollectorWrittenHeadlines(unittest.TestCase):
+    """Where the collector writes the headline, the headline is not evidence.
+
+    collectors/sec_edgar.py puts the same sentence on every filing it fetches,
+    so the headline arm of the scope guard reads a constant and can never see
+    the subject of the story. That left the whole boundary resting on the model
+    picking signal_direction='displacement' — a judgement, not the document —
+    and four restructuring 8-Ks went live under 'officer or director change'.
+    """
+
+    def build_8k(self, company, summary, readthrough, direction="displacement"):
+        return validate.build_signal(
+            classified(company=company, pillar="company_development",
+                       signal_direction=direction, city="", country="United States",
+                       headline=COLLECTOR_HEADLINE.format(company),
+                       summary=summary, talent_readthrough=readthrough),
+            raw(headline=COLLECTOR_HEADLINE.format(company),
+                raw_text=summary,
+                source_url="https://www.sec.gov/Archives/edgar/data/1650372/x.htm",
+                source_name="SEC EDGAR"),
+            "sec_edgar",
+        )
+
+    def test_the_headline_arm_is_blind_here(self):
+        """Not a weak signal — no signal. Every one of these headlines is the
+        same sentence with the company name swapped in."""
+        for company in LIVE_8K_REDUCTIONS:
+            with self.subTest(company=company):
+                self.assertIsNone(prefilter.workforce_reduction_term(
+                    COLLECTOR_HEADLINE.format(company)))
+
+    def test_every_live_row_is_rejected(self):
+        for company, (summary, readthrough) in LIVE_8K_REDUCTIONS.items():
+            with self.subTest(company=company):
+                with self.assertRaises(validate.Rejected) as caught:
+                    self.build_8k(company, summary, readthrough)
+                self.assertIn("sibling", str(caught.exception))
+
+    def test_they_are_rejected_even_when_the_model_did_not_say_displacement(self):
+        """The arm this adds. Direction is the model's judgement; on this source
+        it was the only thing standing between a restructuring and the page."""
+        for company, (summary, readthrough) in LIVE_8K_REDUCTIONS.items():
+            for direction in ("neutral", "hiring"):
+                with self.subTest(company=company, direction=direction):
+                    with self.assertRaises(validate.Rejected) as caught:
+                        self.build_8k(company, summary, readthrough, direction)
+                    self.assertIn("collector's", str(caught.exception))
+
+    def test_a_real_officer_change_on_the_same_source_still_builds(self):
+        """The other Atlassian 8-K, filed under the identical headline. If this
+        stops building, the arm has become a ban on the source."""
+        signal = self.build_8k("Atlassian Corporation", *REAL_OFFICER_CHANGE,
+                               direction="neutral")
+        self.assertEqual(signal.pillar, "leadership_change")
+        self.assertEqual(signal.company, "Atlassian Corporation")
+
+    def test_the_document_still_decides_the_pillar(self):
+        """Scope and pillar are different questions, and answering one must not
+        answer the other: forced_pillar still shelves these under leadership."""
+        for company in LIVE_8K_REDUCTIONS:
+            with self.subTest(company=company):
+                self.assertEqual(
+                    validate.forced_pillar("sec_edgar",
+                                           COLLECTOR_HEADLINE.format(company)),
+                    "leadership_change")
+
+    def test_a_publisher_headline_is_not_read_this_way(self):
+        """Deliberately narrow. A news summary mentions last year's cut in a
+        subordinate clause far more often than a headline does, so arm 3 fires
+        only where the headline came from the collector."""
+        self.assertFalse(validate.collector_wrote_the_headline(
+            "google_news", "Acme Systems appoints new CFO"))
+        self.assertTrue(validate.collector_wrote_the_headline(
+            "sec_edgar", COLLECTOR_HEADLINE.format("Acme Corp")))
+
+        signal = build(
+            company="Acme Systems", pillar="leadership_change",
+            signal_direction="neutral", city="",
+            headline="Acme Systems appoints new CFO",
+            summary="Acme Systems named a new CFO two years after it cut 200 roles.",
+            talent_readthrough="A new CFO takes over at Acme Systems.",
+            raw={"raw_text": "Acme Systems appoints new CFO two years after it "
+                             "cut 200 roles.",
+                 "headline": "Acme Systems appoints new CFO"},
+        )
+        self.assertEqual(signal.pillar, "leadership_change")
+
+
+class ReductionVocabulary(unittest.TestCase):
+    """The wording that got past the free gate, and the wording that must not
+    start setting it off."""
+
+    CAUGHT = (
+        # The four live 8-K summaries and read-throughs, by phrase.
+        "the elimination of certain roles",
+        "cutting approximately 10% of its workforce",
+        "a reduction of up to 400 positions globally",
+        "cuts up to 400 roles globally",
+        "a workforce reduction affecting substantially all remaining employees",
+        # The same shapes with the quantifier the old chains happened to miss.
+        "cuts around 1,200 jobs",
+        "shedding as many as 500 positions",
+        "axing a further 80 roles",
+        "eliminating another 30 positions",
+    )
+
+    NOT_CAUGHT = (
+        # Every one of these is a story this product owns.
+        "Government announces new tax cuts for employers",
+        "Acme cut costs by closing two sites and hired 40 staff",
+        "Acme reduces employees' pay by 5%",
+        "Acme cut its dividend and named a new CFO",
+        "Acme reduced the price of its enterprise tier",
+        # "impacting"/"affecting" are deliberately NOT reduction verbs: they are
+        # neutral, and a pay rise "affecting 10% of staff" is a story this
+        # product owns. Atlassian's row is caught by the two verbs that ARE on
+        # the list, in the same summary and read-through, so nothing is lost.
+        "a bonus scheme impacting approximately 10% of the workforce",
+    )
+
+    def test_the_wording_that_escaped_is_caught(self):
+        for text in self.CAUGHT:
+            with self.subTest(text=text):
+                self.assertIsNotNone(prefilter.workforce_reduction_term(text), text)
+
+    def test_the_gap_does_not_reach_across_an_ordinary_noun(self):
+        for text in self.NOT_CAUGHT:
+            with self.subTest(text=text):
+                self.assertIsNone(prefilter.workforce_reduction_term(text), text)
+
+
+class OutOfScopeWorklist(unittest.TestCase):
+    """What retract.py withdraws is derived from the gate, not restated."""
+
+    def rows(self, conn):
+        import retract
+        return retract.find_out_of_scope_rows(conn)
+
+    def insert(self, conn, **over):
+        row = dict(signal_id="s1", headline="Acme to create 300 jobs in Dublin",
+                   summary="Acme will add 300 roles.",
+                   talent_readthrough="300 roles entering Dublin.",
+                   company="Acme", company_key="acme",
+                   pillar="company_development", signal_direction="hiring",
+                   confidence="reported", source_url="https://example.com/a",
+                   source_name="Example", captured_at="2026-01-01",
+                   as_of="2026-01-01", content_hash="h1", collector="google_news")
+        row.update(over)
+        conn.execute(
+            "INSERT INTO signals ({}) VALUES ({})".format(
+                ", ".join(row), ", ".join("?" for _ in row)),
+            tuple(row.values()))
+        conn.commit()
+
+    def test_it_finds_the_8k_rows_whatever_the_direction_says(self):
+        summary, readthrough = LIVE_8K_REDUCTIONS["Groupon, Inc."]
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = schema.connect(Path(tmp) / "scope.db")
+            self.insert(conn, signal_id="clean", content_hash="clean")
+            self.insert(
+                conn, signal_id="groupon", content_hash="groupon",
+                company="Groupon, Inc.", company_key="groupon",
+                collector="sec_edgar", pillar="leadership_change",
+                signal_direction="neutral",
+                headline=COLLECTOR_HEADLINE.format("Groupon, Inc."),
+                summary=summary, talent_readthrough=readthrough)
+
+            found = self.rows(conn)
+            conn.close()
+
+        self.assertEqual([r["signal_id"] for r in found], ["groupon"])
+        self.assertIn("collector's", found[0]["arm"])
+        self.assertIn("400 positions", found[0]["term"])
+
+    def test_it_refuses_a_worklist_that_swallows_the_table(self):
+        """A vocabulary change that starts matching everything must go red, not
+        withdraw the site."""
+        import retract
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = schema.connect(Path(tmp) / "unsafe.db")
+            # Enough rows for a share to mean anything: below MIN_ROWS the
+            # guard deliberately says nothing.
+            for n in range(retract.MIN_ROWS):
+                self.insert(conn, signal_id=f"cut{n}", content_hash=f"cut{n}",
+                            headline=f"Acme to cut {n + 1}00 jobs in Dublin",
+                            signal_direction="displacement")
+            with self.assertRaises(retract.Unsafe):
+                retract.find_out_of_scope_rows(conn)
+            # --force is the human saying the number is genuinely right.
+            self.assertEqual(len(retract.find_out_of_scope_rows(conn, force=True)),
+                             retract.MIN_ROWS)
+            conn.close()
+
+    def test_a_small_table_is_not_judged_on_a_share(self):
+        import retract
+        summary, readthrough = LIVE_8K_REDUCTIONS["Groupon, Inc."]
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = schema.connect(Path(tmp) / "small.db")
+            self.insert(conn, signal_id="groupon", content_hash="groupon",
+                        company="Groupon, Inc.", company_key="groupon",
+                        collector="sec_edgar", signal_direction="neutral",
+                        headline=COLLECTOR_HEADLINE.format("Groupon, Inc."),
+                        summary=summary, talent_readthrough=readthrough)
+            self.assertEqual(len(retract.find_out_of_scope_rows(conn)), 1)
+            conn.close()
+
+
 class NamedEmployer(unittest.TestCase):
     """A description is not a name. Numbers and symbols in a name are."""
 
