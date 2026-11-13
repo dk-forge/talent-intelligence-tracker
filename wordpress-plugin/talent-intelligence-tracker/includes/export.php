@@ -116,6 +116,48 @@ function tit_export_filename($ext) {
         . gmdate('Y-m-d') . '.' . $ext;
 }
 
+/**
+ * The upstream index a row was DISCOVERED through, which is not the publisher
+ * we store: GDELT hands us an article URL, we read and store the article.
+ *
+ * GDELT asks to be cited when data found through it is redistributed, and the
+ * credit on the sources page does not travel with a downloaded file — so it
+ * rides on the row. The rows already carry `collector`, so this is a lookup,
+ * not new plumbing.
+ *
+ * Collectors that read a publisher directly (a government service, an
+ * employer's own job board) have no upstream index and are absent on purpose,
+ * as is an unrecognised collector: a row we cannot attribute honestly gets no
+ * upstream clause rather than a guessed one.
+ */
+function tit_export_upstream($collector) {
+    $by_collector = array(
+        'gdelt'           => 'GDELT',
+        'google_news'     => 'Google News',
+        'sec_edgar'       => 'SEC EDGAR',
+        'sec_form_d'      => 'SEC EDGAR',
+        'sec_form_d_bulk' => 'SEC EDGAR',
+        'sec_execcomp'    => 'SEC EDGAR',
+    );
+    return $by_collector[(string) $collector] ?? '';
+}
+
+/** Where the upstream indexes live, for the JSON header. */
+function tit_export_upstream_urls() {
+    return array(
+        'GDELT'       => 'https://www.gdeltproject.org/',
+        'Google News' => 'https://news.google.com/',
+        'SEC EDGAR'   => 'https://www.sec.gov/edgar',
+    );
+}
+
+/** Us, plus whoever we found the row through. One cell, so it cannot be lost. */
+function tit_export_attribution($collector) {
+    $base = 'Talent Intelligence Tracker - asktherecruiter.com - CC BY 4.0';
+    $up = tit_export_upstream($collector);
+    return $up === '' ? $base : $base . ' - discovered via ' . $up;
+}
+
 /** functions is stored as a JSON array; export it as a readable list. */
 function tit_export_functions_list($raw) {
     $arr = json_decode((string) $raw, true);
@@ -181,7 +223,7 @@ function tit_export_csv() {
             tit_csv_guard((string) $row->predicted_outcome),
             $row->check_after_date ?: '',
             tit_csv_guard((string) $row->outcome_observed),
-            'Talent Intelligence Tracker - asktherecruiter.com - CC BY 4.0',
+            tit_export_attribution($row->collector ?? ''),
         ));
     });
 
@@ -200,6 +242,11 @@ function tit_export_json() {
     echo '"source":"Talent Intelligence Tracker - asktherecruiter.com",';
     echo '"license":"CC BY 4.0. Free to use with attribution to asktherecruiter.com.",';
     echo '"source_url":' . wp_json_encode(home_url('/talent-intelligence-tracker/')) . ',';
+    // The same credit the CSV puts in every source_attribution cell. Named in
+    // the header AND per record, because a file that only says "asktherecruiter"
+    // gives a reader no way to credit the index a row was found through.
+    echo '"attribution":"Talent Intelligence Tracker - asktherecruiter.com - CC BY 4.0. Where a record names discovered_via, credit that index alongside us.",';
+    echo '"upstream_sources":' . wp_json_encode(tit_export_upstream_urls(), JSON_UNESCAPED_SLASHES) . ',';
     echo '"generated":"' . gmdate('Y-m-d\TH:i:s\Z') . '",';
     echo '"data":[';
 
@@ -208,7 +255,10 @@ function tit_export_json() {
     $count = 0;
     tit_export_walk(function ($row) use (&$count) {
         // The same public fields /query returns, so the download and the API
-        // describe every record identically.
+        // describe every record identically — plus discovered_via, which the
+        // API does not need: a response rendered on our own page is already
+        // covered by the credit on the sources page, and a downloaded file
+        // travels alone.
         $entry = array(
             'signal_id'          => $row->signal_id,
             'headline'           => $row->headline,
@@ -242,6 +292,9 @@ function tit_export_json() {
             'source_name'        => $row->source_name,
             'published_date'     => $row->published_date,
             'captured_at'        => $row->captured_at,
+            // null, never '', for a row with no upstream index: an empty
+            // string reads as an index we declined to name.
+            'discovered_via'     => tit_export_upstream($row->collector ?? '') ?: null,
         );
         echo ($count ? ',' : '') . wp_json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $count++;

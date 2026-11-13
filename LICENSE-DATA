@@ -19,6 +19,10 @@ indicate if changes were made.
     https://asktherecruiter.com/blog/talent-intelligence-tracker/
     Licensed CC BY 4.0
 
+Many records were found through an upstream index, and every export names which
+one per record — `source_attribution` in the CSV, `discovered_via` in the JSON.
+Where a record names one, credit it alongside us; see **Upstream sources**.
+
 ## What the licence does and does not cover
 
 This licence covers **our** contribution: the structured records, the
@@ -29,7 +33,28 @@ primary source (a press release, a regulatory filing, a news article) that
 remains the property of its publisher under its own terms. We store a link, a
 short factual summary, and our own analysis — never a reproduction of the
 source. If you redistribute this data, you are responsible for how you use the
-linked sources.
+linked sources. Nor does it cover the upstream indexes that led us to those
+sources, which are named below.
+
+## Upstream sources
+
+We do not redistribute anyone else's dataset. We redistribute our own
+structured records and a link. But many of those records were *found* through
+an upstream index rather than by reading a publisher directly, and those
+indexes ask to be cited when work built on them is passed on:
+
+- **GDELT** — https://www.gdeltproject.org/ — a global news index, and the only
+  route we have to news older than a feed window. It gives us an article URL;
+  we read the article and store the publisher.
+- **SEC EDGAR** — https://www.sec.gov/edgar — US regulatory filings (8-K Item
+  5.02 and Form D). The filings are public domain; the credit is a courtesy and
+  a pointer to the authoritative copy.
+- **Google News** — an aggregator used only for discovery. It is never stored
+  as a source; the publisher it points to is.
+
+The credit travels in the file, not only on our sources page: each exported
+record names the index it was discovered through, so a downloaded CSV or JSON
+carries everything needed to attribute it.
 
 ## Corrections
 
