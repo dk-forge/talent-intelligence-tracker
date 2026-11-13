@@ -20,11 +20,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-structured:main:c413cd64f71c5a24": {
-      "first": 1794543489,
-      "last": 1794543489,
-      "subject": "CI RED: collect-structured: [czechia_ares] FETCH FAILED: HTTPSConnectionPool(host='ares.gov.cz', port=443): Read timed out. (read timeout=90)"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -51,6 +46,6 @@
       "subject": "CI RED: tests: assert not ['dynamicbusiness.com', 'launchbaseafrica.com', 'pakistantoday.com.pk', 'siliconangle.com', 'thestar.com.my', 'uktech.news', ...]"
     }
   },
-  "updated_at": "2026-11-13T08:51:12+00:00",
+  "updated_at": "2026-11-13T09:15:42+00:00",
   "version": 1
 }
