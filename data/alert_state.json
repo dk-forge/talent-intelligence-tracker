@@ -34,8 +34,13 @@
       "first": 1794534812,
       "last": 1794534812,
       "subject": "CI RED: tests: AssertionError: b'{\"c[51 chars]:52:44+00:00\", \"captured_at\": \"2026-11-13T01:5[1137 chars]l}]}' != b'{\"c[51 chars]:52:45+00:00\", \"captured_at\": \"2026-11-13T01:5[1137 "
+    },
+    "tests:main:27a557a89b1ec39d": {
+      "first": 1794541998,
+      "last": 1794541998,
+      "subject": "CI RED: tests: DevTools listening on ws://127.0.0.1:36931/devtools/browser/e912dfb1-09a7-4996-943c-7ae4aaff7956"
     }
   },
-  "updated_at": "2026-11-13T01:53:33+00:00",
+  "updated_at": "2026-11-13T03:53:19+00:00",
   "version": 1
 }
