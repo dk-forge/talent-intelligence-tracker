@@ -98,6 +98,8 @@ import shutil
 import sys
 from datetime import datetime, timezone
 
+from . import provider_names
+
 LEDGER_DIR = os.environ.get("TIT_GATE_LEDGER_DIR") or os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "data", "gate_labels")
@@ -403,6 +405,25 @@ def flush() -> int:
         print(f"[gate-ledger] dry run — {len(lines)} gate label(s) not written")
         return 0
     try:
+        # The standalone-brand rule, enforced where the bytes are produced.
+        # Headlines, hosts and teasers come from live candidates, so a
+        # collector meeting one of the banned data providers writes its name
+        # into a committed file with nobody in the loop — which it did, on
+        # 2026-08-13, taking main red for hours. See pipeline/provider_names.py
+        # for why the name is redacted rather than the line dropped.
+        #
+        # HERE and not in `record()` because this is the single choke point:
+        # every line written passes through it exactly once, whatever built or
+        # later amended it, so a field added to a label line in six months is
+        # covered without anybody remembering that it needs to be.
+        redacted = 0
+        for line in lines:
+            if provider_names.scrub_line(line):
+                line["redacted"] = True
+                redacted += 1
+        if redacted:
+            print(f"[gate-ledger] redacted a data-provider name from "
+                  f"{redacted} label line(s) (standalone-brand rule)")
         os.makedirs(LEDGER_DIR, exist_ok=True)
         path = shard_path(month())
         with open(path, "a", encoding="utf-8") as fh:
@@ -501,6 +522,57 @@ def around_run(label="collect"):
     return decorate
 
 
+def scrub_shards(directory: str | None = None) -> tuple[int, int]:
+    """Redact banned provider names from shards ALREADY on disk.
+
+    `flush()` covers everything written from now on; this is for what was
+    written before it did, and for the day a seventh name is added to the guard
+    list with six months of shards already committed. Returns (files, lines)
+    changed. Rewrites in place, keeping each shard's compression, and touches
+    nothing it does not have to — a shard with no hit is not rewritten, so a
+    no-op run leaves an empty diff rather than a directory of fresh blobs.
+
+    `bootstrap-weak.jsonl` is left alone: it is exempt in the guard, it is
+    hand-built rather than collected, and it is not this module's file.
+    """
+    root = directory or LEDGER_DIR
+    files = lines_changed = 0
+    if not os.path.isdir(root):
+        return (0, 0)
+    for name in sorted(os.listdir(root)):
+        if not name.startswith(SHARD_PREFIX):
+            continue
+        if not (name.endswith(".jsonl") or name.endswith(".jsonl.gz")):
+            continue
+        path = os.path.join(root, name)
+        opener = gzip.open if name.endswith(".gz") else open
+        with opener(path, "rt", encoding="utf-8") as fh:
+            raw_lines = fh.readlines()
+        out, hits = [], 0
+        for raw in raw_lines:
+            stripped = raw.strip()
+            if not stripped:
+                continue
+            try:
+                doc = json.loads(stripped)
+            except ValueError:
+                out.append(stripped)      # unparseable: kept verbatim, not lost
+                continue
+            if provider_names.scrub_line(doc):
+                doc["redacted"] = True
+                hits += 1
+            out.append(json.dumps(doc, ensure_ascii=False,
+                                  separators=(",", ":")))
+        if not hits:
+            continue
+        with opener(path, "wt", encoding="utf-8") as fh:
+            fh.write("\n".join(out) + "\n")
+        files += 1
+        lines_changed += hits
+        print(f"[gate-ledger] {name}: redacted {hits} line(s)")
+    return (files, lines_changed)
+
+
 def read_all(directory: str | None = None):
     """Every label line in the ledger, oldest shard first, plain and gzipped.
 
@@ -525,3 +597,18 @@ def read_all(directory: str | None = None):
                     yield json.loads(raw)
                 except ValueError:
                     continue
+
+
+if __name__ == "__main__":       # pragma: no cover - operator entry point
+    # `python3 -m pipeline.gate_ledger --scrub [dir]`. The only thing this
+    # module does from a command line, because the only thing it has that a
+    # human ever needs to run by hand is the retrospective scrub.
+    if "--scrub" in sys.argv[1:]:
+        rest = [a for a in sys.argv[1:] if not a.startswith("-")]
+        changed_files, changed_lines = scrub_shards(rest[0] if rest else None)
+        print(f"[gate-ledger] scrub: {changed_lines} line(s) in "
+              f"{changed_files} shard(s)")
+    else:
+        print(__doc__.strip().splitlines()[0])
+        print("usage: python3 -m pipeline.gate_ledger --scrub [directory]")
+        sys.exit(2)

@@ -72,3 +72,28 @@ def test_no_banned_provider_name_in_any_tracked_file():
         "(pattern numbers index the base64 list in "
         "tests/test_no_provider_names.py): " + "; ".join(sorted(offenders))
     )
+
+
+def test_the_scrubber_covers_every_banned_pattern():
+    """The write-time remedy must know every name this guard refuses.
+
+    `pipeline/provider_names.py` keeps its own copy of the list, deliberately:
+    a guard that imported its expectations from the code it guards would pass
+    by agreement rather than by checking. This is the seam where the two copies
+    are compared, and it is what fails when a seventh provider is added here
+    and not there — which is precisely how the fifth one stayed in the tree
+    through two "complete" passes.
+
+    It matters because the ledger is the one file in this repo written from
+    live text: on 2026-08-13 `data/gate_labels/labels-2026-08.jsonl` carried
+    three of these names on eight lines that no human ever typed, and main was
+    red for hours before anyone saw it.
+    """
+    from pipeline import provider_names
+
+    missed = [f"pattern #{idx + 1}" for idx, pattern in enumerate(_BANNED)
+              if provider_names.scrub(f"x {pattern} y") != "x [provider] y"]
+    assert not missed, (
+        "pipeline/provider_names.py does not scrub: " + ", ".join(missed)
+        + " — add the same base64 entry to its _ENCODED tuple, or the gate "
+        "ledger will write that name into a committed file automatically.")

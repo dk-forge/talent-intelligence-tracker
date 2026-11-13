@@ -4,6 +4,34 @@ on:
   push:
     branches: [main]
   pull_request:
+  # MAIN IS NOT COVERED BY THE PUSH TRIGGER ABOVE, and on 2026-08-13 that was
+  # the whole defect. Every scheduled commit in this repo — collect, the drain
+  # ticks, link hygiene, national press — is pushed by a job using the default
+  # GITHUB_TOKEN, and GitHub deliberately does not start a workflow from a push
+  # made with that token (it is the loop guard: otherwise a committing workflow
+  # could trigger itself). So `push: branches: [main]` fires for a human or an
+  # agent pushing from a laptop and for NOTHING ELSE, which is most of what
+  # lands here.
+  #
+  # A data commit therefore broke tests/test_no_provider_names.py at 12:26Z,
+  # main stayed red with no run to say so, and the first anybody heard of it
+  # was somebody else's pull request going red for a file they had not touched.
+  # That is the worst shape a failure can take: the cost lands on the person
+  # who did not cause it and cannot fix it.
+  #
+  # The fix is NOT a PAT on the push step. That would start every push-triggered
+  # workflow on every data commit — dozens a day — and it would trade a
+  # detection gap for a standing secret with write scope on a repo whose
+  # runners already hold two API keys.
+  #
+  # So: run the suite on a clock. Four hours is chosen against the two things
+  # it has to catch — a collect run (06:00 and 18:00 UTC) and an hourly-ish
+  # data commit — and it means a red main is detected within one collection
+  # cycle rather than never. A failure here reaches the owner the same way
+  # every other red run does, through ci-alert.yml, deduped by cause; it is
+  # read-only and joins no lock group, so it cannot evict a queued writer.
+  schedule:
+    - cron: '25 */4 * * *'
   workflow_dispatch:
 
 jobs:

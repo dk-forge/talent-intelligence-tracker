@@ -475,3 +475,125 @@ def test_every_entry_point_that_classifies_also_flushes():
         "these entry points classify — so they buffer gate labels — but never "
         f"flush them, and every verdict they pay for is lost: {offenders}"
     )
+
+
+# --- The standalone-brand rule, enforced where the bytes are produced --------
+#
+# This ledger is the only file in the repo written from live headlines, hosts
+# and teasers, so it is the only one that can put a banned data-provider name
+# into a committed file with no human in the loop. It did, on 2026-08-13:
+# eight lines, three providers, main red for hours and first noticed on
+# somebody else's pull request. tests/test_no_provider_names.py is the guard;
+# these are the tests that the WRITE PATH never gives it anything to find.
+#
+# The name is never spelled here either — it comes from the module's own list.
+
+from pipeline import provider_names                       # noqa: E402
+
+_NAME = provider_names.BANNED[2]
+
+BRANDED = {
+    "source_url": f"https://news.{_NAME}.com/venture/enigma-seed-round",
+    "headline": f"Enigma Raises $71M in Seed Funding - {_NAME.title()}",
+    "raw_text": (f"Enigma Raises $71M in Seed Funding - {_NAME.title()}\n\n"
+                 f"The round was first reported by {_NAME.title()} News, "
+                 "which tracks European seed activity."),
+    "language": "en",
+    "source_country": "US",
+    "collector": "national_press",
+}
+
+
+def _shard_text():
+    with open(gate_ledger.shard_path(gate_ledger.month()),
+              encoding="utf-8") as fh:
+        return fh.read()
+
+
+def test_a_banned_provider_name_never_reaches_the_shard(ledger):
+    gate_ledger.record(BRANDED, "national_press", gate_ledger.YES)
+    gate_ledger.outcome(BRANDED, "validate_reject",
+                        f"aggregator source refused: news.{_NAME}.com")
+    gate_ledger.flush()
+
+    raw = _shard_text().lower()
+    for pattern in provider_names.BANNED:
+        assert pattern not in raw, f"{pattern!r} reached the committed shard"
+
+
+def test_a_redacted_line_keeps_its_label_and_says_it_was_redacted(ledger):
+    """Redacted, not dropped.
+
+    A candidate arriving from an aggregator host is exactly the kind the gate
+    should learn to refuse, so deleting these lines would bias the training set
+    in the one direction that costs money. The provider's NAME is not the
+    feature; "this came from an aggregator" is, and the placeholder carries it.
+    """
+    gate_ledger.record(BRANDED, "national_press", gate_ledger.NO)
+    assert gate_ledger.flush() == 1
+
+    (line,) = _lines(ledger)
+    assert line["gate"] == "NO"
+    assert line["outcome"] == "gate_reject"
+    assert line["redacted"] is True
+    # The candidate survives around the hole: everything but the name is intact
+    # and the host is still recognisably an aggregator host.
+    assert "Enigma Raises $71M in Seed Funding" in line["headline"]
+    assert line["host"] == "news.[provider].com"
+    assert "European seed activity" in line["teaser"]
+
+
+def test_an_unbranded_line_is_not_marked_redacted(ledger):
+    """The flag means something only if it is not on every line."""
+    gate_ledger.record(PRESS, "national_press", gate_ledger.YES)
+    gate_ledger.flush()
+    (line,) = _lines(ledger)
+    assert "redacted" not in line
+
+
+def test_every_string_field_is_swept_not_a_named_few(ledger):
+    """A field added to a label line in six months must be covered by default.
+
+    The 2026-08-13 hits landed in `host`, `headline` and `teaser` — three
+    different fields — which is the argument against a hand-maintained list of
+    the ones worth scrubbing.
+    """
+    line = {"headline": _NAME, "teaser": _NAME, "host": _NAME,
+            "reason": _NAME, "some_field_added_later": _NAME, "gate": "YES"}
+    assert provider_names.scrub_line(line) is True
+    assert set(line.values()) == {"[provider]", "YES"}
+
+
+def test_scrub_shards_cleans_what_was_written_before(ledger):
+    """The retrospective half: shards already on disk, plain and gzipped.
+
+    This is what cleaned data/gate_labels/labels-2026-08.jsonl, and it is what
+    a seventh banned name would need against six months of committed history.
+    """
+    plain = gate_ledger.shard_path("2026-08")
+    with open(plain, "w", encoding="utf-8") as fh:
+        fh.write(json.dumps({"key": "a", "headline": f"x {_NAME} y"}) + "\n")
+        fh.write(json.dumps({"key": "b", "headline": "nothing here"}) + "\n")
+    packed = gate_ledger.shard_path("2026-07", compressed=True)
+    with gzip.open(packed, "wt", encoding="utf-8") as fh:
+        fh.write(json.dumps({"key": "c", "host": f"{_NAME}.com"}) + "\n")
+
+    assert gate_ledger.scrub_shards(str(ledger)) == (2, 2)
+
+    for doc in gate_ledger.read_all(str(ledger)):
+        assert not provider_names.contains(json.dumps(doc))
+    # The clean line is still there, and untouched.
+    assert [d["headline"] for d in gate_ledger.read_all(str(ledger))
+            if d["key"] == "b"] == ["nothing here"]
+    # A shard with nothing to redact is not rewritten at all, so a no-op run
+    # leaves an empty diff rather than a directory of fresh blobs.
+    assert gate_ledger.scrub_shards(str(ledger)) == (0, 0)
+
+
+def test_the_scrub_can_never_fail_a_run(ledger, monkeypatch):
+    """Same contract as everything else here: bookkeeping never costs a day."""
+    monkeypatch.setattr(provider_names, "scrub_line",
+                        lambda line: (_ for _ in ()).throw(RuntimeError("no")))
+    gate_ledger.record(BRANDED, "national_press", gate_ledger.YES)
+    assert gate_ledger.flush() == 0
+    assert gate_ledger.STATS["failures"] == 1

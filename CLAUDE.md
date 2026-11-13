@@ -260,6 +260,35 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   filer's free-text clarification** — two thirds leave it blank, and the
   largest that fill it in describe one figure that is part cash and part
   consideration, which no column can split.
+- **No commercial data provider is named anywhere in the tree, and one file
+  writes itself.** `tests/test_no_provider_names.py` scans every tracked file
+  for six banned patterns, held base64-encoded so the guard carries none of
+  them; code that genuinely needs a string (the aggregator blocklist must spell
+  a domain to refuse it) encodes it the same way. Authored files obey this
+  because a human wrote them. `data/gate_labels/labels-*.jsonl` does not:
+  `pipeline/gate_ledger.py` builds every line from a live headline, host and
+  teaser, so a collector meeting one of those publishers commits the name
+  twice a day with nobody in the loop. It did, on 2026-08-13 — eight lines,
+  three providers. So the scrub is **at write time**, in `flush()`, which is
+  the single choke point every line passes through exactly once; a name is
+  **redacted to `[provider]`, never dropped**, because an aggregator-host
+  candidate is precisely what the classifier gate must learn to refuse and
+  deleting those lines biases the training set. `pipeline/provider_names.py`
+  holds the list and the why. Do NOT add a data file to `_EXEMPT` to make the
+  guard quiet — the two exemptions there are stored observations, where
+  rewriting a record would be falsification, and a ledger line is our own
+  bookkeeping rather than evidence. For shards written before the scrub, or the
+  day a seventh name is added:
+  `python3 -m pipeline.gate_ledger --scrub`.
+- **A push made with `GITHUB_TOKEN` starts no workflow, so `push: main` does
+  not cover the scheduled commits.** GitHub suppresses it as a loop guard, and
+  every data commit here is pushed by a job using that token — so `tests.yml`'s
+  push trigger fires for a laptop push and for essentially nothing else. On
+  2026-08-13 a data commit broke the suite at 12:26Z, main stayed red with no
+  run anywhere saying so, and it surfaced on an unrelated pull request. That is
+  why `tests.yml` also runs on a 4-hourly cron. A PAT on the push step is not
+  the fix: it starts every push-triggered workflow on every data commit and
+  adds a write-scoped secret to runners that already hold two API keys.
 - **Normalise through fixed vocabularies.** Nothing freeform is stored. A value
   that will not normalise is a rejected record, not a new category.
 - **A collector returning zero is `degraded`, not `ok`.** Silent zero is how
