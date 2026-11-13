@@ -179,6 +179,11 @@ SOURCE_NAME = "DART disclosures (Korea, FSS OpenDART)"
 # Referer and no browser shape, unlike BSE, so the tracker's own agent is used.
 USER_AGENT = "TalentIntel/1.0 (+https://asktherecruiter.com)"
 
+# A transport blip or a 5xx is retried this many times in all, RETRY_WAIT seconds
+# apart, before the run is called ERROR. A 4xx is never retried.
+RETRIES = 3
+RETRY_WAIT = 15
+
 # The disclosure detail types this collector reads. Both are values of
 # `pblntf_detail_ty` in the published request spec.
 #
@@ -454,8 +459,28 @@ def is_wanted(report_nm: str) -> bool:
 
 
 def _payload(url: str, params: dict, *, timeout: int, session) -> dict:
+    """One OpenDART call, retried on a transport blip or a 5xx, never on a 4xx.
+
+    This made ONE request and let a dropped connection ('Remote end closed
+    connection without response') or a 5xx end the run in ERROR; the host
+    answered normally hours later. The last attempt re-raises the original
+    exception, so a source that is really down is still loud.
+    """
     get = (session or requests).get
-    resp = get(url, params=params, headers=_headers(), timeout=timeout)
+    resp = None
+    for attempt in range(RETRIES):
+        try:
+            resp = get(url, params=params, headers=_headers(), timeout=timeout)
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+            if attempt == RETRIES - 1:
+                raise
+            if session is None:
+                time.sleep(RETRY_WAIT)
+            continue
+        if getattr(resp, "status_code", 0) < 500 or attempt == RETRIES - 1:
+            break
+        if session is None:
+            time.sleep(RETRY_WAIT)
     status_code = getattr(resp, "status_code", 0)
     if status_code != 200:
         raise OpenDartError(
