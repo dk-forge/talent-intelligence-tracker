@@ -461,6 +461,23 @@ jobs:
           python build_board_series.py --publish --out "$RUNNER_TEMP/board_series.json" \
             || echo "::warning::open-role counts were not published; the page keeps its previous copy"
 
+      # Owner ruling 2026-11-13 ("yes, employer links"): "Open roles now" on
+      # company pages and in the emails. Reads the role snapshot ats_boards
+      # wrote this run (gitignored, never committed: an archive of adverts is
+      # a listings archive), re-checks every link a reader could click and
+      # drops a 404/410, then replaces the site's copy whole. Same best-effort
+      # rule as above; the plugin hides the block once the copy is 30h old, so
+      # a missed publish shows nothing rather than yesterday's roles.
+      - name: Publish open roles
+        if: ${{ !inputs.dry_run && !cancelled() && steps.pick.outputs.value == 'ats_boards' }}
+        timeout-minutes: 15
+        env:
+          WP_SITE_URL: ${{ secrets.WP_SITE_URL }}
+          WP_API_KEY: ${{ secrets.WP_API_KEY }}
+        run: |
+          python open_roles.py --publish \
+            || echo "::warning::open roles were not published; the site hides the block once its copy is 30h old"
+
   # The guardrail escalation on its own line, as in collect.yml (#185): an
   # overdue guardrail finding must not turn the collection red, or a real
   # collection failure hides behind it (google_news, 2026-09-17..21).

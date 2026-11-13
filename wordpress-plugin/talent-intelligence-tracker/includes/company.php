@@ -1051,6 +1051,11 @@ function tit_company_render($rows, $key, $profile) {
       // board_series.php matches on the LEGACY slug form (it does its own
       // str_replace(' ', '-') against the key it was given), so it is handed
       // that form explicitly rather than whichever slug the reader arrived on.
+      // Open roles now: up to five titles linking to the employer's own apply
+      // page, '' when there are none or the daily snapshot is stale.
+      if (function_exists('tit_open_roles_company_block')) {
+          echo tit_open_roles_company_block($company_key);  // built and escaped there
+      }
       if (function_exists('tit_board_series_panel')) {
           echo tit_board_series_panel(tit_company_legacy_slug($company_key));  // built and escaped there
       }

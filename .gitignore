@@ -27,3 +27,4 @@ analysis/.cache/
 .scratch/
 
 .worktrees/
+data/open_roles_today.json
