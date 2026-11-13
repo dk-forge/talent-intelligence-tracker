@@ -1559,6 +1559,16 @@ EMPLOYER_KEY_ALIASES = {
     # form and is listed in NON_ASCII_ALIAS_SURVIVORS: it is reachable through
     # the slug index at /company/kcu-npl-daebu/ once the collision is gone.
     'kcu npl대부': 'kcu npl 대부',
+    # --- 2026-11-13 slug-collision review -------------------------------------
+    # ops_status [1c] flagged 6 slugs claimed by two keys. Each pair differs
+    # only by a diacritic, a ligature or a hyphen; the survivor is the
+    # ASCII-clean plainer form, as above.
+    'abenójar tungsten': 'abenojar tungsten',
+    'elax énergie': 'elax energie',
+    'kfh-bahrain': 'kfh bahrain',
+    'škoda auto': 'skoda auto',
+    'væridion': 'vaeridion',
+    'vivofácil': 'vivofacil',
 }
 
 # Alias survivors exempt from the "slugifies to itself" rule, because no
