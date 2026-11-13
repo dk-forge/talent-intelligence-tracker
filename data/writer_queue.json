@@ -246,9 +246,6 @@
       "workflow": "collect-structured"
     }
   ],
-  "red_marks": {
-    "ticket:20261113T165141Z-collect-structured": "2026-11-13T17:21:23Z"
-  },
   "tickets": [
     {
       "attempts": 0,
@@ -2411,6 +2408,7 @@
       "workflow": "correct-company-key.yml"
     },
     {
+      "acknowledged": "2026-11-13T17:41:32Z",
       "attempts": 0,
       "dispatched_at": "2026-11-13T17:03:11Z",
       "history": [
@@ -2433,6 +2431,11 @@
           "at": "2026-11-13T17:21:23Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-11-13T17:41:32Z",
+          "detail": "Diagnosed: self-hosted runner lost communication during the new 'Publish open roles' step (run 43468894602). Collection and the DB commit had already landed; only the role snapshot was lost. Fix (polite, bounded link re-check) is PR #341; a fresh ats_boards ticket is queued after it merges. (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20261113T165141Z-collect-structured",
