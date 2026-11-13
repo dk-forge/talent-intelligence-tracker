@@ -39,8 +39,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:b7e133712589e268": {
+      "first": 1794554629,
+      "last": 1794554629,
+      "subject": "CI RED: tests: assert not ['dynamicbusiness.com', 'launchbaseafrica.com', 'pakistantoday.com.pk', 'siliconangle.com', 'thestar.com.my', 'uktech.news', ...]"
     }
   },
-  "updated_at": "2026-11-13T06:23:27+00:00",
+  "updated_at": "2026-11-13T07:23:50+00:00",
   "version": 1
 }
