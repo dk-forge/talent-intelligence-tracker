@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "collect-structured:main:c413cd64f71c5a24": {
+      "first": 1794543489,
+      "last": 1794543489,
+      "subject": "CI RED: collect-structured: [czechia_ares] FETCH FAILED: HTTPSConnectionPool(host='ares.gov.cz', port=443): Read timed out. (read timeout=90)"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +46,6 @@
       "subject": "CI RED: tests: DevTools listening on ws://127.0.0.1:36931/devtools/browser/e912dfb1-09a7-4996-943c-7ae4aaff7956"
     }
   },
-  "updated_at": "2026-11-13T03:53:19+00:00",
+  "updated_at": "2026-11-13T04:18:10+00:00",
   "version": 1
 }
