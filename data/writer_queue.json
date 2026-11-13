@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-13T17:01:39Z",
-  "last_tick": "2026-11-13T17:01:39Z",
+  "last_dispatch": "2026-11-13T17:03:11Z",
+  "last_tick": "2026-11-13T17:03:11Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -249,39 +249,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-13T17:01:39Z",
-      "history": [
-        {
-          "at": "2026-11-13T16:36:19Z",
-          "detail": "dry run for the six aliases merged in #337 (abenojar tungsten, elax energie, kfh bahrain, skoda auto, vaeridion, vivofacil)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-13T17:01:39Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261113T163619Z-correct-company-key",
-      "inputs": {
-        "dry_run": "true"
-      },
-      "priority": 0,
-      "reason": "dry run for the six aliases merged in #337 (abenojar tungsten, elax energie, kfh bahrain, skoda auto, vaeridion, vivofacil)",
-      "requested_at": "2026-11-13T16:36:19Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "correct-company-key.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-11-13T17:03:11Z",
       "history": [
         {
           "at": "2026-11-13T16:51:41Z",
           "detail": "first open-roles publish after the 1.115.1 deploy (owner asked to deploy and merge, 2026-11-13); ats_boards is free, no model",
           "event": "queued"
+        },
+        {
+          "at": "2026-11-13T17:03:11Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20261113T165141Z-collect-structured",
@@ -294,7 +272,7 @@
       "requested_at": "2026-11-13T16:51:41Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "collect-structured.yml"
     },
     {
@@ -318,44 +296,6 @@
       "run_id": null,
       "state": "queued",
       "workflow": "correct-company-key.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-07T00:49:22Z",
-      "history": [
-        {
-          "at": "2026-11-07T00:40:13Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-07T00:49:22Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-07T01:05:46Z",
-          "detail": "run 42320560675",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-07T01:16:27Z",
-          "detail": "run 42320560675",
-          "event": "landed"
-        }
-      ],
-      "id": "20261107T004013Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-07T01:16:27Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-07T00:40:13Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42320560675",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2630,6 +2570,44 @@
       "run_id": "43463951873",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-13T17:01:39Z",
+      "history": [
+        {
+          "at": "2026-11-13T16:36:19Z",
+          "detail": "dry run for the six aliases merged in #337 (abenojar tungsten, elax energie, kfh bahrain, skoda auto, vaeridion, vivofacil)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-13T17:01:39Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-13T17:03:11Z",
+          "detail": "run 43468633515",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-13T17:03:11Z",
+          "detail": "run 43468633515",
+          "event": "landed"
+        }
+      ],
+      "id": "20261113T163619Z-correct-company-key",
+      "inputs": {
+        "dry_run": "true"
+      },
+      "landed_at": "2026-11-13T17:03:11Z",
+      "priority": 0,
+      "reason": "dry run for the six aliases merged in #337 (abenojar tungsten, elax energie, kfh bahrain, skoda auto, vaeridion, vivofacil)",
+      "requested_at": "2026-11-13T16:36:19Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "43468633515",
+      "state": "landed",
+      "workflow": "correct-company-key.yml"
     }
   ],
   "version": 1
