@@ -30,6 +30,8 @@ if (!defined('TIT_OPEN_ROLES_MAX_AGE_H')) define('TIT_OPEN_ROLES_MAX_AGE_H', 30)
 if (!defined('TIT_OPEN_ROLES_COMPANY_N')) define('TIT_OPEN_ROLES_COMPANY_N', 5);
 if (!defined('TIT_OPEN_ROLES_DAILY_N')) define('TIT_OPEN_ROLES_DAILY_N', 10);
 if (!defined('TIT_OPEN_ROLES_WEEKLY_N')) define('TIT_OPEN_ROLES_WEEKLY_N', 20);
+// The CV button lands on the home page intake form (#start-intake, added in
+// tit_open_roles_cv_url). Owner ruling 2026-11-13: correct, keep it.
 if (!defined('TIT_OPEN_ROLES_CV_URL')) define('TIT_OPEN_ROLES_CV_URL', 'https://asktherecruiter.com/');
 
 /** The providers whose terms allow titles and outbound links (docs/SOURCE-TERMS-open-roles.md). */
