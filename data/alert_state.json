@@ -20,6 +20,11 @@
       "last": 1794590471,
       "subject": "CI RED: collect-structured: no error line could be extracted from the log"
     },
+    "drain-writers:main:2e81661ce7c364f0": {
+      "first": 1794590539,
+      "last": 1794590539,
+      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -36,6 +41,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-13T17:21:13+00:00",
+  "updated_at": "2026-11-13T17:22:20+00:00",
   "version": 1
 }
