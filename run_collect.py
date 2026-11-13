@@ -22,7 +22,7 @@ from sentry_init import init_sentry
 
 init_sentry(component="run_collect")
 from collectors import (ats_boards, benchmark_chase, bse_india, companies_house,
-                        czechia_ares, denmark_cvr, edinet_japan,
+                        czechia_ares, denmark_cvr, edinet_japan, nz_nzbn,
                         estonia_ariregister, gdelt,
                         google_news, http_retry, irs_form_990,
                         israel_registrar, national_press,
@@ -125,6 +125,11 @@ SOURCES = {
     # on the sibling repository and must be copied here. Keyed, derived, spends
     # nothing: no model is called on any path.
     "denmark_cvr": denmark_cvr,
+    # New Zealand's INCORPORATION signal from MBIE's NZBN register. DORMANT
+    # behind two locks (no cron, TIT_NZ_NZBN defaults off) and its routes have
+    # not been read against the live API. Keyed (NZBN_API_KEY_NZ), derived,
+    # spends nothing. Terms: docs/SOURCE-nz-nzbn.md.
+    "nz_nzbn": nz_nzbn,
     # Israel's FUNDING spine, and the only registry here that is not a
     # leadership one. The registrar's daily changes file is an event stream,
     # not a company list: 558,617 rows across 96 act types, and four of those

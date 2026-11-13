@@ -1,10 +1,19 @@
 # NZ: the NZBN register, terms of reuse and the rules a collector must meet
 
-Recorded 2026-11-12. **No NZ collector exists yet.** `source_registry.py` carries
-a note that NZ needs a registered key; the key (GitHub secret `NZBN_API_KEY_NZ`)
-was approved by MBIE on 2026-11-11, and nothing in the repo reads it. Nothing may
-render on the Sources page as covered until a collector, a health check and a
-passing test exist (coverage is earned). Arming it is the owner's call.
+Recorded 2026-11-12. `collectors/nz_nzbn.py` (built 2026-11-13) is **DORMANT**:
+no workflow schedules it and `TIT_NZ_NZBN` defaults off. The key (GitHub secret
+`NZBN_API_KEY_NZ`) was approved by MBIE on 2026-11-11. **Its routes and field
+names were written from MBIE's v5 documentation and have never been read against
+the live API** (`ROUTES_VERIFIED_LIVE = False`; an armed run refuses until that
+is flipped by someone who has read a real response). Test fixtures are
+constructed, not captured. It stays off the Sources page until a run has stored
+from it (coverage is earned), and arming is the owner's call.
+
+Not yet done, needed before arming: a probe script run with the key, a cron via
+`schedule-link-hygiene.yml`/`drain-writers.yml` (never its own `schedule:`),
+persisting ETags between runs (the collector takes them as a parameter because a
+collector never writes), and the Sources page entry naming MBIE's NZBN register
+and the API Access agreement.
 
 ## Terms, confirmed in writing
 

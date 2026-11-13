@@ -154,6 +154,7 @@ MAX_AGE_HOURS = {
     # week is recovered simply by widening TIT_DK_DAYS and nothing is lost
     # permanently.
     "denmark_cvr": 2400,        # ~100 days: DORMANT, no cron, no health row
+    "nz_nzbn": 2400,            # DORMANT like denmark_cvr: tighten the day a cron is chosen
     # SEC publishes the Form D DATA SETS once a quarter, so this source is
     # quiet by design between them.
     "sec_form_d_bulk": 2400,   # ~100 days: one quarter, plus room to notice
