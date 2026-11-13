@@ -1423,7 +1423,8 @@ SOURCES = (
            "Business press", ("Funding", "M&A"), "Global",
            notes="Pro Rata is the most-read daily deal-flow newsletter in venture."),
     Source("SiliconANGLE", "https://siliconangle.com", "candidate",
-           "Technology press", ("Funding", "Product launch"), "Global"),
+           "Technology press", ("Funding", "Product launch"), "Global",
+           rss="https://siliconangle.com/feed/"),
     # Two owner-supplied candidates were removed here on 2026-08-03 under the
     # standalone-brand rule (a commercial startup and funding database, and a
     # commercial private-capital database; both paid, neither ever wired).
