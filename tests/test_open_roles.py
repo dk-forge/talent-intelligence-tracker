@@ -11,6 +11,7 @@ The rules under test, each one a ruling:
 """
 
 import json
+import time
 import shutil
 import subprocess
 from pathlib import Path
@@ -277,3 +278,65 @@ def test_ingest_refuses_a_link_to_our_own_site():
     expr = expr.replace("class R ", "class WP_REST_Request ").replace("new R(", "new WP_REST_Request(")
     assert _php(bad, expr) == "tit_open_roles_link"
     assert _php(_payload(), expr) == "stored"
+
+
+# --- The link re-check is polite and bounded (2026-11-13) ------------------
+#
+# The first live run's re-check fired up to 8 requests at once at the same
+# job-board hosts, past Lever's published Crawl-delay: 1, and ran ~10 minutes
+# before the self-hosted runner lost its connection (run 43468894602). It is
+# now one serial queue per host, the host's own delay between requests, and a
+# hard deadline after which the rest are "unchecked" (kept: every role came
+# from the employer's own board API minutes earlier).
+
+import threading
+
+
+def test_one_request_at_a_time_per_host():
+    active: dict[str, int] = {}
+    worst: dict[str, int] = {}
+    lock = threading.Lock()
+
+    def status(url, timeout):
+        host = url.split("/")[2]
+        with lock:
+            active[host] = active.get(host, 0) + 1
+            worst[host] = max(worst.get(host, 0), active[host])
+        time.sleep(0.01)
+        with lock:
+            active[host] -= 1
+        return 200
+
+    urls = [f"https://job-boards.greenhouse.io/a/jobs/{i}" for i in range(12)]
+    urls += [f"https://jobs.ashbyhq.com/a/{i}" for i in range(12)]
+    out = open_roles.check_links(urls, status=status, delays={})
+    assert len(out) == 24 and set(out.values()) == {200}
+    assert worst == {"job-boards.greenhouse.io": 1, "jobs.ashbyhq.com": 1}
+
+
+def test_the_host_delay_is_honoured():
+    stamps = []
+    def status(url, timeout):
+        stamps.append(time.monotonic())
+        return 200
+    urls = [f"https://jobs.lever.co/a/{i}" for i in range(3)]
+    open_roles.check_links(urls, status=status, delays={"jobs.lever.co": 0.2})
+    gaps = [b - a for a, b in zip(stamps, stamps[1:])]
+    assert len(gaps) == 2 and min(gaps) >= 0.19
+
+
+def test_lever_hosts_carry_lever_crawl_delay():
+    assert open_roles.HOST_DELAY["jobs.lever.co"] >= 1.0
+
+
+def test_a_hard_deadline_stops_the_check():
+    def status(url, timeout):
+        time.sleep(0.2)
+        return 200
+    urls = [f"https://job-boards.greenhouse.io/a/jobs/{i}" for i in range(50)]
+    t0 = time.monotonic()
+    out = open_roles.check_links(urls, status=status, delays={}, budget_s=0.5)
+    assert time.monotonic() - t0 < 1.5
+    assert sum(1 for v in out.values() if v == "skipped") >= 40
+    # Unchecked is never "dead": nothing skipped is dropped by build().
+    assert all(v != 404 for v in out.values())
