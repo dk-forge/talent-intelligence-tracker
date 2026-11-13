@@ -66,6 +66,18 @@ jobs:
       - name: Render the dashboard and count its queries and bytes
         run: php tests/php/render_dashboard.php
 
+      # The .htaccess block is the one artefact in this repo that can take the
+      # whole of /blog down with it, and the page block hands a PUBLIC lifetime
+      # to HTML. Reading the source proves neither: the conditions are PHP
+      # concatenations of derived paths, and whether the page regex matches only
+      # the page is a question for PCRE, which is the engine Apache's ap_expr
+      # uses. So the block is emitted here and its regex run against real
+      # request lines. This is what caught the plain-permalink case, where
+      # parse_url() hides the query and the emitted condition would have put a
+      # public max-age on every URL on the install.
+      - name: Emit the .htaccess block and check what its regex matches
+        run: php tests/php/emit_htaccess_block.php
+
       - name: Run tests
         run: python -m pytest -q
 

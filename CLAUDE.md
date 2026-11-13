@@ -192,9 +192,27 @@ Every one of these shipped as a bug on the sibling:
    fatals the whole plugin. Guard with `is_readable()` and a stub fallback.
 5. `.txt` never reaches WordPress — Apache serves it from disk. Write real
    files for `llms.txt` and similar.
-6. The host injects `no-store` on REST responses; strip it per-endpoint in
-   `.htaccess`, written with probe-and-rollback (a broken `.htaccess` 500s all
-   of `/blog`).
+6. The host injects `no-store` on REST responses **and on the dashboard page**;
+   strip it per-URL in `.htaccess`, written with probe-and-rollback (a broken
+   `.htaccess` 500s all of `/blog`). The page block is the only one that hands a
+   `public` lifetime to HTML, and it is safe **only** because the shortcode
+   reads nothing from the request and the plugin mints no nonce — if a render
+   ever starts reading a filter, the block goes with it. Two traps, both live in
+   `includes/htaccess.php`:
+   - **Anchor the page condition; never prefix-match it.** `THE_REQUEST` is
+     `GET <path> HTTP/1.1`, so the condition matches the path, an optional query
+     string, then the space before `HTTP/`. A prefix would sweep in the
+     corrections log (the audit trail, which must never be cached because
+     `tit_flush_caches()` cannot reach an edge) and the CSV export (which
+     rate-limits with a 429 that must not outlive its cause).
+   - **A permalink is only usable if it is nothing but a path.** `parse_url()`
+     files the query and fragment in separate components, so a plain-permalink
+     install's `/blog/index.php?page_id=8506` reaches the allowlist looking like
+     the ordinary path `/blog/index.php` — and with the optional query group that
+     condition matches *every URL on the site*. Reject a query, a fragment, or a
+     `.php` path. `tests/php/emit_htaccess_block.php` emits the real block and
+     runs its regex through PCRE, which is what Apache's `ap_expr` uses; it
+     caught this while every source-reading test passed.
 7. Cloudflare caches the page. Add a random query string when you need the
    origin's truth, and never put a WP nonce in a full-page-cached form.
 8. Shared hosting 500s randomly under load. Any paging job must retry transient

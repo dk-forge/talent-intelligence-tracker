@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.52.0
+ * Version: 1.53.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.52.0');
+define('TIT_VERSION', '1.53.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -584,9 +584,20 @@ function tit_render_admin_page() {
                <?php if (!empty($ht['reason'])) : ?>(<?php echo esc_html($ht['reason']); ?>)<?php endif; ?>
                for version <?php echo esc_html($ht['version'] ?? '?'); ?>.</p>
             <?php if (!empty($ht['cache_control'])) : ?>
-                <p>Last probe saw <code><?php echo esc_html($ht['cache_control']); ?></code>.
+                <p>Last probe saw <code><?php echo esc_html($ht['cache_control']); ?></code>
+                   on the public API.
                    Two values separated by <code>||</code> means the host's
                    duplicate <code>no-store</code> is still getting through.</p>
+            <?php endif; ?>
+            <?php if (!empty($ht['page_cache_control'])) : ?>
+                <p>And <code><?php echo esc_html($ht['page_cache_control']); ?></code>
+                   on the dashboard page
+                   <?php if (!empty($ht['page_code'])) : ?>(HTTP <?php echo esc_html($ht['page_code']); ?>)<?php endif; ?>.
+                   A <code>public</code> lifetime here is what lets Cloudflare
+                   hold the page instead of every reader paying the origin
+                   render. This one is recorded only — it never rolls the block
+                   back, because a slow cold render is not a broken
+                   <code>.htaccess</code>.</p>
             <?php endif; ?>
         <?php endif; ?>
 
