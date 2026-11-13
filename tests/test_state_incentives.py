@@ -227,7 +227,21 @@ class FlagDefaultsOffAndHidesEverything(unittest.TestCase):
             self.assertFalse(planned_hiring.enabled())
 
     def test_public_outputs_are_byte_identical_with_the_flag_off(self):
-        with mock.patch.dict(os.environ, {planned_hiring.FLAG: "false"}):
+        # build_signal stamps captured_at/as_of from the wall clock at call
+        # time (pipeline/validate.py), and "mixed" makes three store() calls
+        # against "clean"'s one. Comparing their outputs byte-for-byte is
+        # only meaningful if both builds see the same "now" -- otherwise a
+        # slow CI runner can push the two builds across a second boundary
+        # and fail on a timestamp the test was never trying to check.
+        frozen = datetime.now(timezone.utc)
+
+        class _FrozenDatetime(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return frozen
+
+        with mock.patch.dict(os.environ, {planned_hiring.FLAG: "false"}), \
+                mock.patch("pipeline.validate.datetime", _FrozenDatetime):
             clean = self._outputs(self._db("clean", with_planned=False))
             mixed = self._outputs(self._db("mixed", with_planned=True))
         self.assertEqual(clean, mixed)
