@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-13T05:33:38Z",
-  "last_tick": "2026-11-13T05:33:38Z",
+  "last_dispatch": "2026-11-13T07:10:45Z",
+  "last_tick": "2026-11-13T07:10:45Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,6 +247,33 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-13T07:10:45Z",
+      "history": [
+        {
+          "at": "2026-11-13T07:10:37Z",
+          "detail": "measure against the 2026-10 gold sets landed 2026-11-12; confirm recall reports OK and the due-issue closes/never opens",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-13T07:10:45Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261113T071037Z-recall",
+      "inputs": {
+        "publish": "true"
+      },
+      "priority": 0,
+      "reason": "measure against the 2026-10 gold sets landed 2026-11-12; confirm recall reports OK and the due-issue closes/never opens",
+      "requested_at": "2026-11-13T07:10:37Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "recall.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-06T00:36:05Z",
