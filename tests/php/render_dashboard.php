@@ -307,6 +307,13 @@ const TIT_DASH_BYTE_BUDGET = 168000;
  * that actually has a copy, and 72 of 12,970 cited documents do. The remaining
  * headroom is 240 bytes, which is not room for anything: the next addition
  * raises this number and writes down why.
+ *
+ * 2026-07-31, NOT raised, and 11 more bytes of that headroom are spent: 167,760
+ * -> 167,771. No markup was added. Pinning the place-less row to page one (see
+ * THE PINNED ROWS) displaced one UK pay-gap row whose cells happened to be 11
+ * bytes shorter, so this is the render telling the truth about a fixture change
+ * rather than the page growing. Headroom is 229 bytes, and the point stands: the
+ * next addition raises this number and writes down why.
  */
 
 /*
@@ -413,15 +420,10 @@ foreach ($WORLD as $cc => $n) {
     }
 }
 
-// A row placed only by its employer's head office, so the HQ badge renders.
-$wpdb->insert_row(array('hq_country' => 'US', 'hq_city' => 'Seattle',
-    'industry' => 'technology', 'company' => 'TEST FIXTURE HQ Only Employer',
-    'company_key' => 'hq only employer', 'published_date' => gmdate('Y-m-d'),
-    'source_url' => 'https://example.test/hqonly/1'));
-// A row with no place at all, and no date: both print their own words.
-$wpdb->insert_row(array('industry' => 'technology', 'company' => 'TEST FIXTURE Placeless Employer',
-    'company_key' => 'placeless employer', 'published_date' => null,
-    'source_url' => 'https://example.test/placeless/1'));
+// The HQ-only row and the place-less row used to sit here. They are rows whose
+// PRESENCE ON PAGE ONE an assertion depends on, so they now live in THE PINNED
+// ROWS at the end of the fixture with the archived pair. See the note there.
+
 // A withdrawn row must not count towards any figure.
 $wpdb->insert_row(array('country' => 'IL', 'industry' => 'technology', 'is_current' => 0,
     'company' => 'TEST FIXTURE Retracted Employer', 'company_key' => 'retracted employer',
@@ -463,17 +465,67 @@ for ($i = 0; $i < 100; $i++) {
     ));
 }
 
+/* ------------------------------------------------------------------------
+   THE PINNED ROWS, and why every one of them is dated TODAY and inserted LAST.
+
+   The first page is 50 rows ordered materiality bucket, then date, then row_id
+   DESC. So a row an assertion NAMES has to be pinned to the top of that order
+   deliberately, and pinning means both halves: dated today AND inserted after
+   everything else. About a hundred rows of this fixture carry today's date, so a
+   row that is merely recent is somewhere in the middle of a page that holds
+   fifty, and which side of the cut it lands on is decided by the row mix rather
+   than by anything under test.
+
+   TWO WAYS THAT WENT WRONG, both of which read as a renderer regression:
+
+   1. RANK DRIFT. The place-less row was inserted before 220 Edinburgh and Ottawa
+      rows and before the archived pair, so its rank was a function of how many
+      rows happened to be seeded after it. Any session adding fixture rows to
+      test something else moves it, and the failure names the row cell rather
+      than the fixture.
+
+   2. THE CLOCK. insert_row() defaults captured_at to now MINUS AN HOUR, and the
+      sort key is COALESCE(published_date, DATE(captured_at)). So for the first
+      UTC hour of every day that default is YESTERDAY'S date, and any row relying
+      on it drops a full day behind the ~100 rows dated today. That is exactly
+      how this harness went red at 00:11Z on 2026-07-31, with 23 hours in every
+      24 of it passing, and it arrived alongside a data commit and so looked for
+      a while like the committed corpus had changed the render. NOTHING HERE
+      READS data/talent_intel.db: the corpus is the synthetic one seeded above,
+      and no data commit can reach it.
+
+   The rule that follows: a row whose page-one presence is load-bearing sets its
+   own sort key rather than inheriting one. Where the property under test IS a
+   null date, that means setting captured_at explicitly, because that is what the
+   COALESCE falls through to.
+
+   And each of them is looked up BY NAME below rather than by searching the whole
+   page, so a row that ever stops reaching page one fails saying so.
+   ------------------------------------------------------------------------ */
+
+// A row placed only by its employer's head office, so the HQ badge renders.
+$wpdb->insert_row(array('hq_country' => 'US', 'hq_city' => 'Seattle',
+    'industry' => 'technology', 'company' => 'TEST FIXTURE HQ Only Employer',
+    'company_key' => 'hq only employer', 'published_date' => gmdate('Y-m-d'),
+    'source_url' => 'https://example.test/hqonly/1'));
+// A row with no place at all, and no date: both print their own words. The date
+// it sorts by cannot be published_date, because having none is the point, so
+// captured_at is pinned to the start of today UTC -- always in the past, and
+// always today whatever hour this runs at.
+$wpdb->insert_row(array('industry' => 'technology', 'company' => 'TEST FIXTURE Placeless Employer',
+    'company_key' => 'placeless employer', 'published_date' => null,
+    'captured_at' => gmdate('Y-m-d') . ' 00:00:01',
+    'source_url' => 'https://example.test/placeless/1'));
+
 /*
- * THE ARCHIVED-COPY PAIR, and why they are the last rows inserted.
+ * THE ARCHIVED-COPY PAIR.
  *
- * The first page is ordered materiality bucket, then date, then row_id DESC, so
- * an unjudged row dated today and inserted last is deterministically at the top.
- * That matters because the property under test is a CONDITIONAL: the "Archived"
- * link prints where a snapshot exists and prints nothing where one does not, and
- * a fixture where no archived row reaches page one asserts neither half. Before
- * this pair existed the whole dashboard render carried zero of these spans while
- * 1,800 rows in the table held an archive_url, because every one of them is
- * materiality=routine and set aside from the default view.
+ * The property under test is a CONDITIONAL: the "Archived" link prints where a
+ * snapshot exists and prints nothing where one does not, and a fixture where no
+ * archived row reaches page one asserts neither half. Before this pair existed
+ * the whole dashboard render carried zero of these spans while 1,800 rows in the
+ * table held an archive_url, because every one of them is materiality=routine
+ * and set aside from the default view.
  *
  * Both halves are the assertion. A placeholder or a dead link on the rows
  * WITHOUT a copy is the failure that matters here: this page's one claim is that
@@ -764,11 +816,54 @@ check(substr_count($tbody, '<tr>') === TIT_DASH_ROWS,
       . substr_count($tbody, '<tr>'));
 check(strpos($tbody, 'materiality') === false && strpos($tbody, 'routine') === false,
       'and none of them is a routine officer filing, because the default view sets those aside');
-check(strpos($html, '>HQ<') !== false,
-      'a row placed only by its employer\'s head office says so');
-check(strpos($html, 'Location not stated') !== false && strpos($html, 'Date not stated') !== false,
-      'and a row with no place or no date says that too, rather than showing a blank cell');
-check(strpos($html, '/company/') !== false, 'every employer name links to that employer\'s page');
+
+/*
+ * THE CELL ASSERTIONS ARE SCOPED TO THE ROW THEY ARE ABOUT.
+ *
+ * Every check below used to be strpos() over the whole document, which asks "is
+ * this string anywhere on the page" when the question is "does THAT row's cell
+ * say it". Two different failures then wear one message: the renderer stopped
+ * printing the cell, or the fixture row stopped reaching page one. The second is
+ * the one that actually happens -- see THE PINNED ROWS -- and it spent a night
+ * looking like the first.
+ *
+ * So the row is located by name and its absence is its own named failure.
+ */
+preg_match_all('/<tr>.*?<\/tr>/s', $tbody, $tr_matches);
+$page_one = $tr_matches[0];
+$pinned_row = function ($company) use ($page_one) {
+    foreach ($page_one as $tr) {
+        if (strpos($tr, $company) !== false) return $tr;
+    }
+    check(false, "the fixture row \"{$company}\" is not on the first page, so the "
+          . 'assertion that reads its cells is checking nothing. It is pinned to '
+          . 'the top of the sort by being dated today and inserted last: see THE '
+          . 'PINNED ROWS. This is a FIXTURE failure, not a renderer one.');
+    return null;
+};
+
+$hq_row = $pinned_row('TEST FIXTURE HQ Only Employer');
+if ($hq_row !== null) {
+    check(strpos($hq_row, '>HQ<') !== false,
+          'a row placed only by its employer\'s head office says so');
+}
+// Two product rules, so two assertions: a reader hitting a blank Where cell and
+// a reader hitting a blank When cell are two different broken promises.
+$placeless_row = $pinned_row('TEST FIXTURE Placeless Employer');
+if ($placeless_row !== null) {
+    check(strpos($placeless_row, 'Location not stated') !== false,
+          'and a row with no place at all says that, rather than showing a blank cell');
+    check(strpos($placeless_row, 'Date not stated') !== false,
+          'and a row with no date says that, rather than showing a blank cell');
+}
+// EVERY row, not "somewhere on the page". One linked employer satisfied the old
+// check while forty-nine rows printed bare text.
+$unlinked = 0;
+foreach ($page_one as $tr) {
+    if (strpos($tr, '/company/') === false) $unlinked++;
+}
+check($unlinked === 0, 'every employer name links to that employer\'s page, and '
+      . $unlinked . ' of ' . count($page_one) . ' rows printed a bare name');
 
 /* --- the archived copy, where one exists and only there ------------------ */
 
@@ -783,9 +878,8 @@ check(strpos($html, '/company/') !== false, 'every employer name links to that e
  * hold. Counting spans would pass on a render that printed the link on every row
  * and on a render that printed it on none.
  */
-preg_match_all('/<tr>.*?<\/tr>/s', $tbody, $tr_matches);
 $rows_seen = array('archived' => 0, 'plain' => 0);
-foreach ($tr_matches[0] as $tr) {
+foreach ($page_one as $tr) {
     $has_span = strpos($tr, 'class="tit-archived"') !== false;
     if (strpos($tr, 'TEST FIXTURE Archived Outlet') !== false) {
         $rows_seen['archived']++;
@@ -837,9 +931,19 @@ foreach (array('week', 'month', 'year') as $bucket) {
 // becomes wrong at midnight on 31 December and stays wrong until somebody reads
 // it carefully, which is the same failure as corrections.php's hardcoded
 // "$124.0bn" under a caption reading "Measured now".
-check(strpos($html, '>' . date('Y') . ' so far<') !== false,
+//
+// gmdate, not date, and that is not a style choice. The render derives the label
+// from current_time('Y-m-d'), which this harness stubs as UTC, so a local date()
+// here asserts against a DIFFERENT CLOCK than the page renders in. It agrees for
+// most of the year and disagrees for exactly the hours between UTC midnight on 1
+// January and local midnight -- eight of them on a US Pacific machine, which is
+// PST in January -- where the page would correctly say "2027 so far" and a local
+// date() would demand 2026. Same
+// defect as THE PINNED ROWS: an assertion whose truth depends on what time of day
+// CI happened to run.
+check(strpos($html, '>' . gmdate('Y') . ' so far<') !== false,
       'the year rung has to name the CURRENT year, derived rather than typed, '
-      . 'so it becomes "' . (date('Y') + 1) . ' so far" by itself');
+      . 'so it becomes "' . (gmdate('Y') + 1) . ' so far" by itself');
 
 /*
  * EVERY FIGURE ON THE PANEL IS THE ONE THE DATABASE HOLDS.
