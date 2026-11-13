@@ -30,6 +30,7 @@ concurrency:
   # reset-to-origin then copy-our-file-back, so whichever pushed second silently
   # destroyed the other's rows (found 2026-07-28).
   group: talent-collect
+  cancel-in-progress: false
 
 jobs:
   retract:

@@ -67,13 +67,67 @@ def test_the_collect_commit_survives_a_racing_push():
     assert "::error::" in run and run.rstrip().endswith("exit 1")
 
 
-def test_two_collect_runs_cannot_overlap():
-    """The reset-and-replace is only safe because this job is the sole writer."""
-    from pathlib import Path
+# Every workflow that writes the database takes this one lock. The name is
+# arbitrary; that there is exactly ONE of them is not.
+DB_LOCK = "talent-collect"
+DATABASE = "data/talent_intel.db"
 
-    import yaml
 
-    wf = yaml.safe_load(
-        (Path(__file__).parent.parent / ".github/workflows/collect.yml").read_text())
-    assert wf["concurrency"]["group"] == "collect"
-    assert wf["concurrency"]["cancel-in-progress"] is False
+def _pushes_a_commit(parsed):
+    """Workflows that commit anything back to the repository.
+
+    Deliberately broader than "mentions the database path". Every committing
+    workflow in this repository writes the database, and a future one that used
+    `git add -A` or a variable for the path would slip past a path match while
+    racing exactly the same way. A workflow that genuinely commits something
+    else can be excluded here, once someone has thought about it.
+    """
+    for job in parsed.get("jobs", {}).values():
+        for step in job.get("steps", []):
+            if "git commit" in (step.get("run") or ""):
+                return True
+    return False
+
+
+def _database_writers():
+    return {p.name: yaml.safe_load(p.read_text())
+            for p in WORKFLOWS
+            if _pushes_a_commit(yaml.safe_load(p.read_text()))}
+
+
+def test_the_writer_detector_is_not_vacuous():
+    """A guard that silently matches nothing passes forever and protects nothing."""
+    writers = _database_writers()
+    assert "collect.yml" in writers, f"detector missed the daily collector: {sorted(writers)}"
+    assert len(writers) >= 5, f"only found {sorted(writers)} — has the commit step changed shape?"
+
+
+def test_every_database_writer_shares_one_lock():
+    """Two groups means two writers, and the loser's rows exist only on its runner.
+
+    The reset-and-replace every one of these jobs ends with is only safe while
+    the job is the sole writer: on a rejected push it resets --hard to origin
+    and copies its own file back over the result. Two of these overlapping and
+    the second to push silently destroys the first's rows, with no error
+    anywhere. The collectors used to sit in a 'collect' group while the
+    backfills sat in 'talent-collect', which bought precisely nothing.
+    """
+    wrong = {name: (wf.get("concurrency") or {}).get("group")
+             for name, wf in _database_writers().items()
+             if (wf.get("concurrency") or {}).get("group") != DB_LOCK}
+    assert not wrong, (
+        f"these commit to the repository outside the {DB_LOCK!r} lock: {wrong}. "
+        f"Anything that writes {DATABASE} must share one concurrency group."
+    )
+
+
+def test_no_database_writer_is_cancelled_mid_push():
+    """cancel-in-progress would kill a run holding rows that exist nowhere else.
+
+    Explicit rather than leaning on the GitHub default: the default is what a
+    new workflow inherits when its author never considered the question.
+    """
+    wrong = {name: (wf.get("concurrency") or {}).get("cancel-in-progress")
+             for name, wf in _database_writers().items()
+             if (wf.get("concurrency") or {}).get("cancel-in-progress") is not False}
+    assert not wrong, f"these can be cancelled mid-collection: {wrong}"
