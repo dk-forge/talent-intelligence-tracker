@@ -1,0 +1,65 @@
+{
+ "key": "amount/43f02665d63c6918f451a5bea1cc9d63",
+ "label": "Oracle $20,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": null,
+   "recommended": "edit",
+   "corrected_amount": 20000000000,
+   "corrected_basis": "public_offering",
+   "confidence": 95,
+   "reasoning": "The source states 'Oracle aims to raise US$20 billion through selling stock and issuing bonds to fund its AI build-out.' This describes two distinct instruments: (1) selling stock into public markets = public_offering, and (2) issuing bonds = bond_issue. The rules state 'public_offering: equity sold into public markets' and 'bond_issue: bonds, notes, debentures.' Since this is a mixed offering combining both types, and the rules require only company_raise (private venture capital) to be summed, this should be classified as public_offering (the equity portion) rather than company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "edit",
+   "corrected_amount": null,
+   "corrected_basis": "bond_issue",
+   "confidence": 90,
+   "reasoning": "The source states 'Oracle aims to raise US$20 billion through selling stock and issuing bonds,' indicating the basis should be 'bond_issue' rather than 'company_raise' as it involves both stock and bond issuance."
+  }
+ },
+ "row": {
+  "company": "Oracle",
+  "headline": "Oracle to sell US$20 billion in stocks and bonds as concerns grow over debt-fueled expansion",
+  "summary": "Oracle plans to raise US$20 billion by selling stock and issuing bonds to finance its AI expansion. The company's stock value decreased following the filing of these plans, indicating investor apprehension about the growing debt of hyperscalers in anticipation of AI revenues.",
+  "funding_amount": "US$20 billion",
+  "funding_amount_usd": 20000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.digitimes.com/news/a20261103VL217/oracle-financing-earnings-revenue.html",
+  "source_name": "DIGITIMES Asia",
+  "published_date": "2026-11-03",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Austin",
+  "hq_country": "US",
+  "published_at": "2026-11-03 23:40:51"
+ },
+ "cost_usd": 0.014788,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.009405,
+  "openai/gpt-4o": 0.0053825
+ },
+ "evidence_url": "https://www.digitimes.com/news/a20261103VL217/oracle-financing-earnings-revenue.html",
+ "evidence_chars": 2626,
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "pledge"
+ },
+ "note": "two-model adjudication of amount/43f02665d63c6918f451a5bea1cc9d63, both referees say edit. corrected_amount=None corrected_basis=pledge. anthropic/claude-sonnet-4.5: The source states 'Oracle aims to raise US$20 billion through selling stock and issuing bonds to fund its AI build-out.' This describes two distinct instruments: (1) selling stock into public markets = public_offering, a; openai/gpt-4o: The source states 'Oracle aims to raise US$20 billion through selling stock and issuing bonds,' indicating the basis should be 'bond_issue' rather than 'company_raise' as it involves both stock and bond issuance.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-13T18:16:00+00:00"
+}

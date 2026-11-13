@@ -10,6 +10,11 @@
    "enqueued_at": "2026-10-15T00:50:49+00:00",
    "last": "AGREE"
   },
+  "amount/43f02665d63c6918f451a5bea1cc9d63": {
+   "asks": 1,
+   "enqueued_at": "2026-11-13T18:15:49+00:00",
+   "last": "AGREE"
+  },
   "amount/440b7e16389d69399d5681257c6033e3": {
    "asks": 3,
    "last": "anthropic/claude-sonnet-4.5: verdict, openai/gpt-4o: low_confidence"
@@ -17,6 +22,11 @@
   "amount/68ef0b7a3ecd0d81666b1151a91b6a18": {
    "asks": 1,
    "enqueued_at": "2026-10-11T01:07:04+00:00",
+   "last": "AGREE"
+  },
+  "amount/69b6450075ea1ed979749cf3ca7ed170": {
+   "asks": 1,
+   "enqueued_at": "2026-11-13T18:15:49+00:00",
    "last": "AGREE"
   },
   "amount/741b46d58bccad0199eaa7b62bcbe4c0": {
@@ -79,6 +89,11 @@
    "enqueued_at": "2026-10-07T01:02:11+00:00",
    "last": "AGREE"
   },
+  "amount/d7e769b7d94b723f5bd50bacf2868665": {
+   "asks": 1,
+   "enqueued_at": "2026-11-13T18:15:49+00:00",
+   "last": "AGREE"
+  },
   "amount/dd8d21a68a3546d6564d8bfc49015471": {
    "asks": 1,
    "enqueued_at": "2026-10-25T00:57:06+00:00",
@@ -91,20 +106,20 @@
   }
  },
  "last_run": {
-  "at": "2026-11-13T12:20:24+00:00",
+  "at": "2026-11-13T18:15:49+00:00",
   "referee_answers": {
    "budget_stop": 0,
    "low_confidence": 0,
    "no_answer": 0,
    "parse_failure": 0,
-   "verdict": 0
+   "verdict": 6
   },
-  "spent_usd": 0.0
+  "spent_usd": 0.047174
  },
  "months": {
   "2026-09": 0.0,
   "2026-10": 0.35092,
-  "2026-11": 0.02464
+  "2026-11": 0.071814
  },
  "version": 1
 }

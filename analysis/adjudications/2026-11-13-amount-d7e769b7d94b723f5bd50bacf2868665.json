@@ -1,0 +1,73 @@
+{
+ "key": "amount/d7e769b7d94b723f5bd50bacf2868665",
+ "label": "OpenAI $20,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "pledge",
+   "recommended": "edit",
+   "corrected_amount": 20000000000,
+   "corrected_basis": "pledge",
+   "confidence": 95,
+   "reasoning": "The source states OpenAI 'is now seeking to raise $20 billion' - this is future-oriented language indicating the company is trying to raise funds, not that funds have arrived. The text says 'seeking to raise' and 'aiming to raise', which are clear indicators this is a target or goal, not completed funding. Per rule 3, 'A round that is being sought or discussed is a pledge.' The amount is correct but the basis should be 'pledge' not 'company_raise'."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source states, 'OpenAI has slashed the target for its latest funding round by $10 billion and is now seeking to raise $20 billion at a $1.25 trillion valuation,' indicating a company_raise of $20 billion."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "AI startup OpenAI has slashed the target for its latest funding round by $10 billion and is now seeking to raise $20 billion at a $1.25 trillion valuation, the Financial Times reported on Friday, citing people with knowledge of the matter."
+  }
+ },
+ "row": {
+  "company": "OpenAI",
+  "headline": "OpenAI cuts funding target by $10 billion: FT",
+  "summary": "AI startup OpenAI has reduced its funding target by $10 billion and is now aiming to raise $20 billion at a $1.25 trillion valuation, according to the Financial Times.",
+  "funding_amount": "$20 billion",
+  "funding_amount_usd": 20000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://economictimes.indiatimes.com/tech/artificial-intelligence/openai-cuts-funding-target-by-10-billion-ft/articleshow/135384941.cms",
+  "source_name": "The Economic Times",
+  "published_date": "2026-10-31",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": "2026-11-01 23:32:38"
+ },
+ "cost_usd": 0.014371,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008843999999999998,
+  "openai/gpt-4o": 0.005284999999999998,
+  "google/gemini-2.5-flash-lite": 0.00024230000000000085
+ },
+ "evidence_url": "https://economictimes.indiatimes.com/tech/artificial-intelligence/openai-cuts-funding-target-by-10-billion-ft/articleshow/135384941.cms",
+ "evidence_chars": 2230,
+ "action": "accept",
+ "correction": null,
+ "note": "three-model adjudication of amount/d7e769b7d94b723f5bd50bacf2868665, two of three referees say accept. anthropic/claude-sonnet-4.5: The source states OpenAI 'is now seeking to raise $20 billion' - this is future-oriented language indicating the company is trying to raise funds, not that funds have arrived. The text says 'seeking to raise' and 'aiming; openai/gpt-4o: The source states, 'OpenAI has slashed the target for its latest funding round by $10 billion and is now seeking to raise $20 billion at a $1.25 trillion valuation,' indicating a company_raise of $20 billion.; google/gemini-2.5-flash-lite: AI startup OpenAI has slashed the target for its latest funding round by $10 billion and is now seeking to raise $20 billion at a $1.25 trillion valuation, the Financial Times reported on Friday, citing people with knowl",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-13T18:16:18+00:00"
+}

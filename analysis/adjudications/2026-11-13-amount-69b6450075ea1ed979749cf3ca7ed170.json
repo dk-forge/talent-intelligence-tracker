@@ -1,0 +1,74 @@
+{
+ "key": "amount/69b6450075ea1ed979749cf3ca7ed170",
+ "label": "Builders Vision $20,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "fund_raise",
+   "recommended": "edit",
+   "corrected_amount": 20000000000,
+   "corrected_basis": "fund_raise",
+   "confidence": 95,
+   "reasoning": "The source headline states 'Lukas Walton's $20bn investment, philanthropy platform Builders Vision names new CEO, CSO'. The text clearly identifies Builders Vision as an 'investment, philanthropy platform' and 'investment fund', not an operating company raising venture capital. The $20bn represents assets under management of an investment fund. Per the rules, this is 'fund_raise: an investor closing its own fund or vehicle', not 'company_raise'. The amount is correct but the basis must be corrected to fund_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "fund_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text refers to Builders Vision as an 'investment, philanthropy platform' with '$20bn in assets', which indicates it is a fund, not a company raise. The text does not mention new capital arriving at the company from private investors or venture lenders."
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "fund_raise",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "Its own text says 'fund', which is not a company raising money, so no number of outlets can publish it automatically."
+  }
+ },
+ "row": {
+  "company": "Builders Vision",
+  "headline": "Lukas Walton’s $20bn oceans investment fund Builders Vision names new CEO, CSO",
+  "summary": "Builders Vision, an oceans investment fund founded by Lukas Walton, has named a new CEO and CSO. The fund has $20bn in assets.",
+  "funding_amount": "$20bn",
+  "funding_amount_usd": 20000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.undercurrentnews.com/2026/11/10/lukas-waltons-20bn-oceans-investment-fund-builders-vision-names-new-ceo-cso/",
+  "source_name": "Undercurrent News",
+  "published_date": "2026-11-10",
+  "collector": "google_news",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "Chicago",
+  "hq_country": "US",
+  "published_at": "2026-11-10 22:25:08"
+ },
+ "cost_usd": 0.018016,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010983000000000001,
+  "openai/gpt-4o": 0.006745000000000001,
+  "google/gemini-2.5-flash-lite": 0.00028759999999999897
+ },
+ "evidence_url": "https://www.undercurrentnews.com/2026/11/10/lukas-waltons-20bn-oceans-investment-fund-builders-vision-names-new-ceo-cso/",
+ "evidence_chars": 4882,
+ "action": "reject",
+ "correction": null,
+ "live_row_needs_retraction": true,
+ "note": "three-model adjudication of amount/69b6450075ea1ed979749cf3ca7ed170, two of three referees say reject. anthropic/claude-sonnet-4.5: The source headline states 'Lukas Walton's $20bn investment, philanthropy platform Builders Vision names new CEO, CSO'. The text clearly identifies Builders Vision as an 'investment, philanthropy platform' and 'investmen; openai/gpt-4o: The source text refers to Builders Vision as an 'investment, philanthropy platform' with '$20bn in assets', which indicates it is a fund, not a company raise. The text does not mention new capital arriving at the company; google/gemini-2.5-flash-lite: Its own text says 'fund', which is not a company raising money, so no number of outlets can publish it automatically.",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-13T18:16:09+00:00"
+}
