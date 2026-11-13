@@ -25,17 +25,12 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
-    "main-green-check:main:b20d48d5c896e994": {
-      "first": 1794559871,
-      "last": 1794559871,
-      "subject": "CI RED: main-green-check: error: main is NOT verifiably green: tests.yml FAIL (newest completed run is failure on 3f1bb025)"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-13T14:09:58+00:00",
+  "updated_at": "2026-11-13T14:12:28+00:00",
   "version": 1
 }
