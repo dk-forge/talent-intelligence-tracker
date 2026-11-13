@@ -240,6 +240,25 @@ def test_weekly_email_has_trend_and_fuller_roundup():
 
 
 @needs_php
+def test_role_links_are_never_wrapped_in_tracking():
+    expr = (f"echo json_encode(tit_open_roles_email_section('daily', array('now' => {NOW}, "
+            "'link' => function ($u) { return 'https://asktherecruiter.com/blog/x?u=' . urlencode($u); })));")
+    html = json.loads(_php(_payload(), expr))["html"]
+    assert 'href="https://boards.greenhouse.io/acme/jobs/' in html
+    # Only the CV button goes through the composer's tracker.
+    assert html.count("asktherecruiter.com/blog/x?u=") == 1
+
+
+@needs_php
+def test_choices_list_current_countries_and_families():
+    out = json.loads(_php(_payload(), f"echo json_encode(tit_open_roles_choices({NOW}));"))
+    assert out["countries"] == {"GB": "United Kingdom", "US": "United States"}
+    assert out["families"] == {"engineering": "Engineering", "sales": "Sales"}
+    stale = "strtotime('2026-11-16T00:00:00Z')"
+    assert json.loads(_php(_payload(), f"echo json_encode(tit_open_roles_choices({stale}));")) == {"countries": [], "families": []}
+
+
+@needs_php
 def test_email_section_is_null_when_stale():
     stale = "strtotime('2026-11-16T00:00:00Z')"
     assert _php(_payload(), f"var_export(tit_open_roles_email_section('daily', array('now' => {stale})));") == "NULL"

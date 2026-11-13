@@ -183,8 +183,9 @@ function tit_open_roles_change($now, $before) {
  *        the week, and a fuller roundup of up to 20 roles grouped by family).
  * $args  country  ISO2 the reader chose, '' for everywhere
  *        family   role family slug the reader chose (vocab FUNCTIONS), '' for all
- *        link     callable($url) the composer wraps every link with (its
- *                 click tracking); identity when absent
+ *        link     callable($url) the composer wraps the CV button with (its
+ *                 click tracking); identity when absent. Role links are
+ *                 NEVER wrapped: they go straight to the employer's page.
  *        now      timestamp, for tests
  *
  * Returns array('html', 'text', 'count') or null when there is nothing current
@@ -317,7 +318,9 @@ function tit_open_roles_email_section($freq, $args = array()) {
                 $url = (string) $r['url'];
                 $html .= '<li style="margin:0 0 6px;font-size:15px;line-height:1.45;color:' . $ink . ';">'
                        . '<strong>' . $h($who) . '</strong>: '
-                       . '<a href="' . esc_url(call_user_func($link, $url)) . '" style="' . $a . '">' . $h($r['title']) . '</a>'
+                       // NEVER wrapped in $link: a click-tracking redirect would send the
+                       // reader through our site, and the ruling is straight to the employer.
+                       . '<a href="' . esc_url($url) . '" style="' . $a . '">' . $h($r['title']) . '</a>'
                        . ($where !== '' ? ' <span style="color:' . $mut . ';">· ' . $h($where) . '</span>' : '')
                        . '</li>';
                 $text .= '  - ' . $who . ': ' . $r['title'] . ($where !== '' ? ' · ' . $where : '') . "\n    " . $url . "\n";
@@ -336,6 +339,29 @@ function tit_open_roles_email_section($freq, $args = array()) {
     $text .= "\nSee all matches for your CV: " . $cv . "\n";
 
     return array('html' => $html, 'text' => $text, 'count' => $n);
+}
+
+/**
+ * What a reader can choose in their email settings: countries that have open
+ * roles today, and the role families, as array('countries' => [code => name],
+ * 'families' => [slug => label]). Empty arrays when there is no current data;
+ * the settings form then shows no choice rather than a stale one.
+ */
+function tit_open_roles_choices($now = null) {
+    $d = tit_open_roles_data($now);
+    if (!$d) return array('countries' => array(), 'families' => array());
+    $countries = array();
+    foreach ((array) ($d['by_country'] ?? array()) as $cc => $n) {
+        if ((int) $n <= 0 || !preg_match('/^[A-Z]{2}$/', (string) $cc)) continue;
+        $countries[$cc] = function_exists('tit_country_name') ? tit_country_name($cc) : $cc;
+    }
+    asort($countries);
+    $families = array();
+    foreach ((array) ($d['by_family'] ?? array()) as $f => $n) {
+        if ((int) $n > 0) $families[(string) $f] = tit_open_roles_family_label($f, $d);
+    }
+    asort($families);
+    return array('countries' => $countries, 'families' => $families);
 }
 
 // --- Ingest ----------------------------------------------------------------
