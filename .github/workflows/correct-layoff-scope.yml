@@ -111,5 +111,41 @@ jobs:
           # retraction flips is_current on an EXISTING row rather than adding a
           # new (content_hash, revision), so merge_db has nothing to carry and
           # would turn a loud rerun into a silent no-op.
-          git pull --rebase --autostash origin main
-          git push
+          #
+          # Five attempts, rebasing before each: a rebase and a push are two
+          # commands, and main can move between them. retract.yml lost that race
+          # on 2026-07-29 (run 30481782149) with a single attempt, and left the
+          # withdrawal applied to the site and absent from the committed
+          # database. This workflow withdraws rows the same way, so it had the
+          # same gap.
+          for attempt in 1 2 3 4 5; do
+            if ! git pull --rebase --autostash origin main; then
+              # A binary conflict will not clear by waiting: git cannot merge
+              # two SQLite files. Abort rather than leave a half-rebase, and go
+              # red now rather than after four more identical attempts.
+              git rebase --abort || true
+              echo "::error::correct-layoff-scope: data/talent_intel.db conflicts with"
+              echo "::error::main, so these withdrawals were NOT committed. The rows are"
+              echo "::error::already off the site, so the database still reads them as"
+              echo "::error::live. Re-queue it — never copy a database file over main:"
+              echo "::error::  gh workflow run drain-writers.yml \\"
+              echo "::error::       -f enqueue=correct-layoff-scope.yml \\"
+              echo "::error::       -f inputs_json='{\"dry_run\":\"false\"}' \\"
+              echo "::error::       -f reason='commit lost to a conflict'"
+              exit 1
+            fi
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — main moved again; rebasing."
+            sleep $((attempt * 3))
+          done
+          echo "::error::correct-layoff-scope: could not push after 5 attempts. The"
+          echo "::error::withdrawals are live on the site and missing from the"
+          echo "::error::database, so re-queue it:"
+          echo "::error::  gh workflow run drain-writers.yml \\"
+          echo "::error::       -f enqueue=correct-layoff-scope.yml \\"
+          echo "::error::       -f inputs_json='{\"dry_run\":\"false\"}' \\"
+          echo "::error::       -f reason='commit lost to a racing push'"
+          exit 1

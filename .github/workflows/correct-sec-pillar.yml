@@ -83,5 +83,40 @@ jobs:
           git commit -m "data: re-issue the item 5.02 filings under the leadership pillar $(date -u +%Y-%m-%dT%H:%MZ)"
           # Another writer may have landed while this ran. Rebase rather than
           # force: the other run's rows are as real as ours.
-          git pull --rebase --autostash origin main
-          git push
+          #
+          # Five attempts, rebasing before each. A rebase and a push are two
+          # commands and main can move between them; retract.yml lost exactly
+          # that race on 2026-07-29 (run 30481782149) with a single attempt.
+          # This job withdraws each row from the site and republishes its new
+          # revision BEFORE this step runs, so a lost commit leaves the site
+          # holding revisions the database does not record.
+          for attempt in 1 2 3 4 5; do
+            if ! git pull --rebase --autostash origin main; then
+              # git cannot merge two SQLite files, so a conflict is not a race
+              # that a retry will win. Abort and go red now.
+              git rebase --abort || true
+              echo "::error::correct-sec-pillar: data/talent_intel.db conflicts with"
+              echo "::error::main, so these re-issues were NOT committed. The site has"
+              echo "::error::already been updated. Re-queue it — never copy a database"
+              echo "::error::file over main:"
+              echo "::error::  gh workflow run drain-writers.yml \\"
+              echo "::error::       -f enqueue=correct-sec-pillar.yml \\"
+              echo "::error::       -f inputs_json='{\"dry_run\":\"false\"}' \\"
+              echo "::error::       -f reason='commit lost to a conflict'"
+              exit 1
+            fi
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — main moved again; rebasing."
+            sleep $((attempt * 3))
+          done
+          echo "::error::correct-sec-pillar: could not push after 5 attempts. The site"
+          echo "::error::holds re-issued rows the committed database does not, so"
+          echo "::error::re-queue it:"
+          echo "::error::  gh workflow run drain-writers.yml \\"
+          echo "::error::       -f enqueue=correct-sec-pillar.yml \\"
+          echo "::error::       -f inputs_json='{\"dry_run\":\"false\"}' \\"
+          echo "::error::       -f reason='commit lost to a racing push'"
+          exit 1

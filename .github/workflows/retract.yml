@@ -64,10 +64,12 @@ jobs:
       # meantime, and the run went red with the site and the repo disagreeing.
       #
       # collect.yml has solved exactly this since the first armed run, with a
-      # replay loop; the fix was never carried across to the other writers. It
-      # matters MORE here than there: a lost collect commit re-collects next
-      # run, but a lost retract commit leaves a row withdrawn on the site and
-      # still present in the database, so the next run reads it as live.
+      # replay loop, and drain-writers.yml with a rebase-and-retry loop; the fix
+      # is now carried across (see below). It matters MORE here than in either
+      # of those: a lost collect commit re-collects next run and a lost queue
+      # commit is re-derived next tick, but a lost retract commit leaves a row
+      # withdrawn on the site and still present in the database, so the next run
+      # reads it as live.
       #
       # `!cancelled()` and not plain success, for the same reason collect.yml
       # uses it: a run that FAILED after withdrawing rows still holds the only
@@ -94,11 +96,58 @@ jobs:
           #     another writer landed while this ran, which is the exact
           #     silent data loss the correction workflows' comments record.
           # correct-form-d.yml and correct-layoff-scope.yml carry the same
-          # reasoning; this is now consistent with them.
+          # reasoning; this is consistent with them.
           #
-          # On a binary conflict the rebase stops and the run goes red. That is
-          # the honest outcome: re-queue it. Losing a withdrawal silently is
-          # far worse, because the row stays live on the site while the
-          # database believes it is gone.
-          git pull --rebase --autostash origin main
-          git push
+          # FIVE attempts, rebasing onto current main before each one, which is
+          # the shape drain-writers.yml uses. A SINGLE attempt is what failed on
+          # 2026-07-29 (run 30481782149): the rebase ran, another job pushed in
+          # the gap between it and `git push`, and the push was rejected with
+          # the withdrawal already applied to WordPress. The window is a few
+          # hundred milliseconds wide and the drainer commits the queue file
+          # every fifteen minutes, so losing that race is routine rather than
+          # exotic — and it does not conflict, because the drainer touches
+          # data/writer_queue.json and not the database. There is nothing to
+          # decide between attempt one and attempt two except that main moved:
+          # exactly what a retry is for.
+          for attempt in 1 2 3 4 5; do
+            # Before every push, not once before the loop: the point is to be
+            # on top of whatever main is NOW, and a rejected push means it
+            # moved again since the last time we looked.
+            if ! git pull --rebase --autostash origin main; then
+              # A binary conflict is not a lost race and will not clear by
+              # waiting — another writer changed the same file, and git cannot
+              # merge two SQLite files. Abort so the runner is not left
+              # mid-rebase, and go red on the spot rather than spending four
+              # more attempts arriving at the same place. This is the same
+              # honest outcome correct-form-d.yml chooses.
+              git rebase --abort || true
+              echo "::error::retract: data/talent_intel.db conflicts with main and"
+              echo "::error::cannot be rebased, so this withdrawal was NOT committed."
+              echo "::error::The rows are already withdrawn on the site (see the step"
+              echo "::error::above), so the database still reads them as live until"
+              echo "::error::this is re-run. Re-queue it — do NOT copy a database file"
+              echo "::error::over main, which would destroy every row pushed since:"
+              echo "::error::  gh workflow run drain-writers.yml -f enqueue=retract.yml \\"
+              echo "::error::       -f inputs_json='{\"signal_id\":\"...\",\"reason\":\"...\"}' \\"
+              echo "::error::       -f reason='retract commit lost to a conflict'"
+              exit 1
+            fi
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt) — main moved again; rebasing."
+            sleep $((attempt * 3))
+          done
+
+          # Loud, and specific about what is half-applied. The rows are gone
+          # from the site and still present here, which is the one state this
+          # workflow must never leave behind quietly.
+          echo "::error::retract: could not push the withdrawal after 5 attempts."
+          echo "::error::The rows are already withdrawn on the site but the database"
+          echo "::error::commit did not land, so the two disagree until this is"
+          echo "::error::re-run. Re-queue it:"
+          echo "::error::  gh workflow run drain-writers.yml -f enqueue=retract.yml \\"
+          echo "::error::       -f inputs_json='{\"signal_id\":\"...\",\"reason\":\"...\"}' \\"
+          echo "::error::       -f reason='retract commit lost to a racing push'"
+          exit 1

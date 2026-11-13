@@ -178,6 +178,150 @@ def test_a_failed_push_is_loud():
             )
 
 
+# --- A rejected push is a race, not an ending ------------------------------
+#
+# retract.yml run 30481782149 (2026-07-29) withdrew a row from WordPress and
+# from its checked-out database, logged
+# "retracted 5999b8ad31d6c468e2fc855a4691543c: wordpress=1 local=1", and then
+# lost `git push` to a commit that landed in the gap between its rebase and its
+# push: "! [rejected] main -> main (fetch first)". The run went red and the
+# queue marked the ticket failed, so this was LOUD. The damage was the state it
+# left: the row withdrawn on the site and still current in the committed
+# database, which the next run therefore reads as live. It stayed that way until
+# a human re-queued it.
+#
+# The racer is usually not another database writer at all — drain-writers.yml
+# commits data/writer_queue.json every fifteen minutes — so the rebase almost
+# always succeeds and the push simply needs trying again.
+
+# Writers that make a single push attempt ON PURPOSE, with the reason. Held as
+# data rather than as an exception inside the loop, so that "it was deliberate"
+# has to be written down rather than assumed for the next writer that merely
+# forgot.
+SINGLE_PUSH_ATTEMPT_BY_DESIGN = {
+    "correct-form-d.yml":
+        "edits rows in place, so a rerun has to be loud rather than automatic; "
+        "documented in CLAUDE.md and in the workflow itself",
+}
+
+
+def _push_steps():
+    """Every commit step of every database writer, as (name, script)."""
+    for name, steps in _database_writers():
+        for step in steps:
+            run = _code(step.get("run") or "")
+            if "git push" in run:
+                yield name, run
+
+
+def _sole_step(workflow, predicate):
+    """The one step of `workflow` whose script matches, as the step dict."""
+    import yaml
+
+    parsed = yaml.safe_load(
+        (Path(__file__).parent.parent / ".github/workflows" / workflow).read_text())
+    steps = [s for job in parsed["jobs"].values() for s in job.get("steps", [])
+             if predicate(_code(s.get("run") or ""))]
+    assert len(steps) == 1, (
+        f"{workflow}: expected exactly one matching step, found {len(steps)}")
+    return steps[0]
+
+
+def test_every_database_writer_retries_a_rejected_push():
+    """One attempt loses to any commit that lands while the run works.
+
+    A retry is only meaningful if the run gets back onto current main between
+    attempts, so the loop has to contain either the rebase or the
+    reset-and-merge — pushing the same rejected commit five times is not a fix.
+    """
+    seen = set()
+    for name, run in _push_steps():
+        seen.add(name)
+        if name in SINGLE_PUSH_ATTEMPT_BY_DESIGN:
+            continue
+        assert "for attempt in" in run, (
+            f"{name} makes a single push attempt, so any commit landing while it "
+            "ran leaves its work on a runner that is about to be deleted. If that "
+            "is deliberate, say so in SINGLE_PUSH_ATTEMPT_BY_DESIGN.")
+        loop = run[run.index("for attempt in"):]
+        assert "git pull --rebase" in loop or "git reset --hard" in loop, (
+            f"{name} retries the push without getting back onto current main, so "
+            "every attempt is rejected for the same reason as the first")
+
+    # The exemptions have to name real writers, or they read as coverage while
+    # covering a file that no longer pushes anything.
+    assert set(SINGLE_PUSH_ATTEMPT_BY_DESIGN) <= seen, (
+        "SINGLE_PUSH_ATTEMPT_BY_DESIGN names something that is not a database "
+        f"writer: {sorted(set(SINGLE_PUSH_ATTEMPT_BY_DESIGN) - seen)}")
+    assert {"retract.yml", "collect.yml"} <= seen, (
+        f"the writers this covers are not being found: {sorted(seen)}")
+
+
+def test_the_writers_that_touch_wordpress_first_survive_a_racing_push():
+    """These three apply their change to the SITE before they commit.
+
+    So a lost push is not "collect it again next run" — it is the site and the
+    database disagreeing, with no third place to look. correct-form-d.yml is
+    deliberately excluded: it goes red on a race by design.
+    """
+    for workflow in ("retract.yml", "correct-layoff-scope.yml",
+                     "correct-sec-pillar.yml"):
+        step = _sole_step(workflow, lambda run: "git push" in run)
+        run = _code(step["run"])
+
+        assert "for attempt in 1 2 3 4 5" in run, f"{workflow}: no retry loop"
+        loop = run[run.index("for attempt in"):]
+        assert loop.index("git pull --rebase --autostash origin main") < loop.index("git push"), (
+            f"{workflow} pushes before rebasing inside the loop, so the first "
+            "attempt is rejected on every run and one of the five is wasted")
+
+        # A rebase that stops on a binary conflict leaves a detached HEAD, and
+        # pushing that four more times reports nothing new. Abort, and be red.
+        assert "git rebase --abort" in run, (
+            f"{workflow} can leave the runner mid-rebase and keep pushing")
+
+        # The error has to say how to get the withdrawal committed, because the
+        # obvious recovery — copying a database file over main — is the one that
+        # destroyed 9,572 rows.
+        assert "::error::" in run and run.rstrip().endswith("exit 1"), (
+            f"{workflow} exhausts its attempts without failing the run")
+        # Ending in `exit 1` is not enough on its own: an `exit 0` anywhere after
+        # the loop makes the rest unreachable, and the run goes GREEN with the
+        # site and the database disagreeing. That is worse than the incident,
+        # which at least went red.
+        tail = run[run.rindex("done"):]
+        assert "exit 0" not in tail, (
+            f"{workflow} can exit 0 after exhausting its push attempts, so a lost "
+            "commit reports success")
+        assert "git push || true" not in run, (
+            f"{workflow} swallows the push failure")
+        assert "drain-writers.yml" in run, (
+            f"{workflow} fails without naming the queue that re-runs it, so the "
+            "next person dispatches it directly and can have it evicted")
+
+        # merge_db.py cannot carry these: they change existing rows rather than
+        # appending a (content_hash, revision), so a merge finds nothing to
+        # bring across and turns a loud rerun into a silent success.
+        assert "merge_db.py" not in run, (
+            f"{workflow} merges, which silently skips a change made in place")
+        assert "git reset --hard" not in run, (
+            f"{workflow} resets to origin/main, which discards its own change")
+
+
+def test_a_retraction_is_still_committed_when_the_run_failed():
+    """The rows are withdrawn from the site before this step runs.
+
+    So the local record of the withdrawal must be committed even when the
+    retraction step failed part-way — otherwise the site loses rows the
+    database still believes are live, which is the 2026-07-29 state made
+    permanent.
+    """
+    step = _sole_step("retract.yml", lambda run: "git push" in run)
+    assert "cancelled()" in str(step.get("if", "")), (
+        "retract.yml's commit step is conditioned on success, so a run that "
+        "failed after withdrawing rows commits nothing")
+
+
 def test_every_database_writer_shares_one_lock():
     """The reset-and-replace each writer performs is only safe while exactly
     one of them can run at a time.

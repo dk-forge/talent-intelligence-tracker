@@ -81,6 +81,22 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
   `tests/test_workflows.py`. The one exception is `correct-form-d.yml`, which
   edits rows in place rather than appending a revision, so a merge would
   silently skip its corrections; it rebases and goes red instead, and says so.
+- **A rejected push is retried, not accepted.** Every writer's commit step makes
+  five attempts with `git pull --rebase --autostash origin main` before each one,
+  because a rebase and a push are two commands and main moves between them — the
+  drainer commits `data/writer_queue.json` every fifteen minutes and does not
+  conflict with the database, so losing that race is routine. `retract.yml`
+  lost it once with a single attempt (run 30481782149, 2026-07-29): the rows were
+  withdrawn on the site and stayed live in the committed database, which the next
+  run therefore read as current. That run went RED and the queue marked the
+  ticket failed, so the defect was never silence — it was the half-applied state
+  it left, in the three writers that change WordPress *before* they commit
+  (`retract`, `correct-layoff-scope`, `correct-sec-pillar`). A binary conflict is
+  a different thing: it will not clear by waiting, so those abort the rebase and
+  go red on the spot, naming the queue command that re-runs them. Asserted by
+  `tests/test_workflows.py`. `correct-form-d.yml` deliberately keeps its single
+  attempt — its rerun has to be a human decision — and is listed as an exemption
+  there rather than special-cased.
 - **Never dispatch a database writer directly. Queue it.**
 
   ```bash
