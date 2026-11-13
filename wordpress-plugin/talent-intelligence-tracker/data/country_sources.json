@@ -1592,13 +1592,8 @@
  },
  "NG": {
   "live": [],
-  "refused": [
-   {
-    "name": "WeeTracker",
-    "reason": "2026-11-13 200 ok, held for owner (not wired)"
-   }
-  ],
-  "researched": 8
+  "refused": [],
+  "researched": 9
  },
  "NI": {
   "live": [],
@@ -2257,10 +2252,6 @@
     "reason": "2026-07-29 dead: HTTP 403 bot block"
    },
    {
-    "name": "SiliconANGLE",
-    "reason": "2026-11-13 200 ok, held for owner (not wired)"
-   },
-   {
     "name": "South Florida Business Journal",
     "reason": "2026-07-29 dead: HTTP 404"
    },
@@ -2293,7 +2284,7 @@
     "reason": "2026-07-30 refused: aggregator domain (yahoo.com)"
    }
   ],
-  "researched": 91
+  "researched": 92
  },
  "UY": {
   "live": [],
