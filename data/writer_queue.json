@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-13T15:05:30Z",
-  "last_tick": "2026-11-13T15:05:30Z",
+  "last_dispatch": "2026-11-13T15:15:15Z",
+  "last_tick": "2026-11-13T15:15:15Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,6 +247,34 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-13T15:15:15Z",
+      "history": [
+        {
+          "at": "2026-11-13T15:15:11Z",
+          "detail": "sec_form_d_bulk stale past its 2400h ceiling; dry run showed 2026q3 published, 1186 to store, no model cost",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-13T15:15:15Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261113T151511Z-backfill-funding-bulk",
+      "inputs": {
+        "dry_run": "false",
+        "quarters": "2026q3"
+      },
+      "priority": 10,
+      "reason": "sec_form_d_bulk stale past its 2400h ceiling; dry run showed 2026q3 published, 1186 to store, no model cost",
+      "requested_at": "2026-11-13T15:15:11Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "backfill-funding-bulk.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-06T09:47:41Z",
