@@ -11,6 +11,13 @@ Greenhouse links are built as `job-boards.greenhouse.io/<slug>/jobs/<id>`, not t
 
 Terms record: `docs/SOURCE-TERMS-open-roles.md`. No `JobPosting` markup anywhere in the plugin (tested). The email half is sent by the sibling plugin and is specified in `docs/HANDOFF-open-roles-email.md`.
 
+## 2026-11-13 - Six slug collisions merged: one employer, two spellings
+
+**Class:** parser-gap
+**Guard:** `tests/test_identity.py` (a survivor must slugify to itself; 76 pass with the six new entries)
+
+`ops_status.py [1c]` listed six employers recorded under two keys that claim one `/company/` slug, so neither was published: Abenójar Tungsten, Elax Énergie, KFH Bahrain (hyphen), Škoda Auto, Væridion and Vivofácil. Each pair differs only by a diacritic, a ligature or a hyphen. Added to `EMPLOYER_KEY_ALIASES` with the ASCII-clean plainer form as survivor, as in the earlier reviews. **Not done here:** the backward half, `correct-company-key.yml` (queue it through `drain-writers.yml`, which touches the committed database and the live site), and no deploy.
+
 ## 2026-11-12 - Job boards: Greenhouse location metadata, written-out US states, and a home country for a board-growth row
 
 **Class:** parser-gap
