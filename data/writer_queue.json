@@ -249,77 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-13T15:15:15Z",
-      "history": [
-        {
-          "at": "2026-11-13T15:15:11Z",
-          "detail": "sec_form_d_bulk stale past its 2400h ceiling; dry run showed 2026q3 published, 1186 to store, no model cost",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-13T15:15:15Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-13T15:17:26Z",
-          "detail": "run 43450742853",
-          "event": "bound"
-        }
-      ],
-      "id": "20261113T151511Z-backfill-funding-bulk",
-      "inputs": {
-        "dry_run": "false",
-        "quarters": "2026q3"
-      },
-      "priority": 10,
-      "reason": "sec_form_d_bulk stale past its 2400h ceiling; dry run showed 2026q3 published, 1186 to store, no model cost",
-      "requested_at": "2026-11-13T15:15:11Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "43450742853",
-      "state": "dispatched",
-      "workflow": "backfill-funding-bulk.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-06T09:47:41Z",
-      "history": [
-        {
-          "at": "2026-11-06T09:42:45Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-06T09:47:41Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-06T09:50:56Z",
-          "detail": "run 42197718491",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-06T09:50:56Z",
-          "detail": "run 42197718491",
-          "event": "landed"
-        }
-      ],
-      "id": "20261106T094245Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-06T09:50:56Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-11-06T09:42:45Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42197718491",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-06T16:33:30Z",
       "history": [
         {
@@ -2588,6 +2517,45 @@
       "requested_at": "2026-11-13T15:05:25Z",
       "requested_by": "dakotta-labs",
       "run_id": "43449083495",
+      "state": "landed",
+      "workflow": "backfill-funding-bulk.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-13T15:15:15Z",
+      "history": [
+        {
+          "at": "2026-11-13T15:15:11Z",
+          "detail": "sec_form_d_bulk stale past its 2400h ceiling; dry run showed 2026q3 published, 1186 to store, no model cost",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-13T15:15:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-13T15:17:26Z",
+          "detail": "run 43450742853",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-13T15:23:30Z",
+          "detail": "run 43450742853",
+          "event": "landed"
+        }
+      ],
+      "id": "20261113T151511Z-backfill-funding-bulk",
+      "inputs": {
+        "dry_run": "false",
+        "quarters": "2026q3"
+      },
+      "landed_at": "2026-11-13T15:23:30Z",
+      "priority": 10,
+      "reason": "sec_form_d_bulk stale past its 2400h ceiling; dry run showed 2026q3 published, 1186 to store, no model cost",
+      "requested_at": "2026-11-13T15:15:11Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "43450742853",
       "state": "landed",
       "workflow": "backfill-funding-bulk.yml"
     }
