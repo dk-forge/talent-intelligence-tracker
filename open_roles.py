@@ -397,8 +397,10 @@ def main(argv=None) -> int:
         dead = sum(1 for s in links.values() if s in DEAD)
         print(f"[open_roles] re-checked {len(urls)} shown links: {dead} closed (404/410)")
     payload = build(snapshot, store, links=links)
-    print(f"[open_roles] {payload['totals']['roles']} roles, "
-          f"{payload['totals']['employers']} employers, {len(payload['pool'])} in the email pool")
+    # No summary of the payload is printed here. Its counts derive from the
+    # postings' address fields, which CodeQL classes as private data
+    # (py/clear-text-logging, alert #53 on PR #332); the site's own reply,
+    # printed after --publish, carries the same counts.
     if args.out:
         Path(args.out).write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
     if args.stdout:
