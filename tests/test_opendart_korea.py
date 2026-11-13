@@ -533,5 +533,51 @@ class _Resp:
         return self._payload
 
 
+class TransportErrorsAreRetriedNotFatal(unittest.TestCase):
+    """opendart_korea went ERROR on 'Remote end closed connection without
+    response'. `_payload` made ONE request and let any transport exception or
+    5xx out. opendart.fss.or.kr answered normally a few hours later. A permanent
+    failure must stay loud: the last attempt re-raises."""
+
+    def _session(self, script):
+        calls = {"n": 0}
+
+        class _S:
+            def get(self_inner, *a, **kw):
+                step = script[min(calls["n"], len(script) - 1)]
+                calls["n"] += 1
+                if isinstance(step, Exception):
+                    raise step
+                return step
+        return _S(), calls
+
+    def test_a_dropped_connection_is_retried_then_succeeds(self):
+        import requests
+        ok = _Resp({"status": "000", "list": [], "total_page": 1})
+        session, calls = self._session(
+            [requests.exceptions.ConnectionError("closed"), ok])
+        dart._payload(dart.LIST_URL, {}, timeout=5, session=session)
+        self.assertEqual(calls["n"], 2)
+
+    def test_a_5xx_is_retried_then_succeeds(self):
+        ok = _Resp({"status": "000", "list": [], "total_page": 1})
+        session, calls = self._session([_Resp({}, status=503), _Resp({}, status=502), ok])
+        dart._payload(dart.LIST_URL, {}, timeout=5, session=session)
+        self.assertEqual(calls["n"], 3)
+
+    def test_a_4xx_is_not_retried(self):
+        session, calls = self._session([_Resp({}, status=302)])
+        with self.assertRaises(dart.OpenDartError):
+            dart._payload(dart.LIST_URL, {}, timeout=5, session=session)
+        self.assertEqual(calls["n"], 1)
+
+    def test_a_permanent_failure_still_raises_after_the_last_attempt(self):
+        import requests
+        session, calls = self._session([requests.exceptions.ReadTimeout("down")])
+        with self.assertRaises(requests.exceptions.ReadTimeout):
+            dart._payload(dart.LIST_URL, {}, timeout=5, session=session)
+        self.assertEqual(calls["n"], dart.RETRIES)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -414,14 +414,27 @@ def _headers() -> dict:
 
 
 def _request(method: str, url: str, *, body=None, session=None, timeout: int = 90):
-    """One call, retried on a transient 5xx and never on a 404."""
+    """One call, retried on a transient 5xx or a transport blip, never on a 404.
+
+    A read timeout or a dropped connection used to escape on the FIRST attempt
+    (only a 5xx was retried), so one slow answer from ares.gov.cz took the whole
+    run to ERROR. The last attempt re-raises the original exception, so a source
+    that is really down is still loud.
+    """
     call = getattr(session or requests, method)
     resp = None
     for attempt in range(RETRIES):
         kwargs = {"headers": _headers(), "timeout": timeout}
         if body is not None:
             kwargs["data"] = json.dumps(body)
-        resp = call(url, **kwargs)
+        try:
+            resp = call(url, **kwargs)
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+            if attempt == RETRIES - 1:
+                raise
+            if session is None:
+                time.sleep(RETRY_WAIT)
+            continue
         if resp.status_code < 500:
             break
         if session is None:

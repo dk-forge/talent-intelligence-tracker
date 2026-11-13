@@ -640,5 +640,44 @@ class TheWiring(unittest.TestCase):
         self.assertIn("czechia_ares", text)
 
 
+class TransportErrorsAreRetriedNotFatal(unittest.TestCase):
+    """czechia_ares went ERROR on 'Read timed out (read timeout=90)' because
+    `_request` retried a 5xx and let every transport exception out on the first
+    attempt. ares.gov.cz answered in 0.8s a few hours later: the outage was a
+    blip and the collector gave up on it. A permanent failure must still be
+    loud, so the last attempt re-raises the original exception."""
+
+    def _flaky(self, failures, exc):
+        calls = {"n": 0}
+
+        class _S:
+            def post(self_inner, url, **kw):
+                calls["n"] += 1
+                if calls["n"] <= failures:
+                    raise exc
+                return _Resp({"notifikacniDavky": [{"cislo": 1}]})
+        return _S(), calls
+
+    def test_a_read_timeout_is_retried_and_then_succeeds(self):
+        import requests
+        session, calls = self._flaky(2, requests.exceptions.ReadTimeout("slow"))
+        batches = cz.fetch_batches(session=session)
+        self.assertEqual(batches, [{"cislo": 1}])
+        self.assertEqual(calls["n"], 3)
+
+    def test_a_dropped_connection_is_retried(self):
+        import requests
+        session, calls = self._flaky(1, requests.exceptions.ConnectionError("reset"))
+        self.assertEqual(cz.fetch_batches(session=session), [{"cislo": 1}])
+        self.assertEqual(calls["n"], 2)
+
+    def test_a_permanent_failure_still_raises_after_the_last_attempt(self):
+        import requests
+        session, calls = self._flaky(10 ** 6, requests.exceptions.ReadTimeout("down"))
+        with self.assertRaises(requests.exceptions.ReadTimeout):
+            cz.fetch_batches(session=session)
+        self.assertEqual(calls["n"], cz.RETRIES)
+
+
 if __name__ == "__main__":
     unittest.main()
