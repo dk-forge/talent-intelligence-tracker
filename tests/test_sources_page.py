@@ -1,6 +1,7 @@
 """The sources page is generated, so it cannot drift from what actually runs."""
 
 import json
+import re
 from pathlib import Path
 
 import source_registry as registry
@@ -33,7 +34,40 @@ def test_live_sources_are_only_the_ones_with_collectors():
         "SEC EDGAR Form D",
         "GDELT DOC 2.0",
         "Google News RSS",
+        "SEC EDGAR pay-versus-performance (XBRL frames)",
+        "GOV.UK gender pay gap service",
+        "ATS job boards (Greenhouse, Ashby, SmartRecruiters)",
     }
+
+
+def test_the_plugin_can_join_every_live_source_to_its_collector():
+    """The registry names a source for a reader, the pipeline names its
+    collector for a machine, and sources.php holds the join between them.
+
+    A live source missing from that map renders "not yet reported" forever
+    while its collector runs perfectly, which is the same lie as a stale
+    coverage table and just as invisible.
+    """
+    php = (Path(__file__).parent.parent / "wordpress-plugin" /
+           "talent-intelligence-tracker" / "includes" / "sources.php").read_text()
+    mapped = set(re.findall(r"=>\s*'([^']+)'", php.split("$by_collector = array(")[1]
+                            .split(");")[0]))
+    live = {s.name for s in registry.SOURCES if s.status == "live"}
+    assert live <= mapped, f"not joined to a collector in sources.php: {live - mapped}"
+    assert mapped <= live, f"sources.php names sources the registry does not: {mapped - live}"
+
+
+def test_the_open_government_licence_is_attributed_site_wide():
+    """Attribution is a condition of the OGL, not a courtesy. It rides in each
+    row's summary, but a filtered view can hide every one of those rows, so the
+    page carries it too."""
+    php = (Path(__file__).parent.parent / "wordpress-plugin" /
+           "talent-intelligence-tracker" / "includes" / "sources.php").read_text()
+    assert "Open Government Licence v3.0" in php
+    # The licence file is prose and wraps, so match the canonical URL rather
+    # than a phrase a reflow can split across two lines.
+    licence = (Path(__file__).parent.parent / "LICENSE-DATA").read_text()
+    assert "open-government-licence/version/3" in licence
 
 
 def test_google_news_is_live_because_urls_now_resolve():

@@ -31,6 +31,24 @@ short factual summary, and our own analysis — never a reproduction of the
 source. If you redistribute this data, you are responsible for how you use the
 linked sources.
 
+## Third-party licences that travel with the data
+
+Some sources licence their material on terms of their own, and those terms bind
+anyone who redistributes our export as well. Attribution below is a condition of
+use, not a courtesy.
+
+**UK gender pay gap figures** (`collectors/uk_paygap.py`, every record whose
+source is the GOV.UK gender pay gap service):
+
+    Contains public sector information licensed under the Open Government
+    Licence v3.0.
+    https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+
+The same statement is rendered on the public sources page. It is also carried in
+the summary of each stored row, which is belt and braces: a per-row statement
+survives someone exporting a single record, and the page-level and licence-file
+statements survive someone filtering those rows out of view.
+
 ## Corrections
 
 Records are event-sourced and never silently overwritten. If a record is wrong,

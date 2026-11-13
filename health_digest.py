@@ -55,13 +55,27 @@ DELIBERATELY_STOPPED = {"retired", "disabled"}
 
 # How long a collector may stay quiet before it counts as stale.
 #
-# Only google_news is on the cron: collect.yml runs at 06:00 and 18:00 UTC and
-# passes --source google_news when no input is given. 36 hours is two missed
-# runs, the same threshold ops_status.py uses. The other three collectors are
-# dispatch-only today, so a short leash on them would cry wolf every week; they
-# get a long one and move to 36 the day they join the schedule.
+# The leash is the collector's OWN cadence plus a miss or two, never a single
+# global number. A leash shorter than the schedule pages every cycle for a
+# collector that is working perfectly, and a fortnight's grace on a daily job
+# hides a fortnight of silence — the two failure modes are opposite and both
+# end with the alert being ignored.
+#
+#   collect.yml             06:00 and 18:00 UTC   google_news
+#   collect-structured.yml  daily 09:00           ats_boards
+#                           5th of the month      sec_execcomp
+#                           6th of the month      uk_paygap
+#   dispatch only                                 gdelt, sec_edgar, sec_form_d
+#
+# 36 hours is two missed runs on a twice-daily cron and one on a daily one.
+# The monthly pair get ~33 days: a 336-hour leash on an annual disclosure that
+# is only looked at monthly goes stale three weeks out of every four, which is
+# a monthly page for a collector doing exactly what it was asked to do.
 MAX_AGE_HOURS = {
     "google_news": 36,
+    "ats_boards": 36,
+    "sec_execcomp": 800,
+    "uk_paygap": 800,
     "gdelt": 336,
     "sec_edgar": 336,
     "sec_form_d": 336,

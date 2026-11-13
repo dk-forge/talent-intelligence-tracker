@@ -16,10 +16,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import source_registry as registry
+# The staleness leashes live in health_digest and are imported, never restated.
+# They were duplicated here as one global 36 hours, which was right while every
+# collector was daily or dispatch-only and became wrong the moment monthly ones
+# shipped: this script would have reported the pay-gap collector as stale for
+# three weeks in four, and exited 2 on a healthy repo. health_digest imports
+# nothing outside the standard library at module scope, so this keeps the
+# no-dependencies promise.
+from health_digest import DEFAULT_MAX_AGE_HOURS, MAX_AGE_HOURS
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "talent_intel.db"
-STALE_AFTER_HOURS = 36  # two missed runs on a 2x/day cadence
 
 LIVE_URL = "https://asktherecruiter.com/blog/talent-intelligence-tracker/"
 SIBLING_URL = "https://asktherecruiter.com/blog/ai-layoff-tracker/"
@@ -43,7 +50,7 @@ def main() -> int:
     problems += _report_collection_armed()
     problems += _report_data(conn)
     problems += _report_health(conn)
-    _report_coverage()
+    problems += _report_coverage(conn)
     _report_surfaces()
     _report_spend()
 
@@ -135,12 +142,16 @@ def _report_health(conn) -> list[str]:
     now = datetime.now(timezone.utc)
     for row in rows:
         age = ""
+        limit = MAX_AGE_HOURS.get(row["collector"], DEFAULT_MAX_AGE_HOURS)
         try:
             last = datetime.fromisoformat(row["run_at"])
             hours = (now - last).total_seconds() / 3600
             age = f"{hours:.0f}h ago"
-            if hours > STALE_AFTER_HOURS:
-                problems.append(f"{row['collector']} last ran {hours:.0f}h ago — stale")
+            if hours > limit:
+                problems.append(
+                    f"{row['collector']} last ran {hours:.0f}h ago — stale "
+                    f"(its leash is {limit}h)"
+                )
         except (TypeError, ValueError):
             pass
 
@@ -153,13 +164,29 @@ def _report_health(conn) -> list[str]:
         if row["status"] != "ok":
             problems.append(f"{row['collector']} is {row['status']} — {row['detail'] or 'no detail'}")
 
+    # A collector that has never reported at all shows up nowhere in the query
+    # above, so without this it is invisible: the ledger looks healthy because
+    # the silent one is not in it. Named from the leash table rather than by
+    # importing run_collect, which would drag in `requests` and break the
+    # no-dependencies promise this script makes.
+    never = sorted(set(MAX_AGE_HOURS) - {r["collector"] for r in rows})
+    for name in never:
+        print(f"    ------   {name:<16} has never reported in this database")
+
     return problems
 
 
-def _report_coverage() -> None:
+def _report_coverage(conn) -> list[str]:
     """The honest claim, straight from the registry. A market is covered when
     it has a working connector, a health check and a passing test — never
-    because it appears in a list."""
+    because it appears in a list.
+
+    The registry says what we are ALLOWED to claim; the database says what we
+    actually hold. Those are two different facts and this prints both, because
+    a promoted market with no rows behind it is the exact lie the tier system
+    exists to prevent.
+    """
+    problems = []
     print("\n[3] COVERAGE  (claim allowed, per tier)")
     by_tier: dict[str, list[str]] = {}
     for entry in registry.coverage_manifest():
@@ -171,8 +198,47 @@ def _report_coverage() -> None:
             print(f'    {tier:<22} {len(codes):>2}  "{registry.TIER_PUBLIC_CLAIM[tier]}"'
                   f'  [{", ".join(sorted(codes))}]')
 
+    rows = {
+        (r["country"], r["collector"]): r["n"]
+        for r in conn.execute(
+            "SELECT country, collector, COUNT(*) n FROM signals "
+            "WHERE is_current = 1 AND country IS NOT NULL AND country != '' "
+            "GROUP BY country, collector"
+        )
+    }
+    reported = {
+        r[0] for r in conn.execute("SELECT DISTINCT collector FROM source_health")
+    }
+    for market in registry.MARKETS:
+        if market.status == registry.DISCOVERY_ONLY:
+            continue
+        # google_news is excluded on purpose: news discovery is what every
+        # market already has, so counting it here would let a promoted market
+        # look backed by structured data it does not hold.
+        official = [s for s in market.live_sources if s != "google_news"]
+        held = {name: rows.get((market.iso2, name), 0) for name in official}
+        detail = ", ".join(
+            f"{name} {n}" if name in reported else f"{name} not yet run here"
+            for name, n in held.items()
+        )
+        print(f"    {market.iso2}  {sum(held.values())} structured signal(s)  ({detail})")
+
+        # A collector that has RUN and stored nothing for the market it was
+        # promoted on is the silent zero this project refuses to tolerate. One
+        # that has never run in this checkout is a different thing entirely —
+        # usually a database behind main — and section [2] already says so, so
+        # it is printed and not escalated.
+        ran_and_empty = [n for n in official if n in reported and not held[n]]
+        if ran_and_empty and not sum(held.values()):
+            problems.append(
+                f"{market.iso2} claims structured coverage but "
+                f"{' and '.join(ran_and_empty)} has run and stored nothing for it "
+                "— fix the collector, or demote the market"
+            )
+
     candidates = sum(len(m.candidate_official_sources) for m in registry.MARKETS)
     print(f"    {candidates} researched official source(s) not yet built (roadmap, not coverage)")
+    return problems
 
 
 def _report_spend() -> None:

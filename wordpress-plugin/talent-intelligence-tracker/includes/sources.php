@@ -56,12 +56,18 @@ function tit_sources_health_map() {
     if (!is_array($health)) return array();
 
     // The registry names a source for a reader; the pipeline names its
-    // collector for a machine. This is the join between them.
+    // collector for a machine. This is the join between them, and every live
+    // source needs a line: without one, its "Last run" cell reads "not yet
+    // reported" forever while the collector runs perfectly. A test asserts the
+    // two sides match, because that failure is invisible on the page.
     $by_collector = array(
-        'google_news' => 'Google News RSS',
-        'gdelt'       => 'GDELT DOC 2.0',
-        'sec_edgar'   => 'SEC EDGAR 8-K (Item 5.02)',
-        'sec_form_d'  => 'SEC EDGAR Form D',
+        'google_news'  => 'Google News RSS',
+        'gdelt'        => 'GDELT DOC 2.0',
+        'sec_edgar'    => 'SEC EDGAR 8-K (Item 5.02)',
+        'sec_form_d'   => 'SEC EDGAR Form D',
+        'sec_execcomp' => 'SEC EDGAR pay-versus-performance (XBRL frames)',
+        'uk_paygap'    => 'GOV.UK gender pay gap service',
+        'ats_boards'   => 'ATS job boards (Greenhouse, Ashby, SmartRecruiters)',
     );
 
     $out = array();
@@ -238,6 +244,17 @@ function tit_sources_render($sources) {
           </tbody>
         </table>
       </div>
+
+      <?php
+      // Attribution is a CONDITION of the Open Government Licence, not a
+      // courtesy, so it is rendered site-wide rather than left to ride in the
+      // summary of individual rows where a filtered view can hide it.
+      ?>
+      <p class="tit-cite">
+        UK gender pay gap figures contain public sector information licensed
+        under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+        rel="nofollow noopener" target="_blank">Open Government Licence v3.0</a>.
+      </p>
 
       <p class="tit-cite">
         Layoff and redundancy data is deliberately not collected here. It is read

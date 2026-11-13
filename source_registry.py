@@ -381,6 +381,49 @@ SOURCES = (
                  "resolution endpoint returns the publisher URL, so records cite "
                  "the article rather than an outlet homepage."),
 
+    # --- live: the structured trio, added 2026-07-28 -----------------------
+    #
+    # Every field these three store is a column in a frame, a CSV or an API
+    # response, so the record is derived and no model is called at all. They
+    # cost nothing to run, which is why they can carry years of backfill and,
+    # in the ATS case, a daily cadence.
+    Source("SEC EDGAR pay-versus-performance (XBRL frames)",
+           "https://data.sec.gov/api/xbrl/frames/ecd/PeoTotalCompAmt/USD/CY2025.json",
+           "live", "Regulatory filings",
+           ("Executive compensation", "Pay disclosure"), "National", "US",
+           notes="Item 402(v) of Regulation S-K makes every US domestic "
+                 "registrant tag its principal executive officer's total "
+                 "compensation, and SEC republishes a whole calendar year as one "
+                 "JSON document. Derived from tagged fields, so no model is "
+                 "involved. Records cite the proxy statement that makes the "
+                 "claim, never the dataset, and are dated to the fiscal year "
+                 "they describe. CY2022 onward is the whole life of the "
+                 "disclosure and is collected."),
+    Source("GOV.UK gender pay gap service",
+           "https://gender-pay-gap.service.gov.uk/viewing/download-data/2025",
+           "live", "Government open data",
+           ("Pay gap", "Pay disclosure", "Employer size"), "National", "GB",
+           notes="Every UK employer with 250 or more employees must publish six "
+                 "pay-gap figures each year on a fixed snapshot date, and the "
+                 "service publishes them as one CSV per reporting year from 2017. "
+                 "The figures are columns, so no model is involved. Records cite "
+                 "the employer's own report page for that year, never the CSV. "
+                 "Contains public sector information licensed under the Open "
+                 "Government Licence v3.0."),
+    Source("ATS job boards (Greenhouse, Ashby, SmartRecruiters)",
+           "https://developers.greenhouse.io/job-board.html", "live",
+           "Employer job boards",
+           ("Hiring", "Headcount growth", "Posted pay range"),
+           "Global, watchlisted employers",
+           notes="All three publish an employer's open roles as keyless JSON. "
+                 "The signal is the DIFF — this employer opened forty more roles "
+                 "in Dublin this fortnight — never the individual advert, and the "
+                 "counts are fields, so no model is involved. It runs daily "
+                 "because these APIs have no history anywhere and no closed-on "
+                 "date: a day nobody records is gone permanently. Which employers "
+                 "is collectors/ats_watchlist.json, every slug fetched by hand "
+                 "before it was added."),
+
     # --- candidate: researched, real, not yet connected --------------------
     Source("SEC EDGAR 8-K (Items 1.01 / 2.01)", "https://www.sec.gov/edgar.shtml",
            "candidate", "Regulatory filings", ("M&A", "Acquisition"), "National", "US"),
@@ -572,19 +615,36 @@ def sources_manifest() -> list[dict]:
 #
 # Every market starts at discovery_only. Promote one ONLY when its official
 # connector runs, reports health, and has a passing test.
+#
+# US and GB were promoted on 2026-07-28, and the delay is the point: US had had
+# structured official coverage since sec_edgar shipped and this table still said
+# "we monitor news here", which understated it for weeks. A tier that only ever
+# moves in the flattering direction is not an honesty mechanism, so it is
+# checked in both directions now.
+#
+#   GB  uk_paygap    — connector, health check, tests/test_uk_paygap.py
+#   US  sec_edgar    — connector, health check, tests/test_collector_and_store.py
+#       sec_form_d                             tests/test_form_d_bulk.py
+#       sec_execcomp                           tests/test_sec_execcomp.py
+#
+# ats_boards is deliberately in NO market's live_sources. It reads employer
+# boards worldwide and which countries a run touches depends on what those
+# employers posted that day, so naming it under a country would claim national
+# coverage that no run guarantees.
 
 MARKETS = (
     Market("IE", "Ireland", DISCOVERY_ONLY,
            live_sources=("google_news",),
            candidate_official_sources=("IDA Ireland press releases",),
            terms=("IDA Ireland", "jobs announcement Dublin")),
-    Market("GB", "United Kingdom", DISCOVERY_ONLY,
-           live_sources=("google_news",),
+    Market("GB", "United Kingdom", STRUCTURED_OFFICIAL,
+           live_sources=("google_news", "uk_paygap"),
            candidate_official_sources=("RNS regulatory news", "Companies House appointments",
                                        "Invest NI press releases")),
-    Market("US", "United States", DISCOVERY_ONLY,
-           live_sources=("google_news",),
-           candidate_official_sources=("SEC EDGAR 8-K Item 5.02",)),
+    Market("US", "United States", STRUCTURED_OFFICIAL,
+           live_sources=("google_news", "sec_edgar", "sec_form_d", "sec_execcomp"),
+           candidate_official_sources=("SEC EDGAR 8-K Items 1.01 / 2.01",
+                                       "USAspending.gov contract awards")),
     Market("DE", "Germany", DISCOVERY_ONLY,
            live_sources=("google_news",),
            candidate_official_sources=("Germany Trade & Invest",),

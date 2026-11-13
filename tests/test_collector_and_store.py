@@ -181,6 +181,47 @@ def test_no_market_claims_more_than_its_tier_earns():
             assert market.live_sources == ("google_news",), market.iso2
 
 
+def test_a_promoted_market_names_a_structured_collector_that_exists():
+    """Promotion is earned: a working connector, a health check and a passing
+    test. The cheap way to fake it is to raise the tier and leave live_sources
+    at ("google_news",), which claims structured coverage on news discovery.
+    """
+    import importlib
+
+    for market in registry.MARKETS:
+        if market.status == registry.DISCOVERY_ONLY:
+            continue
+        official = [s for s in market.live_sources if s != "google_news"]
+        assert official, f"{market.iso2} is promoted on news discovery alone"
+        for name in official:
+            importlib.import_module(f"collectors.{name}")
+
+
+def test_every_collector_has_a_deliberate_staleness_leash():
+    """A collector with no leash falls back to the 14-day default, which is
+    wrong in both directions: it hides a fortnight of silence on a daily
+    collector, and it pages every month for a monthly one. The default exists
+    for an unknown collector, not as somewhere to leave a known one.
+    """
+    import health_digest
+    import run_collect
+
+    assert set(run_collect.SOURCES) <= set(health_digest.MAX_AGE_HOURS), (
+        "no staleness leash for: "
+        f"{sorted(set(run_collect.SOURCES) - set(health_digest.MAX_AGE_HOURS))}"
+    )
+
+
+def test_a_monthly_collector_is_not_on_a_fortnightly_leash():
+    """collect-structured.yml looks at the two annual disclosures once a month.
+    Any leash under a month means three weeks of every four are spent alerting
+    about a collector doing exactly what it was asked to do."""
+    import health_digest
+
+    for name in ("sec_execcomp", "uk_paygap"):
+        assert health_digest.MAX_AGE_HOURS[name] >= 31 * 24, name
+
+
 def test_coverage_manifest_renders_every_market():
     manifest = registry.coverage_manifest()
     assert len(manifest) == len(registry.MARKETS)

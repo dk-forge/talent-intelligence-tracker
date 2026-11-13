@@ -1,5 +1,21 @@
 [
  {
+  "name": "ATS job boards (Greenhouse, Ashby, SmartRecruiters)",
+  "url": "https://developers.greenhouse.io/job-board.html",
+  "status": "live",
+  "category": "Employer job boards",
+  "signals": [
+   "Hiring",
+   "Headcount growth",
+   "Posted pay range"
+  ],
+  "coverage": "Global, watchlisted employers",
+  "country": "",
+  "rss": "",
+  "free": true,
+  "notes": "All three publish an employer's open roles as keyless JSON. The signal is the DIFF \u2014 this employer opened forty more roles in Dublin this fortnight \u2014 never the individual advert, and the counts are fields, so no model is involved. It runs daily because these APIs have no history anywhere and no closed-on date: a day nobody records is gone permanently. Which employers is collectors/ats_watchlist.json, every slug fetched by hand before it was added."
+ },
+ {
   "name": "GDELT DOC 2.0",
   "url": "https://www.gdeltproject.org/",
   "status": "live",
@@ -33,6 +49,22 @@
   "notes": "Keyless and unthrottled. Read in each edition's own language, because English phrases in a non-English edition return almost nothing. Its links are encoded redirects, but Google's own resolution endpoint returns the publisher URL, so records cite the article rather than an outlet homepage."
  },
  {
+  "name": "GOV.UK gender pay gap service",
+  "url": "https://gender-pay-gap.service.gov.uk/viewing/download-data/2025",
+  "status": "live",
+  "category": "Government open data",
+  "signals": [
+   "Pay gap",
+   "Pay disclosure",
+   "Employer size"
+  ],
+  "coverage": "National",
+  "country": "GB",
+  "rss": "",
+  "free": true,
+  "notes": "Every UK employer with 250 or more employees must publish six pay-gap figures each year on a fixed snapshot date, and the service publishes them as one CSV per reporting year from 2017. The figures are columns, so no model is involved. Records cite the employer's own report page for that year, never the CSV. Contains public sector information licensed under the Open Government Licence v3.0."
+ },
+ {
   "name": "SEC EDGAR 8-K (Item 5.02)",
   "url": "https://www.sec.gov/edgar.shtml",
   "status": "live",
@@ -62,6 +94,21 @@
   "rss": "",
   "free": true,
   "notes": "Structured XML: issuer, industry, city, state and amount sold. The money figure is read off the filing, never inferred."
+ },
+ {
+  "name": "SEC EDGAR pay-versus-performance (XBRL frames)",
+  "url": "https://data.sec.gov/api/xbrl/frames/ecd/PeoTotalCompAmt/USD/CY2025.json",
+  "status": "live",
+  "category": "Regulatory filings",
+  "signals": [
+   "Executive compensation",
+   "Pay disclosure"
+  ],
+  "coverage": "National",
+  "country": "US",
+  "rss": "",
+  "free": true,
+  "notes": "Item 402(v) of Regulation S-K makes every US domestic registrant tag its principal executive officer's total compensation, and SEC republishes a whole calendar year as one JSON document. Derived from tagged fields, so no model is involved. Records cite the proxy statement that makes the claim, never the dataset, and are dated to the fiscal year they describe. CY2022 onward is the whole life of the disclosure and is collected."
  },
  {
   "name": "AI Layoff Tracker (sibling)",
