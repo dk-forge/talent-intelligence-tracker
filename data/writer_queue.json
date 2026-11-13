@@ -252,77 +252,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-13T17:32:46Z",
-      "history": [
-        {
-          "at": "2026-11-13T17:07:59Z",
-          "detail": "verify transport-retry fix (PR 339) on a real run; opendart_korea was ERROR on a transient blip",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-13T17:32:46Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-13T17:33:37Z",
-          "detail": "run 43473849862",
-          "event": "bound"
-        }
-      ],
-      "id": "20261113T170759Z-collect-structured",
-      "inputs": {
-        "dry_run": "false",
-        "source": "opendart_korea"
-      },
-      "priority": 0,
-      "reason": "verify transport-retry fix (PR 339) on a real run; opendart_korea was ERROR on a transient blip",
-      "requested_at": "2026-11-13T17:07:59Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "43473849862",
-      "state": "dispatched",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-07T16:33:08Z",
-      "history": [
-        {
-          "at": "2026-11-07T16:23:23Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-07T16:33:08Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-07T16:47:18Z",
-          "detail": "run 42391865934",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-07T16:59:55Z",
-          "detail": "run 42391865934",
-          "event": "landed"
-        }
-      ],
-      "id": "20261107T162323Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-07T16:59:55Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-07T16:23:23Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42391865934",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-08T00:47:11Z",
       "history": [
         {
@@ -2593,6 +2522,45 @@
       "requested_at": "2026-11-13T17:07:10Z",
       "requested_by": "dakotta-labs",
       "run_id": "43472549670",
+      "state": "landed",
+      "workflow": "collect-structured.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-13T17:32:46Z",
+      "history": [
+        {
+          "at": "2026-11-13T17:07:59Z",
+          "detail": "verify transport-retry fix (PR 339) on a real run; opendart_korea was ERROR on a transient blip",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-13T17:32:46Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-13T17:33:37Z",
+          "detail": "run 43473849862",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-13T17:37:19Z",
+          "detail": "run 43473849862",
+          "event": "landed"
+        }
+      ],
+      "id": "20261113T170759Z-collect-structured",
+      "inputs": {
+        "dry_run": "false",
+        "source": "opendart_korea"
+      },
+      "landed_at": "2026-11-13T17:37:19Z",
+      "priority": 0,
+      "reason": "verify transport-retry fix (PR 339) on a real run; opendart_korea was ERROR on a transient blip",
+      "requested_at": "2026-11-13T17:07:59Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "43473849862",
       "state": "landed",
       "workflow": "collect-structured.yml"
     }
