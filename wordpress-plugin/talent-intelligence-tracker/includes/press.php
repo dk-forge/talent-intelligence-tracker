@@ -537,6 +537,10 @@ function tit_press_render(array $f) {
       </p>
     </div>
     <?php
+    if (function_exists('tit_net_index_url')) {
+        echo '<p class="tit-note">A monthly figure to quote: the <a href="' . esc_url(tit_net_index_url())
+           . '">Net Talent Index</a>, with its own page for every month and a city breakdown.</p>';
+    }
     if (function_exists('tit_page_faq_section')) echo tit_page_faq_section('press');
     if (function_exists('tit_render_footer')) tit_render_footer('press'); else get_footer();
 }

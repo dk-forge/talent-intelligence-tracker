@@ -22,6 +22,7 @@ function tit_sitemap_index_entries($xml) {
     if (function_exists('tit_company_sitemap_url')) $urls[] = tit_company_sitemap_url();
     if (function_exists('tit_places_sitemap_url'))  $urls[] = tit_places_sitemap_url();
     if (function_exists('tit_roles_sitemap_url'))   $urls[] = tit_roles_sitemap_url();
+    if (function_exists('tit_net_index_sitemap_url')) $urls[] = tit_net_index_sitemap_url();
     $add = '';
     foreach ($urls as $url) {
         // Never twice, whichever plugin or filter order put it there first.

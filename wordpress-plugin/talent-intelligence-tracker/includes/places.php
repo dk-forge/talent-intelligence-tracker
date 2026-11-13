@@ -1363,6 +1363,8 @@ function tit_place_render($kind, $cell, $facts) {
       ) + tit_place_page_dates($listed), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php
+    // Follow this city (off until the sibling digest accepts talent kinds; follows.php).
+    if ($kind === 'city' && function_exists('tit_follow_form')) echo tit_follow_form('talent_city', $cell['key'], $cell['name']);
     if (function_exists('tit_render_footer')) tit_render_footer('place'); else get_footer();
 }
 
@@ -1483,7 +1485,9 @@ function tit_places_render() {
         &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
         &middot;
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
+        <?php if (function_exists('tit_net_index_url')) : ?><a href="<?php echo esc_url(tit_net_index_url()); ?>">Net Talent Index, by month and city</a>
+        &middot;
+        <?php endif; ?><a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
       </p>
     </div>
     <?php
