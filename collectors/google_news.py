@@ -261,12 +261,27 @@ _CONSENT_WALL = re.compile(r"consent\.google\.|Before you continue", re.I)
 
 # Per-process tally of article pages that came back as the consent wall even
 # with the cookies above. run_collect writes it into the health detail.
-STATS = {"consent_wall": 0}
+STATS = {"consent_wall": 0, "http_blocked": 0}
 
 
 def is_consent_wall(html: str) -> bool:
     """Whether Google answered with its consent interstitial, not the page."""
     return bool(_CONSENT_WALL.search(html or "")) and "data-n-a-sg" not in (html or "")
+
+
+def is_unresolved(item: dict) -> bool:
+    """A Google News item whose source_url is still a homepage or Google itself.
+
+    Its source_url is NOT an identity: every unresolved item from one outlet
+    shares the outlet's homepage, so marking that "seen" skips the outlet's
+    whole backlog (2026-11-13: already-seen=1488, stored=0). Callers must
+    neither consult nor write seen_urls for it, so the item retries.
+    """
+    if not _is_google_news(item.get("discovery_url")):
+        return False
+    src = item.get("source_url") or ""
+    path = src.split("://", 1)[-1].partition("/")[2].strip("/")
+    return _is_google_news(src) or not path
 
 
 def unresolved_count(items: list[dict]) -> int:
@@ -320,6 +335,8 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
                         cookies=CONSENT_COOKIES, timeout=timeout)
         sig, ts = _SIG.search(page.text), _TS.search(page.text)
         if not (sig and ts):
+            if page.status_code in (403, 429, 503):
+                STATS["http_blocked"] += 1
             if is_consent_wall(page.text):
                 STATS["consent_wall"] += 1
             return item
