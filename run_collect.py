@@ -683,6 +683,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                             f"links kept a homepage"
                             + (f" ({google_news.STATS['consent_wall']} consent wall)"
                                if google_news.STATS["consent_wall"] else "")
+                            + (f" ({google_news.STATS['http_blocked']} HTTP 403/429/503)"
+                               if google_news.STATS["http_blocked"] else "")
                             + " | ")
             print(f"[{collector}] {resolve_note.rstrip(' |')}")
 
@@ -782,7 +784,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         # make the first movement the last one this collector ever reported.
         # Those rows are deduped by content_hash and the fuzzy window instead.
         revisits = getattr(module, "REVISITS_ITS_SOURCE_URL", False)
-        if url and not revisits and store.already_seen(conn, url):
+        # An unresolved Google News link carries the outlet's homepage as its
+        # url: shared by every story from that outlet, so it is no identity.
+        unresolved = google_news.is_unresolved(item)
+        if url and not revisits and not unresolved and store.already_seen(conn, url):
             skipped += 1
             continue
 
@@ -800,7 +805,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 rejected += 1
                 print(f"  REJECT  {item.get('headline','')[:70]}\n"
                       f"          {exc} (before any model call)")
-                if url and not dry_run:
+                if url and not dry_run and not unresolved:
                     store.mark_seen(conn, url, collector, "rejected")
                 continue
 

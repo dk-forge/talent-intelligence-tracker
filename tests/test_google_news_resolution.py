@@ -105,3 +105,24 @@ def test_unresolved_items_are_counted():
         {"discovery_url": "https://news.google.com/rss/articles/B", "source_url": "https://www.ft.com/content/abc"},
     ]
     assert google_news.unresolved_count(items) == 1
+
+
+def test_unresolved_item_is_not_an_identity():
+    """2026-11-13: a failed resolve left source_url = outlet homepage, the
+    reject marked that homepage seen, and every later story from the outlet
+    was skipped as already-seen (1488 skipped, 0 stored)."""
+    gn = "https://news.google.com/rss/articles/CBMiabc"
+    assert google_news.is_unresolved({"discovery_url": gn, "source_url": "https://moneyworld.jp"})
+    assert google_news.is_unresolved({"discovery_url": gn, "source_url": gn})
+    assert not google_news.is_unresolved(
+        {"discovery_url": gn, "source_url": "https://moneyworld.jp/a/b"})
+    assert not google_news.is_unresolved(
+        {"discovery_url": "https://x.com/a", "source_url": "https://x.com"})
+
+
+def test_run_collect_never_marks_or_consults_seen_for_unresolved():
+    import inspect, run_collect
+    src = inspect.getsource(run_collect.run)
+    assert "unresolved = google_news.is_unresolved(item)" in src
+    assert "not revisits and not unresolved and store.already_seen" in src
+    assert "and not dry_run and not unresolved:\n                    store.mark_seen" in src
