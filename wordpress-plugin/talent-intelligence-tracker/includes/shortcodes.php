@@ -2491,10 +2491,6 @@ function tit_dashboard_html() {
         &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Sources</a>
         &middot;
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
-        &middot;
-        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
-        &middot;
         <?php /* These routes are in no theme menu, so a page linked from
                  nowhere is a page a crawler finds slowly through the sitemap
                  and trusts less. The press page is the one addressed to

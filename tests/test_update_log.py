@@ -80,7 +80,9 @@ def test_the_page_is_routed_loaded_and_linked_beside_corrections():
     shortcodes = (PLUGIN / "includes" / "shortcodes.php").read_text(encoding="utf-8")
     page = (PLUGIN / "includes" / "page.php").read_text(encoding="utf-8")
     for url in ("/talent-intelligence-tracker/update-log/", "/talent-intelligence-tracker/methodology/"):
-        assert shortcodes.count(url) >= 2, f"{url} not linked from both the ribbon and the footer"
+        # One link, in the ribbon beside Corrections: the dashboard markup has a
+        # byte budget (a phone page), so the footer does not repeat it.
+        assert shortcodes.count(url) == 1, f"{url} must be linked once from the dashboard ribbon"
     assert "tit_update_log" in page and "tit_methodology" in page
 
 
