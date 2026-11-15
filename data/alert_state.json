@@ -29,8 +29,13 @@
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
+    },
+    "tests:main:e1b2f568527d4120": {
+      "first": 1794718435,
+      "last": 1794718435,
+      "subject": "CI RED: tests: AssertionError: assert 'FAIL' in ('PASS', 'UNKNOWN')"
     }
   },
-  "updated_at": "2026-11-13T17:42:23+00:00",
+  "updated_at": "2026-11-15T04:53:56+00:00",
   "version": 1
 }
