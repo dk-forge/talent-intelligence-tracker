@@ -25,6 +25,11 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
+    "main-green-check:main:b20d48d5c896e994": {
+      "first": 1794732693,
+      "last": 1794732693,
+      "subject": "CI RED: main-green-check: error: main is NOT verifiably green: tests.yml FAIL (newest completed run is failure on 7d6253af)"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
@@ -36,6 +41,6 @@
       "subject": "CI RED: tests: AssertionError: assert 'FAIL' in ('PASS', 'UNKNOWN')"
     }
   },
-  "updated_at": "2026-11-15T04:53:56+00:00",
+  "updated_at": "2026-11-15T08:51:33+00:00",
   "version": 1
 }
