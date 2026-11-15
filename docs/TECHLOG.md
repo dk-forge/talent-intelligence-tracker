@@ -18057,3 +18057,13 @@ Measured on the committed DB, rows published 2026-11-02..09: 449 current rows wi
 **Guard:** `tests/test_funding_amount_adjudicated.py`.
 
 A dry run of `correct_funding_amount.py` against main would have moved 19 rows, 15 of them back to the figure the referees or the owner had just removed (Mistral $3.5bn -> $24bn, Databricks $5bn -> $7bn, Homerun $9.4M -> $400M, Crusoe, Velaura AI, Rillet, Starcloud, OpenEvidence, Ramaswamy, Tractian, and refilling the cleared Ominimo, Sapien, Brandeis, Mobge and X.AI Form D). Cause: `adjudicate_guardrail.apply_decision` corrects `funding_amount_usd` but never edits `funding_amount`, which is the publisher's wording and often the valuation, so re-deriving from the string restores the valuation. The pass now skips any row whose history carries the adjudication note (`correct_funding_amount.ADJUDICATED_PREFIX`, which the adjudicator now writes) for its current funding string. A new string after the ruling is the parser's again. The dry run now proposes 7 rows (after #323), all genuinely wrong: three never-published valuations stored as raises (Lovable $13.3bn, DeepSeek $70bn, Revolut $115bn) cleared by #323's valuation rule, RevaTerra $1.265bn -> $1,265,000 ("$1.265 Million"), and three clears of non-dollar amounts stored as dollars (Nitto Denko JPY 28bn, Grupo Exito and Tejo Turmeque in Colombian pesos). Not applied in this change.
+
+## 2026-11-15 - weekly benchmark (talent)
+Own benchmark = recall gold sets plus landmarks. Recall held: world 92/152 (60.5%),
+EU 29/50 (58.0%), US 32/52 (61.5%). Landmarks 14/20 held, 6 standing gaps, 0
+regressions (check 2026-11-09, same as last week). Last 7 days ingest: $1.4172 over
+26 runs, 1,500 reads -> 753 rows (50%); all collectors OK, none DEGRADED; month spend
+$3.02 of $8.00 (committed $2.97/$7.11), projected $6.05, 16 days left. The standing
+drift alarm (uncertain share) is the known ceiling. Two employer slugs are claimed by
+two keys each (peapack-gladstone, vulcan-infrastructure) so neither is published.
+No ranking claimed.
