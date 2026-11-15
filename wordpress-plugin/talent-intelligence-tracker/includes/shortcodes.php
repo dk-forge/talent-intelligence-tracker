@@ -943,6 +943,8 @@ function tit_dashboard_html() {
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/places/')); ?>">Every country, city and industry we cover</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>
@@ -2488,6 +2490,10 @@ function tit_dashboard_html() {
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
         &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Sources</a>
+        &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
+        &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
         &middot;
         <?php /* These routes are in no theme menu, so a page linked from
                  nowhere is a page a crawler finds slowly through the sitemap

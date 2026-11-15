@@ -21,6 +21,8 @@ function tit_related_links_targets() {
         'corrections' => array('Corrections', '/talent-intelligence-tracker/corrections/'),
         'press'       => array('Press', '/talent-intelligence-tracker/press/'),
         'sources'     => array('Data Sources', '/talent-intelligence-tracker/sources/'),
+        'methodology' => array('Methodology', '/talent-intelligence-tracker/methodology/'),
+        'update_log'  => array('Update Log', '/talent-intelligence-tracker/update-log/'),
     );
 }
 
@@ -31,7 +33,9 @@ function tit_related_links_map() {
         'sources'     => array('dashboard', 'recall', 'corrections'),
         'press'       => array('dashboard', 'places', 'corrections'),
         'recall'      => array('dashboard', 'corrections'),
-        'corrections' => array('dashboard', 'recall'),
+        'corrections' => array('dashboard', 'recall', 'update_log'),
+        'methodology' => array('dashboard', 'recall', 'corrections'),
+        'update_log'  => array('dashboard', 'methodology', 'corrections'),
         'places'      => array('dashboard', 'roles'),
         'place'       => array('places', 'dashboard'),
         'roles'       => array('dashboard', 'places'),

@@ -14,8 +14,8 @@
  *    sibling's 2026-07-28 lesson, recorded in company.php and places.php);
  *  - no per-entity pages (company, place, role): thousands of near-identical
  *    FAQs is the pattern that lesson warns about.
- * This product has no Methodology page; method is linked as Data Sources and
- * Measured Recall.
+ * The Methodology page (1.116.0) is the long form of the same answers; the
+ * Data Sources and Measured Recall pages carry the lists and the measurements.
  */
 if (!defined('ABSPATH')) exit;
 
@@ -65,6 +65,7 @@ function tit_page_faq_urls() {
         'corrections' => $u('tit_corrections_url', '/talent-intelligence-tracker/corrections/'),
         'places'      => $u('tit_places_url', '/talent-intelligence-tracker/places/'),
         'roles'       => $u('tit_roles_url', '/talent-intelligence-tracker/roles/'),
+        'methodology' => $u('tit_methodology_url', '/talent-intelligence-tracker/methodology/'),
         'contact'     => home_url('/contact/'),
     );
 }
@@ -169,6 +170,20 @@ function tit_page_faq_content($key, $f, $u) {
                 array('Do you delete records that turn out to be wrong?', tit_page_faq_join(array(
                     'No. A correction adds a new revision, and this page records what changed and when.'))),
                 $q_where,
+            ),
+        ),
+        'methodology' => array(
+            'intro' => array('This page explains what counts as a record on the Talent Intelligence Tracker, where each one comes from, how we check it and what we cannot see.', $all),
+            'h2' => 'Methodology: Common Questions',
+            'faq' => array(
+                array('What counts as an update?', tit_page_faq_join(array(
+                    $what, $not_ads, 'An announced plan and a change on an employer\'s job board are different things, and we label them differently.'))),
+                array('What do verified, reported and measured mean?', tit_page_faq_join(array(
+                    'Verified is an official or primary filed document. Reported is news or a press release, and a news article never becomes verified.',
+                    'Measured is our own reading of an employer\'s job board, which is never counted as an announced hiring event.'))),
+                array('How do you avoid counting the same event twice?', tit_page_faq_join(array(
+                    'The same employer and kind of development inside 14 days is one event, and a near-identical headline is matched over a much longer window.',
+                    'A story that many outlets carry becomes one record that links to the publisher\'s own article.'))),
             ),
         ),
         'places' => array(
