@@ -1,5 +1,5 @@
 {
-  "_committed_at": "2026-11-15T11:19:24+00:00",
+  "_committed_at": "2026-11-16T15:17:26+00:00",
   "announced": false,
   "consecutive_failures": 0,
   "history": [
@@ -59,9 +59,9 @@
       "state": "up"
     }
   ],
-  "last_detail": "HTTP 200 in 373ms",
-  "last_ok_at": "2026-11-15T11:19:24+00:00",
-  "last_probe_at": "2026-11-15T11:19:24+00:00",
+  "last_detail": "HTTP 200 in 448ms",
+  "last_ok_at": "2026-11-16T15:17:26+00:00",
+  "last_probe_at": "2026-11-16T15:17:26+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -81,12 +81,22 @@
           "at": "2026-09-30T07:56:27+00:00",
           "detail": "HTTP 200 status=ok version=v1.0.1154 in 230ms",
           "state": "up"
+        },
+        {
+          "at": "2026-11-16T06:57:43+00:00",
+          "detail": "HTTP 502 from /healthz",
+          "state": "down"
+        },
+        {
+          "at": "2026-11-16T09:16:45+00:00",
+          "detail": "HTTP 200 status=ok version=v1.0.1825 in 164ms",
+          "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 177ms",
-      "last_ok_at": "2026-11-15T11:19:24+00:00",
-      "last_probe_at": "2026-11-15T11:19:24+00:00",
-      "since": "2026-09-30T07:56:27+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 210ms",
+      "last_ok_at": "2026-11-16T15:17:26+00:00",
+      "last_probe_at": "2026-11-16T15:17:26+00:00",
+      "since": "2026-11-16T09:16:45+00:00",
       "state": "up"
     },
     "sandbox-frontend": {
@@ -97,12 +107,22 @@
           "at": "2026-09-05T22:10:44+00:00",
           "detail": "HTTP 200 status=ok version=v1.0.944 in 423ms",
           "state": "up"
+        },
+        {
+          "at": "2026-11-16T06:57:43+00:00",
+          "detail": "HTTP 502 from /healthz",
+          "state": "down"
+        },
+        {
+          "at": "2026-11-16T09:16:45+00:00",
+          "detail": "HTTP 200 status=ok version=v1.0.1825 in 81ms",
+          "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 126ms",
-      "last_ok_at": "2026-11-15T11:19:24+00:00",
-      "last_probe_at": "2026-11-15T11:19:24+00:00",
-      "since": "2026-09-05T22:10:44+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 157ms",
+      "last_ok_at": "2026-11-16T15:17:26+00:00",
+      "last_probe_at": "2026-11-16T15:17:26+00:00",
+      "since": "2026-11-16T09:16:45+00:00",
       "state": "up"
     }
   },

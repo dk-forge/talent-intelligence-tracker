@@ -8,7 +8,7 @@ import sqlite3
 from dataclasses import asdict
 from datetime import datetime, timezone
 
-from . import dedupe
+from . import archive, dedupe
 
 
 def already_seen(conn: sqlite3.Connection, url: str) -> bool:
@@ -153,6 +153,10 @@ def revise(conn: sqlite3.Connection, signal_id: str, new_signal, note: str) -> N
         (signal_id,),
     ).fetchone()
     if current is None:
+        if archive.is_archived(conn, signal_id):
+            raise ValueError(
+                f"signal_id {signal_id} is in a read-only archive shard; "
+                f"correcting it is a deliberate un-archive (pipeline/archive.py)")
         raise ValueError(f"no current revision for signal_id {signal_id}")
 
     conn.execute("UPDATE signals SET is_current = 0 WHERE row_id = ?", (current["row_id"],))

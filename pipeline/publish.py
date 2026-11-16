@@ -13,7 +13,7 @@ import time
 
 import requests
 
-from . import guardrails, planned_hiring
+from . import archive, guardrails, planned_hiring
 
 # ModSecurity on this host blocks python-requests outright. Anything talking to
 # the WP host must look like a browser or every call returns an inexplicable
@@ -482,15 +482,29 @@ def enrich_published(conn, *, dry_run: bool = False, limit: int | None = None,
             "not_attempted": not_attempted}
 
 
-def unpublished(conn, limit: int | None = None) -> list[dict]:
-    sql = (
-        f"SELECT row_id, {', '.join(FIELDS)} FROM signals "
-        "WHERE is_current = 1 AND published_at IS NULL"
-        # Planned-hiring rows stay unpublished until PLANNED_HIRING_ENABLED is
-        # on; published_at stays NULL, so they go out on the first run after.
-        + planned_hiring.public_sql() + " "
-        "ORDER BY row_id ASC"
-    )
+def unpublished(conn, limit: int | None = None, *,
+                include_archived: bool = False) -> list[dict]:
+    """Rows to send. `include_archived` is the REPUBLISH-FROM-DATABASE path.
+
+    An archived row (pipeline/archive.py) was published before it moved and its
+    shard is read-only, so its published_at can never be cleared the way
+    docs/RECOVERY.md clears main's. A rebuild of the site must still send it,
+    so with `include_archived` every current shard row joins the batch. Marking
+    it published afterwards is an UPDATE of main by row_id, which touches no
+    archived row, so the shard is never written.
+    """
+    where = ("WHERE is_current = 1 AND published_at IS NULL"
+             # Planned-hiring rows stay unpublished until PLANNED_HIRING_ENABLED
+             # is on; published_at stays NULL, so they go out on the first run
+             # after.
+             + planned_hiring.public_sql())
+    sql = f"SELECT row_id, {', '.join(FIELDS)} FROM signals {where}"
+    if include_archived:
+        for schema in archive.attached(conn):
+            sql += (f" UNION ALL SELECT row_id, {', '.join(FIELDS)} "
+                    f"FROM {schema}.signals WHERE is_current = 1"
+                    + planned_hiring.public_sql())
+    sql += " ORDER BY row_id ASC"
     if limit:
         sql += f" LIMIT {int(limit)}"
     return [dict(row) for row in conn.execute(sql)]
@@ -567,7 +581,8 @@ def publish_health(conn, *, dry_run: bool = False) -> int:
     return len(rows)
 
 
-def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
+def publish(conn, *, dry_run: bool = False, limit: int | None = None,
+            include_archived: bool = False) -> dict:
     """Send unpublished signals. Returns a summary.
 
     The guardrails run FIRST, before a single row is sent and before the
@@ -577,7 +592,7 @@ def publish(conn, *, dry_run: bool = False, limit: int | None = None) -> dict:
     """
     guard = _guard(conn, dry_run=dry_run)
 
-    rows = unpublished(conn, limit)
+    rows = unpublished(conn, limit, include_archived=include_archived)
 
     # The quarantine. A flagged row is dropped from the batch and stays
     # unpublished, so it reaches no headline figure; every other row in the same

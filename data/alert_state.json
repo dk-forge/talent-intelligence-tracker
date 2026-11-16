@@ -15,6 +15,11 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "backup-check:main:5ab79242728b847d": {
+      "first": 1794824115,
+      "last": 1794824115,
+      "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -41,6 +46,6 @@
       "subject": "CI RED: tests: AssertionError: assert 'FAIL' in ('PASS', 'UNKNOWN')"
     }
   },
-  "updated_at": "2026-11-15T08:51:33+00:00",
+  "updated_at": "2026-11-16T10:15:16+00:00",
   "version": 1
 }
