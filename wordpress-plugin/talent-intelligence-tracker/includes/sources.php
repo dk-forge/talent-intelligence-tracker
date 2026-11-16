@@ -45,28 +45,9 @@ function tit_sources_template() {
 }
 add_action('template_redirect', 'tit_sources_template');
 
-/* /methodology/ had no route, so WordPress's 404 guesser sent it to the
-   sibling tracker's methodology page (found live 2026-11-11). This product's
-   method is the sources page, so the obvious URL goes there. */
-const TIT_METHODOLOGY_PATH = 'talent-intelligence-tracker/methodology';
-
-function tit_methodology_rewrite() {
-    add_rewrite_rule('^' . TIT_METHODOLOGY_PATH . '/?$', 'index.php?tit_methodology=1', 'top');
-}
-add_action('init', 'tit_methodology_rewrite');
-
-function tit_methodology_query_var($vars) {
-    $vars[] = 'tit_methodology';
-    return $vars;
-}
-add_filter('query_vars', 'tit_methodology_query_var');
-
-function tit_methodology_template() {
-    if (!get_query_var('tit_methodology')) return;
-    wp_safe_redirect(tit_sources_url(), 301);
-    exit;
-}
-add_action('template_redirect', 'tit_methodology_template', 1);
+/* /methodology/ is its own page now: includes/methodology.php (1.116.0). It was a
+   301 to this page until then, which answered the obvious URL with a list of
+   sources rather than an account of method. */
 
 /**
  * The registry names a source for a reader; the pipeline names its collector
@@ -540,6 +521,10 @@ function tit_sources_render($sources) {
         from the <a href="https://asktherecruiter.com/blog/ai-layoff-tracker/">AI
         Layoff Tracker</a>, so there is one source of truth per fact.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+        &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
+        &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
         &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
       </p>

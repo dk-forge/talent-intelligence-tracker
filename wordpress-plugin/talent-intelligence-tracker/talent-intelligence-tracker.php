@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.115.1
+ * Version: 1.116.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.115.1');
+define('TIT_VERSION', '1.116.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -75,6 +75,10 @@ tit_require('includes/sitemap_index.php');
 tit_require('includes/indexnow.php');
 tit_require('includes/sources.php');
 tit_require('includes/corrections.php');
+// The method page and the release history: own routes, no script, no CSS of
+// their own (1.116.0). methodology.php replaced the old 301 to /sources/.
+tit_require('includes/methodology.php');
+tit_require('includes/update_log.php');
 tit_require('includes/recall.php');
 // After corrections.php and recall.php: the press page links to both and reads
 // tit_press_link()'s whitelist against what dashboard.js parses, so it is last

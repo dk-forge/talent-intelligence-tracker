@@ -70,6 +70,8 @@ function tit_is_our_page() {
     return get_query_var('tit_company')
         || get_query_var('tit_sources')
         || get_query_var('tit_corrections')
+        || get_query_var('tit_methodology')
+        || get_query_var('tit_update_log')
         // /recall/ and the place pages were missing here, so both were still
         // getting a table of contents injected into their heading structure.
         // Same argument as the dashboard: right for an article, wrong for a

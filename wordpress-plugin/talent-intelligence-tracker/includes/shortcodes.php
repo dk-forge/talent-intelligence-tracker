@@ -943,6 +943,8 @@ function tit_dashboard_html() {
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/places/')); ?>">Every country, city and industry we cover</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>

@@ -540,6 +540,10 @@ function tit_corrections_render($entries) {
         here.
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Where this data comes from</a>
         &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
+        &middot;
+        <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
+        &middot;
         <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/')); ?>">Back to the tracker</a>
       </p>
     </div>
