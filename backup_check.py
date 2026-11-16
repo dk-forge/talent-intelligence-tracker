@@ -62,6 +62,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -149,6 +150,32 @@ def committed_blob(ref: str = "HEAD",
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError) as e:
         raise Unavailable(f"could not read {db_in_repo} out of git ({e})") from e
     return commit, blob, size
+
+
+ARCHIVE_IN_REPO = "data/archive"
+
+
+def committed_shards(ref: str = "HEAD") -> list[str]:
+    """Repo paths of every archive shard committed at `ref`, sorted."""
+    try:
+        out = _git("ls-tree", "--name-only", ref, ARCHIVE_IN_REPO + "/")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+    return sorted(p for p in out.splitlines()
+                  if re.match(r"^data/archive/signals-\d{4}-\d{2}-\d{2}\.db$", p))
+
+
+def shard_overlap(main_path: str, shard_path: str) -> int:
+    """Rows (content_hash, revision) present in both files. Must be zero."""
+    conn = sqlite3.connect(f"file:{main_path}?mode=ro", uri=True)
+    try:
+        conn.execute("ATTACH DATABASE ? AS shard", (f"file:{shard_path}?mode=ro",))
+        return conn.execute(
+            "SELECT COUNT(*) FROM main.signals m JOIN shard.signals a "
+            "ON a.content_hash = m.content_hash AND a.revision = m.revision"
+        ).fetchone()[0]
+    finally:
+        conn.close()
 
 
 class Unavailable(RuntimeError):
@@ -270,7 +297,8 @@ def publishable(columns: list[str]) -> tuple[str, str]:
 
 
 def evaluate(*, integrity: str, tables: dict, signals_columns: list[str],
-             size_bytes: int, prior: dict | None, now: datetime | None = None) -> dict:
+             size_bytes: int, prior: dict | None, now: datetime | None = None,
+             archive_overlap: int | None = None) -> dict:
     """Grade one reading. No git and no files: the inputs are all arguments,
     which is what lets the tests seed a shrunken or corrupt reading."""
     checks: list[dict] = []
@@ -322,6 +350,16 @@ def evaluate(*, integrity: str, tables: dict, signals_columns: list[str],
             checks.append({"check": "no_shrink", "status": PASS,
                            "detail": "no table is smaller than it was on "
                                      + str(prior.get("checked_at"))})
+
+    # Only graded when shards exist: None means there is no archive to check.
+    if archive_overlap is not None:
+        checks.append({
+            "check": "archive_disjoint",
+            "status": PASS if archive_overlap == 0 else FAIL,
+            "detail": (f"{archive_overlap} signal row(s) are in BOTH the live "
+                       f"file and an archive shard" if archive_overlap
+                       else "every archived row is in exactly one place"),
+        })
 
     status, detail = publishable(signals_columns)
     checks.append({"check": "republishable", "status": status, "detail": detail})
@@ -413,6 +451,25 @@ def run(*, ref: str = "HEAD", ledger_path: str = LEDGER) -> dict:
             if read["signals_columns"]:
                 signals_columns = read["signals_columns"]
 
+        # The read-only ARCHIVE shards (pipeline/archive.py). A row moved
+        # there left `signals` in the product file, so without this union the
+        # move reads as a shrink — and a shrink here is a FAIL with zero
+        # tolerance, which is correct for every other way a count goes down.
+        # So a shard's rows COUNT as held, and a row in two places is graded.
+        archive_overlap = None
+        main_extracted = os.path.join(tmp, os.path.basename(DB_IN_REPO))
+        for name in committed_shards(ref):
+            commit, blob, size = committed_blob(ref, name)
+            blobs[name] = {"commit": commit, "blob": blob, "bytes": size}
+            path = os.path.join(tmp, os.path.basename(name))
+            extract(blob, path)
+            integrity, read = read_counts(path)
+            integrities[name] = integrity
+            for table, rows in read["tables"].items():
+                tables[table] = tables.get(table, 0) + rows
+            archive_overlap = (archive_overlap or 0) + shard_overlap(
+                main_extracted, path)
+
     # One verdict for the pair. "ok" only when BOTH said ok; otherwise the
     # failing file is named, because "not ok" without a filename sends a human
     # to the wrong 80 MiB file at 2am.
@@ -421,12 +478,13 @@ def run(*, ref: str = "HEAD", ledger_path: str = LEDGER) -> dict:
     integrity = "ok" if not bad else "; ".join(bad)
 
     # The push limit is PER FILE, so the binding number is the larger half.
-    biggest = max(DB_FILES, key=lambda n: blobs[n]["bytes"])
+    biggest = max(blobs, key=lambda n: blobs[n]["bytes"])
     size = blobs[biggest]["bytes"]
 
     graded = evaluate(integrity=integrity, tables=tables,
                       signals_columns=signals_columns,
-                      size_bytes=size, prior=prior)
+                      size_bytes=size, prior=prior,
+                      archive_overlap=archive_overlap)
 
     return {
         "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

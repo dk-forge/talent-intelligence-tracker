@@ -106,7 +106,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from pipeline import schema
+from pipeline import archive, schema
 
 # Never merged. row_id is reassigned by the insert; sqlite_sequence follows it.
 SIGNAL_SKIP_COLUMNS = {"row_id"}
@@ -132,6 +132,15 @@ def _merge_signals(ours: sqlite3.Connection, into: sqlite3.Connection) -> dict[s
         (r["content_hash"], r["revision"]): r["row_id"]
         for r in into.execute("SELECT row_id, content_hash, revision FROM signals")
     }
+    # A row the destination holds in a read-only ARCHIVE shard is held, not
+    # missing. A runner whose copy predates the archive move still has it in
+    # its own main, and inserting it here would put one row in two places and
+    # undo the move (pipeline/archive.py). Its row_id is the same number in the
+    # shard, so a supersedes pointer to it still resolves.
+    for schema in archive.attached(into):
+        for r in into.execute(
+                f"SELECT row_id, content_hash, revision FROM {schema}.signals"):
+            existing.setdefault((r["content_hash"], r["revision"]), r["row_id"])
 
     ours_rows = list(ours.execute(
         "SELECT * FROM signals ORDER BY revision, row_id"))

@@ -154,9 +154,17 @@ Check what that would send, without sending it:
 python - <<'PY'
 from pipeline import publish, schema
 conn = schema.connect("/tmp/republish.db")   # attaches /tmp/republish_cache.db
-print(publish.publish(conn, dry_run=True))
+print(publish.publish(conn, dry_run=True, include_archived=True))
 PY
 ```
+
+**`include_archived=True` is not optional on a rebuild.** Since 2026-11-16 some
+published rows live in a read-only shard under `data/archive/` rather than in
+`signals` (`pipeline/archive.py`). Copy that directory beside
+`/tmp/republish.db` too (`cp -r data/archive /tmp/archive`) or the dry run
+will not see them. The shard cannot have its `published_at` cleared, so the
+flag is the only way those rows are offered again. Without it a rebuilt site
+is missing every archived row and nothing errors.
 
 Measured on 2026-08-20, from the two committed blobs and nothing else, this
 reports 31,227 current rows selecting cleanly across all 40 republish columns
@@ -173,7 +181,7 @@ sqlite3 data/talent_intel.db "UPDATE signals SET published_at = NULL;"
 WP_SITE_URL=https://<domain>/blog WP_API_KEY=<key> python - <<'PY'
 from pipeline import publish, schema
 conn = schema.connect("data/talent_intel.db")
-print(publish.publish(conn))
+print(publish.publish(conn, include_archived=True))
 PY
 ```
 
