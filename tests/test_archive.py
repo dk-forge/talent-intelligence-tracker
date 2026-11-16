@@ -119,9 +119,15 @@ def test_the_shard_is_attached_read_only(db):
             conn.execute("UPDATE archive_0.signals SET headline = 'x'")
 
 
-def test_connect_without_uri_would_not_be_read_only(tmp_path):
-    """The mutation proof for the uri=True in schema.connect(): a plain
-    connection reads the URI as a filename and attach() refuses it."""
+def test_a_plain_connection_still_cannot_write_the_shard(tmp_path):
+    """Whatever this SQLite build does with a URI on a connection opened
+    WITHOUT uri=True, the shard must never become writable.
+
+    Builds differ: with SQLITE_USE_URI the URI is honoured and the shard
+    attaches read-only; without it SQLite would read the URI as a filename,
+    and attach() must refuse rather than hand back an empty writable file.
+    Both outcomes are safe; a writable shard is the only failure.
+    """
     path = tmp_path / "talent_intel.db"
     conn = schema.connect(path)
     _row(conn, "Acme Ltd", "Acme gender pay gap 2019", collector="uk_paygap",
@@ -130,8 +136,27 @@ def test_connect_without_uri_would_not_be_read_only(tmp_path):
     conn.close()
     archive.build(path, AS_OF, dry_run=False)
     plain = sqlite3.connect(path)
-    with pytest.raises(archive.ArchiveError, match="uri=True"):
+    try:
         archive.attach(plain, path)
+    except archive.ArchiveError as e:
+        assert "uri=True" in str(e)
+        assert not list(tmp_path.glob("file:*")), "a refusal left a stray file"
+        return
+    assert plain.execute(
+        "SELECT COUNT(*) FROM archive_0.signals").fetchone()[0] == 1
+    with pytest.raises(sqlite3.OperationalError, match="readonly"):
+        plain.execute("UPDATE archive_0.signals SET headline = 'x'")
+
+
+def test_attach_refuses_a_shard_with_no_signals_table(tmp_path):
+    """The guard in attach() that turns a mis-opened ATTACH into a loud error."""
+    path = tmp_path / "talent_intel.db"
+    schema.connect(path).close()
+    bogus = archive.archive_dir(path) / "signals-2026-01-01.db"
+    bogus.parent.mkdir()
+    sqlite3.connect(bogus).close()  # a valid, empty database: not a shard
+    with pytest.raises(archive.ArchiveError, match="signals table"):
+        schema.connect(path)
 
 
 def test_dedupe_still_sees_archived_rows(db):
