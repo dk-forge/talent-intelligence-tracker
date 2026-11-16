@@ -274,8 +274,34 @@
       "settled_at": "2026-11-16T07:51:44+00:00",
       "settled_because": "delivered late: emailed the owner",
       "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "tit-watch-recovered-sandbox-backend-unreachable:2026-11-16t06-57-43-00-00",
+      "kind": "resolve",
+      "last_attempt_at": "2026-11-16T09:16:46+00:00",
+      "last_error": "",
+      "raised_at": "2026-11-16T09:16:46+00:00",
+      "run_url": "",
+      "scope": "sandbox-backend-unreachable",
+      "settled_at": "2026-11-16T09:16:54+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "tit-watch-recovered-sandbox-frontend-unreachable:2026-11-16t06-57-43-00-00",
+      "kind": "resolve",
+      "last_attempt_at": "2026-11-16T09:16:50+00:00",
+      "last_error": "",
+      "raised_at": "2026-11-16T09:16:50+00:00",
+      "run_url": "",
+      "scope": "sandbox-frontend-unreachable",
+      "settled_at": "2026-11-16T09:16:54+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-11-16T07:51:45+00:00",
+  "updated_at": "2026-11-16T09:16:55+00:00",
   "version": 1
 }

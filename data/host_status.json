@@ -1,5 +1,5 @@
 {
-  "_committed_at": "2026-11-16T07:50:18+00:00",
+  "_committed_at": "2026-11-16T09:16:45+00:00",
   "announced": false,
   "consecutive_failures": 0,
   "history": [
@@ -59,13 +59,13 @@
       "state": "up"
     }
   ],
-  "last_detail": "HTTP 200 in 360ms",
-  "last_ok_at": "2026-11-16T07:50:18+00:00",
-  "last_probe_at": "2026-11-16T07:50:18+00:00",
+  "last_detail": "HTTP 200 in 321ms",
+  "last_ok_at": "2026-11-16T09:16:45+00:00",
+  "last_probe_at": "2026-11-16T09:16:45+00:00",
   "origins": {
     "sandbox-backend": {
-      "announced": true,
-      "consecutive_failures": 3,
+      "announced": false,
+      "consecutive_failures": 0,
       "history": [
         {
           "at": "2026-09-05T22:10:44+00:00",
@@ -86,18 +86,22 @@
           "at": "2026-11-16T06:57:43+00:00",
           "detail": "HTTP 502 from /healthz",
           "state": "down"
+        },
+        {
+          "at": "2026-11-16T09:16:45+00:00",
+          "detail": "HTTP 200 status=ok version=v1.0.1825 in 164ms",
+          "state": "up"
         }
       ],
-      "last_detail": "HTTP 502 from /healthz",
-      "last_ok_at": "2026-11-16T05:49:24+00:00",
-      "last_probe_at": "2026-11-16T07:50:18+00:00",
-      "outage_since": "2026-11-16T06:57:43+00:00",
-      "since": "2026-11-16T06:57:43+00:00",
-      "state": "down"
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 164ms",
+      "last_ok_at": "2026-11-16T09:16:45+00:00",
+      "last_probe_at": "2026-11-16T09:16:45+00:00",
+      "since": "2026-11-16T09:16:45+00:00",
+      "state": "up"
     },
     "sandbox-frontend": {
-      "announced": true,
-      "consecutive_failures": 3,
+      "announced": false,
+      "consecutive_failures": 0,
       "history": [
         {
           "at": "2026-09-05T22:10:44+00:00",
@@ -108,14 +112,18 @@
           "at": "2026-11-16T06:57:43+00:00",
           "detail": "HTTP 502 from /healthz",
           "state": "down"
+        },
+        {
+          "at": "2026-11-16T09:16:45+00:00",
+          "detail": "HTTP 200 status=ok version=v1.0.1825 in 81ms",
+          "state": "up"
         }
       ],
-      "last_detail": "HTTP 502 from /healthz",
-      "last_ok_at": "2026-11-16T05:49:24+00:00",
-      "last_probe_at": "2026-11-16T07:50:18+00:00",
-      "outage_since": "2026-11-16T06:57:43+00:00",
-      "since": "2026-11-16T06:57:43+00:00",
-      "state": "down"
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 81ms",
+      "last_ok_at": "2026-11-16T09:16:45+00:00",
+      "last_probe_at": "2026-11-16T09:16:45+00:00",
+      "since": "2026-11-16T09:16:45+00:00",
+      "state": "up"
     }
   },
   "since": "2026-09-14T01:08:15+00:00",
