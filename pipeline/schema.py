@@ -16,7 +16,9 @@ import re
 import sqlite3
 from pathlib import Path
 
-from . import vocab
+from urllib.parse import quote
+
+from . import archive, vocab
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "talent_intel.db"
 
@@ -811,6 +813,7 @@ def connect_ro(db_path: Path | str | None = None) -> sqlite3.Connection:
         "ATTACH DATABASE ? AS %s" % CACHE_SCHEMA,
         (f"file:{cache}?mode=ro",),
     )
+    archive.attach(conn, path)
     return conn
 
 
@@ -995,7 +998,9 @@ def _qualify_create(sql: str, table: str) -> str:
 def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     path = Path(db_path) if db_path else DB_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    # uri=True so the archive shards can be ATTACHed `mode=ro`; without it
+    # SQLite reads the URI as a literal filename (pipeline/archive.py).
+    conn = sqlite3.connect(f"file:{quote(str(path))}", uri=True)
     conn.row_factory = sqlite3.Row
 
     # The cache file is created on demand exactly like the product file is: a
@@ -1036,4 +1041,6 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
         pass
 
     conn.commit()
+    # LAST, after every migration, so the view carries main's final columns.
+    archive.attach(conn, path)
     return conn
