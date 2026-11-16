@@ -1,0 +1,666 @@
+{
+ "ran_at": "2026-11-16T08:33:18+01:00",
+ "ran_on": "2026-11-16",
+ "plan": {
+  "cycle": 640,
+  "planned_on": "2026-11-16",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-13 against gold set 2026-10-v1",
+  "countries": [
+   {
+    "iso2": "ZM",
+    "name": "Zambia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "GB",
+    "name": "United Kingdom",
+    "tier": "zero",
+    "measured": {
+     "total": 6,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "NO",
+    "name": "Norway",
+    "tier": "zero",
+    "measured": {
+     "total": 4,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "EE",
+    "name": "Estonia",
+    "tier": "covered",
+    "measured": {
+     "total": 1,
+     "held": 1,
+     "held_pct": 100.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "ZM",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "GB",
+   "tier": "zero",
+   "measured": {
+    "total": 6,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "NO",
+   "tier": "zero",
+   "measured": {
+    "total": 4,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "EE",
+   "tier": "covered",
+   "measured": {
+    "total": 1,
+    "held": 1,
+    "held_pct": 100.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 21,
+  "held": 14,
+  "missing": 7,
+  "unusable": 0,
+  "usable": 21
+ },
+ "by_country": {
+  "NO": {
+   "leads": 7,
+   "held": 3,
+   "missing": 4,
+   "unusable": 0
+  },
+  "EE": {
+   "leads": 7,
+   "held": 5,
+   "missing": 2,
+   "unusable": 0
+  },
+  "GB": {
+   "leads": 5,
+   "held": 4,
+   "missing": 1,
+   "unusable": 0
+  },
+  "KE": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  },
+  "SG": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0232,
+  "queries": 4,
+  "usd_per_query": 0.0058,
+  "usd_per_lead": 0.0011,
+  "usd_per_candidate_miss": 0.0033,
+  "lifetime_usd": 0.9097,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:ZM",
+   "leads": 3,
+   "usd": 0.00555,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 212,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:GB",
+   "leads": 7,
+   "usd": 0.00591,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 574,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:NO",
+   "leads": 7,
+   "usd": 0.00586,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 523,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:EE",
+   "leads": 7,
+   "usd": 0.00589,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 552,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "ZM",
+   "dimension_tier": "zero",
+   "claimed_company": "Sun King",
+   "claimed_country": "KE",
+   "claimed_city": "Nairobi",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-01",
+   "claimed_amount": "$5M",
+   "claimed_stage": "",
+   "claimed_outlet": "Tech in Africa",
+   "claimed_url": "https://www.techinafrica.com/acumen-invests-5m-in-sun-kings-zambia-business-to-expand-off-grid-solar/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "ed000c4ff76baa44f348c4fef1799fb1",
+    "company": "Sun King",
+    "pillar": "company_development",
+    "country": "ZM",
+    "published_date": "2026-10-05",
+    "source_url": "https://techmoran.com/2026/10/06/sun-king-raises-5-million-acumen-investment-for-zambia-expansion/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ZM",
+   "dimension_tier": "zero",
+   "claimed_company": "Trafigura",
+   "claimed_country": "SG",
+   "claimed_city": "Singapore",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-10",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Zambia Monitor",
+   "claimed_url": "https://www.zambiamonitor.com/category/tech/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c6cc207b8ff50b5711c7ce84a46b280d",
+    "company": "Trafigura",
+    "pillar": "leadership_change",
+    "country": "ZM",
+    "published_date": "2026-10-16",
+    "source_url": "https://zambianbusinesstimes.com/chipo-mwanawasa-takes-up-role-as-executive-director-zambia-of-controversial-commodity-trader-trafigura/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Fractile",
+   "claimed_country": "GB",
+   "claimed_city": "London and Bristol",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-11",
+   "claimed_amount": "more than \u00a3500 million",
+   "claimed_stage": "",
+   "claimed_outlet": "gov.uk",
+   "claimed_url": "https://www.gov.uk/government/news/sovereign-ai-and-british-business-bank-invest-in-british-firm-developing-the-next-generation-of-ai-hardware?ref=unhyd.com",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "e389eb3efcd6a4e9f1a0c395f3304967",
+    "company": "Fractile",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-30",
+    "source_url": "https://ventureburn.com/fractile-raises-577-million-series-c-rival-nvidia/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Funding Circle",
+   "claimed_country": "GB",
+   "claimed_city": "London",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-11",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Investments by Halifax",
+   "claimed_url": "https://www.investments.halifax.co.uk/research-centre/news-centre/article/?id=36326451&type=rns",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "dfd3b846de6d93de3bf7970019d963a6",
+    "company": "Funding Circle",
+    "pillar": "leadership_change",
+    "country": "GB",
+    "published_date": "2026-11-04",
+    "source_url": "https://es.marketscreener.com/noticias/funding-circle-ficha-a-un-nuevo-consejero-delegado-ce785fdfd981f725"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Tendrils",
+   "claimed_country": "GB",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-11",
+   "claimed_amount": "$30m",
+   "claimed_stage": "",
+   "claimed_outlet": "BusinessCloud",
+   "claimed_url": "https://businesscloud.co.uk/news/tendrils-raises-30m-to-rebuild-the-cpu/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "54983ec333e9d5978a50310155e4f302",
+    "company": "Tendrils",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-11-11",
+    "source_url": "https://www.finsmes.com/2026/11/tendrils-raises-30m-in-seed-funding.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Griffin",
+   "claimed_country": "GB",
+   "claimed_city": "London",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-12",
+   "claimed_amount": "\u00a315m",
+   "claimed_stage": "series_b",
+   "claimed_outlet": "BusinessCloud",
+   "claimed_url": "https://businesscloud.co.uk/news/griffin-valued-at-more-than-75m-as-it-raises-another-15m/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "fffb0fe340d6246e3edcde6ff594550e",
+    "company": "THE GRIFFIN SCHOOLS TRUST",
+    "pillar": "leadership_change",
+    "country": "GB",
+    "published_date": "2026-09-14",
+    "source_url": "https://find-and-update.company-information.service.gov.uk/officers/qceSQXo8La0sqTZVhhF5EADQx0c/appointments"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Vanquis Banking Group",
+   "claimed_country": "GB",
+   "claimed_city": "London",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-11",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Investegate",
+   "claimed_url": "https://www.investegate.co.uk/announcement/rns/vanquis-banking-group-20--vanq/directorate-change/9868684",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Nel ASA",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://markets-origin.ft.com/data/announce/detail?dockey=600-202610211531PR_NEWS_USPRX____HS78217-1",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Norske tog AS",
+   "claimed_country": "NO",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Railway News",
+   "claimed_url": "https://railway-news.com/norway-oystein-risan-steps-down-as-ceo-of-norske-tog/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "90de08bc315936169802dcef7f1c63a8",
+    "company": "Norske Tog",
+    "pillar": "leadership_change",
+    "country": "NO",
+    "published_date": "2026-10-08",
+    "source_url": "https://railway-news.com/norway-oystein-risan-steps-down-as-ceo-of-norske-tog/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Fronted",
+   "claimed_country": "NO",
+   "claimed_city": "Mandal",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-29",
+   "claimed_amount": "\u20ac1.7M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Sesamers",
+   "claimed_url": "https://www.sesamers.com/funding/fronted-raises-1-7m-seed-global-hiring-payroll/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "1231bdd9d620870a01f0c6aa2a882de3",
+    "company": "Fronted",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-11-02",
+    "source_url": "https://www.finsmes.com/2026/11/fronted-raises-1m-in-pre-seed-funding.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Solvera",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-19",
+   "claimed_amount": "$6.3M",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "FinSMEs",
+   "claimed_url": "https://www.finsmes.com/2026/10/solvera-raises-6-3m-in-pre-seed-funding.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Neonomics",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-19",
+   "claimed_amount": "$4M",
+   "claimed_stage": "",
+   "claimed_outlet": "FinSMEs",
+   "claimed_url": "https://www.finsmes.com/category/norway",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "2d79920644b2c08a4220478fd6225c86",
+    "company": "Neonomics",
+    "pillar": "company_development",
+    "country": "NO",
+    "published_date": "2026-10-16",
+    "source_url": "https://www.eu-startups.com/2026/10/norwegian-open-banking-provider-neonomics-secures-e3-56-million-after-cutting-operating-costs-by-nearly-half/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Jenz",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-22",
+   "claimed_amount": "\u20ac540K",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "FinSMEs",
+   "claimed_url": "https://www.finsmes.com/2026/10/jenz-raises-e630k-in-pre-seed-and-grant.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Elopak ASA",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-02",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "NewsWeb",
+   "claimed_url": "https://newsweb.oslobors.no/message/684549",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "Roleo",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-02",
+   "claimed_amount": "\u20ac2.9M",
+   "claimed_stage": "",
+   "claimed_outlet": "Sesamers",
+   "claimed_url": "https://www.sesamers.com/funding/roleo-raises-2-9m-ai-career-agent/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c1affc0e8ee7836bfba776ea6839b198",
+    "company": "Roleo",
+    "pillar": "company_development",
+    "country": "EE",
+    "published_date": "2026-11-02",
+    "source_url": "https://www.therecursive.com/estonias-roleo-raises-eur2-9m-for-an-ai-agent-that-manages-your-career-in-the-background/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "MuRay",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-29",
+   "claimed_amount": "\u20ac7M",
+   "claimed_stage": "",
+   "claimed_outlet": "Invest in Estonia",
+   "claimed_url": "",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "Blackwall",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-20",
+   "claimed_amount": "$100M",
+   "claimed_stage": "Series C",
+   "claimed_outlet": "Tech.eu Funding Explorer",
+   "claimed_url": "https://funding.tech.eu/rounds?country=Estonia",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "a6a560c1fbd65c384a6b42ccdb93ef2f",
+    "company": "Blackwall",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-20",
+    "source_url": "https://www.trendingtopics.eu/blackwall-series-c-valuation/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "Cachet",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "\u20ac11M",
+   "claimed_stage": "",
+   "claimed_outlet": "Tech.eu Funding Explorer",
+   "claimed_url": "https://funding.tech.eu/rounds?country=Estonia",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "5d4e61f6d55dd2690006659965c42f46",
+    "company": "Cachet",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-14",
+    "source_url": "https://www.aripaev.ee/saated/2026/10/14/kindlustusidu-cachet-kaasas-kasvuks-45-miljonit-eurot-tahame-selle-valdkonna-euroopas-enda-omaks-saada"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "Golbriak Space",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "\u20ac4M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Tech Funding News",
+   "claimed_url": "https://techfundingnews.com/golbriak-space-raises-4m-seed-optical-laser-terminals-join-capital-photonventures/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "07448e4844a337b161d075b9989f8cd6",
+    "company": "Golbriak Space",
+    "pillar": "company_development",
+    "country": "EE",
+    "published_date": "2026-10-08",
+    "source_url": "https://www.therecursive.com/estonias-golbriak-space-raises-eur4m-to-scale-laser-communications-for-satellites/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "Arco Vara AS",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-12",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "GlobeNewswire",
+   "claimed_url": "https://www.globenewswire.com/news-release/2026/11/12/3401645/0/en/change-of-chief-financial-officer-at-arco-vara-as.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "EE",
+   "dimension_tier": "covered",
+   "claimed_company": "KPMG Estonia",
+   "claimed_country": "EE",
+   "claimed_city": "Tallinn",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-12",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "KPMG Estonia",
+   "claimed_url": "https://kpmg.com/ee/en/insights/2026/11/Liina-Randmann-appointed-Audit-Assurance-Lead-at-KPMG-Estonia.html",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "fe4d9212f67767ecd29a0e6ba1277ce9",
+    "company": "KPMG",
+    "pillar": "company_development",
+    "country": "ES",
+    "published_date": "2026-09-14",
+    "source_url": "https://www.expansion.com/empresas/2026/09/14/6aa6dacee5fdeacd378b456d.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}

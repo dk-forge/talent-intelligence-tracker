@@ -11,6 +11,8 @@ import re
 import sqlite3
 from datetime import date, timedelta
 
+from . import archive
+
 # Same company + same pillar inside this window is the same development.
 SAME_EVENT_DAYS = 14
 
@@ -40,7 +42,8 @@ def exact_duplicate(conn: sqlite3.Connection, content_hash: str) -> str | None:
     crashed the run with an IntegrityError instead of skipping.
     """
     row = conn.execute(
-        "SELECT is_current, notes FROM signals WHERE content_hash = ? LIMIT 1",
+        f"SELECT is_current, notes FROM {archive.source(conn)} "
+        "WHERE content_hash = ? LIMIT 1",
         (content_hash,),
     ).fetchone()
     if row is None:
@@ -109,9 +112,9 @@ def fuzzy_duplicate(conn: sqlite3.Connection, signal) -> str | None:
     window_end = (pub + timedelta(days=SAME_EVENT_DAYS)).isoformat()
 
     rows = conn.execute(
-        """
+        f"""
         SELECT signal_id, headline, published_date, funding_amount_usd
-          FROM signals
+          FROM {archive.source(conn)}
          WHERE is_current = 1
            AND company_key = ?
            AND pillar = ?
@@ -127,9 +130,9 @@ def fuzzy_duplicate(conn: sqlite3.Connection, signal) -> str | None:
     wide_start = (pub - timedelta(days=NEAR_IDENTICAL_DAYS)).isoformat()
     wide_end = (pub + timedelta(days=NEAR_IDENTICAL_DAYS)).isoformat()
     candidates = conn.execute(
-        """
+        f"""
         SELECT signal_id, headline
-          FROM signals
+          FROM {archive.source(conn)}
          WHERE is_current = 1
            AND company_key = ?
            AND pillar = ?
@@ -185,9 +188,9 @@ def funding_event_duplicate(conn: sqlite3.Connection, company_key: str,
     since = (anchor - timedelta(days=days)).isoformat()
     until = (anchor + timedelta(days=days)).isoformat()
     rows = conn.execute(
-        """
+        f"""
         SELECT signal_id, funding_amount, funding_amount_usd
-          FROM signals
+          FROM {archive.source(conn)}
          WHERE is_current = 1
            AND company_key = ?
            AND pillar = 'company_development'
@@ -260,9 +263,9 @@ def leadership_event_duplicate(conn: sqlite3.Connection, company_key: str,
     since = (anchor - timedelta(days=days)).isoformat()
     until = (anchor + timedelta(days=days)).isoformat()
     rows = conn.execute(
-        """
+        f"""
         SELECT signal_id, headline, summary, talent_readthrough
-          FROM signals
+          FROM {archive.source(conn)}
          WHERE is_current = 1
            AND company_key = ?
            AND pillar = 'leadership_change'
