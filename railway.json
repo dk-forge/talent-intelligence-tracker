@@ -1,0 +1,7 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "deploy": {
+    "startCommand": "python -c \"print('No Railway deployment: this tracker runs on GitHub Actions. See CLAUDE.md.')\"",
+    "restartPolicyType": "NEVER"
+  }
+}
