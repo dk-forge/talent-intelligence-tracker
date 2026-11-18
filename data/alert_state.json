@@ -35,11 +35,6 @@
       "last": 1794868581,
       "subject": "CI RED: collect: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
     },
-    "drain-writers:main:2e81661ce7c364f0": {
-      "first": 1794909213,
-      "last": 1794909213,
-      "subject": "CI RED: drain-writers: reconcile step above, or run: python writer_queue.py status"
-    },
     "enrich:main:cd0f1a58933504d7": {
       "first": 1794909173,
       "last": 1794909173,
@@ -66,6 +61,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-18T19:54:04+00:00",
+  "updated_at": "2026-11-18T19:58:53+00:00",
   "version": 1
 }
