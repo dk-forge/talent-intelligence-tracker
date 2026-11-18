@@ -1,0 +1,45 @@
+name: Codex security review
+
+# dk-forge/todo#1852 (owner 2026-11-18, "yes security scans"). When a pull
+# request touches a risky path (forms, contact/newsletter, auth/login/session,
+# payments/Stripe, cookies/consent, personal data, mu-plugins, webhooks, .env),
+# comment "@codex security review" ONCE per head SHA (hidden marker, never
+# double-posts). No AI here and no secrets: GITHUB_TOKEN only.
+# A Codex security finding blocks the merge until it is fixed. No review within
+# ~30 min (no Codex environment for the repo) = unavailable, never blocking;
+# this job only comments and never fails on a missing review.
+# pull_request_target: runs the BASE branch's workflow and script (never PR
+# code), so a PR cannot switch off its own review, and fork PRs still get a
+# write token. Nothing from the PR is checked out or executed.
+# Logic: codex_security_review.py; tests: tests/test_codex_security_review.py.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: codex-security-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  request:
+    name: Request Codex security review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Self-test (path matching, once-per-SHA marker)
+        run: python3 -m unittest discover -s tests -p test_codex_security_review.py
+      - name: Comment "@codex security review" when risky paths changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 codex_security_review.py
