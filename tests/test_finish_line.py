@@ -132,3 +132,11 @@ def test_the_card_is_the_row_not_a_badge_strip_inside_it():
     assert "block.closest(CARD_STRUCT) || block.closest(CARD_CLASS)" in js
     assert "const CARD_STRUCT = 'tr,li,article,figure'" in js
     assert ':not([class*="card-"])' in js  # .tit-card-badges is not a card
+
+
+def test_numbers_are_judged_on_the_block_text_not_one_text_node():
+    import re
+    js = fl.numbers_js()
+    assert "blockText.match(NUM)" in js and "t.textContent.match(NUM)" not in js
+    # What the page sees once markup is flattened: "<strong>42</strong> jobs" -> "42 jobs".
+    assert re.findall(fl.NUM_PATTERN, "42 jobs added") == ["42"]

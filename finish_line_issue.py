@@ -54,27 +54,37 @@ def main(argv=None, call=_call) -> int:
     ap.add_argument("--product", required=True)
     ap.add_argument("--body-file", required=True)
     a = ap.parse_args(argv)
-    token = os.environ.get("TODO_ISSUES_TOKEN") or os.environ.get("GH_TOKEN") or ""
+    tokens = [t for t in (os.environ.get(k, "") for k in ("TODO_ISSUES_TOKEN", "TODO_ISSUES_TOKEN_FALLBACK", "GH_TOKEN")) if t]
     body = open(a.body_file, encoding="utf-8").read()[:60000]
-    if not token:
+    if not tokens:
         print("NOT FILED: no token that can write dk-forge/todo; the run summary and status file are the record.")
         return 0
-    try:
-        q = urllib.parse.quote(f'repo:{REPO} is:issue is:open in:title "{a.title}"')
-        hits = call("GET", f"/search/issues?q={q}&per_page=20", token)["items"]
-        action, arg = plan(find_open(hits, a.title), a.title, a.product)
-        if action == "create":
-            i = call("POST", f"/repos/{REPO}/issues", token, {"title": a.title, "body": body, "labels": arg})
-            print(f"FILED: {i['html_url']}")
-        else:
-            call("POST", f"/repos/{REPO}/issues/{arg}/comments", token, {"body": "Still failing.\n\n" + body})
-            call("POST", f"/repos/{REPO}/issues/{arg}/labels", token, {"labels": ["Overdue"]})
-            print(f"REPEAT: https://github.com/{REPO}/issues/{arg} (labelled Overdue)")
-    except urllib.error.HTTPError as e:
-        print(f"NOT FILED: GitHub said {e.code} for {REPO} (this token cannot write there); "
-              "the run summary and status file are the record.")
-    except Exception as e:  # noqa: BLE001
-        print(f"NOT FILED: {type(e).__name__}; the run summary and status file are the record.")
+    for n, token in enumerate(tokens):
+        try:
+            return _file(a, body, token, call)
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 403, 404) and n + 1 < len(tokens):
+                print(f"token {n + 1} got {e.code} from {REPO}; trying the next one")
+                continue
+            print(f"NOT FILED: GitHub said {e.code} for {REPO} (no token can write there); "
+                  "the run summary and status file are the record.")
+        except Exception as e:  # noqa: BLE001
+            print(f"NOT FILED: {type(e).__name__}; the run summary and status file are the record.")
+        return 0
+    return 0
+
+
+def _file(a, body, token, call) -> int:
+    q = urllib.parse.quote(f'repo:{REPO} is:issue is:open in:title "{a.title}"')
+    hits = call("GET", f"/search/issues?q={q}&per_page=20", token)["items"]
+    action, arg = plan(find_open(hits, a.title), a.title, a.product)
+    if action == "create":
+        i = call("POST", f"/repos/{REPO}/issues", token, {"title": a.title, "body": body, "labels": arg})
+        print(f"FILED: {i['html_url']}")
+    else:
+        call("POST", f"/repos/{REPO}/issues/{arg}/comments", token, {"body": "Still failing.\n\n" + body})
+        call("POST", f"/repos/{REPO}/issues/{arg}/labels", token, {"labels": ["Overdue"]})
+        print(f"REPEAT: https://github.com/{REPO}/issues/{arg} (labelled Overdue)")
     return 0
 
 

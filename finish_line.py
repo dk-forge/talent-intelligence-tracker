@@ -75,10 +75,13 @@ NUMBERS_JS = r"""
     const t = walker.currentNode; const p = t.parentElement;
     if (!p || p.closest(SKIP) || p.closest('a')) continue;
     const st = getComputedStyle(p); if (st.display === 'none' || st.visibility === 'hidden') continue;
-    const hits = (t.textContent.match(NUM) || []).filter(n => !YEARISH.test(n.trim()));
-    if (!hits.length) continue;
+    // Judge the BLOCK's whole text, not this text node: "<strong>42</strong> jobs"
+    // or a value span beside its label span only reads as a count together.
     const block = p.closest(BLOCK) || p;
     if (seen.has(block)) continue; seen.add(block);
+    const blockText = (block.innerText || block.textContent || '').replace(/\s+/g, ' ');
+    const hits = (blockText.match(NUM) || []).filter(n => !YEARISH.test(n.trim()));
+    if (!hits.length) continue;
     total += 1;
     const card = block.closest(CARD_STRUCT) || block.closest(CARD_CLASS);
     if (sourced(block) || sourced(card)) continue;
