@@ -23,7 +23,8 @@ STUBS = (
 )
 needs_php = pytest.mark.skipif(not shutil.which("php"), reason="UNKNOWN, NOT RUN: php not installed")
 FACTS = {"notable": 4000, "verified": 1234, "companies": 900, "countries": 57,
-         "span_lo": "2025-01-02", "span_hi": "2026-10-12", "newest_run": "2026-10-12 22:10:00"}
+         "span_lo": "2024-03-01", "span_hi": "2026-10-12",
+         "view_lo": "2025-01-02", "view_hi": "2026-10-11", "newest_run": "2026-10-12 22:10:00"}
 
 
 def _php(expr: str) -> str:
@@ -42,9 +43,11 @@ def test_quotable_sentences_carry_date_number_and_source():
     out = _txt(FACTS)
     assert "## Quotable figures (as of 2026-10-12)" in out
     assert ("As of 2026-10-12, the Talent Intelligence Tracker by AskTheRecruiter.com holds 4,000 "
-            "sourced employer signals dated 2025-01-02 to 2026-10-12. "
+            "sourced employer signals dated 2025-01-02 to 2026-10-11. "
             "Source: https://example.org/blog/talent-intelligence-tracker/") in out
     assert "900 employers in 57 countries" in out
+    # the notable set's bounds (as the hub prints them), never the all-rows span
+    assert "2024-03-01" not in out
     # the same floored share the hub prints (1234/4000 = 30.85 -> 30)
     assert "at least 30% of them link a primary source" in out
     for line in out.splitlines():

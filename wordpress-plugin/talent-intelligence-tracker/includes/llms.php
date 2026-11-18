@@ -27,8 +27,10 @@ function tit_llms_txt_content(array $facts) {
     $asof  = substr((string) ($facts['newest_run'] ?? ''), 0, 10);
     if ($total > 0 && $asof !== '') {
         $out .= "## Quotable figures (as of $asof)\n";
-        $lo = substr((string) ($facts['span_lo'] ?? ''), 0, 10);
-        $hi = substr((string) ($facts['span_hi'] ?? ''), 0, 10);
+        // view_lo/view_hi: the notable set's own bounds, the range the hub prints
+        // beside this count (span_* covers routine filings too).
+        $lo = substr((string) ($facts['view_lo'] ?? ''), 0, 10);
+        $hi = substr((string) ($facts['view_hi'] ?? ''), 0, 10);
         $span = ($lo !== '' && $hi !== '') ? " dated $lo to $hi" : '';
         $out .= "- As of $asof, the Talent Intelligence Tracker by AskTheRecruiter.com holds "
               . number_format($total) . " sourced employer signals$span. Source: $hub\n";
