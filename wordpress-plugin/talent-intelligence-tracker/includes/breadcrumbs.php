@@ -78,6 +78,8 @@ function tit_breadcrumbs_current() {
         'tit_recall'      => array('Measured recall', 'tit_recall_url'),
         'tit_sources'     => array('Sources', 'tit_sources_url'),
         'tit_corrections' => array('Corrections', 'tit_corrections_url'),
+        'tit_methodology' => array('Methodology', 'tit_methodology_url'),
+        'tit_update_log'  => array('Update log', 'tit_update_log_url'),
     );
     foreach ($sections as $qv => $sec) {
         if (get_query_var($qv) && function_exists($sec[1])) {

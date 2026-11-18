@@ -75,6 +75,18 @@ function tit_company_header_html($name, $status, $chips, $freshness_html = '') {
 }
 
 /** Source and method note, then the next step into AskTheRecruiter's tools. */
+/**
+ * PURE. The free match check link for the company page CTA, UTM-tagged so
+ * sign-ups can be counted by first page (owner 2026-11-17: traffic must
+ * convert). utm_content carries the company slug.
+ */
+function tit_company_cta_url($name) {
+    $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower((string) $name)), '-');
+    $q = array('utm_source' => 'talent-tracker', 'utm_medium' => 'cta', 'utm_campaign' => 'company-is-hiring');
+    if ($slug !== '') $q['utm_content'] = substr($slug, 0, 60);
+    return 'https://asktherecruiter.com/resume-score?' . http_build_query($q, '', '&');
+}
+
 function tit_company_method_html($name, $tracker_url, $sources_url, $tools_url) {
     $h  = '<section class="tit-co-section tit-co-method" aria-labelledby="tit-co-method-h">';
     $h .= '<h2 id="tit-co-method-h" class="tit-co-h2">Sources and method</h2>';
@@ -85,10 +97,11 @@ function tit_company_method_html($name, $tracker_url, $sources_url, $tools_url) 
         . '<a href="' . esc_url($tracker_url) . '">Back to the tracker</a></p>';
     $h .= '</section>';
     $h .= '<section class="tit-co-cta" aria-labelledby="tit-co-cta-h">';
-    $h .= '<h2 id="tit-co-cta-h" class="tit-co-h2">Applying to ' . esc_html($name) . '?</h2>';
-    $h .= '<p>Adapt your resume to the role in a few minutes with AskTheRecruiter, then follow this'
-        . ' employer for new signals.</p>';
-    $h .= '<a class="tit-co-btn" href="' . esc_url($tools_url) . '">Adapt my resume</a>';
+    $h .= '<h2 id="tit-co-cta-h" class="tit-co-h2">Is ' . esc_html($name) . ' hiring?</h2>';
+    $h .= '<p>The signals above are the public hiring, funding and leadership updates we found for '
+        . esc_html($name) . ', each with its source. Applying there? Check how your resume fits the job.'
+        . ' The match check is free, no card.</p>';
+    $h .= '<a class="tit-co-btn" href="' . esc_url($tools_url) . '" rel="noopener nofollow">Check my resume for free</a>';
     $h .= '</section>';
     return $h;
 }

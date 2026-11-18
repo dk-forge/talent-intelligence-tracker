@@ -258,6 +258,17 @@ change under `wordpress-plugin/`, run it by hand and then verify the page:
 gh workflow run deploy-plugin.yml -R dk-forge/talent-intelligence-tracker --ref main -f dry_run=false
 ```
 
+**EVERY PLUGIN VERSION BUMP NEEDS ITS LINE IN THE UPDATE LOG** (1.116.0).
+`/talent-intelligence-tracker/update-log/` renders
+`wordpress-plugin/.../data/update-log.json`, generated from git (one entry per
+commit that changed `TIT_VERSION`). When you bump the version, run
+`python3 generate_update_log.py --pending "what this release changes"` in the
+same commit; `tests/test_update_log.py` is red until the newest entry is the
+shipped version. It needs full history (`git fetch --unshallow`) and refuses to
+write a shorter log than the one it replaces. `/methodology/` is a real page
+(`includes/methodology.php`), no longer a redirect to `/sources/`; its prose
+carries no figures on purpose, so keep it that way.
+
 **A SUBAGENT MUST NOT RUN THAT COMMAND.** It publishes to the live site, and
 the deploy is the session's call to make, not a delegated one. This paragraph
 used to say only "run it by hand", which every spawned agent correctly read as
@@ -366,9 +377,14 @@ is NOT covered (`wp_posts` and the whole blog, uploads, the WordPress install,
 and the shared email subscriber list, which is the sibling plugin's and is
 personal data that must never reach either public repo).
 
-**There is no Railway deployment.** Collection runs on Actions because the
-database must be committed back to the repo; an ephemeral container discards
-it. If you find a Railway service pointed at this repo, it is a leftover.
+**Collection of record runs on Actions**, because the database must be
+committed back to the repo; an ephemeral container discards it. A Railway
+service DOES exist (project `talent-intelligence`, service
+`talent-intelligence-tracker`) and its logs on 2026-11-16 show it running the
+google_news collect, so it is not dormant. Railway is the owner's: never delete,
+stop or reconfigure it from a session, and never call it a leftover in a todo.
+Its 2026-11-16 "Crashed" was run_collect's own exit 1 ("every candidate
+rejected") after all 1500 Google News links failed to resolve from that host.
 
 ## Rules that are not negotiable
 

@@ -122,6 +122,8 @@ function tit_dashboard_shortcode() {
     if ($rendered) return '';
     $rendered = true;
     $html = tit_dashboard_html();
+    // Tracked sign-up route (CLAUDE.md conversion rule), see includes/atr_signup_cta.php.
+    if ($html !== '' && function_exists('tit_atr_cta_line_html')) $html = tit_atr_cta_line_html('tracker_home') . $html;
     // Intro + FAQ (ai-layoff-tracker#446 items 2-3), copy in includes/page_faq.php.
     return function_exists('tit_page_faq_wrap_dashboard') ? tit_page_faq_wrap_dashboard($html) : $html;
 }
@@ -943,6 +945,8 @@ function tit_dashboard_html() {
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/sources/')); ?>">Every source</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/recall/')); ?>">What we miss, measured</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/corrections/')); ?>">Corrections</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/methodology/')); ?>">Methodology</a>
+          · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/update-log/')); ?>">Update log</a>
           · <a href="<?php echo esc_url(home_url('/talent-intelligence-tracker/places/')); ?>">Every country, city and industry we cover</a>
           · <a href="/blog/ai-layoff-tracker/">Layoffs are tracked separately</a>
         </p>

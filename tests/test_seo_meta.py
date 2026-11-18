@@ -51,6 +51,9 @@ def _php(expr: str, extra: str = "") -> str:
     ("eBay", "eBay"),
     ("Stripe, Inc.", "Stripe"),
     ("OpenAI", "OpenAI"),
+    # Live 2026-11-18: rendered "A.f.blakemore and SON" in the <title>.
+    ("A.F.BLAKEMORE AND SON LIMITED", "A.F.Blakemore and Son"),
+    ("J SAINSBURY AND SONS PLC", "J Sainsbury and Sons"),
 ])
 def test_display_name(raw, want):
     assert _php("echo tit_company_display_name(%s);" % json.dumps(raw)) == want

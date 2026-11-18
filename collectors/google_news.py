@@ -261,12 +261,80 @@ _CONSENT_WALL = re.compile(r"consent\.google\.|Before you continue", re.I)
 
 # Per-process tally of article pages that came back as the consent wall even
 # with the cookies above. run_collect writes it into the health detail.
-STATS = {"consent_wall": 0}
+# 2026-11-16 (Railway): "UNRESOLVED: 1500/1500" with neither of the first two
+# set, so the cause had no name. Every way a resolve can fail now has its own
+# count, and `failure_breakdown` puts them in the health note.
+STATS = {"consent_wall": 0, "http_blocked": 0, "no_signature": 0,
+         "batch_no_url": 0, "network_error": 0, "resolved": 0,
+         "skipped_breaker": 0}
+
+#: Consecutive failures, with not one success yet this run, after which the
+#: rest of the batch is not attempted. A host Google will not answer costs two
+#: requests and up to 2 x timeout per item: 1500 items was most of an hour of
+#: doing nothing. Skipped items keep their homepage, are never marked seen
+#: (`is_unresolved`), and retry on the next run.
+RESOLVE_GIVE_UP_AFTER = 40
+
+_FAILURE_LABELS = (
+    ("http_blocked", "HTTP 403/429/503"),
+    ("consent_wall", "consent wall"),
+    ("no_signature", "page without signature"),
+    ("batch_no_url", "batchexecute gave no URL"),
+    ("network_error", "network error"),
+    ("skipped_breaker", "not tried, resolver gave up"),
+)
+
+
+def failure_breakdown() -> str:
+    """'(6 HTTP 403/429/503, 2 network error)' from STATS, or ''."""
+    parts = [f"{STATS[k]} {label}" for k, label in _FAILURE_LABELS if STATS[k]]
+    return f" ({', '.join(parts)})" if parts else ""
+
+
+def resolve_all(items: list[dict], *, resolve=None,
+                give_up_after: int = RESOLVE_GIVE_UP_AFTER) -> list[dict]:
+    """Resolve every item, giving up on the rest after a run of pure failure.
+
+    The breaker only trips while nothing has resolved: once one link has come
+    back the host is evidently able to resolve, and a later bad patch is
+    ordinary noise that each item survives on its own.
+    """
+    resolve = resolve or resolve_source_url
+    out, streak, any_ok = [], 0, False
+    for item in items:
+        if not any_ok and streak >= give_up_after:
+            if _is_google_news(item.get("discovery_url")):
+                STATS["skipped_breaker"] += 1
+            out.append(item)
+            continue
+        item = resolve(item)
+        if _is_google_news(item.get("discovery_url")):
+            if is_unresolved(item):
+                streak += 1
+            else:
+                any_ok = True
+        out.append(item)
+    return out
 
 
 def is_consent_wall(html: str) -> bool:
     """Whether Google answered with its consent interstitial, not the page."""
     return bool(_CONSENT_WALL.search(html or "")) and "data-n-a-sg" not in (html or "")
+
+
+def is_unresolved(item: dict) -> bool:
+    """A Google News item whose source_url is still a homepage or Google itself.
+
+    Its source_url is NOT an identity: every unresolved item from one outlet
+    shares the outlet's homepage, so marking that "seen" skips the outlet's
+    whole backlog (2026-11-13: already-seen=1488, stored=0). Callers must
+    neither consult nor write seen_urls for it, so the item retries.
+    """
+    if not _is_google_news(item.get("discovery_url")):
+        return False
+    src = item.get("source_url") or ""
+    path = src.split("://", 1)[-1].partition("/")[2].strip("/")
+    return _is_google_news(src) or not path
 
 
 def unresolved_count(items: list[dict]) -> int:
@@ -320,8 +388,12 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
                         cookies=CONSENT_COOKIES, timeout=timeout)
         sig, ts = _SIG.search(page.text), _TS.search(page.text)
         if not (sig and ts):
-            if is_consent_wall(page.text):
+            if getattr(page, "status_code", 200) in (403, 429, 503):
+                STATS["http_blocked"] += 1
+            elif is_consent_wall(page.text):
                 STATS["consent_wall"] += 1
+            else:
+                STATS["no_signature"] += 1
             return item
 
         inner = json.dumps([
@@ -342,8 +414,13 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
         hit = _RESOLVED.search(resp.text)
         if hit:
             item["source_url"] = hit.group(1)
+            STATS["resolved"] += 1
+        elif getattr(resp, "status_code", 200) in (403, 429, 503):
+            STATS["http_blocked"] += 1
+        else:
+            STATS["batch_no_url"] += 1
     except (requests.RequestException, ValueError, IndexError):
-        pass
+        STATS["network_error"] += 1
     return item
 
 

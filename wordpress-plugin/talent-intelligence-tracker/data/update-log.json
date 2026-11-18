@@ -1,0 +1,1377 @@
+{
+ "generated_from": "git history of TIT_VERSION in the plugin's main file",
+ "entries": [
+  {
+   "version": "1.118.1",
+   "date": "2026-11-18",
+   "tag": "Fix",
+   "text": "Company pages for employers whose name is in a non-Latin script open again instead of showing a not-found page."
+  },
+  {
+   "version": "1.118.0",
+   "date": "2026-11-18",
+   "tag": "Change",
+   "text": "Every virtual route (places, roles, recall, corrections, press, methodology, update log, sources, every place page) now carries the tracked sign-up line, not only the dashboard and company pages."
+  },
+  {
+   "version": "1.117.0",
+   "date": "2026-11-18",
+   "tag": "Fix",
+   "text": "UTM-tagged sign-up line on the tracker page and company pages.",
+   "pr": 353
+  },
+  {
+   "version": "1.116.0",
+   "date": "2026-11-15",
+   "tag": "Change",
+   "text": "Methodology page and update log of this tracker's own."
+  },
+  {
+   "version": "1.115.1",
+   "date": "2026-11-13",
+   "tag": "Change",
+   "text": "The signal card links an employer only when its company page is served.",
+   "pr": 338
+  },
+  {
+   "version": "1.115.0",
+   "date": "2026-11-13",
+   "tag": "Change",
+   "text": "Open roles now: titles linking to the employer's own apply page.",
+   "pr": 332
+  },
+  {
+   "version": "1.114.1",
+   "date": "2026-11-13",
+   "tag": "Change",
+   "text": "Press: wire SiliconANGLE and WeeTracker feeds.",
+   "pr": 334
+  },
+  {
+   "version": "1.114.0",
+   "date": "2026-11-11",
+   "tag": "Change",
+   "text": "Every card says when the tracker first listed it.",
+   "pr": 322
+  },
+  {
+   "version": "1.113.0",
+   "date": "2026-11-10",
+   "tag": "Change",
+   "text": "GA4 conversion events, headcount-first dashboard, lighter page.",
+   "pr": 318
+  },
+  {
+   "version": "1.112.1",
+   "date": "2026-11-01",
+   "tag": "Fix",
+   "text": "EDGAR label, country names in FAQ, Rio Tinto key.",
+   "pr": 298
+  },
+  {
+   "version": "1.112.0",
+   "date": "2026-10-29",
+   "tag": "Change",
+   "text": "Modern company profile page.",
+   "pr": 295
+  },
+  {
+   "version": "1.111.4",
+   "date": "2026-10-21",
+   "tag": "Fix",
+   "text": "Xss-through-dom, URL hostname checks, annotate false positives.",
+   "pr": 290
+  },
+  {
+   "version": "1.111.3",
+   "date": "2026-10-20",
+   "tag": "Fix",
+   "text": "Js/xss-through-dom.",
+   "pr": 286
+  },
+  {
+   "version": "1.111.2",
+   "date": "2026-10-19",
+   "tag": "Change",
+   "text": "Cite-this-dataset DOI (Zenodo concept DOI).",
+   "pr": 282
+  },
+  {
+   "version": "1.111.1",
+   "date": "2026-10-19",
+   "tag": "Fix",
+   "text": "Fix HTTP 500 on the funded-this-week roundup.",
+   "pr": 281
+  },
+  {
+   "version": "1.111.0",
+   "date": "2026-10-19",
+   "tag": "Change",
+   "text": "Funded This Week, Now Hiring weekly roundup.",
+   "pr": 280
+  },
+  {
+   "version": "1.110.0",
+   "date": "2026-10-19",
+   "tag": "Change",
+   "text": "Funded, now hiring — company page, jobs and tailor links on Top Rounds.",
+   "pr": 279
+  },
+  {
+   "version": "1.109.0",
+   "date": "2026-10-19",
+   "tag": "Change",
+   "text": "By-location view, top rounds, shareable links, mobile.",
+   "pr": 276
+  },
+  {
+   "version": "1.108.1",
+   "date": "2026-10-19",
+   "tag": "Change",
+   "text": "BORME space-padded inscription dates; 2026-10-19 slug-collision review.",
+   "pr": 277
+  },
+  {
+   "version": "1.108.0",
+   "date": "2026-10-18",
+   "tag": "Change",
+   "text": "City and company alerts: follow by RSS and by email (sibling digest).",
+   "pr": 274
+  },
+  {
+   "version": "1.107.0",
+   "date": "2026-10-15",
+   "tag": "Change",
+   "text": "SEO audit 2026-10-15: one FAQPage, no empty page node, Open Graph, IndexNow.",
+   "pr": 267
+  },
+  {
+   "version": "1.106.0",
+   "date": "2026-10-15",
+   "tag": "Change",
+   "text": "Language tag on every rendered item.",
+   "pr": 266
+  },
+  {
+   "version": "1.105.1",
+   "date": "2026-10-14",
+   "tag": "Change",
+   "text": "Dark-theme ink for the intro, FAQ and Related row (outside .tit-wrap).",
+   "pr": 264
+  },
+  {
+   "version": "1.105.0",
+   "date": "2026-10-14",
+   "tag": "Change",
+   "text": "Intro + FAQ + FAQPage JSON-LD on the tracker pages.",
+   "pr": 263
+  },
+  {
+   "version": "1.104.0",
+   "date": "2026-10-14",
+   "tag": "Change",
+   "text": "SEO route B — weekly totals table, Related row, charts.",
+   "pr": 260
+  },
+  {
+   "version": "1.103.2",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Collect: sec_edgar newest-first (#247), gdelt off the shared box (#246), contrast audit on ubuntu-latest.",
+   "pr": 256
+  },
+  {
+   "version": "1.103.1",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Gleif: attach LEI to employers on unique name + country match (dormant, dry-run default).",
+   "pr": 255
+  },
+  {
+   "version": "1.103.0",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Embeddable hub chart with visible backlink, snippet on the press page.",
+   "pr": 254
+  },
+  {
+   "version": "1.102.0",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "\"Who's hiring\" role and role x city pages from functions, gated like places.",
+   "pr": 253
+  },
+  {
+   "version": "1.101.0",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Visible 'Last updated' + source count on company and place pages.",
+   "pr": 251
+  },
+  {
+   "version": "1.100.0",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Schema.org Dataset on the hub + computed primary-source share.",
+   "pr": 250
+  },
+  {
+   "version": "1.99.2",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Key the nav done-flag to the nav logic so a mid-deploy run of the old file cannot stamp it.",
+   "pr": 252
+  },
+  {
+   "version": "1.99.1",
+   "date": "2026-10-13",
+   "tag": "Change",
+   "text": "Keep the owner's \"View Talent Intelligence Tracker\" item first in the nav dropdown.",
+   "pr": 249
+  },
+  {
+   "version": "1.99.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "Title-cased capped company titles, 155-char descriptions, dated news items, brand publisher.",
+   "pr": 243
+  },
+  {
+   "version": "1.98.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "Item language: ISO 639-1 code + confidence per row, free local detector.",
+   "pr": 242
+  },
+  {
+   "version": "1.97.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "Breadcrumbs on every route, one BreadcrumbList each.",
+   "pr": 241
+  },
+  {
+   "version": "1.96.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "Breadcrumbs: visible nav + BreadcrumbList from one trail.",
+   "pr": 240
+  },
+  {
+   "version": "1.95.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "Company pages: open roles in description; tracker sitemaps in the site index.",
+   "pr": 238
+  },
+  {
+   "version": "1.94.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "City pages: who's hiring in [city], with open roles on employer job boards.",
+   "pr": 237
+  },
+  {
+   "version": "1.93.0",
+   "date": "2026-10-12",
+   "tag": "Change",
+   "text": "Open roles: publish the daily job-board count per employer, drop stale counts.",
+   "pr": 236
+  },
+  {
+   "version": "1.92.0",
+   "date": "2026-10-11",
+   "tag": "Change",
+   "text": "Verified/reported/measured tiers.",
+   "pr": 230
+  },
+  {
+   "version": "1.91.0",
+   "date": "2026-10-05",
+   "tag": "Change",
+   "text": "Render reference data (hiring demand, H-1B sponsors, company H-1B box).",
+   "pr": 216
+  },
+  {
+   "version": "1.90.0",
+   "date": "2026-10-05",
+   "tag": "Change",
+   "text": "Reference data: DOL OFLC H-1B/LCA employer aggregate + company join.",
+   "pr": 214
+  },
+  {
+   "version": "1.89.0",
+   "date": "2026-10-05",
+   "tag": "Change",
+   "text": "Reference data: Indeed Hiring Lab postings by occupation and country (weekly, freshness alarm, monthly archive).",
+   "pr": 213
+  },
+  {
+   "version": "1.88.8",
+   "date": "2026-10-01",
+   "tag": "Change",
+   "text": "Dashboard: one meta description when an SEO plugin is active.",
+   "pr": 200
+  },
+  {
+   "version": "1.88.7",
+   "date": "2026-09-16",
+   "tag": "Change",
+   "text": "Re-source: a narrow door for a citation, so the general one never widens.",
+   "pr": 154
+  },
+  {
+   "version": "1.88.6",
+   "date": "2026-09-14",
+   "tag": "Change",
+   "text": "Dashboard: the phone jump bar parks while the hero is on screen; the ribbon counts records, not coverage.",
+   "pr": 145
+  },
+  {
+   "version": "1.88.5",
+   "date": "2026-09-14",
+   "tag": "Change",
+   "text": "Recall: the page renders the newer of the pushed and the shipped measurement.",
+   "pr": 144
+  },
+  {
+   "version": "1.88.4",
+   "date": "2026-09-12",
+   "tag": "Change",
+   "text": "Recall: the first European reference set, admitted by two referees.",
+   "pr": 129
+  },
+  {
+   "version": "1.88.3",
+   "date": "2026-09-12",
+   "tag": "Change",
+   "text": "Deploy: read the ChemiCloud credentials and the addondomains plugin path.",
+   "pr": 127
+  },
+  {
+   "version": "1.88.2",
+   "date": "2026-09-06",
+   "tag": "Change",
+   "text": "Filters: label the three deal types the page served under their stored names, and refuse a date that is not a day.",
+   "pr": 117
+  },
+  {
+   "version": "1.88.1",
+   "date": "2026-09-04",
+   "tag": "Change",
+   "text": "Slug: give a script-dropping collision its own URL; form_d: retry EDGAR's transient 500.",
+   "pr": 110
+  },
+  {
+   "version": "1.88.0",
+   "date": "2026-09-01",
+   "tag": "Change",
+   "text": "Slug: LG Electronics was being published at /company/lg/."
+  },
+  {
+   "version": "1.87.4",
+   "date": "2026-08-30",
+   "tag": "Change",
+   "text": "A test that was counting down, and a chart that named the wrong basis.",
+   "pr": 106
+  },
+  {
+   "version": "1.87.3",
+   "date": "2026-08-29",
+   "tag": "Change",
+   "text": "Schema: a column can be PRESENT and still WRONG.",
+   "pr": 103
+  },
+  {
+   "version": "1.87.2",
+   "date": "2026-08-29",
+   "tag": "Change",
+   "text": "Adversarial review: the undeployed plugin, the mangled menu, and one event answered twice.",
+   "pr": 102
+  },
+  {
+   "version": "1.87.1",
+   "date": "2026-08-25",
+   "tag": "Fix",
+   "text": "Widen deal_type to VARCHAR(32) — outbound_investment overflowed 16.",
+   "pr": 97
+  },
+  {
+   "version": "1.87.0",
+   "date": "2026-08-24",
+   "tag": "Change",
+   "text": "US job-postings macro backdrop from Indeed Hiring Lab.",
+   "pr": 92
+  },
+  {
+   "version": "1.86.0",
+   "date": "2026-08-20",
+   "tag": "Change",
+   "text": "Money: the figure was right and its own link disagreed with it.",
+   "pr": 89
+  },
+  {
+   "version": "1.85.0",
+   "date": "2026-08-20",
+   "tag": "Change",
+   "text": "Money: a sale price is not a raise, and an empty column was never a yes.",
+   "pr": 87
+  },
+  {
+   "version": "1.84.0",
+   "date": "2026-08-20",
+   "tag": "Change",
+   "text": "Api: an unknown filter value must not answer with the worldwide total."
+  },
+  {
+   "version": "1.83.5",
+   "date": "2026-08-18",
+   "tag": "Change",
+   "text": "Cite: the durable pages had a licence note where a citation should be."
+  },
+  {
+   "version": "1.83.4",
+   "date": "2026-08-18",
+   "tag": "Fix",
+   "text": "Version: 1.83.3 was claimed twice, so the search fix ships as 1.83.4.",
+   "pr": 70
+  },
+  {
+   "version": "1.83.3",
+   "date": "2026-08-18",
+   "tag": "Change",
+   "text": "Schedule: the cron moved to 22:00 and the reader-facing copy of it did not."
+  },
+  {
+   "version": "1.83.2",
+   "date": "2026-08-16",
+   "tag": "Change",
+   "text": "Contrast: the signup asked this page for its colours and got no answer."
+  },
+  {
+   "version": "1.83.1",
+   "date": "2026-08-14",
+   "tag": "Change",
+   "text": "Digest: the signup had no route, and the hero got one."
+  },
+  {
+   "version": "1.83.0",
+   "date": "2026-08-15",
+   "tag": "Change",
+   "text": "Ats_boards: every posting states where the work happens and what it pays.",
+   "pr": 62
+  },
+  {
+   "version": "1.82.1",
+   "date": "2026-08-14",
+   "tag": "Change",
+   "text": "Mobile: the chart scrolls in its own box again, and one word stops deciding the width of a card."
+  },
+  {
+   "version": "1.82.0",
+   "date": "2026-08-14",
+   "tag": "Change",
+   "text": "Strip: the next-run promise is bound to the cron, and eight US metro feeds.",
+   "pr": 61
+  },
+  {
+   "version": "1.81.1",
+   "date": "2026-08-14",
+   "tag": "Change",
+   "text": "City: a register knows where it is, and a city total says what it counts.",
+   "pr": 52
+  },
+  {
+   "version": "1.81.0",
+   "date": "2026-08-13",
+   "tag": "Change",
+   "text": "Nav: the routes were live and the header stopped at the tracker.",
+   "pr": 51
+  },
+  {
+   "version": "1.80.0",
+   "date": "2026-08-13",
+   "tag": "Change",
+   "text": "Ribbon: the place rows count the updates they say they hold.",
+   "pr": 46
+  },
+  {
+   "version": "1.79.0",
+   "date": "2026-08-13",
+   "tag": "Change",
+   "text": "Pipeline: a bond is not a round, and a threshold was never going to say so.",
+   "pr": 43
+  },
+  {
+   "version": "1.78.0",
+   "date": "2026-08-13",
+   "tag": "Change",
+   "text": "Ui: the money charts now say why they are empty.",
+   "pr": 42
+  },
+  {
+   "version": "1.77.1",
+   "date": "2026-08-12",
+   "tag": "Change",
+   "text": "Copy: a row is an entry, and \"signal\" was three words wearing one.",
+   "pr": 38
+  },
+  {
+   "version": "1.77.0",
+   "date": "2026-08-12",
+   "tag": "Change",
+   "text": "Enrich: a wrong headquarters country needs a route to no value."
+  },
+  {
+   "version": "1.76.0",
+   "date": "2026-08-12",
+   "tag": "Change",
+   "text": "Measure how complete we are in the United States: 21 of 51, with the range.",
+   "pr": 15
+  },
+  {
+   "version": "1.75.0",
+   "date": "2026-08-11",
+   "tag": "Change",
+   "text": "The controls had no edges, and the panel was shut."
+  },
+  {
+   "version": "1.74.6",
+   "date": "2026-08-11",
+   "tag": "Change",
+   "text": "The place ribbon says what it counts, like the chart already did.",
+   "pr": 14
+  },
+  {
+   "version": "1.74.5",
+   "date": "2026-08-11",
+   "tag": "Change",
+   "text": "A11y: the dark page was a site rule beating every token, not a token.",
+   "pr": 13
+  },
+  {
+   "version": "1.74.4",
+   "date": "2026-08-10",
+   "tag": "Fix",
+   "text": "The fix for the forever-spinner had a forever-spinner in it.",
+   "pr": 12
+  },
+  {
+   "version": "1.74.3",
+   "date": "2026-08-10",
+   "tag": "Change",
+   "text": "Ui: an honest loading state on every async region.",
+   "pr": 11
+  },
+  {
+   "version": "1.74.2",
+   "date": "2026-08-10",
+   "tag": "Change",
+   "text": "A11y: the control that changes the theme was the first thing to vanish in dark mode."
+  },
+  {
+   "version": "1.74.1",
+   "date": "2026-08-05",
+   "tag": "Change",
+   "text": "Style: restore four phrases the PHP render guards pin."
+  },
+  {
+   "version": "1.74.0",
+   "date": "2026-08-05",
+   "tag": "Change",
+   "text": "Style: one language standard across both trackers, and a check that holds it."
+  },
+  {
+   "version": "1.73.0",
+   "date": "2026-08-05",
+   "tag": "Change",
+   "text": "Theme: light and dark on the dashboard and the recall page."
+  },
+  {
+   "version": "1.72.0",
+   "date": "2026-08-05",
+   "tag": "Change",
+   "text": "Recall: name coverage as coverage; dashboard: the trend is a market claim now."
+  },
+  {
+   "version": "1.71.2",
+   "date": "2026-08-05",
+   "tag": "Change",
+   "text": "Print the shared email-digest signup on the dashboard."
+  },
+  {
+   "version": "1.71.1",
+   "date": "2026-08-04",
+   "tag": "Change",
+   "text": "The World badge counts the rows the World tab actually returns."
+  },
+  {
+   "version": "1.71.0",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "The star says what it does, on the page, without being opened."
+  },
+  {
+   "version": "1.70.0",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "The amount guardrail was quarantining the truth, and nobody was reading the queue."
+  },
+  {
+   "version": "1.69.0",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "UX audit: an invisible header, an invisible retraction, and a claim the evidence could not make."
+  },
+  {
+   "version": "1.68.1",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Security: bound untrusted bodies, hash-pin every install, scheme-check painted hrefs."
+  },
+  {
+   "version": "1.68.0",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Alerting + throttles: unstick the alert channel, stop crying wolf, keep the counters."
+  },
+  {
+   "version": "1.67.2",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Security: a stored headline could close the JSON-LD script block."
+  },
+  {
+   "version": "1.67.1",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Ux: freshness stats pair this-year/all-time; Year/Quarter/Month selects write the date boxes."
+  },
+  {
+   "version": "1.67.0",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Dashboard 1.67.0: version bump for the batch of four."
+  },
+  {
+   "version": "1.66.3",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Scrub: the fifth provider, and the guard now knows its name."
+  },
+  {
+   "version": "1.66.2",
+   "date": "2026-08-03",
+   "tag": "Change",
+   "text": "Version bump so the scrubbed sources manifest reaches the live page."
+  },
+  {
+   "version": "1.66.1",
+   "date": "2026-08-02",
+   "tag": "Change",
+   "text": "Ribbon: 'Covering' claims collection, so its upper bound is today."
+  },
+  {
+   "version": "1.66.0",
+   "date": "2026-08-02",
+   "tag": "Change",
+   "text": "Design adoption: signal board, editorial hero, freshness panel, coverage ribbon, ochre money."
+  },
+  {
+   "version": "1.65.0",
+   "date": "2026-08-02",
+   "tag": "Change",
+   "text": "Audience pass: zones, question headings, one caveat one home, trend tap-to-filter, one accent."
+  },
+  {
+   "version": "1.64.0",
+   "date": "2026-08-02",
+   "tag": "Change",
+   "text": "Archive pending state on every listing + strip disambiguators."
+  },
+  {
+   "version": "1.63.0",
+   "date": "2026-08-01",
+   "tag": "Change",
+   "text": "The charts sit under the filters now, and eight pointers stopped naming a position."
+  },
+  {
+   "version": "1.62.3",
+   "date": "2026-08-01",
+   "tag": "Change",
+   "text": "Sources.json back in sync after the national press audit."
+  },
+  {
+   "version": "1.62.2",
+   "date": "2026-08-01",
+   "tag": "Change",
+   "text": "Google news: withdraw the 17 English non-US editions, and correct the page's claim."
+  },
+  {
+   "version": "1.62.1",
+   "date": "2026-07-31",
+   "tag": "Change",
+   "text": "Sources page: no em-dash reaches it, and the builder refuses to ship one."
+  },
+  {
+   "version": "1.62.0",
+   "date": "2026-07-31",
+   "tag": "Change",
+   "text": "Dashboard: nine chart cards, the trend inside the grid, the prose behind an (i)."
+  },
+  {
+   "version": "1.61.0",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "Applied: 318 records withdrawn, $122.0bn -> $107.7bn, and the row that missed."
+  },
+  {
+   "version": "1.60.2",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "The corrections figures have to reach the site to be a correction."
+  },
+  {
+   "version": "1.60.1",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "One card contract across both trackers, and a build that reddens when they drift."
+  },
+  {
+   "version": "1.60.0",
+   "date": "2026-07-30",
+   "tag": "Fix",
+   "text": "Say it before it is fixed: 318 records, $14.3bn, published as pending."
+  },
+  {
+   "version": "1.59.1",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "The chart's basis sentence read a rise into a view that was falling."
+  },
+  {
+   "version": "1.59.0",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "Every /company/ URL was a 404, and the page grew a line to read a direction off."
+  },
+  {
+   "version": "1.58.0",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "A red run can now email the owner, deduped by cause (1.58.0, listener DORMANT)."
+  },
+  {
+   "version": "1.57.0",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "The archived link was already shipped, and the snapshots never left the pipeline."
+  },
+  {
+   "version": "1.56.0",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "The column was what squeezed the table, so the filters go on top and freeze."
+  },
+  {
+   "version": "1.55.0",
+   "date": "2026-07-30",
+   "tag": "Change",
+   "text": "The page is dated now, and the press links are checked against the code that reads them."
+  },
+  {
+   "version": "1.54.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The filter panel is a column of scrolling checkboxes, and the page has one vocabulary."
+  },
+  {
+   "version": "1.53.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Four pages describe themselves, and the copy stops contradicting the data."
+  },
+  {
+   "version": "1.52.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Nothing on the first paint blocks, and the pill groups stop jumping."
+  },
+  {
+   "version": "1.51.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The bump that makes the new routes resolve."
+  },
+  {
+   "version": "1.50.1",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "All the controls sit together, then the charts that answer them."
+  },
+  {
+   "version": "1.50.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The deploy-visible bump for the charts-first page."
+  },
+  {
+   "version": "1.49.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Region emojis return, cities get their own row, employer pages get a signpost."
+  },
+  {
+   "version": "1.48.1",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The dashboard was rendering twice on the same page."
+  },
+  {
+   "version": "1.48.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The filter panel stops asking questions and stops scrolling."
+  },
+  {
+   "version": "1.47.1",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The sources page country filter spoke two languages."
+  },
+  {
+   "version": "1.47.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "A corrected company_key keeps its old URL resolving."
+  },
+  {
+   "version": "1.46.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Company slugs: transliterate, so every employer has a URL we can publish."
+  },
+  {
+   "version": "1.45.5",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Sitemap: stop advertising 22 ampersand URLs that redirect into a 404."
+  },
+  {
+   "version": "1.45.4",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Company profiles: say plainly that robots.txt discovery does not work."
+  },
+  {
+   "version": "1.45.3",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Company slugs: an ampersand kills the URL, and %26 is why."
+  },
+  {
+   "version": "1.45.2",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Company profiles: one robots tag, without naming an SEO plugin."
+  },
+  {
+   "version": "1.45.1",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Company profiles: one robots tag, and a sitemap URL that does not redirect."
+  },
+  {
+   "version": "1.45.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Company profiles: a measured threshold gate, and one sitemap generated from it."
+  },
+  {
+   "version": "1.44.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "The filter panel, as a layout problem rather than a wording one."
+  },
+  {
+   "version": "1.43.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Link rot: check every cited document, and give it a Wayback fallback."
+  },
+  {
+   "version": "1.42.3",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Sources page: list the three live collectors it was omitting."
+  },
+  {
+   "version": "1.42.2",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Corrections log: the correction ran, and the projection was $10bn low."
+  },
+  {
+   "version": "1.42.1",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Job posting volume becomes a first-class signal."
+  },
+  {
+   "version": "1.42.0",
+   "date": "2026-07-29",
+   "tag": "Change",
+   "text": "Site events get their own column, and how_we_work is told what it is."
+  },
+  {
+   "version": "1.41.1",
+   "date": "2026-07-29",
+   "tag": "Fix",
+   "text": "Filters: drop the 'More filters' disclosure for real, and fix Team or Function."
+  },
+  {
+   "version": "1.41.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Let a looked-up headquarters reach the site, and make the two allowlists agree."
+  },
+  {
+   "version": "1.40.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Close the loop: a keyed route so the weekly measurement reaches the page."
+  },
+  {
+   "version": "1.39.2",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Corrections log: the projection table must survive a phone."
+  },
+  {
+   "version": "1.39.1",
+   "date": "2026-07-28",
+   "tag": "Fix",
+   "text": "Corrections log: disclose the defect now, do not backdate the fix."
+  },
+  {
+   "version": "1.39.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Automate the recall loop: schedule it, plot it, and make it emit its own work list."
+  },
+  {
+   "version": "1.38.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Publish what we miss: measured recall against a sealed independent gold set."
+  },
+  {
+   "version": "1.37.1",
+   "date": "2026-07-28",
+   "tag": "Fix",
+   "text": "Stop clipping the dashboard: the sticky fix was guillotining the page on mobile."
+  },
+  {
+   "version": "1.37.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Make the sticky bar find the viewport, drop the always-zero column, and give every number a label that says what it counts."
+  },
+  {
+   "version": "1.36.1",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Bump to 1.36.1 so the corrections route's rewrite actually flushes."
+  },
+  {
+   "version": "1.36.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Two-tier places strip, ISO-derived flags, and geography facets over both columns."
+  },
+  {
+   "version": "1.34.1",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Render the places button's real label on the server, and keep the date range on one row at 375px."
+  },
+  {
+   "version": "1.34.0",
+   "date": "2026-07-28",
+   "tag": "Fix",
+   "text": "Lead with the benefit, fix the date range that contradicted itself, and reorganise the filter block."
+  },
+  {
+   "version": "1.33.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Spell every country out, widen the bar labels, and put the sort where the rows are."
+  },
+  {
+   "version": "1.32.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Restructure the filter bar around what people ask, not what the columns are."
+  },
+  {
+   "version": "1.31.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Bump for the /enrich route."
+  },
+  {
+   "version": "1.30.1",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Verify the schema instead of trusting the migration ran."
+  },
+  {
+   "version": "1.30.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Lead with what is worth reading, rename the filters that leaked our vocabulary, and add the money filters."
+  },
+  {
+   "version": "1.29.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Money views, block-theme chrome on our own routes, and quick views cut to what the matrix cannot say."
+  },
+  {
+   "version": "1.28.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Stop discarding the CIK, and deploy the new columns."
+  },
+  {
+   "version": "1.27.2",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Clear Pragma/Expires on the asset block too."
+  },
+  {
+   "version": "1.27.1",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Strip the host's duplicate no-store from talent/v1 reads."
+  },
+  {
+   "version": "1.27.0",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Glance matrix: colour the numbers by signal and intensity."
+  },
+  {
+   "version": "1.26.2",
+   "date": "2026-07-28",
+   "tag": "Change",
+   "text": "Freshness line: a UTC site says UTC, not GMT+0000."
+  },
+  {
+   "version": "1.26.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Design parity + click-to-filter + glance matrix + freshness line."
+  },
+  {
+   "version": "1.26.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Exports: streaming filtered CSV and JSON downloads."
+  },
+  {
+   "version": "1.25.2",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Flush the PAGE cache on deploy, not just our transients."
+  },
+  {
+   "version": "1.25.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Chart headings: say what a recruiter gets from each chart."
+  },
+  {
+   "version": "1.25.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Glance strip: add This quarter, so it reports the same periods the controls offer."
+  },
+  {
+   "version": "1.24.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The hero disagreed with its own filters, and nine controls said nothing."
+  },
+  {
+   "version": "1.23.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Filters move above the charts, and each chart gets its own controls."
+  },
+  {
+   "version": "1.22.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The dashboard was down to a third of the window, and I did that."
+  },
+  {
+   "version": "1.21.2",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Filtering to one country said \"1 countries\"."
+  },
+  {
+   "version": "1.21.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Every control on the live dashboard was inert, and had been all along."
+  },
+  {
+   "version": "1.21.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The dashboard gets its charts, its cards and Roo back."
+  },
+  {
+   "version": "1.20.2",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Exclude this plugin's assets from Autoptimize, which was swallowing the stylesheet."
+  },
+  {
+   "version": "1.20.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Enqueue the dashboard assets from the shortcode itself, not only from a hook."
+  },
+  {
+   "version": "1.20.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The sources page can finally say when each source last ran."
+  },
+  {
+   "version": "1.19.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Eight more languages: 25 countries becomes 38, 7 languages becomes 15."
+  },
+  {
+   "version": "1.18.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Quick views, sort and a date window."
+  },
+  {
+   "version": "1.17.0",
+   "date": "2026-07-27",
+   "tag": "Fix",
+   "text": "Un-retire GDELT: it stored three records on its first run after the fixes."
+  },
+  {
+   "version": "1.16.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The Europe tab was missing most of Europe."
+  },
+  {
+   "version": "1.16.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Retire GDELT: three things run, so the page says three."
+  },
+  {
+   "version": "1.15.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The filters now move the whole page, not just the table."
+  },
+  {
+   "version": "1.14.0",
+   "date": "2026-07-27",
+   "tag": "Fix",
+   "text": "The dry run found two bugs. Both are fixed."
+  },
+  {
+   "version": "1.13.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Employer leads the row."
+  },
+  {
+   "version": "1.13.0",
+   "date": "2026-07-27",
+   "tag": "Fix",
+   "text": "Match the sibling's real palette, and version assets by mtime so a CSS fix lands."
+  },
+  {
+   "version": "1.12.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Say plainly what the country filter on the sources page means."
+  },
+  {
+   "version": "1.11.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Company profiles: stop the accent stripe bleeding, and stop showing empty slots."
+  },
+  {
+   "version": "1.11.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Density pass: 3,610px of page for thirteen rows was the real design problem."
+  },
+  {
+   "version": "1.10.2",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The stat tiles had the same tabular-figure gap: '13' read as '1 3'."
+  },
+  {
+   "version": "1.10.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Cap the measure at 1160px: the theme container runs to 1500 on a wide monitor."
+  },
+  {
+   "version": "1.10.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Give the routed pages a container, and the dashboard some rhythm."
+  },
+  {
+   "version": "1.9.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Country names on company profiles too, from one shared table."
+  },
+  {
+   "version": "1.9.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Retire the 272 catalogue sources we could never actually connect to."
+  },
+  {
+   "version": "1.8.3",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "The full-bleed width was still pinned by max-width:100%."
+  },
+  {
+   "version": "1.8.2",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Make the phone full-bleed actually win against the theme's layout rule."
+  },
+  {
+   "version": "1.8.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Full bleed on phones: the theme was leaving the dashboard 219px to work in."
+  },
+  {
+   "version": "1.8.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "On a phone the table becomes cards, and country codes become country names."
+  },
+  {
+   "version": "1.7.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Country names not ISO codes, region strip above the charts, colour by entity."
+  },
+  {
+   "version": "1.7.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Make the page readable in ten seconds: at-a-glance rows, region tabs, no TOC."
+  },
+  {
+   "version": "1.6.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Give the page a face: hero, live status, colour accents and two charts."
+  },
+  {
+   "version": "1.5.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Import the owner's 293-source catalogue; make the sources page filterable."
+  },
+  {
+   "version": "1.4.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Style every plugin route, not just the one I remembered."
+  },
+  {
+   "version": "1.4.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Sources page, generated from the registry so it cannot drift."
+  },
+  {
+   "version": "1.3.2",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Load styles on company pages; strip PBC/LP from company keys."
+  },
+  {
+   "version": "1.3.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Hyphenate company slugs: %20 does not survive the rewrite rule."
+  },
+  {
+   "version": "1.3.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Company profile pages: one timeline per employer, every line sourced."
+  },
+  {
+   "version": "1.2.1",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Drop the dark-mode block: the theme forces a white page regardless."
+  },
+  {
+   "version": "1.2.0",
+   "date": "2026-07-27",
+   "tag": "Change",
+   "text": "Accessibility, recruiter language, and the full filter set on the page."
+  },
+  {
+   "version": "1.1.0",
+   "date": "2026-07-26",
+   "tag": "Change",
+   "text": "Recruiter filters: functions, industry, US state, headcount, funding, search."
+  },
+  {
+   "version": "1.0.3",
+   "date": "2026-07-26",
+   "tag": "Change",
+   "text": "A homepage is not a receipt: reject bare-domain sources, add GDELT, add retract."
+  },
+  {
+   "version": "1.0.2",
+   "date": "2026-07-26",
+   "tag": "Change",
+   "text": "Show the generated key once, instead of telling you to copy something invisible."
+  },
+  {
+   "version": "1.0.1",
+   "date": "2026-07-26",
+   "tag": "Change",
+   "text": "Set the pipeline key from wp-admin, so wp-config.php is never touched."
+  },
+  {
+   "version": "1.0.0",
+   "date": "2026-07-26",
+   "tag": "Change",
+   "text": "Add the WordPress plugin, separate from the layoff tracker by construction."
+  }
+ ]
+}

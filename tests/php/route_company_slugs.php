@@ -41,8 +41,10 @@ function esc_url($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8')
 function number_format_i18n($n) { return number_format((float) $n); }
 function date_i18n($f, $t) { return gmdate($f, $t); }
 function human_time_diff($a, $b) { return '1 hour'; }
-function get_query_var($v) { return ''; }
-function sanitize_text_field($s) { return trim((string) $s); }
+function get_query_var($v) { return $GLOBALS['tit_test_qv'][$v] ?? ''; }
+// Faithful to WordPress where it matters here: _sanitize_text_fields() DELETES
+// percent-encoded octets, so a %-encoded slug must be decoded before it.
+function sanitize_text_field($s) { return trim(preg_replace('/%[a-f0-9]{2}/i', '', (string) $s)); }
 function status_header($c) {}
 function nocache_headers() {}
 function wp_safe_redirect($u, $c = 302) {}
@@ -550,6 +552,16 @@ if ($phase === 'disambiguated-script-drop') {
     check(rawurldecode(tit_company_canonical_slug('日本ibm')) === $requested_path,
         'visiting the published URL for IBM Japan must not trigger a further '
         . 'redirect');
+
+    // THROUGH THE QUERY VAR (finish line 2026-11-18, run 44386255585: the
+    // disambiguated /company/%D8%A7...-bcp/ answered 404 live). WordPress hands
+    // tit_company the still-encoded path segment; sanitize_text_field() strips
+    // %xx octets, so sanitising before decoding left '-bcp' and nothing matched.
+    $GLOBALS['tit_test_qv'] = array('tit_company' => rtrim(substr($jp_url, strlen($prefix)), '/'));
+    $cur = tit_company_current();
+    $GLOBALS['tit_test_qv'] = array();
+    check($cur && $cur['rows'][0]['company_key'] === '日本ibm',
+        'the encoded query var for IBM Japan must resolve to IBM Japan, not 404');
 }
 
 // --------------------------------------------------------------------------

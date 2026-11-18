@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-11-13T08:15:38+01:00",
- "measured_on": "2026-11-13",
+ "generated_at": "2026-11-16T09:30:20+01:00",
+ "measured_on": "2026-11-16",
  "goldset_version": "2026-10-us-v1",
  "gold_events": 52,
  "misses": 20,
  "feed_backlog_days": 3,
- "catalogue_rows": 1333,
- "feeds_swept": 650,
+ "catalogue_rows": 1337,
+ "feeds_swept": 654,
  "gold_countries_on_the_backstop_route": [],
  "first_run": {
   "adjudicate_rows": "2026-09-14",
@@ -48,9 +48,9 @@
   "fetched_then_dropped": 1,
   "outside_our_history": 0,
   "walked_never_read": 0,
-  "feed_read_item_missed": 3,
+  "feed_read_item_missed": 6,
   "publisher_not_wired": 10,
-  "publisher_unknown": 4
+  "publisher_unknown": 1
  },
  "answers": {
   "stored_unmatched": "neither \u2014 a matching or field defect",
@@ -63,8 +63,8 @@
   "publisher_unknown": "source (not researched)"
  },
  "split": {
-  "filter": 4,
-  "source": 14,
+  "filter": 7,
+  "source": 11,
   "history": 0,
   "budget": 0,
   "neither": 2
@@ -73,39 +73,39 @@
   "1": {
    "outside_our_history": 0,
    "walked_never_read": 0,
-   "feed_read_item_missed": 3,
+   "feed_read_item_missed": 6,
    "publisher_not_wired": 10,
-   "publisher_unknown": 4
+   "publisher_unknown": 1
   },
   "3": {
    "outside_our_history": 0,
    "walked_never_read": 0,
-   "feed_read_item_missed": 3,
+   "feed_read_item_missed": 6,
    "publisher_not_wired": 10,
-   "publisher_unknown": 4
+   "publisher_unknown": 1
   },
   "7": {
    "outside_our_history": 0,
    "walked_never_read": 0,
-   "feed_read_item_missed": 3,
+   "feed_read_item_missed": 6,
    "publisher_not_wired": 10,
-   "publisher_unknown": 4
+   "publisher_unknown": 1
   },
   "14": {
    "outside_our_history": 0,
    "walked_never_read": 0,
-   "feed_read_item_missed": 3,
+   "feed_read_item_missed": 6,
    "publisher_not_wired": 10,
-   "publisher_unknown": 4
+   "publisher_unknown": 1
   }
  },
  "by_country": {
   "US": {
    "publisher_not_wired": 10,
-   "publisher_unknown": 4,
-   "feed_read_item_missed": 3,
+   "feed_read_item_missed": 6,
    "stored_unmatched": 2,
-   "fetched_then_dropped": 1
+   "fetched_then_dropped": 1,
+   "publisher_unknown": 1
   }
  },
  "cell_label": "metros",
@@ -126,7 +126,7 @@
    "publisher_unknown": 1
   },
   "San Francisco": {
-   "publisher_unknown": 3,
+   "feed_read_item_missed": 3,
    "publisher_not_wired": 1
   }
  },
@@ -144,10 +144,6 @@
  ],
  "unknown_publishers": [
   {
-   "domain": "siliconangle.com",
-   "misses": 3
-  },
-  {
    "domain": "techstartups.com",
    "misses": 1
   }
@@ -162,7 +158,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -181,7 +177,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -198,16 +194,16 @@
    "event_date": "2026-10-01",
    "publisher": "SiliconANGLE",
    "domain": "siliconangle.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 31,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 39,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
    "walkers_past_this_date": [],
-   "stage": "publisher_unknown",
+   "stage": "feed_read_item_missed",
    "cell": "San Francisco"
   },
   {
@@ -219,7 +215,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -238,7 +234,7 @@
    "domain": "alleywatch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 107,
+   "urls_fetched_from_this_domain": 109,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -257,7 +253,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -276,7 +272,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -312,16 +308,16 @@
    "event_date": "2026-10-06",
    "publisher": "SiliconANGLE",
    "domain": "siliconangle.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 31,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 39,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
    "walkers_past_this_date": [],
-   "stage": "publisher_unknown",
+   "stage": "feed_read_item_missed",
    "cell": "San Francisco"
   },
   {
@@ -333,7 +329,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -352,7 +348,7 @@
    "domain": "alleywatch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 107,
+   "urls_fetched_from_this_domain": 109,
    "stage": "stored_unmatched",
    "cell": "New York"
   },
@@ -363,16 +359,16 @@
    "event_date": "2026-10-12",
    "publisher": "SiliconANGLE",
    "domain": "siliconangle.com",
-   "domain_is_swept_feed": false,
-   "domain_in_catalogue": false,
-   "urls_fetched_from_this_domain": 31,
+   "domain_is_swept_feed": true,
+   "domain_in_catalogue": true,
+   "urls_fetched_from_this_domain": 39,
    "live_routes": [
     "gdelt",
     "google_news",
     "national_press"
    ],
    "walkers_past_this_date": [],
-   "stage": "publisher_unknown",
+   "stage": "feed_read_item_missed",
    "cell": "San Francisco"
   },
   {
@@ -416,7 +412,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -435,7 +431,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 230,
+   "urls_fetched_from_this_domain": 232,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -519,7 +515,7 @@
    "cell": "Austin"
   }
  ],
- "verdict": "SOURCE problem: 14 of 20 misses are publishers no collector reads, against 4 that reached a feed we sweep. MEDIUM confidence.",
+ "verdict": "SOURCE problem: 11 of 20 misses are publishers no collector reads, against 7 that reached a feed we sweep. MEDIUM confidence.",
  "limits": [
   "A fetched-and-dropped item can be attributed only as far back as 2026-08-01, when pipeline/gate_ledger.py began recording a per-candidate outcome. Before that seen_urls holds a URL and the word 'rejected', and the keyword gate, the gate model, extraction, validate and dedupe all write exactly that.",
   "Nothing records the items a feed carried and a run did not reach, so 'feed_read_item_missed' is inferred from the publisher being swept, not observed.",

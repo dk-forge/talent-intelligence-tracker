@@ -132,6 +132,10 @@ jobs:
       - name: Render the company profile page
         run: php tests/php/render_company_page.php
 
+      # The tracked sign-up line (CLAUDE.md conversion rule): UTM tags and copy.
+      - name: Sign-up line is UTM-tagged
+        run: php tests/php/atr_signup_cta.php
+
       # The dashboard is the page every reader lands on, and what it costs is
       # not visible in a diff: the shortcode runs a dozen aggregates over the
       # whole table, and what turns that into a slow page is one innocent query

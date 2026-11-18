@@ -11,6 +11,7 @@ Nothing is stored until a dry run looks right (spec 11 step 2).
 from __future__ import annotations
 
 import argparse
+import collections
 import os
 import sys
 from dataclasses import asdict
@@ -40,6 +41,34 @@ from pipeline import (candidate_rank, cheap_extract, classify, dedupe,
 # big feed printed one line per filtered headline (13 Nov 2026). List a sample,
 # then one summary line; the per-run total is still printed at the end.
 FILTERED_LOG_SAMPLE = 20
+
+
+#: REJECT lines printed per run before the rest are only counted. 2026-11-16:
+#: 1500 unresolved Google News links each printed a two-line REJECT, Railway
+#: dropped 2404 lines at its 500 lines/s cap, and the cause of the exit went
+#: with them. The per-reason totals print after the loop instead.
+REJECT_LOG_SAMPLE = 20
+
+
+def reject_reason_key(reason) -> str:
+    """The reason without its per-item tail ("bare domain: https://x" -> "bare domain")."""
+    return str(reason).split(":", 1)[0].strip()[:80]
+
+
+def reject_log(tally, item, reason, suffix=""):
+    """Count one rejection; print it only while under REJECT_LOG_SAMPLE."""
+    tally[reject_reason_key(reason)] += 1
+    if sum(tally.values()) <= REJECT_LOG_SAMPLE:
+        print(f"  REJECT  {item.get('headline','')[:70]}\n          {reason}{suffix}")
+
+
+def reject_summary(tally) -> list:
+    """Summary lines for the rejections past the sample, most common first."""
+    total = sum(tally.values())
+    if total <= REJECT_LOG_SAMPLE:
+        return []
+    return ([f"  ... {total - REJECT_LOG_SAMPLE} more rejected (not listed); by reason:"]
+            + [f"      {n:>5}  {why}" for why, n in tally.most_common()])
 
 
 def filtered_log_line(n, item, reason):
@@ -696,15 +725,14 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
     # already returns the publisher's own URL, which is the whole reason it
     # leads: a homepage is not a receipt.
     if not offline and source == "google_news":
-        kept = [google_news.resolve_source_url(item) for item in kept]
+        kept = google_news.resolve_all(kept)
         # Resolution fails SILENTLY per item (the homepage stays), so a total
         # failure used to surface only as "every candidate rejected". Say it.
         unresolved = google_news.unresolved_count(kept)
         if kept and unresolved:
             resolve_note = (f"UNRESOLVED: {unresolved}/{len(kept)} Google News "
                             f"links kept a homepage"
-                            + (f" ({google_news.STATS['consent_wall']} consent wall)"
-                               if google_news.STATS["consent_wall"] else "")
+                            + google_news.failure_breakdown()
                             + " | ")
             print(f"[{collector}] {resolve_note.rstrip(' |')}")
 
@@ -780,6 +808,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
 
     deadline_stopped = 0
     reached = 0
+    reject_tally = collections.Counter()
     # The loop header is deliberately unchanged: three tests read this source
     # and split it on this exact line to prove what is upstream and downstream
     # of the paid stage. A counter costs nothing and keeps that readable.
@@ -804,7 +833,10 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         # make the first movement the last one this collector ever reported.
         # Those rows are deduped by content_hash and the fuzzy window instead.
         revisits = getattr(module, "REVISITS_ITS_SOURCE_URL", False)
-        if url and not revisits and store.already_seen(conn, url):
+        # An unresolved Google News link carries the outlet's homepage as its
+        # url: shared by every story from that outlet, so it is no identity.
+        unresolved = google_news.is_unresolved(item)
+        if url and not revisits and not unresolved and store.already_seen(conn, url):
             skipped += 1
             continue
 
@@ -820,9 +852,8 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 validate.precheck(item)
             except validate.Rejected as exc:
                 rejected += 1
-                print(f"  REJECT  {item.get('headline','')[:70]}\n"
-                      f"          {exc} (before any model call)")
-                if url and not dry_run:
+                reject_log(reject_tally, item, exc, " (before any model call)")
+                if url and not dry_run and not unresolved:
                     store.mark_seen(conn, url, collector, "rejected")
                 continue
 
@@ -996,8 +1027,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
             # Never reject silently. A run that stores nothing must say why for
             # every candidate — this exact silence hid three funding filings
             # being discarded because the prompt did not list funding.
-            print(f"  REJECT  {item.get('headline','')[:70]}\n"
-                  f"          model judged it not a talent signal")
+            reject_log(reject_tally, item, "model judged it not a talent signal")
             # A model NO is a terminal verdict on this URL, so remember it.
             # Unmarked rejects were re-fetched, re-resolved and re-classified
             # on every run for the length of the recency window - the same
@@ -1026,7 +1056,7 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
         except validate.Rejected as exc:
             rejected += 1
             gate_ledger.outcome(item, "validate_reject", str(exc))
-            print(f"  REJECT  {item.get('headline','')[:70]}\n          {exc}")
+            reject_log(reject_tally, item, exc)
             if url and not dry_run:
                 store.mark_seen(conn, url, collector, "rejected")
             continue
@@ -1106,6 +1136,9 @@ def run(*, dry_run: bool, offline: bool, run_index: int, limit: int | None,
                 # holding, not routine dedup.
                 print(f"  SKIP    {signal.headline[:66]}\n"
                       f"          previously retracted, not re-stored")
+
+    for line in reject_summary(reject_tally):
+        print(line)
 
     print(
         f"\n[{collector}] found={found} "

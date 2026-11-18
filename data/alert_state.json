@@ -15,6 +15,26 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
+    "backup-check:main:5ab79242728b847d": {
+      "first": 1794824115,
+      "last": 1794824115,
+      "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
+    },
+    "collect-national-press:main:3824a06556f3cd16": {
+      "first": 1794872464,
+      "last": 1794872464,
+      "subject": "CI RED: collect national press: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect-press job. Answer them: python3 guardrails.py"
+    },
+    "collect-structured:main:f5702fb48050491a": {
+      "first": 1794888991,
+      "last": 1794888991,
+      "subject": "CI RED: collect-structured: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
+    },
+    "enrich:main:cd0f1a58933504d7": {
+      "first": 1794909173,
+      "last": 1794909173,
+      "subject": "CI RED: enrich: pipeline.publish.PublishError: 1 guardrail finding(s) have been open longer than their grace window (oldest 90h). 41156 clean row(s) WERE published; the flagged one"
+    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -25,12 +45,22 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
+    "finish-line-weekly:main:a4c9bb7cd8144f4a": {
+      "first": 1795036827,
+      "last": 1795036827,
+      "subject": "CI RED: Finish line (weekly): Finish line not met; see the summary above."
+    },
+    "h1b-lca:main:4f115540964df130": {
+      "first": 1795009327,
+      "last": 1795009327,
+      "subject": "CI RED: h1b-lca: reference_store.StoreError: h1b_lca: 52252 rows is under 50% of the stored 145812; a source that shrank this far is truncated, not smaller. Nothing was overwritten"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-13T17:42:23+00:00",
+  "updated_at": "2026-11-18T21:20:28+00:00",
   "version": 1
 }

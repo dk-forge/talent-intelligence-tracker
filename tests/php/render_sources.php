@@ -272,6 +272,13 @@ $html = render_with(1200, 60, 4);
 $text = prose($html);
 
 check(strpos($html, 'id="tit-sources"') !== false, 'the page renders at all');
+// CLAUDE.md conversion rule (owner 2026-11-17): every published page carries
+// the tracked sign-up line. Proven here against the REAL tit_render_footer(),
+// not a stub, because that function is the one place that reaches every
+// routed page at once.
+check(strpos($html, 'class="tit-atr-cta"') !== false
+      && strpos($html, 'resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=sources') !== false,
+      'the sources page lost the tracked sign-up line');
 check(strpos($text, 'We save a copy of the citations that can disappear') !== false,
       'the archive paragraph is on the page');
 
