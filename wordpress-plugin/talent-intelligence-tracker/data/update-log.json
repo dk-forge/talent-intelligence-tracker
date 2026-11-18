@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.117.0",
+   "date": "2026-11-18",
+   "tag": "Change",
+   "text": "Every tracker page now has a tracked link to the free resume match check."
+  },
+  {
    "version": "1.116.0",
    "date": "2026-11-15",
    "tag": "Change",

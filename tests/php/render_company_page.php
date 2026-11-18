@@ -45,6 +45,7 @@ function tit_confidence_labels() { return array('reported' => 'News Report'); }
 function tit_money_short($usd) { return '$' . round($usd / 1e6, 1) . 'M'; }
 function tit_money_basis_summable() { return 'company_raise'; }
 
+require $tit_plugin . 'includes/atr_signup_cta.php';
 require $tit_plugin . 'includes/company.php';
 require $tit_plugin . 'includes/company_layout.php';
 require $tit_plugin . 'includes/freshness.php';
@@ -98,7 +99,7 @@ $check(strpos($html, '<h2 class="tit-h"') === false, 'no timeline item is an h2'
 $check(strpos($html, 'disclosed funding') !== false && strpos($html, 'tit-stats-4') !== false, 'KPI tiles');
 $check(strpos($html, 'class="tit-co-follow"') !== false && strpos($html, 'type="application/rss+xml"') !== false,
        'follow card carries the RSS link');
-$check(strpos($html, 'href="https://asktherecruiter.com/">Adapt my resume</a>') !== false, 'next-step CTA');
+$check(strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=company_entry">Adapt my resume</a>') !== false, 'next-step CTA is UTM-tagged');
 $check(strpos($html, 'Data licensed CC BY 4.0') !== false, 'licence line kept');
 $check(strpos($html, 'This profile is thin') !== false, 'thin-profile note kept');
 $check(strpos($html, 'application/ld+json') === false, 'no structured data on a noindex profile');
