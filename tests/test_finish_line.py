@@ -166,3 +166,35 @@ def test_freshness_reads_source_health_not_the_top_20_notable_rows():
     wf = (pathlib.Path(__file__).resolve().parents[1] / ".github/workflows/finish-line.yml").read_text()
     assert "talent/v1/source-health\" --fresh-key run_at" in wf
     assert "per_page=20" not in wf
+
+
+def test_non_ascii_links_are_requested_percent_encoded():
+    # Run 44386250165: ?country=Türkiye was reported broken (status 0) because
+    # urllib refused the raw character; a browser encodes it and gets 200.
+    u = fl.iri_to_uri("https://asktherecruiter.com/blog/ai-layoff-tracker/?country=Türkiye&company=Ministère%20de%20l'Education")
+    assert u == ("https://asktherecruiter.com/blog/ai-layoff-tracker/?country=T%C3%BCrkiye"
+                 "&company=Minist%C3%A8re%20de%20l'Education")
+    assert fl.iri_to_uri("https://x.test/a%20b?q=1") == "https://x.test/a%20b?q=1"
+
+
+def test_429_is_retried_but_a_lasting_429_is_still_reported(monkeypatch=None):
+    calls = []
+    answers = iter([(429, ""), (200, "<html></html>")])
+    orig_once, orig_sleep = fl._fetch_once, fl.time.sleep
+    try:
+        fl._fetch_once = lambda url, timeout: (calls.append(url), next(answers))[1]
+        fl.time.sleep = lambda s: None
+        assert fl.fetch("https://x.test/feed")[0] == 200
+        assert len(calls) == 2
+        fl._fetch_once = lambda url, timeout: (429, "")
+        assert fl.fetch("https://x.test/feed")[0] == 429
+        fl._fetch_once = lambda url, timeout: (404, "")
+        assert fl.fetch("https://x.test/gone")[0] == 404
+        # The back-off has a per-run budget so a pacing host cannot time the job out.
+        fl._PAUSE_BUDGET, slept = 0, []
+        fl.time.sleep = slept.append
+        fl._fetch_once = lambda url, timeout: (429, "")
+        assert fl.fetch("https://x.test/feed")[0] == 429 and slept == []
+    finally:
+        fl._fetch_once, fl.time.sleep = orig_once, orig_sleep
+        fl._PAUSE_BUDGET = 1800

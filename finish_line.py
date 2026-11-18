@@ -210,14 +210,36 @@ def fetch(url: str, timeout: int = 30) -> tuple[int, str]:
     slow answer from a shared host is not reported as a broken page."""
     for attempt in range(3):
         status, body = _fetch_once(url, timeout)
-        if status == 200 or (0 < status < 500):
+        # 429 is the host pacing this crawler, not a broken link (run 44386255585:
+        # 320 feed links answered 429 mid-crawl and 200 on their own): back off
+        # and ask again. A link still 429 after the retries stays reported.
+        if status == 200 or (0 < status < 500 and status != 429):
             return status, body
-        time.sleep(3 * (attempt + 1))
+        pause = (20 if status == 429 else 3) * (attempt + 1)
+        global _PAUSE_BUDGET
+        if status == 429:
+            # A host that keeps pacing us must not run the job past its timeout
+            # (no report at all): past 30 minutes of 429 back-off, report as is.
+            if _PAUSE_BUDGET < pause:
+                return status, body
+            _PAUSE_BUDGET -= pause
+        time.sleep(pause)
     return status, body
 
 
+_PAUSE_BUDGET = 1800  # seconds of 429 back-off per run
+
+
+def iri_to_uri(url: str) -> str:
+    """Percent-encode a link the way a browser does before requesting it.
+    urllib refuses raw non-ASCII (country=Türkiye) and the old check counted
+    that refusal as a broken link with status 0 (run 44386250165). Existing
+    %-escapes and reserved characters are kept."""
+    return urllib.parse.quote(url, safe=":/?#[]@!$&'()*+,;=%~")
+
+
 def _fetch_once(url: str, timeout: int) -> tuple[int, str]:
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    req = urllib.request.Request(iri_to_uri(url), headers={"User-Agent": UA})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             ctype = r.headers.get("Content-Type", "")

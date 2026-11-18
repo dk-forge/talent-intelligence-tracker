@@ -819,7 +819,9 @@ function tit_company_current($slug = null) {
     if ($slug === null) {
         $var = get_query_var('tit_company');
         if (!$var) return null;
-        $slug = rawurldecode(sanitize_text_field($var));
+        // Decode FIRST: sanitize_text_field() deletes %xx octets, which turned a
+        // disambiguated (percent-encoded) slug into a 404 (finish line 2026-11-18).
+        $slug = sanitize_text_field(rawurldecode($var));
     }
     if (!isset($cache[$slug])) {
         $rows = tit_company_rows($slug);

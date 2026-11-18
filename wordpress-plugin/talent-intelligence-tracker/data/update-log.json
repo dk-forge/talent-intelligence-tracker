@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.118.1",
+   "date": "2026-11-18",
+   "tag": "Fix",
+   "text": "Company pages for employers whose name is in a non-Latin script open again instead of showing a not-found page."
+  },
+  {
    "version": "1.118.0",
    "date": "2026-11-18",
    "tag": "Change",
