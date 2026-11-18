@@ -1160,7 +1160,7 @@ function tit_company_render($rows, $key, $profile) {
 
       <?php if (function_exists('tit_company_method_html')) {
           echo tit_company_method_html($name, home_url('/talent-intelligence-tracker/'),
-              home_url('/talent-intelligence-tracker/sources/'), 'https://asktherecruiter.com/');  // escaped there
+              home_url('/talent-intelligence-tracker/sources/'), tit_company_cta_url($name));  // escaped there
       } else { ?>
       <p class="tit-cite">
         The read-through on each line is our interpretation. The headline and
