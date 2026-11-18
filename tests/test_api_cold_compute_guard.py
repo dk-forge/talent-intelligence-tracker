@@ -45,7 +45,11 @@ class Server(unittest.TestCase):
         reread = g.index("get_transient", lock)
         self.assertLess(lock, forget)
         self.assertLess(forget, reread)
-        self.assertIn("'notoptions'", body(API, "tit_forget_transient_cache"))
+        f = body(API, "tit_forget_transient_cache")
+        self.assertIn("'notoptions'", f)
+        # A persistent object cache holds the SHARED value: never delete it.
+        self.assertIn("if (wp_using_ext_object_cache()) return;", f)
+        self.assertNotIn("'transient')", f)
 
     def test_no_lock_support_falls_back(self):
         self.assertIn("if ($got === null) return null;", body(API, "tit_named_lock"))

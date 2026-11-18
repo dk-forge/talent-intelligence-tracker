@@ -1038,10 +1038,11 @@ function tit_named_unlock($full) {
 }
 
 function tit_forget_transient_cache($key) {
-    if (wp_using_ext_object_cache()) {
-        wp_cache_delete($key, 'transient');
-        return;
-    }
+    // With a persistent object cache the transient lives in that shared
+    // cache: deleting it would invalidate everyone's copy (Codex P2 on #693),
+    // and get_transient() already reads it from there. Only the DB-backed
+    // path keeps a request-local copy of the option (and its "missing" mark).
+    if (wp_using_ext_object_cache()) return;
     foreach (array('_transient_' . $key, '_transient_timeout_' . $key) as $opt) {
         wp_cache_delete($opt, 'options');
     }
