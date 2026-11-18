@@ -1402,7 +1402,7 @@
     // rejection that abort produces arrives holding a retired token.
     busyTrack(AGG_REGIONS[0][0], AGG_REGIONS[0][1], function (signal) {
       var opts = signal ? { signal: signal } : {};
-      var main = fetch(TIT.api + 'aggregate?' + params.toString(), opts)
+      var main = titFetch(TIT.api + 'aggregate?' + params.toString(), opts)
         .then(function (r) {
           // A non-ok response used to resolve to null and reach the same quiet
           // path as success. It is a failure, so it throws and is shown as one.
@@ -1422,7 +1422,7 @@
         yp.set('since', new Date().getFullYear() + '-01-01');
         yp.set('include', 'fresh');
         yp.delete('per_page');
-        ytdReq = fetch(TIT.api + 'aggregate?' + yp.toString(), opts)
+        ytdReq = titFetch(TIT.api + 'aggregate?' + yp.toString(), opts)
           .then(function (r) { return r.ok ? r.json() : null; })
           .catch(function () { return null; });
       }
@@ -2121,7 +2121,28 @@
     });
   }
 
+  // COALESCED (todo#1881 item 4). Chips, tabs and selects call refresh()
+  // directly, and each call fires two or three /aggregate and /query requests;
+  // at three clicks a second that saturated the host into 500s. The first call
+  // after a quiet spell runs at once (first paint and a single click are not
+  // delayed); calls inside REFRESH_GAP_MS collapse into one trailing run with
+  // the final filters. busyBegin already aborts the request a new one replaces.
+  var REFRESH_GAP_MS = 350, refreshTimer = null, refreshLast = 0;
   function refresh() {
+    var now = Date.now();
+    if (!refreshTimer && now - refreshLast >= REFRESH_GAP_MS) {
+      refreshLast = now;
+      refreshNow();
+      return;
+    }
+    if (refreshTimer) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(function () {
+      refreshTimer = null;
+      refreshLast = Date.now();
+      refreshNow();
+    }, REFRESH_GAP_MS);
+  }
+  function refreshNow() {
     var params = new URLSearchParams();
     Object.keys(inputs).forEach(function (key) {
       if (!inputs[key]) return;
@@ -2198,7 +2219,7 @@
     // from the controls as they stand, so a retry after a failure asks for what
     // the reader is looking at now rather than replaying a stale request.
     busyTrack('tit-rows', 'Loading the records', function (signal) {
-      return fetch(TIT.api + 'query?' + params.toString(), signal ? { signal: signal } : {})
+      return titFetch(TIT.api + 'query?' + params.toString(), signal ? { signal: signal } : {})
         .then(function (r) {
           // A non-ok response used to resolve to null and reach the same quiet
           // path as success. It is a failure, so it throws and is shown as one.
@@ -2231,6 +2252,19 @@
         // refresh; the rows themselves stay where they are underneath it.
         if (err && err.name === 'AbortError') return;
       });
+  }
+
+  // 503 + Retry-After is the server's cold-compute cap saying "not now"
+  // (tit_cold_compute_guard). One polite retry, then the caller's error path.
+  function titFetch(url, opts) {
+    return fetch(url, opts).then(function (r) {
+      if (r.status !== 503) return r;
+      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000;
+      return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
+        if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
+        return fetch(url, opts);
+      });
+    });
   }
 
   var timer;
@@ -4026,7 +4060,7 @@
     if (geoView !== 'time' && geoBox) {
       geoBox.innerHTML = '<p class="tit-geo-empty">Loading…</p>';
     }
-    fetch(TIT.api + 'aggregate?' + params.toString())
+    titFetch(TIT.api + 'aggregate?' + params.toString())
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();

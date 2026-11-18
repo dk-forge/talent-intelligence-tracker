@@ -29,10 +29,10 @@ function tit_register_routes() {
     $keyed = function_exists('tit_api_permission') ? 'tit_api_permission' : '__return_false';
 
     register_rest_route(TIT_NS, '/query', array(
-        'methods' => 'GET', 'callback' => 'tit_api_query', 'permission_callback' => '__return_true',
+        'methods' => 'GET', 'callback' => 'tit_api_query_guarded', 'permission_callback' => '__return_true',
     ));
     register_rest_route(TIT_NS, '/aggregate', array(
-        'methods' => 'GET', 'callback' => 'tit_api_aggregate', 'permission_callback' => '__return_true',
+        'methods' => 'GET', 'callback' => 'tit_api_aggregate_guarded', 'permission_callback' => '__return_true',
     ));
     register_rest_route(TIT_NS, '/facets', array(
         'methods' => 'GET', 'callback' => 'tit_api_facets', 'permission_callback' => '__return_true',
@@ -1007,6 +1007,81 @@ $orders = array(
                      . ' COALESCE(published_date, DATE(captured_at)) DESC',
 );
     return $orders;
+}
+
+/**
+ * COLD COMPUTES ARE SINGLE-FLIGHT AND CAPPED (todo#1881 item 4, review B1).
+ *
+ * Clicking region and country chips at about three a second gave 500s from
+ * /aggregate: every click is a new param set, so a new cold compute, and the
+ * PHP workers and MySQL saturate. A cache hit goes straight through. A miss
+ * takes a MySQL named lock on its cache key (so one request computes and the
+ * rest wait up to 10 s, then read the stored answer, because the handler
+ * re-reads its own transient) and one of TIT_COLD_SLOTS slots. With no slot
+ * free the request gets a 503 + Retry-After, which the dashboard retries once,
+ * instead of queueing into a worker timeout. If the server cannot take named
+ * locks, the guard steps aside and the handler runs exactly as before.
+ */
+if (!defined('TIT_COLD_SLOTS')) define('TIT_COLD_SLOTS', 3);
+
+function tit_named_lock($name, $wait) {
+    global $wpdb;
+    $full = substr('titl_' . md5(DB_NAME . '|' . $name), 0, 60);
+    $got = $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, %d)', $full, (int) $wait));
+    if ($got === null) return null;
+    return ((int) $got === 1) ? $full : false;
+}
+
+function tit_named_unlock($full) {
+    global $wpdb;
+    if (is_string($full)) $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $full));
+}
+
+function tit_cold_compute_guard($cache_key, $run) {
+    if (get_transient($cache_key) !== false) return call_user_func($run);
+    $key_lock = tit_named_lock('k|' . $cache_key, 10);
+    if ($key_lock === null) return call_user_func($run);
+    if (get_transient($cache_key) !== false) {
+        tit_named_unlock($key_lock);
+        return call_user_func($run);
+    }
+    $slot = false;
+    for ($i = 0; $i < TIT_COLD_SLOTS && $slot === false; $i++) {
+        $slot = tit_named_lock('slot|' . $i, 0);
+        if ($slot === null) { $slot = true; break; }
+    }
+    if ($slot === false) {
+        tit_named_unlock($key_lock);
+        $busy = new WP_REST_Response(array(
+            'code'    => 'tit_busy',
+            'message' => 'The tracker is busy computing other views. Retry in a moment.',
+        ), 503);
+        $busy->header('Retry-After', '2');
+        $busy->header('Cache-Control', 'no-store');
+        return $busy;
+    }
+    try {
+        return call_user_func($run);
+    } finally {
+        tit_named_unlock($slot);
+        tit_named_unlock($key_lock);
+    }
+}
+
+function tit_api_query_guarded(WP_REST_Request $req) {
+    $invalid = tit_validate_filters($req);
+    if (is_wp_error($invalid)) return $invalid;
+    return tit_cold_compute_guard(tit_cache_key('q', $req), function () use ($req) {
+        return tit_api_query($req);
+    });
+}
+
+function tit_api_aggregate_guarded(WP_REST_Request $req) {
+    $invalid = tit_validate_filters($req);
+    if (is_wp_error($invalid)) return $invalid;
+    return tit_cold_compute_guard(tit_cache_key('a', $req), function () use ($req) {
+        return tit_api_aggregate($req);
+    });
 }
 
 function tit_api_query(WP_REST_Request $req) {
