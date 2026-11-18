@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-11-18T19:40:39Z",
-  "last_tick": "2026-11-18T19:40:39Z",
+  "last_tick": "2026-11-18T19:41:39Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -264,6 +264,11 @@
           "at": "2026-11-18T19:40:39Z",
           "detail": "",
           "event": "dispatched"
+        },
+        {
+          "at": "2026-11-18T19:41:39Z",
+          "detail": "run 44382771347",
+          "event": "bound"
         }
       ],
       "id": "20261118T194033Z-retract",
@@ -276,7 +281,7 @@
       "reason": "red CI: retract live row rejected by referees",
       "requested_at": "2026-11-18T19:40:33Z",
       "requested_by": "dakotta-labs",
-      "run_id": null,
+      "run_id": "44382771347",
       "state": "dispatched",
       "workflow": "retract.yml"
     },
