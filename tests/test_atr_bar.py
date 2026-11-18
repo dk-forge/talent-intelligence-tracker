@@ -12,6 +12,7 @@ import pytest
 ROOT = Path(__file__).parent.parent
 PLUGIN = ROOT / "wordpress-plugin" / "talent-intelligence-tracker"
 MOD = PLUGIN / "includes" / "atr_bar.php"
+CTA = PLUGIN / "includes" / "atr_signup_cta.php"
 STUBS = ("define('ABSPATH', '/');\n"
          "function esc_url($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }\n"
          "function add_action() {}\n")
@@ -19,7 +20,8 @@ needs_php = pytest.mark.skipif(not shutil.which("php"), reason="UNKNOWN, NOT RUN
 
 
 def _php(expr: str) -> str:
-    p = subprocess.run(["php", "-r", STUBS + MOD.read_text().replace("<?php", "", 1) + "\n" + expr],
+    src = "".join(m.read_text().replace("<?php", "", 1) for m in (CTA, MOD))
+    p = subprocess.run(["php", "-r", STUBS + src + "\n" + expr],
                        capture_output=True, text=True, timeout=60)
     assert p.returncode == 0, p.stderr + p.stdout
     return p.stdout
@@ -46,7 +48,11 @@ def test_bar_is_tagged_closable_hidden_until_js_and_phone_only():
     u = urlparse(href)
     assert u.netloc == "asktherecruiter.com" and u.path == "/resume-score"
     q = parse_qs(u.query)
-    assert q["utm_source"] == ["talent-tracker"] and q["utm_campaign"] == ["sticky_bar"]
+    # one source per tracker: the same helper as the page's sign-up line
+    assert q["utm_source"] == ["talent_tracker"] and q["utm_medium"] == ["cta"]
+    assert q["utm_campaign"] == ["sticky_bar"]
+    # the dashboard's phone jump bar (Filters / Updates) is lifted above it
+    assert "body.tit-atr-bar-on .tit-jump{bottom:calc(74px" in html
     assert 'id="tit-atr-bar-close"' in html and 'aria-label="Close"' in html
     assert " hidden>" in html and "@media (min-width:601px){.tit-atr-bar{display:none}" in html
     assert "min-height:44px" in html  # WCAG 2.2 target size

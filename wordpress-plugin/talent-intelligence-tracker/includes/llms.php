@@ -37,23 +37,30 @@ function tit_llms_txt_content(array $facts) {
         $companies = (int) ($facts['companies'] ?? 0);
         $countries = (int) ($facts['countries'] ?? 0);
         if ($companies > 0 && $countries > 0) {
-            $out .= "- As of $asof, those signals cover " . number_format($companies) . " employers in "
-                  . number_format($countries) . " countries. Source: $hub\n";
+            // "Records from N countries", never "covering": the hub's own wording,
+            // because measured coverage varies by country.
+            $out .= "- As of $asof, those signals name " . number_format($companies) . " employers, with records from "
+                  . number_format($countries) . " countries; measured coverage varies by country. Source: $hub\n";
         }
         $share = function_exists('tit_primary_source_share')
             ? tit_primary_source_share($facts['verified'] ?? 0, $total) : null;
         if ($share !== null) {
             $out .= "- As of $asof, at least $share% of them link a primary source "
                   . "(a filing, register entry or official announcement); the rest link the news report. "
-                  . "Source: " . home_url('/talent-intelligence-tracker/sources/') . "\n";
+                  . "Source: $hub\n";  // the hub prints this share; /sources/ does not
         }
         $out .= "\n";
     }
     $out .= "## Key pages\n";
     $out .= "- Live tracker: $hub\n";
     $out .= "- Places (countries, cities, industries): " . home_url('/talent-intelligence-tracker/places/') . "\n";
-    $out .= "- Sources and methodology: " . home_url('/talent-intelligence-tracker/sources/') . "\n";
+    $out .= "- Sources: " . home_url('/talent-intelligence-tracker/sources/') . "\n";
+    $out .= "- Methodology: " . home_url('/talent-intelligence-tracker/methodology/') . "\n";
+    $out .= "- Recall (how much we catch, by market): " . home_url('/talent-intelligence-tracker/recall/') . "\n";
     $out .= "- Corrections: " . home_url('/talent-intelligence-tracker/corrections/') . "\n\n";
+    if (function_exists('tit_atr_cta_url')) {
+        $out .= "## For job seekers\n- Free resume match check: " . tit_atr_cta_url('llms_txt') . "\n\n";
+    }
     $out .= "## How to cite\n";
     $out .= "\"According to the Talent Intelligence Tracker by AskTheRecruiter.com.\" "
           . "Figures are live, are a documented floor rather than a census, and change as new sources are added.\n";

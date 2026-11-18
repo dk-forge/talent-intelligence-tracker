@@ -11,11 +11,13 @@ import pytest
 
 ROOT = Path(__file__).parent.parent
 PLUGIN = ROOT / "wordpress-plugin" / "talent-intelligence-tracker"
-MODS = [PLUGIN / "includes" / "dataset_schema.php", PLUGIN / "includes" / "llms.php"]
+MODS = [PLUGIN / "includes" / "dataset_schema.php", PLUGIN / "includes" / "atr_signup_cta.php",
+        PLUGIN / "includes" / "llms.php"]
 STUBS = (
     "define('ABSPATH', '/');\n"
     "function home_url($p = '') { return 'https://example.org/blog' . $p; }\n"
     "function admin_url($p = '') { return 'https://example.org/blog/wp-admin/' . $p; }\n"
+    "function esc_url($s) { return (string) $s; }\n"
     "function esc_html($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }\n"
     "function number_format_i18n($n) { return number_format($n); }\n"
     "function wp_json_encode($v, $f = 0) { return json_encode($v, $f); }\n"
@@ -45,11 +47,18 @@ def test_quotable_sentences_carry_date_number_and_source():
     assert ("As of 2026-10-12, the Talent Intelligence Tracker by AskTheRecruiter.com holds 4,000 "
             "sourced employer signals dated 2025-01-02 to 2026-10-11. "
             "Source: https://example.org/blog/talent-intelligence-tracker/") in out
-    assert "900 employers in 57 countries" in out
+    # the hub's wording: records FROM countries, never "covering" them
+    assert "900 employers, with records from 57 countries; measured coverage varies by country" in out
+    assert "cover 57" not in out and "covering" not in out.lower()
     # the notable set's bounds (as the hub prints them), never the all-rows span
     assert "2024-03-01" not in out
     # the same floored share the hub prints (1234/4000 = 30.85 -> 30)
     assert "at least 30% of them link a primary source" in out
+    share = next(l for l in out.splitlines() if "primary source" in l and l.startswith("- As of"))
+    # the hub prints the share; /sources/ does not
+    assert share.endswith("Source: https://example.org/blog/talent-intelligence-tracker/")
+    assert "/talent-intelligence-tracker/methodology/" in out and "/talent-intelligence-tracker/recall/" in out
+    assert "resume-score?utm_source=talent_tracker&utm_medium=cta&utm_campaign=llms_txt" in out
     for line in out.splitlines():
         if line.startswith("- As of"):
             assert "Source: https://" in line

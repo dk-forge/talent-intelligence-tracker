@@ -8,12 +8,10 @@
  * remembered per browser (storage wrapped, private windows throw), and body
  * padding equal to the bar so it never covers the last line.
  *
- * Destination: the free match check (/resume-score), UTM-tagged with this
- * tracker's existing source. Guard: tests/test_atr_bar.py.
+ * Destination: the free match check, through tit_atr_cta_url() in
+ * includes/atr_signup_cta.php, so the bar shares the line's one UTM source. Guard: tests/test_atr_bar.py.
  */
 if (!defined('ABSPATH')) exit;
-
-const TIT_ATR_BAR_URL = 'https://asktherecruiter.com/resume-score?utm_source=talent-tracker&utm_medium=referral&utm_campaign=sticky_bar';
 
 /** PURE. Every hiring-tracker route: hub, company, places, sources, press... */
 function tit_atr_bar_is_route($uri) {
@@ -34,11 +32,14 @@ function tit_atr_bar_html() {
         . 'font-size:1.5rem;line-height:1;cursor:pointer}'
         . 'body.tit-atr-bar-on{padding-bottom:calc(64px + env(safe-area-inset-bottom))}'
         . '.tit-atr-bar[hidden]{display:none}'
+        // The dashboard's own phone jump bar (Filters / Updates, dashboard.css
+        // .tit-jump, fixed at bottom:10px) sits above the bar while it shows.
+        . 'body.tit-atr-bar-on .tit-jump{bottom:calc(74px + env(safe-area-inset-bottom))}'
         . '@media (min-width:601px){.tit-atr-bar{display:none}body.tit-atr-bar-on{padding-bottom:0}}'
         . '@media print{.tit-atr-bar{display:none}}'
         . '</style>'
         . '<div class="tit-atr-bar" id="tit-atr-bar" role="region" aria-label="Resume help" hidden>'
-        . '<a href="' . esc_url(TIT_ATR_BAR_URL) . '" target="_blank" rel="noopener nofollow">Check my resume, free</a>'
+        . '<a href="' . esc_url(function_exists('tit_atr_cta_url') ? tit_atr_cta_url('sticky_bar') : 'https://asktherecruiter.com/resume-score') . '" target="_blank" rel="noopener nofollow">Check my resume, free</a>'
         . '<button type="button" aria-label="Close" id="tit-atr-bar-close">&times;</button>'
         . '</div>';
 }
