@@ -25,6 +25,11 @@
       "last": 1794888991,
       "subject": "CI RED: collect-structured: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
     },
+    "drain-writers:main:3929262dd7b007a3": {
+      "first": 1795046013,
+      "last": 1795046013,
+      "subject": "CI RED: drain-writers: RuntimeError: gh run list -L 200 --json databaseId,workflowName,status,conclusion,createdAt,updatedAt,event failed: failed to get runs: HTTP 403: API rate li"
+    },
     "drain-writers:main:a7af6ff1202ffd15": {
       "first": 1795045722,
       "last": 1795045722,
@@ -61,6 +66,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-18T23:52:51+00:00",
+  "updated_at": "2026-11-18T23:53:34+00:00",
   "version": 1
 }
