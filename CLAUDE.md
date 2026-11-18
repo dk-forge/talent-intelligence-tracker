@@ -9,6 +9,14 @@
 >
 > A scheduled sweep runs this order every 2 hours (GitHub steward `trig_01RLA5dqX6eshuEB4LrDZUW3`, :37 past even UTC hours). Ping the owner only when production is down, a tester draft is ready, or a decision only the owner can make is needed.
 
+> **WORKING RULES (DK 2026-11-18, dk-forge/todo#1940).**
+> 1. At most 4 background jobs at a time; everything else waits in dk-forge/todo in priority order.
+> 2. Every job works in its own `git worktree` under /dev/shm, never the main checkout.
+> 3. "Done" means verified on the live site or in DK's Project view, with proof (screenshot, run ID or field values) posted on the issue first.
+> 4. A fresh session each day, starting from dk-forge/todo STATUS.md and the list, not chat memory; the last session writes a handoff comment on the item.
+> 5. Message DK only when he is needed, when something important finishes, or when something breaks; everything else goes in the 08:42 morning summary.
+> 6. Every PR says "Closes dk-forge/todo#N" (or "Refs" when it only partly finishes the item); a daily no-AI sweep comments on items whose PRs all merged, and lists PRs with no todo reference in STATUS.md.
+
 Hiring-side talent market signals, sourced to primary documents, segmented by
 city / region / country. Sibling project to the AI Layoff Tracker; the two
 cross-link and share a host, but share no code and no database.
