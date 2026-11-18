@@ -2,16 +2,23 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
-   "version": "1.117.0",
+   "version": "1.118.0",
    "date": "2026-11-18",
    "tag": "Change",
-   "text": "Every tracker page now has a tracked link to the free resume match check."
+   "text": "Every virtual route (places, roles, recall, corrections, press, methodology, update log, sources, every place page) now carries the tracked sign-up line, not only the dashboard and company pages."
+  },
+  {
+   "version": "1.117.0",
+   "date": "2026-11-18",
+   "tag": "Fix",
+   "text": "UTM-tagged sign-up line on the tracker page and company pages.",
+   "pr": 353
   },
   {
    "version": "1.116.0",
    "date": "2026-11-15",
    "tag": "Change",
-   "text": "A methodology page and an update log of this tracker's own, linked beside Corrections."
+   "text": "Methodology page and update log of this tracker's own."
   },
   {
    "version": "1.115.1",
