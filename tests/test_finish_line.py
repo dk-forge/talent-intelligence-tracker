@@ -140,3 +140,9 @@ def test_numbers_are_judged_on_the_block_text_not_one_text_node():
     assert "blockText.match(NUM)" in js and "t.textContent.match(NUM)" not in js
     # What the page sees once markup is flattened: "<strong>42</strong> jobs" -> "42 jobs".
     assert re.findall(fl.NUM_PATTERN, "42 jobs added") == ["42"]
+
+
+def test_a_same_site_permalink_is_not_a_citation():
+    js = fl.numbers_js()
+    assert "new URL(a.href, location.href).host !== location.host" in js
+    assert "source|citation|cite" in js

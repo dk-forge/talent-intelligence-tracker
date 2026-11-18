@@ -62,9 +62,15 @@ NUMBERS_JS = r"""
   const sourced = (el) => {
     if (!el) return false;
     for (const a of el.querySelectorAll('a[href]')) {
+      // A citation is an OUTBOUND link (another host) or one explicitly marked as a
+      // source; a same-site permalink ("Full entry on this site") or nav is not.
       const h = a.getAttribute('href') || '';
       if (h.startsWith('#') || /utm_/.test(h)) continue;
-      return true;
+      const marked = /\b(source|citation|cite)\b/i.test((a.className || '') + ' ' + (a.getAttribute('rel') || ''))
+        || /\b(card-src|source|citation)\b/i.test(a.parentElement ? (a.parentElement.className || '') : '');
+      let other = false;
+      try { other = new URL(a.href, location.href).host !== location.host; } catch (e) { other = false; }
+      if (other || marked) return true;
     }
     return false;
   };
