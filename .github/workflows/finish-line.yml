@@ -1,0 +1,78 @@
+name: Finish line (weekly)
+
+# "Set finish lines", owner 2026-11-18: 100% is SHOWN, not claimed. Every Monday
+# this checks the live tracker against five pass/fail rules (finish_line.py):
+# every public page 200, no broken internal links, every number sourced, a
+# UTM-tagged sign-up CTA visible at 390px and 1280px, data refreshed within 7
+# days. No LLM, no key, no database write: it reads only the public site, so it
+# takes no lock and sits outside the writer queue.
+#
+# On FAIL it files ONE issue in dk-forge/todo (deduped by title; a repeat adds
+# the Overdue label) through finish_line_issue.py. GITHUB_TOKEN cannot write
+# another repo, so it uses MERGE_TRAIN_TOKEN when that token can; when it
+# cannot, the run summary and the finish-line-status artifact are the record.
+
+on:
+  schedule:
+    - cron: '23 5 * * 1'   # Mondays 05:23 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: finish-line
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  finish-line:
+    # GitHub-hosted, like contrast-audit: reads only the public site and needs
+    # the google-chrome that ubuntu-latest ships. Public repo, free minutes.
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # No pip install: finish_line.py and cdp.py are stdlib only.
+      - name: Check the finish line
+        id: check
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: |
+          set -o pipefail
+          if python3 finish_line.py --name "Talent Intelligence Tracker" \
+              --base https://asktherecruiter.com/blog/talent-intelligence-tracker/ \
+              --json finish_line_status.json --summary "$GITHUB_STEP_SUMMARY" > finish_line.md; then
+            echo "status=PASS" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=FAIL" >> "$GITHUB_OUTPUT"
+          fi
+          cat finish_line.md
+
+      - name: File or update the dk-forge/todo issue
+        if: steps.check.outputs.status == 'FAIL'
+        env:
+          TODO_ISSUES_TOKEN: ${{ secrets.MERGE_TRAIN_TOKEN }}
+        run: |
+          python3 finish_line_issue.py --product ATR --body-file finish_line.md \
+            --title "Finish line FAIL: Trackers 100% (Talent Intelligence Tracker)" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the status file
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finish-line-status
+          path: |
+            finish_line_status.json
+            finish_line.md
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Red when the finish line is not met
+        if: steps.check.outputs.status != 'PASS'
+        run: |
+          echo "Finish line not met; see the summary above."
+          exit 1
