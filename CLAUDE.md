@@ -383,6 +383,8 @@ it. If you find a Railway service pointed at this repo, it is a leftover.
 
 ## Rules that are not negotiable
 
+- **Codex security review (dk-forge/todo#1852, owner 2026-11-18):** `.github/workflows/codex-security-review.yml` comments `@codex security review` once per head SHA when a PR touches risky paths (forms, contact/newsletter, auth/login/session, payments, cookies/consent, personal data, mu-plugins, webhooks, .env). A Codex security finding blocks the merge until it is fixed.
+
 ### Standing merge authority (granted 2026-09-09)
 
 Merge and deploy without asking. The owner does not want to be a queue.

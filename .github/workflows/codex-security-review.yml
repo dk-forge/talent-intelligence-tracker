@@ -1,0 +1,39 @@
+name: Codex security review
+
+# dk-forge/todo#1852 (owner 2026-11-18, "yes security scans"). When a pull
+# request touches a risky path (forms, contact/newsletter, auth/login/session,
+# payments/Stripe, cookies/consent, personal data, mu-plugins, webhooks, .env),
+# comment "@codex security review" ONCE per head SHA (hidden marker, never
+# double-posts). No AI here and no secrets: GITHUB_TOKEN only.
+# A Codex security finding blocks the merge until it is fixed.
+# Logic: codex_security_review.py; tests: tests/test_codex_security_review.py.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: codex-security-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  request:
+    name: Request Codex security review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Self-test (path matching, once-per-SHA marker)
+        run: python3 -m unittest discover -s tests -p test_codex_security_review.py
+      - name: Comment "@codex security review" when risky paths changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 codex_security_review.py
