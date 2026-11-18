@@ -38,14 +38,27 @@ FRESH_DAYS = 7
 PHONE, DESKTOP = 390, 1280
 SKIP_PATH = re.compile(r"/(wp-json|wp-admin|wp-login|feed|xmlrpc)\b|\.(xml|json|csv|png|jpe?g|webp|svg|pdf|css|js)$", re.I)
 
+# What counts as "a number shown": grouped thousands, percentages, money, any
+# 3+ digit figure, and 1-2 digit COUNTS ("42 jobs added") - a small number
+# followed by a lowercase word that is not a time unit or "of". Dates such as
+# "31 July" / "Nov 18," and clock times are not counts and stay out. Years are
+# dropped in the page (YEARISH). Shared with the tests through this constant.
+NUM_PATTERN = (r"(?:[$\u20ac\u00a3]\s?)?\b\d{1,3}(?:,\d{3})+\b|\b\d+(?:\.\d+)?\s?%"
+               r"|[$\u20ac\u00a3]\s?\d+(?:\.\d+)?\s?(?:[kKmMbB]n?|million|billion)?|\b\d{3,}\b"
+               r"|\b\d{1,2}(?=\s[a-z])(?!\s(?:days?|hours?|minutes?|weeks?|months?|years?|am|pm|of)\b)")
+
 # Run in the page: numbers shown without a source link nearby.
 NUMBERS_JS = r"""
 (() => {
   const SKIP = 'script,style,noscript,nav,header,footer,form,button,select,option,svg,[aria-hidden="true"],.screen-reader-text';
-  const NUM = /(?:[$€£]\s?)?\b\d{1,3}(?:,\d{3})+\b|\b\d+(?:\.\d+)?\s?%|(?:[$€£]\s?)\d+(?:\.\d+)?\s?(?:[kKmMbB]n?|million|billion)?|\b\d{3,}\b/g;
+  const NUM = new RegExp(__NUM__, 'g');
   const YEARISH = /^(19|20)\d{2}$/;
   const BLOCK = 'li,tr,p,dd,dt,td,th,figure,figcaption,blockquote,h1,h2,h3,h4,h5,h6,div';
-  const CARD = 'tr,li,article,figure,[class*="card"],[class*="stat"],[class*="kpi"]';
+  // The ROW or CARD a number belongs to: structural containers first, so a
+  // badge strip inside a card (e.g. .tit-card-badges in li.tit-card) never
+  // stands in for the card that carries the source link.
+  const CARD_STRUCT = 'tr,li,article,figure';
+  const CARD_CLASS = '[class*="card"]:not([class*="card-"]),[class*="stat"],[class*="kpi"]';
   const sourced = (el) => {
     if (!el) return false;
     for (const a of el.querySelectorAll('a[href]')) {
@@ -67,13 +80,17 @@ NUMBERS_JS = r"""
     const block = p.closest(BLOCK) || p;
     if (seen.has(block)) continue; seen.add(block);
     total += 1;
-    const card = block.closest(CARD);
+    const card = block.closest(CARD_STRUCT) || block.closest(CARD_CLASS);
     if (sourced(block) || sourced(card)) continue;
     out.push((block.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 120));
   }
   return JSON.stringify({total, unsourced: out});
 })()
 """
+
+def numbers_js() -> str:
+    return NUMBERS_JS.replace("__NUM__", json.dumps(NUM_PATTERN))
+
 
 # Run in the page: is a UTM-tagged CTA to the product visible at this width?
 CTA_JS = r"""
@@ -254,7 +271,7 @@ def browser_checks(urls: list[str], settle: float = 2.0):
                 if not b.eval_js(CTA_JS):
                     cta_missing.append((url, width))
                 if width == DESKTOP:
-                    res = json.loads(b.eval_js(NUMBERS_JS) or "{}")
+                    res = json.loads(b.eval_js(numbers_js()) or "{}")
                     total += res.get("total", 0)
                     if res.get("unsourced"):
                         unsourced[url] = res["unsourced"]
@@ -268,6 +285,9 @@ def verdict(r: dict) -> list[str]:
         why.append(f"{len(r['bad_pages'])} public page(s) not 200")
     if r["bad_links"]:
         why.append(f"{len(r['bad_links'])} broken internal link(s)")
+    if r.get("browser_pages", 0) < r.get("pages_ok", 0):
+        why.append(f"citation and CTA checks covered {r['browser_pages']} of {r['pages_ok']} pages "
+                   "(UNKNOWN for the rest, so not a pass)")
     if r["truncated"]:
         why.append(f"not every page checked (cap {r['max_pages']} pages / {r['max_links']} links reached)")
     if r.get("browser_error"):
@@ -319,7 +339,8 @@ def main(argv=None) -> int:
     ap.add_argument("--fresh-key", required=True, help="key holding the data date, e.g. last_updated")
     ap.add_argument("--max-pages", type=int, default=1500)
     ap.add_argument("--max-links", type=int, default=800)
-    ap.add_argument("--browser-pages", type=int, default=40, help="pages rendered in Chrome (hubs first)")
+    ap.add_argument("--browser-pages", type=int, default=400,
+                    help="pages rendered in Chrome (hubs first); fewer than all pages is reported UNKNOWN, never PASS")
     ap.add_argument("--delay", type=float, default=0.25)
     ap.add_argument("--json")
     ap.add_argument("--summary")
@@ -334,7 +355,8 @@ def main(argv=None) -> int:
          "pages_checked": len(pages), "bad_pages": bad_pages, "bad_links": bad_links, "truncated": truncated,
          "max_pages": a.max_pages, "max_links": a.max_links,
          "data_date": d.isoformat() if d else None, "data_age_days": (today - d).days if d else None,
-         "cta_missing": [], "unsourced": {}, "numbers_total": 0, "browser_pages": len(sample)}
+         "cta_missing": [], "unsourced": {}, "numbers_total": 0, "browser_pages": len(sample),
+         "pages_ok": len(ok_pages)}
     try:
         r["cta_missing"], r["unsourced"], r["numbers_total"] = browser_checks(sample)
     except Exception as e:  # noqa: BLE001 - CDPUnavailable or a crashed Chrome: UNKNOWN, reported

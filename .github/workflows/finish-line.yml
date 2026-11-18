@@ -29,7 +29,7 @@ jobs:
     # GitHub-hosted, like contrast-audit: reads only the public site and needs
     # the google-chrome that ubuntu-latest ships. Public repo, free minutes.
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

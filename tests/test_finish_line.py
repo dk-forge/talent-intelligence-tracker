@@ -112,3 +112,23 @@ def test_issue_filer_without_token_does_not_fail(tmp_path, monkeypatch, capsys):
     assert fi.main(["--title", "t", "--product", "ATR", "--body-file", str(body)],
                    call=lambda *a: (_ for _ in ()).throw(AssertionError("no call"))) == 0
     assert "NOT FILED" in capsys.readouterr().out
+
+
+def test_partial_browser_coverage_is_never_a_pass():
+    why = " | ".join(fl.verdict(_result(browser_pages=40, pages_ok=900)))
+    assert "covered 40 of 900 pages" in why
+    assert fl.verdict(_result(browser_pages=900, pages_ok=900)) == []
+
+
+def test_small_counts_are_numbers_but_dates_times_and_units_are_not():
+    import re
+    hits = re.findall(fl.NUM_PATTERN, "42 jobs added, 31 July, Nov 18, 9:13 AM, 7 days, 5 of 9, $12m, 1,234, 95%, 480")
+    assert hits == ["42", "$12m", "1,234", "95%", "480"]
+    assert "__NUM__" not in fl.numbers_js() and "new RegExp(" in fl.numbers_js()
+
+
+def test_the_card_is_the_row_not_a_badge_strip_inside_it():
+    js = fl.numbers_js()
+    assert "block.closest(CARD_STRUCT) || block.closest(CARD_CLASS)" in js
+    assert "const CARD_STRUCT = 'tr,li,article,figure'" in js
+    assert ':not([class*="card-"])' in js  # .tit-card-badges is not a card
