@@ -35,8 +35,20 @@ class Server(unittest.TestCase):
 
     def test_full_cap_is_a_503_with_retry_after(self):
         g = body(API, "tit_cold_compute_guard")
-        for s in ("503", "Retry-After", "no-store", "finally"):
-            self.assertIn(s, g)
+        self.assertIn("finally", g)
+        b = body(API, "tit_busy_response")
+        for s in ("503", "Retry-After", "no-store"):
+            self.assertIn(s, b)
+
+    def test_key_lock_timeout_is_busy_not_the_slot_loop(self):
+        g = body(API, "tit_cold_compute_guard")
+        self.assertLess(g.index("if ($key_lock === false) return tit_busy_response();"),
+                        g.index("for ($i = 0;"))
+
+    def test_only_the_visitors_own_rest_call_is_capped(self):
+        for fn in ("tit_api_query_guarded", "tit_api_aggregate_guarded"):
+            self.assertIn("tit_is_outer_rest_call($req)", body(API, fn))
+        self.assertIn("if (!$outer) return call_user_func($run);", body(API, "tit_cold_compute_guard"))
 
     def test_waiters_drop_request_local_cache_before_rereading(self):
         g = body(API, "tit_cold_compute_guard")
@@ -48,8 +60,9 @@ class Server(unittest.TestCase):
         f = body(API, "tit_forget_transient_cache")
         self.assertIn("'notoptions'", f)
         # A persistent object cache holds the SHARED value: never delete it.
-        self.assertIn("if (wp_using_ext_object_cache()) return;", f)
-        self.assertNotIn("'transient')", f)
+        # A persistent cache's value is re-fetched, never deleted.
+        self.assertIn("wp_cache_get($key, 'transient', true)", f)
+        self.assertNotIn("wp_cache_delete($key", f)
 
     def test_no_lock_support_falls_back(self):
         self.assertIn("if ($got === null) return null;", body(API, "tit_named_lock"))
@@ -60,6 +73,12 @@ class Client(unittest.TestCase):
         b = body(JS, "refresh")
         self.assertIn("REFRESH_GAP_MS", b)
         self.assertIn("refreshNow()", b)
+
+    def test_controls_follow_every_click_inside_a_burst(self):
+        b = body(JS, "refresh")
+        self.assertLess(b.index("refreshNow(true)"), b.index("setTimeout"))
+        n = body(JS, "refreshNow")
+        self.assertLess(n.index("if (stateOnly === true) return;"), n.index("refreshAggregate(params)"))
 
     def test_api_fetches_retry_503_once(self):
         self.assertIn("r.status !== 503", body(JS, "titFetch"))

@@ -1038,11 +1038,16 @@ function tit_named_unlock($full) {
 }
 
 function tit_forget_transient_cache($key) {
-    // With a persistent object cache the transient lives in that shared
-    // cache: deleting it would invalidate everyone's copy (Codex P2 on #693),
-    // and get_transient() already reads it from there. Only the DB-backed
-    // path keeps a request-local copy of the option (and its "missing" mark).
-    if (wp_using_ext_object_cache()) return;
+    // Never delete the transient itself: with a persistent object cache that
+    // is the SHARED copy (Codex P2). force=true re-fetches it from the
+    // persistent store into this request's runtime copy instead.
+    if (wp_using_ext_object_cache()) {
+        wp_cache_get($key, 'transient', true);
+        return;
+    }
+    // DB-backed: drop this request's cached option rows and "missing" marks.
+    // Transients stored with an expiry are not autoloaded, so alloptions is
+    // left alone (reloading it is a full autoload SELECT per miss).
     foreach (array('_transient_' . $key, '_transient_timeout_' . $key) as $opt) {
         wp_cache_delete($opt, 'options');
     }
@@ -1051,18 +1056,41 @@ function tit_forget_transient_cache($key) {
         unset($notopts['_transient_' . $key], $notopts['_transient_timeout_' . $key]);
         wp_cache_set('notoptions', $notopts, 'options');
     }
-    wp_cache_delete('alloptions', 'options');
 }
 
-function tit_cold_compute_guard($cache_key, $run) {
-    if (get_transient($cache_key) !== false) return call_user_func($run);
-    $key_lock = tit_named_lock('k|' . $cache_key, 10);
+/**
+ * Only the visitor's own HTTP call to a public read route is capped. Internal
+ * callers (the digest cron, facet pages, sitemaps, the page bootstrap, and a
+ * REST route that composes from another) run the handler directly and never
+ * see a 503; capping them turned "busy" into wrong or missing figures.
+ */
+function tit_is_outer_rest_call(WP_REST_Request $r) {
+    if (!defined('REST_REQUEST') || !REST_REQUEST) return false;
+    $served = isset($GLOBALS['wp']->query_vars['rest_route']) ? (string) $GLOBALS['wp']->query_vars['rest_route'] : '';
+    return untrailingslashit($served) === untrailingslashit($r->get_route());
+}
+
+function tit_busy_response() {
+    $busy = new WP_REST_Response(array(
+        'code'    => 'tit_busy',
+        'message' => 'The tracker is busy computing other views. Retry in a moment.',
+    ), 503);
+    $busy->header('Retry-After', '2');
+    $busy->header('Cache-Control', 'no-store');
+    return $busy;
+}
+
+function tit_cold_compute_guard($key, $run, $outer = true) {
+    if (!$outer) return call_user_func($run);
+    // Wait as long as a slow cold /aggregate takes (8-19 s measured), so the
+    // waiters really do read the one computed answer.
+    $key_lock = tit_named_lock('k|' . $key, 20);
     if ($key_lock === null) return call_user_func($run);
-    // We may have waited behind the request that just stored this key: drop
-    // this request's in-memory miss first, or the reread (here and inside the
-    // handler) answers from it and computes again (Codex P2 on ALT#693).
-    tit_forget_transient_cache($cache_key);
-    if (get_transient($cache_key) !== false) {
+    // Still computing after 20 s: say busy (the page retries once) rather
+    // than run the same compute a second time (Codex P2 on TIT#362).
+    if ($key_lock === false) return tit_busy_response();
+    tit_forget_transient_cache($key);
+    if (get_transient($key) !== false) {
         tit_named_unlock($key_lock);
         return call_user_func($run);
     }
@@ -1073,13 +1101,7 @@ function tit_cold_compute_guard($cache_key, $run) {
     }
     if ($slot === false) {
         tit_named_unlock($key_lock);
-        $busy = new WP_REST_Response(array(
-            'code'    => 'tit_busy',
-            'message' => 'The tracker is busy computing other views. Retry in a moment.',
-        ), 503);
-        $busy->header('Retry-After', '2');
-        $busy->header('Cache-Control', 'no-store');
-        return $busy;
+        return tit_busy_response();
     }
     try {
         return call_user_func($run);
@@ -1094,7 +1116,7 @@ function tit_api_query_guarded(WP_REST_Request $req) {
     if (is_wp_error($invalid)) return $invalid;
     return tit_cold_compute_guard(tit_cache_key('q', $req), function () use ($req) {
         return tit_api_query($req);
-    });
+    }, tit_is_outer_rest_call($req));
 }
 
 function tit_api_aggregate_guarded(WP_REST_Request $req) {
@@ -1102,7 +1124,7 @@ function tit_api_aggregate_guarded(WP_REST_Request $req) {
     if (is_wp_error($invalid)) return $invalid;
     return tit_cold_compute_guard(tit_cache_key('a', $req), function () use ($req) {
         return tit_api_aggregate($req);
-    });
+    }, tit_is_outer_rest_call($req));
 }
 
 function tit_api_query(WP_REST_Request $req) {

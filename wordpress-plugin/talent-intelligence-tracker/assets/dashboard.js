@@ -2135,6 +2135,10 @@
       refreshNow();
       return;
     }
+    // Inside a burst the controls, chips and address bar still follow every
+    // click at once (so a chip removed mid-burst is gone and cannot be clicked
+    // back on); only the requests wait for the trailing run.
+    refreshNow(true);
     if (refreshTimer) clearTimeout(refreshTimer);
     refreshTimer = setTimeout(function () {
       refreshTimer = null;
@@ -2142,7 +2146,7 @@
       refreshNow();
     }, REFRESH_GAP_MS);
   }
-  function refreshNow() {
+  function refreshNow(stateOnly) {
     var params = new URLSearchParams();
     Object.keys(inputs).forEach(function (key) {
       if (!inputs[key]) return;
@@ -2207,6 +2211,7 @@
     writeUrl();
 
     updateExportLinks();
+    if (stateOnly === true) return;
 
     // Charts and figures move with the same querystring the table uses, so the
     // two can never disagree about what is being shown.
