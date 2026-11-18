@@ -45,6 +45,11 @@
       "last": 1790610165,
       "subject": "CI RED: fill-landmarks: analysis/adjudications/."
     },
+    "finish-line-weekly:main:a4c9bb7cd8144f4a": {
+      "first": 1795036827,
+      "last": 1795036827,
+      "subject": "CI RED: Finish line (weekly): Finish line not met; see the summary above."
+    },
     "h1b-lca:main:4f115540964df130": {
       "first": 1795009327,
       "last": 1795009327,
@@ -56,6 +61,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-18T20:19:28+00:00",
+  "updated_at": "2026-11-18T21:20:28+00:00",
   "version": 1
 }
