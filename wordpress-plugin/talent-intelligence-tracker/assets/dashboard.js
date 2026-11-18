@@ -2127,10 +2127,12 @@
   // after a quiet spell runs at once (first paint and a single click are not
   // delayed); calls inside REFRESH_GAP_MS collapse into one trailing run with
   // the final filters. busyBegin already aborts the request a new one replaces.
-  var REFRESH_GAP_MS = 350, refreshTimer = null, refreshLast = 0;
+  var REFRESH_GAP_MS = 350, REFRESH_MAX_WAIT_MS = 1000, refreshTimer = null, refreshLast = 0;
   function refresh() {
     var now = Date.now();
-    if (!refreshTimer && now - refreshLast >= REFRESH_GAP_MS) {
+    // Quiet spell, or a steady stream that has not fetched for a second.
+    if (now - refreshLast >= (refreshTimer ? REFRESH_MAX_WAIT_MS : REFRESH_GAP_MS)) {
+      if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
       refreshLast = now;
       refreshNow();
       return;
@@ -2266,19 +2268,21 @@
   }
 
   // 503 + Retry-After is the server's cold-compute cap saying "not now"
-  // (tit_cold_compute_guard). One polite retry, then the caller's error path.
-  function titFetch(url, opts) {
+  // (tit_cold_compute_guard). A few polite retries, then the caller's error path.
+  function titFetch(url, opts, left) {
+    if (left === undefined) left = 3;   // up to three retries, inside the 20 s deadline
     return fetch(url, opts).then(function (r) {
       // Only the capacity cap's 503 carries Retry-After; any other 503 (e.g.
       // tit_geo_unavailable mid-deploy) is not retried.
-      if (r.status !== 503 || !r.headers.get('Retry-After')) return r;
-      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000;
+      if (r.status !== 503 || !r.headers.get('Retry-After') || left <= 0) return r;
+      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 3) * 1000;
       return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
         if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
-        return fetch(url, opts);
+        return titFetch(url, opts, left - 1);
       });
     });
   }
+
 
   var timer;
   function debounced() {

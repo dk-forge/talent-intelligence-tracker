@@ -48,7 +48,10 @@ class Server(unittest.TestCase):
     def test_only_the_visitors_own_rest_call_is_capped(self):
         for fn in ("tit_api_query_guarded", "tit_api_aggregate_guarded"):
             self.assertIn("tit_is_outer_rest_call($req)", body(API, fn))
-        self.assertIn("if (!$outer || get_transient", body(API, "tit_cold_compute_guard"))
+        g = body(API, "tit_cold_compute_guard")
+        internal = g[g.index("if (!$outer) {"):g.index("$key_lock =")]
+        self.assertNotIn("busy_response", internal)
+        self.assertIn("tit_named_lock('k|'", internal)
 
     def test_waiters_drop_request_local_cache_before_rereading(self):
         g = body(API, "tit_cold_compute_guard")
@@ -76,7 +79,7 @@ class SecondReview(unittest.TestCase):
         self.assertIn("tit_named_lock('k|' . $key, 12)", g)
 
     def test_four_requests_per_filter_change_fit_in_the_cap(self):
-        self.assertIn("define('TIT_COLD_SLOTS', 6)", API)
+        self.assertIn("define('TIT_COLD_SLOTS', 10)", API)
 
     def test_only_the_caps_503_is_retried(self):
         self.assertIn("!r.headers.get('Retry-After')", body(JS, "titFetch"))
