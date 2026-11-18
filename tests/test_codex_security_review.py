@@ -22,6 +22,11 @@ class PathMatching(unittest.TestCase):
         for p in SAFE:
             self.assertEqual(csr.risky_files([p]), [], p)
 
+    def test_this_gate_never_flags_itself(self):
+        own = [".github/workflows/codex-security-review.yml", "x/codex_security_review.py",
+               "x/tests/test_codex_security_review.py"]
+        self.assertEqual(csr.risky_files(own), [])
+
 
 class Marker(unittest.TestCase):
     def fake(self, comments):

@@ -5,7 +5,9 @@ name: Codex security review
 # payments/Stripe, cookies/consent, personal data, mu-plugins, webhooks, .env),
 # comment "@codex security review" ONCE per head SHA (hidden marker, never
 # double-posts). No AI here and no secrets: GITHUB_TOKEN only.
-# A Codex security finding blocks the merge until it is fixed.
+# A Codex security finding blocks the merge until it is fixed. No review within
+# ~30 min (no Codex environment for the repo) = unavailable, never blocking;
+# this job only comments and never fails on a missing review.
 # Logic: codex_security_review.py; tests: tests/test_codex_security_review.py.
 
 on:

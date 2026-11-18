@@ -36,7 +36,6 @@ COMMON_PATTERNS = [
     r"(^|[/_.-])pii([/_.-]|$)", r"profile", r"(^|[/_.-])e?mails?([/_.-]|$)",
     r"personal[-_]data", r"gdpr", r"dsar", r"privacy",
     r"mu-plugins", r"webhook",
-    r"codex[-_]security[-_]review",       # this gate itself
 ]
 
 _MARKER = "<!-- codex-security-review sha={sha} -->"
@@ -47,10 +46,14 @@ def compiled():
     return [re.compile(p, re.I) for p in COMMON_PATTERNS + RISKY_PATTERNS]
 
 
+# This gate's own workflow, script and tests are never risky by themselves.
+SELF = re.compile(r"codex[-_]security[-_]review", re.I)
+
+
 def risky_files(paths, patterns=None):
     """The changed paths that match at least one risky pattern."""
     pats = patterns if patterns is not None else compiled()
-    return [p for p in paths if any(rx.search(p) for rx in pats)]
+    return [p for p in paths if not SELF.search(p) and any(rx.search(p) for rx in pats)]
 
 
 def marker(sha):
@@ -68,7 +71,10 @@ def build_body(sha, files):
     return (
         "@codex security review\n\n"
         f"This pull request touches risky paths (head `{sha[:12]}`):\n{shown}{more}\n\n"
-        "A Codex security finding blocks the merge until it is fixed.\n\n"
+        "A Codex security finding blocks the merge until it is fixed. If Codex has not "
+        "reviewed within about 30 minutes, or replies that this repo has no Codex "
+        "environment, the security review is unavailable (no Codex environment) and "
+        "does not block the merge.\n\n"
         f"{marker(sha)}"
     )
 
