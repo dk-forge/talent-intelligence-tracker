@@ -38,6 +38,15 @@ class Server(unittest.TestCase):
         for s in ("503", "Retry-After", "no-store", "finally"):
             self.assertIn(s, g)
 
+    def test_waiters_drop_request_local_cache_before_rereading(self):
+        g = body(API, "tit_cold_compute_guard")
+        lock = g.index("tit_named_lock('k|'")
+        forget = g.index("tit_forget_transient_cache(")
+        reread = g.index("get_transient", lock)
+        self.assertLess(lock, forget)
+        self.assertLess(forget, reread)
+        self.assertIn("'notoptions'", body(API, "tit_forget_transient_cache"))
+
     def test_no_lock_support_falls_back(self):
         self.assertIn("if ($got === null) return null;", body(API, "tit_named_lock"))
 

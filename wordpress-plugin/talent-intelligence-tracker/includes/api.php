@@ -1037,10 +1037,30 @@ function tit_named_unlock($full) {
     if (is_string($full)) $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $full));
 }
 
+function tit_forget_transient_cache($key) {
+    if (wp_using_ext_object_cache()) {
+        wp_cache_delete($key, 'transient');
+        return;
+    }
+    foreach (array('_transient_' . $key, '_transient_timeout_' . $key) as $opt) {
+        wp_cache_delete($opt, 'options');
+    }
+    $notopts = wp_cache_get('notoptions', 'options');
+    if (is_array($notopts)) {
+        unset($notopts['_transient_' . $key], $notopts['_transient_timeout_' . $key]);
+        wp_cache_set('notoptions', $notopts, 'options');
+    }
+    wp_cache_delete('alloptions', 'options');
+}
+
 function tit_cold_compute_guard($cache_key, $run) {
     if (get_transient($cache_key) !== false) return call_user_func($run);
     $key_lock = tit_named_lock('k|' . $cache_key, 10);
     if ($key_lock === null) return call_user_func($run);
+    // We may have waited behind the request that just stored this key: drop
+    // this request's in-memory miss first, or the reread (here and inside the
+    // handler) answers from it and computes again (Codex P2 on ALT#693).
+    tit_forget_transient_cache($cache_key);
     if (get_transient($cache_key) !== false) {
         tit_named_unlock($key_lock);
         return call_user_func($run);
