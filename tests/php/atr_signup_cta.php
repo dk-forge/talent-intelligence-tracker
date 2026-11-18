@@ -23,8 +23,15 @@ $check(strpos($src, "tit_atr_cta_line_html('tracker_home')") !== false, 'dashboa
 // company_layout.php already carries its own CTA, and a second one would
 // be a duplicate.
 $src2 = file_get_contents(__DIR__ . '/../../wordpress-plugin/talent-intelligence-tracker/talent-intelligence-tracker.php');
-$check(strpos($src2, "\$related !== '' && \$related !== 'company' && function_exists('tit_atr_cta_line_html')") !== false,
-       'every routed page carries the line via the shared footer, except the company page which has its own');
+$check(strpos($src2, "\$related !== '' && !in_array(\$related, array('company', 'place', 'places'), true)") !== false,
+       'every routed page carries the line via the shared footer, except company, place and places');
+// Those three print it under their heading instead, inside the first screen
+// (todo 1853 item 4), so skipping them in the footer loses no page.
+$inc = __DIR__ . '/../../wordpress-plugin/talent-intelligence-tracker/includes/';
+$check(strpos(file_get_contents($inc . 'company.php'), "tit_atr_cta_line_html('company_top')") !== false, 'company page carries the line at the top');
+$places = file_get_contents($inc . 'places.php');
+$check(strpos($places, "tit_atr_cta_line_html('place')") !== false, 'place pages carry the line at the top');
+$check(strpos($places, "tit_atr_cta_line_html('places')") !== false, 'places index carries the line at the top');
 $check(strpos($src2, 'echo tit_atr_cta_line_html($related);') !== false,
        'the footer actually prints the line, keyed by the page that is closing');
 if ($fail) { echo "atr_signup_cta: $fail failed\n"; exit(1); }

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.119.0
+ * Version: 1.119.1
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.119.0');
+define('TIT_VERSION', '1.119.1');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -243,7 +243,10 @@ function tit_render_footer($related = '') {
     // roles, recall, corrections, press, methodology, update log, sources,
     // and every place page -- with none. All of them close through this one
     // function, so this is the one place that reaches every one of them.
-    if ($related !== '' && $related !== 'company' && function_exists('tit_atr_cta_line_html')) {
+    // company, place and places print the line under their heading instead,
+    // inside the first screen (todo 1853 item 4), so the footer skips them.
+    if ($related !== '' && !in_array($related, array('company', 'place', 'places'), true)
+        && function_exists('tit_atr_cta_line_html')) {
         echo tit_atr_cta_line_html($related);
     }
     // Related link row (#446 item 4), keyed by the page that is closing.

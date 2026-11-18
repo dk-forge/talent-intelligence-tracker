@@ -1088,6 +1088,9 @@ function tit_place_render($kind, $cell, $facts) {
           $spec['many'], tit_places_url(), $cell['name'], tit_place_url($kind, $cell['key']))); ?>
 
       <h1><?php echo esc_html($heading); ?></h1>
+      <?php // Tracked sign-up line inside the first screen (includes/atr_signup_cta.php);
+      // tit_render_footer() skips it for this route so it is not printed twice.
+      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('place'); ?>
 
       <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
       if (function_exists('tit_freshness_line'))
@@ -1412,6 +1415,9 @@ function tit_places_render() {
       <?php if (function_exists('tit_breadcrumbs_html')) echo tit_breadcrumbs_html(tit_breadcrumbs_places_trail(tit_places_url())); ?>
 
       <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
+      <?php // Tracked sign-up line inside the first screen (includes/atr_signup_cta.php);
+      // tit_render_footer() skips it for this route so it is not printed twice.
+      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('places'); ?>
       <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('places'); ?>
       <p class="tit-note">
         <?php printf(

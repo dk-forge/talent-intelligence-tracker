@@ -62,3 +62,18 @@ def test_script_is_a_file_and_storage_is_guarded():
     js = (PLUGIN / "assets" / "atr-bar.js").read_text()
     assert js.count("try{") == 2
     assert "tit_require('includes/atr_bar.php');" in (PLUGIN / "talent-intelligence-tracker.php").read_text()
+
+
+def test_sign_up_line_sits_under_each_heading_and_once_per_page():
+    """todo 1853 item 4: inside the first screen on company and places pages."""
+    inc = PLUGIN / "includes"
+    company = (inc / "company.php").read_text()
+    i = company.index("tit_atr_cta_line_html('company_top')")
+    assert i < company.index("At a glance")
+    places = (inc / "places.php").read_text()
+    for camp, h1 in (("place", "<h1><?php echo esc_html($heading); ?></h1>"),
+                     ("places", "<h1 data-tit-route-heading>")):
+        j = places.index("tit_atr_cta_line_html('%s')" % camp)
+        assert 0 < j - places.index(h1) < 400, camp
+    main = (PLUGIN / "talent-intelligence-tracker.php").read_text()
+    assert "!in_array($related, array('company', 'place', 'places'), true)" in main
