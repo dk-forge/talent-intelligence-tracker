@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.117.0
+ * Version: 1.118.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.117.0');
+define('TIT_VERSION', '1.118.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -233,6 +233,17 @@ function tit_cite_box_html($name, $url) {
 }
 
 function tit_render_footer($related = '') {
+    // Tracked sign-up route (CLAUDE.md conversion rule, owner ruling
+    // 2026-11-17): every published page, not only the dashboard. v1.117.0
+    // wired the dashboard (shortcodes.php) and the company page
+    // (company_layout.php, which carries its own CTA and is skipped here to
+    // avoid a duplicate) but left every other virtual route -- places,
+    // roles, recall, corrections, press, methodology, update log, sources,
+    // and every place page -- with none. All of them close through this one
+    // function, so this is the one place that reaches every one of them.
+    if ($related !== '' && $related !== 'company' && function_exists('tit_atr_cta_line_html')) {
+        echo tit_atr_cta_line_html($related);
+    }
     // Related link row (#446 item 4), keyed by the page that is closing.
     if ($related !== '' && function_exists('tit_related_links_html')) {
         $row = tit_related_links_html($related);
