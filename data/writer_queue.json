@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-18T19:50:16Z",
-  "last_tick": "2026-11-18T19:51:07Z",
+  "last_dispatch": "2026-11-18T19:51:55Z",
+  "last_tick": "2026-11-18T19:51:55Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -254,46 +254,17 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-18T19:50:16Z",
-      "history": [
-        {
-          "at": "2026-11-18T19:50:10Z",
-          "detail": "red CI: reject overdue vehicle_name finding (apply, dry run 44382593884 ok)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-18T19:50:16Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-18T19:51:07Z",
-          "detail": "run 44384545392",
-          "event": "bound"
-        }
-      ],
-      "id": "20261118T195010Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "note": "Form D for 316 High Street, LLC (CIK 2147257) read 2026-11-18: single-property LLC named for its street address, one manager/member as sole officer, 7 investors, revenue declined. A real-estate holding vehicle, not an employer raising money. Rejected; never published.",
-        "reject_keys": "vehicle_name/2483d0ff45f877febdc39e7df685f668"
-      },
-      "priority": 0,
-      "reason": "red CI: reject overdue vehicle_name finding (apply, dry run 44382593884 ok)",
-      "requested_at": "2026-11-18T19:50:10Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "44384545392",
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": null,
+      "dispatched_at": "2026-11-18T19:51:55Z",
       "history": [
         {
           "at": "2026-11-18T19:51:02Z",
           "detail": "re-queue retract: run 44382771347 withdrew live but lost the push race",
           "event": "queued"
+        },
+        {
+          "at": "2026-11-18T19:51:55Z",
+          "detail": "",
+          "event": "dispatched"
         }
       ],
       "id": "20261118T195102Z-retract",
@@ -307,46 +278,8 @@
       "requested_at": "2026-11-18T19:51:02Z",
       "requested_by": "dakotta-labs",
       "run_id": null,
-      "state": "queued",
+      "state": "dispatched",
       "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-10T08:33:20Z",
-      "history": [
-        {
-          "at": "2026-11-10T08:26:43Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-10T08:33:20Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-10T08:47:50Z",
-          "detail": "run 42783560140",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-10T09:00:16Z",
-          "detail": "run 42783560140",
-          "event": "landed"
-        }
-      ],
-      "id": "20261110T082643Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-10T09:00:16Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-10T08:26:43Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42783560140",
-      "state": "landed",
-      "workflow": "archive-sources.yml"
     },
     {
       "attempts": 0,
@@ -2606,6 +2539,46 @@
       "run_id": "44382771347",
       "state": "failed",
       "workflow": "retract.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-18T19:50:16Z",
+      "history": [
+        {
+          "at": "2026-11-18T19:50:10Z",
+          "detail": "red CI: reject overdue vehicle_name finding (apply, dry run 44382593884 ok)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-18T19:50:16Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-18T19:51:07Z",
+          "detail": "run 44384545392",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-18T19:51:55Z",
+          "detail": "run 44384545392",
+          "event": "landed"
+        }
+      ],
+      "id": "20261118T195010Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "note": "Form D for 316 High Street, LLC (CIK 2147257) read 2026-11-18: single-property LLC named for its street address, one manager/member as sole officer, 7 investors, revenue declined. A real-estate holding vehicle, not an employer raising money. Rejected; never published.",
+        "reject_keys": "vehicle_name/2483d0ff45f877febdc39e7df685f668"
+      },
+      "landed_at": "2026-11-18T19:51:55Z",
+      "priority": 0,
+      "reason": "red CI: reject overdue vehicle_name finding (apply, dry run 44382593884 ok)",
+      "requested_at": "2026-11-18T19:50:10Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "44384545392",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
