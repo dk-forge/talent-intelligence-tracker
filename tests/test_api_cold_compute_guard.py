@@ -48,7 +48,7 @@ class Server(unittest.TestCase):
     def test_only_the_visitors_own_rest_call_is_capped(self):
         for fn in ("tit_api_query_guarded", "tit_api_aggregate_guarded"):
             self.assertIn("tit_is_outer_rest_call($req)", body(API, fn))
-        self.assertIn("if (!$outer) return call_user_func($run);", body(API, "tit_cold_compute_guard"))
+        self.assertIn("if (!$outer || get_transient", body(API, "tit_cold_compute_guard"))
 
     def test_waiters_drop_request_local_cache_before_rereading(self):
         g = body(API, "tit_cold_compute_guard")
@@ -66,6 +66,30 @@ class Server(unittest.TestCase):
 
     def test_no_lock_support_falls_back(self):
         self.assertIn("if ($got === null) return null;", body(API, "tit_named_lock"))
+
+
+class SecondReview(unittest.TestCase):
+    def test_a_hit_takes_no_lock(self):
+        g = body(API, "tit_cold_compute_guard")
+        self.assertLess(g.index("get_transient($key) !== false) return call_user_func($run);"),
+                        g.index("tit_named_lock("))
+        self.assertIn("tit_named_lock('k|' . $key, 12)", g)
+
+    def test_four_requests_per_filter_change_fit_in_the_cap(self):
+        self.assertIn("define('TIT_COLD_SLOTS', 6)", API)
+
+    def test_only_the_caps_503_is_retried(self):
+        self.assertIn("!r.headers.get('Retry-After')", body(JS, "titFetch"))
+
+    def test_geo_table_supersedes_and_drops_stale_answers(self):
+        b = body(JS, "refreshGeo")
+        self.assertIn("geoCtrl.abort()", b)
+        self.assertEqual(b.count("if (seq !== geoSeq) return;"), 2)
+
+    def test_a_burst_retires_requests_already_in_flight(self):
+        b = body(JS, "refresh")
+        self.assertIn("busyBegin('tit-rows'", b)
+        self.assertIn("geoSeq++", b)
 
 
 class Client(unittest.TestCase):

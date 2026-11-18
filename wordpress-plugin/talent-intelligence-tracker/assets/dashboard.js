@@ -2139,6 +2139,12 @@
     // click at once (so a chip removed mid-burst is gone and cannot be clicked
     // back on); only the requests wait for the trailing run.
     refreshNow(true);
+    // Retire what the burst's first click has in flight: busyBegin aborts it
+    // and takes a new token, so a late answer cannot paint old filters under
+    // the new chips, and the regions show loading until the trailing run.
+    busyBegin('tit-rows', 'Loading the records');
+    AGG_REGIONS.forEach(function (rg) { busyBegin(rg[0], rg[1]); });
+    geoSeq++;
     if (refreshTimer) clearTimeout(refreshTimer);
     refreshTimer = setTimeout(function () {
       refreshTimer = null;
@@ -2263,7 +2269,9 @@
   // (tit_cold_compute_guard). One polite retry, then the caller's error path.
   function titFetch(url, opts) {
     return fetch(url, opts).then(function (r) {
-      if (r.status !== 503) return r;
+      // Only the capacity cap's 503 carries Retry-After; any other 503 (e.g.
+      // tit_geo_unavailable mid-deploy) is not retried.
+      if (r.status !== 503 || !r.headers.get('Retry-After')) return r;
       var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000;
       return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
         if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
@@ -4058,6 +4066,7 @@
     return p;
   }
 
+  var geoSeq = 0, geoCtrl = null;
   function refreshGeo(base) {
     if (base) geoBase = base;
     if (!geoBar) return;
@@ -4065,16 +4074,23 @@
     if (geoView !== 'time' && geoBox) {
       geoBox.innerHTML = '<p class="tit-geo-empty">Loading…</p>';
     }
-    titFetch(TIT.api + 'aggregate?' + params.toString())
+    // Supersede: cancel the table request this one replaces, and drop any
+    // late answer for older filters (todo#1881 item 4).
+    var seq = ++geoSeq;
+    if (geoCtrl) { try { geoCtrl.abort(); } catch (e) { /* settled */ } }
+    try { geoCtrl = new AbortController(); } catch (e) { geoCtrl = null; }
+    titFetch(TIT.api + 'aggregate?' + params.toString(), geoCtrl ? { signal: geoCtrl.signal } : {})
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(function (data) {
+        if (seq !== geoSeq) return;
         geoData = data && data.by_location ? data.by_location : null;
         paintGeo();
         paintTopRounds(data && data.top_rounds ? data.top_rounds : []);
       }, function () {
+        if (seq !== geoSeq) return;
         if (geoView !== 'time' && geoBox) {
           geoBox.innerHTML = '<p class="tit-geo-empty">This table could not load. ' +
             'Change the view or period to try again.</p>';
