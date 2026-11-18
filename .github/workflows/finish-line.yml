@@ -45,7 +45,7 @@ jobs:
           set -o pipefail
           if python3 finish_line.py --name "Talent Intelligence Tracker" \
               --base https://asktherecruiter.com/blog/talent-intelligence-tracker/ \
-              --fresh-url "https://asktherecruiter.com/blog/wp-json/talent/v1/query?per_page=20" --fresh-key captured_at \
+              --fresh-url "https://asktherecruiter.com/blog/wp-json/talent/v1/source-health" --fresh-key run_at \
               --json finish_line_status.json --summary "$GITHUB_STEP_SUMMARY" > finish_line.md; then
             echo "status=PASS" >> "$GITHUB_OUTPUT"
           else

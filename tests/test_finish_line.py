@@ -146,3 +146,23 @@ def test_a_same_site_permalink_is_not_a_citation():
     js = fl.numbers_js()
     assert "new URL(a.href, location.href).host !== location.host" in js
     assert "source|citation|cite" in js
+
+
+def test_publisher_links_with_utm_still_count_and_only_our_cta_is_skipped():
+    js = fl.numbers_js()
+    assert "/utm_/.test(h)" not in js
+    assert "OWN_CTA" in js and "asktherecruiter" in js
+
+
+def test_freshness_ignores_collector_runs_that_stored_nothing():
+    import datetime as dt
+    payload = {"collectors": {"a": {"run_at": "2026-11-18T09:00:00+00:00", "items_stored": 0},
+                              "b": {"run_at": "2026-11-10T09:00:00+00:00", "items_stored": 5}}}
+    assert fl.data_date(payload, "run_at", dt.date(2026, 11, 18)) == dt.date(2026, 11, 10)
+
+
+def test_freshness_reads_source_health_not_the_top_20_notable_rows():
+    import pathlib
+    wf = (pathlib.Path(__file__).resolve().parents[1] / ".github/workflows/finish-line.yml").read_text()
+    assert "talent/v1/source-health\" --fresh-key run_at" in wf
+    assert "per_page=20" not in wf

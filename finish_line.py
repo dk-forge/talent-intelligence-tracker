@@ -59,13 +59,16 @@ NUMBERS_JS = r"""
   // stands in for the card that carries the source link.
   const CARD_STRUCT = 'tr,li,article,figure';
   const CARD_CLASS = '[class*="card"]:not([class*="card-"]),[class*="stat"],[class*="kpi"]';
+  const OWN_CTA = /^https?:\/\/(www\.)?asktherecruiter\.com\/(?!blog\/)/i;
   const sourced = (el) => {
     if (!el) return false;
     for (const a of el.querySelectorAll('a[href]')) {
       // A citation is an OUTBOUND link (another host) or one explicitly marked as a
       // source; a same-site permalink ("Full entry on this site") or nav is not.
       const h = a.getAttribute('href') || '';
-      if (h.startsWith('#') || /utm_/.test(h)) continue;
+      // Skip only OUR sign-up CTA (by destination or class); publisher links
+      // that happen to carry utm_ parameters are still real citations.
+      if (h.startsWith('#') || OWN_CTA.test(h) || /\b(cta|signup|sign-up)\b/i.test(a.className || '')) continue;
       const marked = /\b(source|citation|cite)\b/i.test((a.className || '') + ' ' + (a.getAttribute('rel') || ''))
         || /\b(card-src|source|citation)\b/i.test(a.parentElement ? (a.parentElement.className || '') : '');
       let other = false;
@@ -168,6 +171,9 @@ def data_date(payload, key: str, today: dt.date) -> dt.date | None:
 
     def walk(o):
         if isinstance(o, dict):
+            # A collector run that stored nothing did not refresh the data.
+            if o.get("items_stored") == 0:
+                return
             for k, v in o.items():
                 if k == key and isinstance(v, str):
                     m = DATE_RE.search(v)
