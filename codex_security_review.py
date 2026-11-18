@@ -60,9 +60,15 @@ def marker(sha):
     return _MARKER.format(sha=sha)
 
 
-def already_posted(comment_bodies, sha):
+BOT = "github-actions[bot]"
+
+
+def already_posted(comments, sha):
+    """Only a marker this workflow (github-actions[bot]) posted counts, so a
+    hand-written hidden marker from anyone else cannot suppress the request."""
     m = marker(sha)
-    return any(m in (b or "") for b in comment_bodies)
+    return any(m in (c.get("body") or "") and (c.get("user") or {}).get("login") == BOT
+               for c in comments)
 
 
 def build_body(sha, files):
@@ -100,13 +106,17 @@ def _headers(token):
 
 
 def run(repo, pr, sha, token, get_all=_get_all, post=None):
-    files = [f["filename"] for f in get_all(f"{API}/repos/{repo}/pulls/{pr}/files", token)]
+    files = []
+    for f in get_all(f"{API}/repos/{repo}/pulls/{pr}/files", token):
+        files.append(f["filename"])
+        if f.get("previous_filename"):   # a rename out of a risky path counts too
+            files.append(f["previous_filename"])
     hits = risky_files(files)
     if not hits:
         print(f"No risky paths in {len(files)} changed files; no review requested.")
         return "skip"
-    bodies = [c.get("body") for c in get_all(f"{API}/repos/{repo}/issues/{pr}/comments", token)]
-    if already_posted(bodies, sha):
+    comments = get_all(f"{API}/repos/{repo}/issues/{pr}/comments", token)
+    if already_posted(comments, sha):
         print(f"Already requested for {sha}; not posting again.")
         return "duplicate"
     body = build_body(sha, hits)
@@ -124,7 +134,10 @@ def _post(url, token, body):
 
 def main():
     env = os.environ
-    run(env["GITHUB_REPOSITORY"], env["PR"], env["HEAD_SHA"], env["GH_TOKEN"])
+    try:
+        run(env["GITHUB_REPOSITORY"], env["PR"], env["HEAD_SHA"], env["GH_TOKEN"])
+    except Exception as exc:  # never block a PR on this request (API error, rate limit)
+        print(f"::warning::Codex security review request not posted: {exc}")
     return 0
 
 

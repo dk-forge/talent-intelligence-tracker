@@ -8,11 +8,14 @@ name: Codex security review
 # A Codex security finding blocks the merge until it is fixed. No review within
 # ~30 min (no Codex environment for the repo) = unavailable, never blocking;
 # this job only comments and never fails on a missing review.
+# pull_request_target: runs the BASE branch's workflow and script (never PR
+# code), so a PR cannot switch off its own review, and fork PRs still get a
+# write token. Nothing from the PR is checked out or executed.
 # Logic: codex_security_review.py; tests: tests/test_codex_security_review.py.
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -26,6 +29,7 @@ jobs:
   request:
     name: Request Codex security review
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4

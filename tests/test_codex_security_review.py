@@ -35,7 +35,7 @@ class Marker(unittest.TestCase):
         def get_all(url, token):
             if url.endswith("/files"):
                 return [{"filename": RISKY[0]}, {"filename": SAFE[0]}]
-            return [{"body": b} for b in comments]
+            return [{"body": b, "user": {"login": "github-actions[bot]"}} for b in comments]
 
         def post(url, token, body):
             posted.append(body)
@@ -57,6 +57,26 @@ class Marker(unittest.TestCase):
         get_all, post, posted = self.fake(comments)
         self.assertEqual(csr.run("o/r", 1, "def456", "t", get_all, post), "posted")
         self.assertEqual(len(posted), 1)
+
+    def test_marker_from_someone_else_does_not_suppress(self):
+        posted = []
+
+        def get_all(url, token):
+            if url.endswith("/files"):
+                return [{"filename": RISKY[0]}]
+            return [{"body": csr.marker("abc"), "user": {"login": "someone"}}]
+
+        self.assertEqual(csr.run("o/r", 1, "abc", "t", get_all, lambda u, t, b: posted.append(b)), "posted")
+
+    def test_rename_out_of_a_risky_path_counts(self):
+        posted = []
+
+        def get_all(url, token):
+            if url.endswith("/files"):
+                return [{"filename": SAFE[0], "previous_filename": RISKY[0]}]
+            return []
+
+        self.assertEqual(csr.run("o/r", 1, "abc", "t", get_all, lambda u, t, b: posted.append(b)), "posted")
 
     def test_no_risky_path_posts_nothing(self):
         posted = []
