@@ -49,10 +49,10 @@ function tit_company_display_name($name) {
             $orig = explode(' ', $name)[$i];
             if ($i > 0 && in_array($w, $small, true)) {
                 $words[$i] = $w;
-            } elseif (preg_match('/^\p{Lu}{2,3}$/u', $orig) && !in_array($w, array('and', 'the', 'for', 'ltd', 'inc', 'plc', 'llc', 'lab', 'bio', 'one', 'two', 'new', 'big', 'red', 'top', 'pay'), true)) {
+            } elseif (preg_match('/^\p{Lu}{2,3}$/u', $orig) && !in_array($w, array('and', 'the', 'for', 'ltd', 'inc', 'plc', 'llc', 'lab', 'bio', 'one', 'two', 'new', 'big', 'red', 'top', 'pay', 'son', 'car', 'oil', 'gas', 'air', 'sea', 'sun', 'tea', 'art', 'web', 'hub'), true)) {
                 $words[$i] = $orig;
             } else {
-                $words[$i] = preg_replace_callback('/(^|[\-\/&(\'])(\p{Ll})/u', function ($m) {
+                $words[$i] = preg_replace_callback('/(^|[\-\/&(\'.])(\p{Ll})/u', function ($m) {
                     return $m[1] . mb_strtoupper($m[2], 'UTF-8');
                 }, $w);
             }
