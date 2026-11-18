@@ -90,7 +90,7 @@ foreach (array('Industry</span> Medical devices', 'Headquarters</span> Boston, U
     $check(strpos($html, $chip) !== false, "chip: $chip");
 }
 $check(strpos($html, '<time datetime="2026-10-28">') !== false, 'freshness line (dateModified twin) kept');
-foreach (array('At a glance', 'Signal timeline', 'Sources and method', 'Applying to Blue Arbor Technologies?') as $h2) {
+foreach (array('At a glance', 'Signal timeline', 'Sources and method', 'Is Blue Arbor Technologies hiring?') as $h2) {
     $check(preg_match('#<h2[^>]*>' . preg_quote($h2, '#') . '</h2>#', $html) === 1, "h2: $h2");
 }
 $check(strpos($html, '<h3 class="tit-h">Blue Arbor Technologies Raises') !== false, 'timeline items are h3 under the timeline h2');
@@ -98,7 +98,10 @@ $check(strpos($html, '<h2 class="tit-h"') === false, 'no timeline item is an h2'
 $check(strpos($html, 'disclosed funding') !== false && strpos($html, 'tit-stats-4') !== false, 'KPI tiles');
 $check(strpos($html, 'class="tit-co-follow"') !== false && strpos($html, 'type="application/rss+xml"') !== false,
        'follow card carries the RSS link');
-$check(strpos($html, 'href="https://asktherecruiter.com/">Adapt my resume</a>') !== false, 'next-step CTA');
+$check(strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent-tracker&#038;utm_medium=cta&#038;utm_campaign=company-is-hiring&#038;utm_content=blue-arbor-technologies" rel="noopener nofollow">Check my resume for free</a>') !== false
+       || strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent-tracker&amp;utm_medium=cta&amp;utm_campaign=company-is-hiring&amp;utm_content=blue-arbor-technologies" rel="noopener nofollow">Check my resume for free</a>') !== false,
+       'UTM-tagged free match check CTA');
+$check(stripos($html, 'Adapt my resume') === false, 'old adapt wording gone (DECISIONS 2026-11-17)');
 $check(strpos($html, 'Data licensed CC BY 4.0') !== false, 'licence line kept');
 $check(strpos($html, 'This profile is thin') !== false, 'thin-profile note kept');
 $check(strpos($html, 'application/ld+json') === false, 'no structured data on a noindex profile');
