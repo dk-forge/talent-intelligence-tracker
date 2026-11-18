@@ -38,10 +38,28 @@ def test_could_not_check_is_never_a_pass():
     assert fl.verdict(_result(truncated=True))
 
 
-def test_newest_date_prefers_the_latest_past_date():
-    html = '<time datetime="2026-11-15">x</time> as of 2026-11-17 next run 2026-12-01'
-    assert fl.newest_date(html, TODAY) == dt.date(2026, 11, 17)
-    assert fl.newest_date("<p>nothing</p>", TODAY) is None
+def test_freshness_comes_from_the_data_endpoint_not_page_metadata():
+    status = {"version": "2", "pipeline_since": "2026-11-18T17:00:50+00:00", "last_updated": "2026-11-02T17:00:50+00:00"}
+    assert fl.data_date(status, "last_updated", TODAY) == dt.date(2026, 11, 2)
+    rows = {"rows": [{"captured_at": "2026-11-17 23:31:24"}, {"captured_at": "2026-11-18 09:13:22"},
+                     {"captured_at": "2027-01-01 00:00:00"}]}
+    assert fl.data_date(rows, "captured_at", TODAY) == dt.date(2026, 11, 18)
+    assert fl.data_date(None, "last_updated", TODAY) is None
+    assert not hasattr(fl, "newest_date")  # the HTML-date reader (JSON-LD dateModified is always today) is gone
+
+
+def test_crawl_covers_every_sibling_route_family():
+    other = "https://asktherecruiter.com/blog/company-layoffs/"
+    site = {BASE: (200, ""), other: (200, f'<a href="{other}acme/">a</a>'), other + "acme/": (404, "")}
+    pages, bad_pages, _, _ = fl.crawl([BASE, other], 10, 10, 0, get=lambda u: site[u])
+    assert set(pages) == set(site)
+    assert bad_pages == [(other + "acme/", 404)]
+    assert fl.in_scope(other + "acme/", (BASE, other))
+    # A family with no index page is crawled when linked, not started from.
+    state = "https://asktherecruiter.com/blog/state-layoffs/"
+    site2 = {BASE: (200, f'<a href="{state}ca/">ca</a>'), state + "ca/": (200, "")}
+    pages, *_ = fl.crawl([BASE], 10, 10, 0, get=lambda u: site2[u], scope=(state,))
+    assert set(pages) == set(site2)
 
 
 def test_scope_and_normalise():

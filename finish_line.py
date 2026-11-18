@@ -5,7 +5,7 @@ Owner ruling 2026-11-18 ("set finish lines"). PASS means ALL of:
   2. no broken internal links
   3. every number shown has a source link
   4. a UTM-tagged sign-up CTA is visible at phone (390px) AND desktop (1280px)
-  5. the data was refreshed within 7 days
+  5. the data was refreshed within 7 days (from a data endpoint, never page metadata)
 
 No LLM, no key, no database write. Stdlib plus headless Chrome through cdp.py
 (the same client contrast_audit uses), so nothing new is installed.
@@ -124,31 +124,53 @@ def is_internal(url: str) -> bool:
     return host == HOST or host.endswith("." + HOST)
 
 
-def in_scope(url: str, base: str) -> bool:
-    """A page of THIS tracker (crawled), as opposed to a link we only check."""
+def in_scope(url: str, base) -> bool:
+    """A page of THIS tracker (crawled), as opposed to a link we only check.
+    `base` is one prefix or a tuple of them (the tracker home plus its sibling
+    route families, e.g. /blog/company-layoffs/)."""
     u = urllib.parse.urlsplit(url)
-    return url.startswith(base) and not u.query and not SKIP_PATH.search(u.path)
+    bases = (base,) if isinstance(base, str) else tuple(base)
+    return url.startswith(bases) and not u.query and not SKIP_PATH.search(u.path)
 
 
-DATE_RE = re.compile(r"\b(20\d{2})-([01]\d)-([0-3]\d)\b")
+def data_date(payload, key: str, today: dt.date) -> dt.date | None:
+    """Newest date held under `key` anywhere in a JSON payload (e.g. /status
+    last_updated, or every row's captured_at). This is the DATA's date: page
+    metadata such as JSON-LD dateModified is rewritten on every request and
+    would hide stale data, so it is never used."""
+    found = []
 
-
-def newest_date(html: str, today: dt.date) -> dt.date | None:
-    """Newest data date the page shows: <time datetime>, else ISO dates in text.
-    Future dates (schedules, typos) are ignored."""
-    p = parse(html)
-    found: list[dt.date] = []
-    for raw in p.dates + [m.group(0) for m in DATE_RE.finditer(re.sub(r"<[^>]+>", " ", html))]:
-        m = DATE_RE.search(raw)
-        if not m:
-            continue
-        try:
-            d = dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-        except ValueError:
-            continue
-        if d <= today:
-            found.append(d)
+    def walk(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == key and isinstance(v, str):
+                    m = DATE_RE.search(v)
+                    if m:
+                        try:
+                            d = dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                        except ValueError:
+                            continue
+                        if d <= today:
+                            found.append(d)
+                else:
+                    walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+    walk(payload)
     return max(found) if found else None
+
+
+def fetch_json(url: str):
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except Exception:  # noqa: BLE001 - UNKNOWN, reported as FAIL
+        return None
+
+
+DATE_RE = re.compile(r"(?<!\d)(20\d{2})-([01]\d)-([0-3]\d)(?!\d)")
 
 
 def fetch(url: str, timeout: int = 30) -> tuple[int, str]:
@@ -175,9 +197,12 @@ def _fetch_once(url: str, timeout: int) -> tuple[int, str]:
         return 0, f"{type(e).__name__}"
 
 
-def crawl(base: str, max_pages: int, max_links: int, delay: float, get=fetch):
-    """BFS over the tracker's pages. Returns (pages, bad_pages, bad_links, truncated)."""
-    queue, seen, pages = [base], {base}, {}
+def crawl(base, max_pages: int, max_links: int, delay: float, get=fetch, scope=()):
+    """BFS over the tracker's pages from one start URL or several (the home and
+    each sibling route family). Returns (pages, bad_pages, bad_links, truncated)."""
+    starts = [base] if isinstance(base, str) else list(base)
+    queue, seen, pages = list(starts), set(starts), {}
+    prefixes = tuple(starts) + tuple(scope)  # scope: route families with no index page of their own
     bad_pages: list[tuple[str, int]] = []
     link_status: dict[str, int] = {}
     linked_from: dict[str, str] = {}
@@ -196,7 +221,7 @@ def crawl(base: str, max_pages: int, max_links: int, delay: float, get=fetch):
             u = normalise(href, url)
             if not u or not is_internal(u):
                 continue
-            if in_scope(u, base):
+            if in_scope(u, prefixes):
                 if u not in seen:
                     seen.add(u)
                     queue.append(u)
@@ -211,7 +236,7 @@ def crawl(base: str, max_pages: int, max_links: int, delay: float, get=fetch):
     if len(linked_from) > max_links:
         truncated = True
     bad_links = [(u, s, linked_from[u]) for u, s in link_status.items() if s >= 400 or s == 0]
-    bad_links += [(u, s, base) for u, s in bad_pages]
+    bad_links += [(u, s, starts[0]) for u, s in bad_pages]
     return pages, bad_pages, bad_links, truncated
 
 
@@ -254,7 +279,7 @@ def verdict(r: dict) -> list[str]:
         if r["cta_missing"]:
             why.append(f"UTM sign-up CTA not visible on {len(r['cta_missing'])} page/width pair(s)")
     if r["data_date"] is None:
-        why.append("no data date found on the tracker home (UNKNOWN)")
+        why.append("no data date from the freshness endpoint (UNKNOWN)")
     elif r["data_age_days"] > FRESH_DAYS:
         why.append(f"data last refreshed {r['data_date']} ({r['data_age_days']} days ago, limit {FRESH_DAYS})")
     return why
@@ -286,6 +311,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", required=True)
     ap.add_argument("--base", required=True, help="tracker home URL, with trailing slash")
+    ap.add_argument("--also", action="append", default=[],
+                    help="another route family to crawl as part of this tracker (repeatable)")
+    ap.add_argument("--scope", action="append", default=[],
+                    help="route family crawled when linked but with no index page to start from (repeatable)")
+    ap.add_argument("--fresh-url", required=True, help="JSON endpoint that says when the data last changed")
+    ap.add_argument("--fresh-key", required=True, help="key holding the data date, e.g. last_updated")
     ap.add_argument("--max-pages", type=int, default=1500)
     ap.add_argument("--max-links", type=int, default=800)
     ap.add_argument("--browser-pages", type=int, default=40, help="pages rendered in Chrome (hubs first)")
@@ -294,8 +325,8 @@ def main(argv=None) -> int:
     ap.add_argument("--summary")
     a = ap.parse_args(argv)
     today = dt.datetime.now(dt.timezone.utc).date()
-    pages, bad_pages, bad_links, truncated = crawl(a.base, a.max_pages, a.max_links, a.delay)
-    d = newest_date(pages.get(a.base, ""), today)
+    pages, bad_pages, bad_links, truncated = crawl([a.base] + a.also, a.max_pages, a.max_links, a.delay, scope=a.scope)
+    d = data_date(fetch_json(a.fresh_url), a.fresh_key, today)
     # Hubs (short paths) first, then a spread of the long tail (company/place pages).
     ok_pages = sorted((u for u in pages if u not in dict(bad_pages)), key=lambda u: (u.count("/"), u))
     sample = ok_pages[: a.browser_pages]
