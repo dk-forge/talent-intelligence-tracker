@@ -3,8 +3,11 @@
 Shared by every finish-line workflow (same file in each repo). Stdlib only.
 - First FAIL: open an issue titled exactly TITLE, labels Claude + the product.
 - Repeat FAIL while that issue is still open: comment and add the Overdue label.
-- No token, or the token cannot write dk-forge/todo: print why and exit 0, so the
+- No token, or every token is refused: print what GitHub said and exit 0, so the
   run summary and the status file stay the record (never invent or ask for a secret).
+- Dedupe lists the repo's open issues, not /search/issues: the search API answers
+  422 "cannot be searched" for a private repo the token cannot see, which looked
+  like a validation error and stopped the fallback token being tried (2026-11-18).
 
 Usage: python3 finish_line_issue.py --title T --product ATR --body-file status.md
 Token: env TODO_ISSUES_TOKEN (falls back to GH_TOKEN).
@@ -16,7 +19,6 @@ import json
 import os
 import sys
 import urllib.error
-import urllib.parse
 import urllib.request
 
 REPO = "dk-forge/todo"
@@ -31,6 +33,36 @@ def _call(method, path, token, body=None):
                                           "User-Agent": "dk-forge-finish-line"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read() or b"null")
+
+
+def _github_message(e: urllib.error.HTTPError) -> str:
+    """GitHub's own reason (e.g. a missing label or an unsearchable repo), short."""
+    try:
+        data = json.loads(e.read() or b"{}")
+    except Exception:  # noqa: BLE001
+        return e.reason or "no reason given"
+    errs = "; ".join(str(x.get("message") or x.get("code") or x) for x in data.get("errors") or [] if isinstance(x, dict))
+    return (str(data.get("message") or e.reason) + (f" ({errs})" if errs else ""))[:300]
+
+
+MAX_PAGES = 100  # 10,000 open issues; past that the scan is incomplete
+
+
+class IncompleteScan(RuntimeError):
+    """The open-issue list could not be read to the end, so dedupe is unsafe."""
+
+
+def open_issues(token, call) -> list:
+    """Every open issue in REPO, paged to the end. Raises IncompleteScan rather
+    than return a partial list: a partial list could miss the existing issue and
+    file a duplicate."""
+    hits = []
+    for page in range(1, MAX_PAGES + 1):
+        batch = call("GET", f"/repos/{REPO}/issues?state=open&per_page=100&page={page}", token) or []
+        hits += batch
+        if len(batch) < 100:
+            return hits
+    raise IncompleteScan(f"more than {MAX_PAGES * 100} open issues in {REPO}; not filing to avoid a duplicate")
 
 
 def find_open(issues, title):
@@ -63,11 +95,15 @@ def main(argv=None, call=_call) -> int:
         try:
             return _file(a, body, token, call)
         except urllib.error.HTTPError as e:
-            if e.code in (401, 403, 404) and n + 1 < len(tokens):
-                print(f"token {n + 1} got {e.code} from {REPO}; trying the next one")
+            why = _github_message(e)
+            if e.code in (401, 403, 404, 422) and n + 1 < len(tokens):
+                print(f"token {n + 1} got {e.code} from {REPO} ({why}); trying the next one")
                 continue
-            print(f"NOT FILED: GitHub said {e.code} for {REPO} (no token can write there); "
-                  "the run summary and status file are the record.")
+            print(f"NOT FILED: GitHub said {e.code} for {REPO} with token {n + 1} of {len(tokens)}: {why}. "
+                  "The run summary and status file are the record.")
+        except IncompleteScan as e:
+            print(f"NOT FILED: {e}. The run summary and status file are the record.")
+            return 1
         except Exception as e:  # noqa: BLE001
             print(f"NOT FILED: {type(e).__name__}; the run summary and status file are the record.")
         return 0
@@ -75,8 +111,7 @@ def main(argv=None, call=_call) -> int:
 
 
 def _file(a, body, token, call) -> int:
-    q = urllib.parse.quote(f'repo:{REPO} is:issue is:open in:title "{a.title}"')
-    hits = call("GET", f"/search/issues?q={q}&per_page=20", token)["items"]
+    hits = open_issues(token, call)
     action, arg = plan(find_open(hits, a.title), a.title, a.product)
     if action == "create":
         i = call("POST", f"/repos/{REPO}/issues", token, {"title": a.title, "body": body, "labels": arg})
