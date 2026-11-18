@@ -60,17 +60,12 @@
       "last": 1795009327,
       "subject": "CI RED: h1b-lca: reference_store.StoreError: h1b_lca: 52252 rows is under 50% of the stored 145812; a source that shrank this far is truncated, not smaller. Nothing was overwritten"
     },
-    "retract:main:4538142f12ecf8e2": {
-      "first": 1795030981,
-      "last": 1795030981,
-      "subject": "CI RED: retract: error: failed to push some refs to 'https://github.com/dk-forge/talent-intelligence-tracker'"
-    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-18T19:43:02+00:00",
+  "updated_at": "2026-11-18T19:54:04+00:00",
   "version": 1
 }
