@@ -4171,8 +4171,10 @@ Check the dashboard before sizing anything.
 `WP_SITE_URL` (must end `/blog`), `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD`,
 `FTP_PORT`, `WP_PLUGIN_REMOTE_DIR`.
 
-**No Railway.** A leftover service exists; it plays no part. Collection runs on
-Actions because the SQLite DB must be committed back to the repo.
+**Railway:** collection of record runs on Actions because the SQLite DB must be
+committed back to the repo. A Railway service exists and was seen running
+collect on 2026-11-16; it is the owner's to keep or change, never a session's
+(see CLAUDE.md).
 
 ---
 

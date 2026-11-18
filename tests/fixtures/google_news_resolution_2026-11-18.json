@@ -1,0 +1,26 @@
+[
+ {
+  "discovery_url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPcG1iVXdrUnFueE9nbk5DTUVMYXB0OHpweThwRFd4d2hkYkUwQldLSXJHZnZIZXYzNnhIcy1wMU5EOUNjczZfb0ZhaUhMMDJRRnYycl9PcEVvcEliZV9zT295SkhOdDd4LVc4N0xNbEItRmktMUp5QW9oRXRDYTF2ZTRn?oc=5",
+  "rss_source": "https://www.biospace.com",
+  "page_snippet": "BVV95cUxPcG1iVXdrUnFueE9nbk5DTUVMYXB0OHpweThwRFd4d2hkYkUwQldLSXJHZnZIZXYzNnhIcy1wMU5EOUNjczZfb0ZhaUhMMDJRRnYycl9PcEVvcEliZV9zT295SkhOdDd4LVc4N0xNbEItRmktMUp5QW9oRXRDYTF2ZTRn\" data-n-a-ts=\"1795041889\" data-n-a-sg=\"AdwtSYOH20C4iYXLdLoplLTT2Qus\" data-n-dnlg=\"false\"></div><c-data id=\"i1\"></c-data></c-wiz><script aria-hidden=\"true\" nonce=\"Mx-naJL_2ex4ZMfuNU172A\">window.wiz_progress&&window.wiz_progress();window.wiz_tick&&window.wiz_tick('lW1Lh",
+  "batch_response": ")]}'\n\n[[\"wrb.fr\",\"Fbv4je\",\"[\\\"garturlres\\\",\\\"https://www.biospace.com/job-trends/8-companies-hiring-in-north-carolina-now\\\",1]\",null,null,null,\"\"],[\"di\",24],[\"af.httprm\",23,\"-1975835765105632786\",0]]",
+  "expected": "https://www.biospace.com/job-trends/8-companies-hiring-in-north-carolina-now",
+  "recorded": "2026-11-18, live from news.google.com"
+ },
+ {
+  "discovery_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQQUpsalZhVnVzUE9EYnd2aGhpaXMzYnJIUmxTc185dm9uV3d4TEc4RHl3YURtdVVOTEZXUHhHLVUwSzRKYkltWGNNdksySmlLMG1tYVB6YXZWRElrc2NOcmExY2poaDJxZUdwY1M3ajB6V0IwUVZzUUdybzRkbWMyTHk3d0FMbXZu?oc=5",
+  "rss_source": "https://shattered.io",
+  "page_snippet": "QQUpsalZhVnVzUE9EYnd2aGhpaXMzYnJIUmxTc185dm9uV3d4TEc4RHl3YURtdVVOTEZXUHhHLVUwSzRKYkltWGNNdksySmlLMG1tYVB6YXZWRElrc2NOcmExY2poaDJxZUdwY1M3ajB6V0IwUVZzUUdybzRkbWMyTHk3d0FMbXZu\" data-n-a-ts=\"1795041890\" data-n-a-sg=\"AdwtSYMZIJbbxQjw4gGPbHlXOhxB\" data-n-dnlg=\"false\"></div><c-data id=\"i1\"></c-data></c-wiz><script aria-hidden=\"true\" nonce=\"fhc_ug8DNWR4SMJmOTkXtQ\">window.wiz_progress&&window.wiz_progress();window.wiz_tick&&window.wiz_tick('lW1Lh",
+  "batch_response": ")]}'\n\n[[\"wrb.fr\",\"Fbv4je\",\"[\\\"garturlres\\\",\\\"https://shattered.io/ddn-new-york-city-flagship-office-233-jobs-452-fifth-avenue/\\\",1]\",null,null,null,\"\"],[\"di\",20],[\"af.httprm\",20,\"2731404833172981483\",0]]",
+  "expected": "https://shattered.io/ddn-new-york-city-flagship-office-233-jobs-452-fifth-avenue/",
+  "recorded": "2026-11-18, live from news.google.com"
+ },
+ {
+  "discovery_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOYmYybnZoUDVLWllpcERrNTl1cEk2Qzh6YmRQMjR2Tjk3THh0cFlWTzB3VW1hclBhbS1Ucl9kcmNtQ2JCVFFnWU9zYVNYSHUxRUp3QUVDSVZTQXN1aV83RmtWQXdQb2V5dXNueFg1cUc5Rnhvd2hGVHkwMlU1dmFNXzBfamRfSTBaaGhwWHFnVDF4VkE5cm9aeGdBYXNzRUg0SE1kUklZSnJhVzVLZXdYWA?oc=5",
+  "rss_source": "https://www.nyc.gov",
+  "page_snippet": "zB3VW1hclBhbS1Ucl9kcmNtQ2JCVFFnWU9zYVNYSHUxRUp3QUVDSVZTQXN1aV83RmtWQXdQb2V5dXNueFg1cUc5Rnhvd2hGVHkwMlU1dmFNXzBfamRfSTBaaGhwWHFnVDF4VkE5cm9aeGdBYXNzRUg0SE1kUklZSnJhVzVLZXdYWA\" data-n-a-ts=\"1795041892\" data-n-a-sg=\"AdwtSYOyf7Q0qHAF3q8cW8wel2Ec\" data-n-dnlg=\"false\"></div><c-data id=\"i1\"></c-data></c-wiz><script aria-hidden=\"true\" nonce=\"8m8u4DSSJEFuHZuboy67Yg\">window.wiz_progress&&window.wiz_progress();window.wiz_tick&&window.wiz_tick('lW1Lh",
+  "batch_response": ")]}'\n\n[[\"wrb.fr\",\"Fbv4je\",\"[\\\"garturlres\\\",\\\"https://www.nyc.gov/mayors-office/news/2026/09/mayor-mamdani-opens-new-jobs-nyc-center--connecting-new-yorkers-\\\",1]\",null,null,null,\"\"],[\"di\",28],[\"af.httprm\",27,\"8511948101780123392\",1]]",
+  "expected": "https://www.nyc.gov/mayors-office/news/2026/09/mayor-mamdani-opens-new-jobs-nyc-center--connecting-new-yorkers-",
+  "recorded": "2026-11-18, live from news.google.com"
+ }
+]

@@ -377,9 +377,14 @@ is NOT covered (`wp_posts` and the whole blog, uploads, the WordPress install,
 and the shared email subscriber list, which is the sibling plugin's and is
 personal data that must never reach either public repo).
 
-**There is no Railway deployment.** Collection runs on Actions because the
-database must be committed back to the repo; an ephemeral container discards
-it. If you find a Railway service pointed at this repo, it is a leftover.
+**Collection of record runs on Actions**, because the database must be
+committed back to the repo; an ephemeral container discards it. A Railway
+service DOES exist (project `talent-intelligence`, service
+`talent-intelligence-tracker`) and its logs on 2026-11-16 show it running the
+google_news collect, so it is not dormant. Railway is the owner's: never delete,
+stop or reconfigure it from a session, and never call it a leftover in a todo.
+Its 2026-11-16 "Crashed" was run_collect's own exit 1 ("every candidate
+rejected") after all 1500 Google News links failed to resolve from that host.
 
 ## Rules that are not negotiable
 
