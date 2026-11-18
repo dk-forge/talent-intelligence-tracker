@@ -974,8 +974,13 @@ Every one of these shipped as a bug on the sibling:
    every deploy, and use that bump to trigger cache flush and migrations.
 4. FTP deploys race mid-upload. A hard `require` of a not-yet-uploaded file
    fatals the whole plugin. Guard with `is_readable()` and a stub fallback.
-5. `.txt` never reaches WordPress — Apache serves it from disk. Write real
-   files for `llms.txt` and similar.
+5. A `.txt` file that EXISTS on disk is served by Apache and never reaches
+   WordPress, so the site-wide `/blog/llms.txt` and IndexNow key are real
+   files. A `.txt` path with no file DOES reach WordPress (measured 2026-11-18:
+   `/blog/talent-intelligence-tracker/llms.txt` answered with the PHP handler's
+   `X-Robots-Tag: noindex`), which is how `includes/llms.php` serves this
+   tracker's own file. Never write it to disk under `talent-intelligence-tracker/`:
+   a real directory with the hub's slug stops WordPress routing the hub.
 6. The host injects `no-store` on REST responses; strip it per-endpoint in
    `.htaccess`, written with probe-and-rollback (a broken `.htaccess` 500s all
    of `/blog`).

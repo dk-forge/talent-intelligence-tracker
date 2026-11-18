@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.119.0",
+   "date": "2026-11-18",
+   "tag": "Change",
+   "text": "The tracker now has its own llms.txt with dated, sourced figures, and phones get a closable bar linking to the free resume check."
+  },
+  {
    "version": "1.118.2",
    "date": "2026-11-18",
    "tag": "Fix",
