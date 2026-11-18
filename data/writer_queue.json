@@ -248,81 +248,10 @@
   ],
   "red_marks": {
     "ticket:20261117T094238Z-enrich": "2026-11-18T09:53:14Z",
-    "ticket:20261118T094251Z-enrich": "2026-11-18T09:53:14Z"
+    "ticket:20261118T094251Z-enrich": "2026-11-18T09:53:14Z",
+    "ticket:20261118T194033Z-retract": "2026-11-18T19:43:07Z"
   },
   "tickets": [
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-18T19:40:39Z",
-      "history": [
-        {
-          "at": "2026-11-18T19:40:33Z",
-          "detail": "red CI: retract live row rejected by referees",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-18T19:40:39Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-18T19:41:39Z",
-          "detail": "run 44382771347",
-          "event": "bound"
-        }
-      ],
-      "id": "20261118T194033Z-retract",
-      "inputs": {
-        "bare_domains": "false",
-        "reason": "Builders Vision: the $20bn is assets under management of an investment fund, not money raised by a company. Two of three referees voted reject (analysis/adjudications/2026-11-13-amount-69b6450075ea1ed979749cf3ca7ed170.json).",
-        "signal_id": "69b6450075ea1ed979749cf3ca7ed170"
-      },
-      "priority": 0,
-      "reason": "red CI: retract live row rejected by referees",
-      "requested_at": "2026-11-18T19:40:33Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "44382771347",
-      "state": "dispatched",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-10T08:07:34Z",
-      "history": [
-        {
-          "at": "2026-11-10T07:52:36Z",
-          "detail": "scheduled link hygiene (50 7 * * 2)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-10T08:07:34Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-10T08:08:34Z",
-          "detail": "run 42780204854",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-10T08:08:34Z",
-          "detail": "run 42780204854",
-          "event": "landed"
-        }
-      ],
-      "id": "20261110T075236Z-benchmark-diff",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-10T08:08:34Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (50 7 * * 2)",
-      "requested_at": "2026-11-10T07:52:36Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42780204854",
-      "state": "landed",
-      "workflow": "benchmark-diff.yml"
-    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-10T08:33:20Z",
@@ -2580,6 +2509,45 @@
       "run_id": "44382593884",
       "state": "landed",
       "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-18T19:40:39Z",
+      "history": [
+        {
+          "at": "2026-11-18T19:40:33Z",
+          "detail": "red CI: retract live row rejected by referees",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-18T19:40:39Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-18T19:41:39Z",
+          "detail": "run 44382771347",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-18T19:43:07Z",
+          "detail": "conclusion failure",
+          "event": "failed"
+        }
+      ],
+      "id": "20261118T194033Z-retract",
+      "inputs": {
+        "bare_domains": "false",
+        "reason": "Builders Vision: the $20bn is assets under management of an investment fund, not money raised by a company. Two of three referees voted reject (analysis/adjudications/2026-11-13-amount-69b6450075ea1ed979749cf3ca7ed170.json).",
+        "signal_id": "69b6450075ea1ed979749cf3ca7ed170"
+      },
+      "priority": 0,
+      "reason": "red CI: retract live row rejected by referees",
+      "requested_at": "2026-11-18T19:40:33Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "44382771347",
+      "state": "failed",
+      "workflow": "retract.yml"
     }
   ],
   "version": 1
