@@ -57,7 +57,7 @@ def test_url_state_is_read_client_side_with_prefixed_keys():
 def test_config_does_not_depend_on_the_inline_object():
     # Autoptimize gotcha #10: the API base comes from TIT, which the dashboard
     # already backs with the root element's data-api attribute.
-    assert "fetch(TIT.api + 'aggregate?' + params.toString())" in JS
+    assert "titFetch(TIT.api + 'aggregate?' + params.toString(), geoCtrl" in JS
     assert re.search(r'data-api="<\?php echo esc_attr\(rest_url\(', SC)
 
 

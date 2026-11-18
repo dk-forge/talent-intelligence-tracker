@@ -479,7 +479,7 @@ class WiringTests(unittest.TestCase):
     def test_the_filter_path_is_covered_and_not_only_the_first_paint(self):
         # "Stalled" is felt hardest on a filter change, so the function a filter
         # change calls, and the aggregate it triggers, both carry the state.
-        for fn in ("refresh", "refreshAggregate"):
+        for fn in ("refreshNow", "refreshAggregate"):  # refresh() coalesces into refreshNow()
             body = sc.strip_comments(extract(fn), "js")
             self.assertIn("busy", body,
                           "%s runs on every filter change with no loading state" % fn)

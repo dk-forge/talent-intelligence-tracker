@@ -1402,7 +1402,7 @@
     // rejection that abort produces arrives holding a retired token.
     busyTrack(AGG_REGIONS[0][0], AGG_REGIONS[0][1], function (signal) {
       var opts = signal ? { signal: signal } : {};
-      var main = fetch(TIT.api + 'aggregate?' + params.toString(), opts)
+      var main = titFetch(TIT.api + 'aggregate?' + params.toString(), opts)
         .then(function (r) {
           // A non-ok response used to resolve to null and reach the same quiet
           // path as success. It is a failure, so it throws and is shown as one.
@@ -1422,7 +1422,7 @@
         yp.set('since', new Date().getFullYear() + '-01-01');
         yp.set('include', 'fresh');
         yp.delete('per_page');
-        ytdReq = fetch(TIT.api + 'aggregate?' + yp.toString(), opts)
+        ytdReq = titFetch(TIT.api + 'aggregate?' + yp.toString(), opts)
           .then(function (r) { return r.ok ? r.json() : null; })
           .catch(function () { return null; });
       }
@@ -2121,7 +2121,40 @@
     });
   }
 
+  // COALESCED (todo#1881 item 4). Chips, tabs and selects call refresh()
+  // directly, and each call fires two or three /aggregate and /query requests;
+  // at three clicks a second that saturated the host into 500s. The first call
+  // after a quiet spell runs at once (first paint and a single click are not
+  // delayed); calls inside REFRESH_GAP_MS collapse into one trailing run with
+  // the final filters. busyBegin already aborts the request a new one replaces.
+  var REFRESH_GAP_MS = 350, REFRESH_MAX_WAIT_MS = 1000, refreshTimer = null, refreshLast = 0;
   function refresh() {
+    var now = Date.now();
+    // Quiet spell, or a steady stream that has not fetched for a second.
+    if (now - refreshLast >= (refreshTimer ? REFRESH_MAX_WAIT_MS : REFRESH_GAP_MS)) {
+      if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+      refreshLast = now;
+      refreshNow();
+      return;
+    }
+    // Inside a burst the controls, chips and address bar still follow every
+    // click at once (so a chip removed mid-burst is gone and cannot be clicked
+    // back on); only the requests wait for the trailing run.
+    refreshNow(true);
+    // Retire what the burst's first click has in flight: busyBegin aborts it
+    // and takes a new token, so a late answer cannot paint old filters under
+    // the new chips, and the regions show loading until the trailing run.
+    busyBegin('tit-rows', 'Loading the records');
+    AGG_REGIONS.forEach(function (rg) { busyBegin(rg[0], rg[1]); });
+    geoSeq++;
+    if (refreshTimer) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(function () {
+      refreshTimer = null;
+      refreshLast = Date.now();
+      refreshNow();
+    }, REFRESH_GAP_MS);
+  }
+  function refreshNow(stateOnly) {
     var params = new URLSearchParams();
     Object.keys(inputs).forEach(function (key) {
       if (!inputs[key]) return;
@@ -2186,6 +2219,7 @@
     writeUrl();
 
     updateExportLinks();
+    if (stateOnly === true) return;
 
     // Charts and figures move with the same querystring the table uses, so the
     // two can never disagree about what is being shown.
@@ -2198,7 +2232,7 @@
     // from the controls as they stand, so a retry after a failure asks for what
     // the reader is looking at now rather than replaying a stale request.
     busyTrack('tit-rows', 'Loading the records', function (signal) {
-      return fetch(TIT.api + 'query?' + params.toString(), signal ? { signal: signal } : {})
+      return titFetch(TIT.api + 'query?' + params.toString(), signal ? { signal: signal } : {})
         .then(function (r) {
           // A non-ok response used to resolve to null and reach the same quiet
           // path as success. It is a failure, so it throws and is shown as one.
@@ -2232,6 +2266,23 @@
         if (err && err.name === 'AbortError') return;
       });
   }
+
+  // 503 + Retry-After is the server's cold-compute cap saying "not now"
+  // (tit_cold_compute_guard). A few polite retries, then the caller's error path.
+  function titFetch(url, opts, left) {
+    if (left === undefined) left = 3;   // up to three retries, inside the 20 s deadline
+    return fetch(url, opts).then(function (r) {
+      // Only the capacity cap's 503 carries Retry-After; any other 503 (e.g.
+      // tit_geo_unavailable mid-deploy) is not retried.
+      if (r.status !== 503 || !r.headers.get('Retry-After') || left <= 0) return r;
+      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 3) * 1000;
+      return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
+        if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
+        return titFetch(url, opts, left - 1);
+      });
+    });
+  }
+
 
   var timer;
   function debounced() {
@@ -4019,6 +4070,7 @@
     return p;
   }
 
+  var geoSeq = 0, geoCtrl = null;
   function refreshGeo(base) {
     if (base) geoBase = base;
     if (!geoBar) return;
@@ -4026,16 +4078,23 @@
     if (geoView !== 'time' && geoBox) {
       geoBox.innerHTML = '<p class="tit-geo-empty">Loading…</p>';
     }
-    fetch(TIT.api + 'aggregate?' + params.toString())
+    // Supersede: cancel the table request this one replaces, and drop any
+    // late answer for older filters (todo#1881 item 4).
+    var seq = ++geoSeq;
+    if (geoCtrl) { try { geoCtrl.abort(); } catch (e) { /* settled */ } }
+    try { geoCtrl = new AbortController(); } catch (e) { geoCtrl = null; }
+    titFetch(TIT.api + 'aggregate?' + params.toString(), geoCtrl ? { signal: geoCtrl.signal } : {})
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(function (data) {
+        if (seq !== geoSeq) return;
         geoData = data && data.by_location ? data.by_location : null;
         paintGeo();
         paintTopRounds(data && data.top_rounds ? data.top_rounds : []);
       }, function () {
+        if (seq !== geoSeq) return;
         if (geoView !== 'time' && geoBox) {
           geoBox.innerHTML = '<p class="tit-geo-empty">This table could not load. ' +
             'Change the view or period to try again.</p>';
