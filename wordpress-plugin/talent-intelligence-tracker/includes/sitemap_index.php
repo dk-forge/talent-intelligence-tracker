@@ -32,3 +32,35 @@ function tit_sitemap_index_entries($xml) {
 }
 add_filter('wpseo_sitemap_index', 'tit_sitemap_index_entries');
 add_filter('rank_math/sitemap/index', 'tit_sitemap_index_entries');
+
+/**
+ * PURE. The hub page's sitemap <lastmod> follows the data, not the post.
+ *
+ * Measured 2026-11-18: page-sitemap.xml gave the hub lastmod 2026-07-29 (the
+ * WordPress page's last edit) though rows land daily, and Search Console
+ * showed the hub "Crawled - currently not indexed", last crawled 2026-09-06.
+ * A months-old lastmod tells a crawler there is nothing new to fetch. The hub
+ * now carries the newest collection run, clamped to today (never a future
+ * date). Any other entry, or no usable date, is returned unchanged.
+ */
+function tit_hub_sitemap_entry($url, $hub_loc, $newest, $today = null) {
+    if (!is_array($url) || empty($url['loc'])) return $url;
+    if (rtrim((string) $url['loc'], '/') !== rtrim((string) $hub_loc, '/')) return $url;
+    $d = substr((string) $newest, 0, 10);
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) return $url;
+    $today = $today ?: gmdate('Y-m-d');
+    if ($d > $today) $d = $today;
+    $old = substr((string) ($url['mod'] ?? ''), 0, 10);
+    if ($old !== '' && $old >= $d) return $url;
+    $url['mod'] = $d . 'T00:00:00+00:00';
+    return $url;
+}
+
+function tit_hub_sitemap_entry_filter($url, $type = '', $object = null) {
+    if (!defined('TIT_PAGE_SLUG') || !function_exists('tit_dashboard_facts') || !function_exists('tit_table_name')) return $url;
+    if (!is_array($url) || empty($url['loc']) || strpos((string) $url['loc'], '/' . TIT_PAGE_SLUG) === false) return $url;
+    $facts = tit_dashboard_facts(tit_table_name());
+    return tit_hub_sitemap_entry($url, home_url('/' . TIT_PAGE_SLUG . '/'), $facts['newest_run'] ?? '');
+}
+add_filter('rank_math/sitemap/entry', 'tit_hub_sitemap_entry_filter', 10, 3);
+add_filter('wpseo_sitemap_entry', 'tit_hub_sitemap_entry_filter', 10, 3);
