@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-18T19:51:55Z",
-  "last_tick": "2026-11-18T19:51:55Z",
+  "last_dispatch": "2026-11-18T19:55:24Z",
+  "last_tick": "2026-11-18T19:55:24Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -251,6 +251,31 @@
     "ticket:20261118T094251Z-enrich": "2026-11-18T09:53:14Z"
   },
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-18T19:55:24Z",
+      "history": [
+        {
+          "at": "2026-11-18T19:55:20Z",
+          "detail": "re-run collect after clearing overdue guardrail findings (red CI 11-16/11-17)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-18T19:55:24Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261118T195520Z-collect",
+      "inputs": {},
+      "priority": 0,
+      "reason": "re-run collect after clearing overdue guardrail findings (red CI 11-16/11-17)",
+      "requested_at": "2026-11-18T19:55:20Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "collect.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-10T16:33:34Z",
