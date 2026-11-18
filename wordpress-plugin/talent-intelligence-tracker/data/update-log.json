@@ -8,6 +8,12 @@
    "text": "The tracker now has its own llms.txt with dated, sourced figures, and phones get a closable bar linking to the free resume check."
   },
   {
+   "version": "1.118.2",
+   "date": "2026-11-18",
+   "tag": "Fix",
+   "text": "Clicking filters quickly no longer makes the tracker's data requests fail: rapid clicks are combined into one request with your final filters, and the server computes each uncached view once at a time, with a short automatic retry instead of an error when it is busy."
+  },
+  {
    "version": "1.118.1",
    "date": "2026-11-18",
    "tag": "Fix",
