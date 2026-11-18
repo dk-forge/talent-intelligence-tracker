@@ -1,6 +1,6 @@
 {
   "last_dispatch": "2026-11-18T19:55:24Z",
-  "last_tick": "2026-11-18T19:56:34Z",
+  "last_tick": "2026-11-18T19:58:12Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -246,9 +246,6 @@
       "workflow": "collect-structured"
     }
   ],
-  "red_marks": {
-    "ticket:20261118T094251Z-enrich": "2026-11-18T09:53:14Z"
-  },
   "tickets": [
     {
       "attempts": 0,
@@ -2354,6 +2351,7 @@
       "workflow": "archive-sources.yml"
     },
     {
+      "acknowledged": "2026-11-18T19:58:05Z",
       "attempts": 0,
       "dispatched_at": "2026-11-18T09:48:12Z",
       "history": [
@@ -2376,6 +2374,11 @@
           "at": "2026-11-18T09:53:14Z",
           "detail": "conclusion failure",
           "event": "failed"
+        },
+        {
+          "at": "2026-11-18T19:58:05Z",
+          "detail": "failed only on the overdue guardrail findings, now answered (vehicle_name rejected, Builders Vision retracted 2026-11-18); next scheduled enrich covers it (by dakotta-labs)",
+          "event": "acknowledged"
         }
       ],
       "id": "20261118T094251Z-enrich",
