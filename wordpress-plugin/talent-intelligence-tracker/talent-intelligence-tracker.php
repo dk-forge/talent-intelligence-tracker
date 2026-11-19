@@ -243,10 +243,7 @@ function tit_render_footer($related = '') {
     // roles, recall, corrections, press, methodology, update log, sources,
     // and every place page -- with none. All of them close through this one
     // function, so this is the one place that reaches every one of them.
-    // company, place and places print the line under their heading instead,
-    // inside the first screen (todo 1853 item 4), so the footer skips them.
-    if ($related !== '' && !in_array($related, array('company', 'place', 'places'), true)
-        && function_exists('tit_atr_cta_line_html')) {
+    if ($related !== '' && $related !== 'company' && function_exists('tit_atr_cta_line_html')) {
         echo tit_atr_cta_line_html($related);
     }
     // Related link row (#446 item 4), keyed by the page that is closing.

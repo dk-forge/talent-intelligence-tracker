@@ -1032,7 +1032,7 @@ function tit_company_render($rows, $key, $profile) {
       } ?>
       <?php // Tracked sign-up line inside the first screen (includes/atr_signup_cta.php);
       // the "Is X hiring?" section further down keeps its own button.
-      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('company_top'); ?>
+      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('company_top', 'Resume check'); ?>
 
       <?php // GLEIF LEI, only on a unique name + country match (includes/company_lei.php).
       $lei = function_exists('tit_company_lei') ? tit_company_lei($company_key) : '';
