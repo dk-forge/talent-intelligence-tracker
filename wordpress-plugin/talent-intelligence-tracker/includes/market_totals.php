@@ -20,7 +20,8 @@ function tit_market_totals_table_html(array $m) {
     $caption = $variant === 'counts'
         ? sprintf('Updates a week by stated headcount direction, counted from the fixed panel of %d sources live for the whole window: the figures the chart above draws.', (int) ($m['panel_size'] ?? 0))
         : 'Updates a week by stated headcount direction, across all sources: the counts behind the chart above, which draws each week as shares of its own updates.';
-    $h = '<div class="tit-table-scroll tit-market-totals"><table class="tit-market-totals-table">'
+    // tabindex + label: a scroller must be keyboard-reachable (todo#1881 item 9).
+    $h = '<div class="tit-table-scroll tit-market-totals" tabindex="0" role="region" aria-label="Weekly totals table"><table class="tit-market-totals-table">'
        . '<caption>' . esc_html($caption) . '</caption>'
        . '<thead><tr><th scope="col">Week</th><th scope="col">Adding roles</th>'
        . '<th scope="col">Cutting roles</th><th scope="col">Headcount not stated</th>'
