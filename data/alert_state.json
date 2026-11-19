@@ -20,11 +20,6 @@
       "last": 1794824115,
       "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
     },
-    "enrich:main:cd0f1a58933504d7": {
-      "first": 1794909173,
-      "last": 1794909173,
-      "subject": "CI RED: enrich: pipeline.publish.PublishError: 1 guardrail finding(s) have been open longer than their grace window (oldest 90h). 41156 clean row(s) WERE published; the flagged one"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -51,6 +46,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-19T04:45:26+00:00",
+  "updated_at": "2026-11-19T09:51:34+00:00",
   "version": 1
 }
