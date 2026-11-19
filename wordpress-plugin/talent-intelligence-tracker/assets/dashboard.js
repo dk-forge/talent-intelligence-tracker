@@ -2127,12 +2127,13 @@
   // after a quiet spell runs at once (first paint and a single click are not
   // delayed); calls inside REFRESH_GAP_MS collapse into one trailing run with
   // the final filters. busyBegin already aborts the request a new one replaces.
-  var REFRESH_GAP_MS = 350, REFRESH_MAX_WAIT_MS = 1000, refreshTimer = null, refreshLast = 0;
+  var REFRESH_GAP_MS = 350, refreshTimer = null, refreshLast = 0;
   function refresh() {
     var now = Date.now();
-    // Quiet spell, or a steady stream that has not fetched for a second.
-    if (now - refreshLast >= (refreshTimer ? REFRESH_MAX_WAIT_MS : REFRESH_GAP_MS)) {
-      if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+    // Fetch at once only after a quiet spell. Inside a burst it is a pure
+    // trailing run: a fetch cancelled by the next click still costs the server
+    // its full compute, so a max-wait fetch would be dead work.
+    if (!refreshTimer && now - refreshLast >= REFRESH_GAP_MS) {
       refreshLast = now;
       refreshNow();
       return;
@@ -2274,8 +2275,16 @@
     return fetch(url, opts).then(function (r) {
       // Only the capacity cap's 503 carries Retry-After; any other 503 (e.g.
       // tit_geo_unavailable mid-deploy) is not retried.
-      if (r.status !== 503 || !r.headers.get('Retry-After') || left <= 0) return r;
-      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 3) * 1000;
+      // Also retried: a host-level 5xx served as an HTML page. Measured on
+      // 2026-11-19 after 1.118.2: the remaining 500s under fast clicks were
+      // WordPress's "Error establishing a database connection" page (the
+      // host's MySQL connection limit), raised before any plugin code runs.
+      // These are idempotent reads; an API JSON error stays final.
+      var ct = r.headers.get('Content-Type') || '';
+      var hostErr = r.status >= 500 && r.status !== 501 && ct.indexOf('text/html') === 0;
+      var capBusy = r.status === 503 && !!r.headers.get('Retry-After');
+      if (left <= 0 || !(hostErr || capBusy)) return r;
+      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000;
       return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
         if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
         return titFetch(url, opts, left - 1);
@@ -4195,7 +4204,7 @@
         (jobs ? '<a class="tit-tr-jobs" href="' + jobs + '" target="_blank" rel="noopener nofollow">' +
           (r.jobs_kind === 'board' ? 'See jobs' : 'Search jobs') + '</a>' : '') +
         (href ? '<a class="tit-tr-src" href="' + href + '" target="_blank" rel="noopener nofollow">Source</a>' : '') +
-        '<a class="tit-tr-tailor" href="' + TR_TAILOR + '" target="_blank" rel="noopener">Tailor your resume for this company</a>' +
+        '<a class="tit-tr-tailor" href="' + TR_TAILOR + '" target="_blank" rel="noopener">Check your resume fit for this company</a>' +
         '</span></li>';
     });
     h += '</ol>';
@@ -4215,7 +4224,8 @@
   var TR_WEEK = escUrl(String(TIT.api || '').replace(/wp-json\/.*$/, '') + 'talent-intelligence-tracker/funded-this-week/');
   // Owner-approved 2026-10-19. Quick Draft reads no company param today, so
   // this carries attribution only; a prefill needs a small app change.
-  var TR_TAILOR = 'https://asktherecruiter.com/quick-draft?utm_source=talent-tracker&amp;utm_medium=funded-card&amp;utm_campaign=tailor';
+  // The free match check, one UTM scheme (todo#1881 items 1-2).
+  var TR_TAILOR = 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=funded-card';
 
   // Tapping a place applies it through the SAME controls the region strip,
   // country row and city row use, then drills one level down.

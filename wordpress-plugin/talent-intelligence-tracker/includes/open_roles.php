@@ -135,7 +135,7 @@ function tit_open_roles_company_block($company_key, $now = null) {
 function tit_open_roles_cv_url($freq) {
     $freq = in_array($freq, array('daily', 'weekly'), true) ? $freq : 'daily';
     return add_query_arg(array(
-        'utm_source'   => 'talent-tracker',
+        'utm_source'   => 'talent_tracker',
         'utm_medium'   => 'email',
         'utm_campaign' => 'open-roles-' . $freq,
         'utm_content'  => 'cv-matches',

@@ -30,7 +30,8 @@ const TIT_ROLES_DIR_PATH = 'talent-intelligence-tracker/roles';
 const TIT_ROLES_SITEMAP_PATH = 'talent-intelligence-tracker/roles-sitemap.xml';
 const TIT_ROLE_RECENT = 12;
 const TIT_ROLE_TOP_EMPLOYERS = 8;
-const TIT_ROLE_CTA_URL = 'https://asktherecruiter.com/?utm_source=tit&utm_medium=seo&utm_campaign=whos_hiring';
+// The free match check, one UTM scheme (todo#1881 items 1-2).
+const TIT_ROLE_CTA_URL = 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&utm_medium=cta&utm_campaign=role-page';
 
 /** Reader-facing role names, keyed by the stored vocabulary (api.php). */
 function tit_role_labels() {

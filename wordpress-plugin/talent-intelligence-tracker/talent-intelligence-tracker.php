@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Talent Intelligence Tracker
  * Description: Hiring, leadership, compensation and location signals, sourced to primary documents.
- * Version: 1.119.0
+ * Version: 1.120.0
  * Author: dk-forge
  * License: MIT
  *
@@ -18,7 +18,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('TIT_VERSION', '1.119.0');
+define('TIT_VERSION', '1.120.0');
 define('TIT_PATH', plugin_dir_path(__FILE__));
 define('TIT_URL', plugin_dir_url(__FILE__));
 define('TIT_TABLE_SUFFIX', 'tit_signals');
@@ -53,6 +53,7 @@ tit_require('includes/export.php');
 // not landed export.php yet.
 tit_require('includes/export_crm.php');
 tit_require('includes/atr_signup_cta.php');
+tit_require('includes/header_cta_utm.php');
 tit_require('includes/shortcodes.php');
 tit_require('includes/by_location.php');
 // SEO route B (1.104.0, ai-layoff-tracker#446): the weekly totals table under
@@ -162,6 +163,18 @@ function tit_render_header() {
         get_header();
         return;
     }
+    // RENDER THE TEMPLATE PARTS BEFORE wp_head(), as core's template-canvas
+    // does (todo#1881 item 8, review B3). A block that enqueues a script module
+    // while it renders (the header's navigation block, a lightbox, a search)
+    // must do so before the import map prints in wp_head; rendered after it,
+    // every TIT sub-page threw "Failed to resolve module specifier
+    // @wordpress/interactivity".
+    ob_start();
+    block_template_part('header');
+    $tit_header_html = (string) ob_get_clean();
+    ob_start();
+    block_template_part('footer');
+    $GLOBALS['tit_prerendered_footer'] = (string) ob_get_clean();
     ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -192,7 +205,7 @@ function tit_render_header() {
     // renders outside the layout its styles are written against, and the site
     // header sits at a different width from every other page.
     echo '<div class="wp-site-blocks">';
-    block_template_part('header');
+    echo $tit_header_html;
     // Named so the skip link has somewhere to land, matching the theme.
     echo '<main id="wp--skip-link--target" class="tit-main">';
 }
@@ -256,7 +269,12 @@ function tit_render_footer($related = '') {
         return;
     }
     echo '</main>';
-    block_template_part('footer');
+    if (isset($GLOBALS['tit_prerendered_footer'])) {
+        echo $GLOBALS['tit_prerendered_footer'];
+        unset($GLOBALS['tit_prerendered_footer']);
+    } else {
+        block_template_part('footer');
+    }
     echo '</div>';
     wp_footer();
     echo '</body></html>';

@@ -299,7 +299,7 @@ ob_start();
 tit_funded_week_render($f);
 $html = ob_get_clean();
 check(substr_count($html, 'class="tit-tr-item"') === 3, 'three rows rendered');
-check(substr_count($html, 'Tailor your resume for this company') === 3, 'tailor button per row');
+check(substr_count($html, 'Check your resume fit for this company') === 3, 'match-check button per row');
 check(substr_count($html, '>Source</a>') === 3, 'source link per row');
 check(substr_count($html, '>Search jobs</a>') === 3, 'jobs link per row');
 check(strpos($html, 'Divest') === false && strpos($html, 'Unjudged') === false, 'non-raises never render');

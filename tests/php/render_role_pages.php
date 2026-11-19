@@ -325,7 +325,7 @@ check(preg_match('#<h3 class="tit-h">Malformed tag headline#', $page) === 1,
 check(strpos($page, 'href="https://example.test/lang/none" rel=') !== false,
       'an untagged source link carries no hreflang');
 check(strpos($page, 'Check your fit for Engineering jobs') !== false, 'the CTA names the role');
-check(strpos($page, 'https://asktherecruiter.com/?utm_source=tit&amp;utm_medium=seo&amp;utm_campaign=whos_hiring') !== false,
+check(strpos($page, 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=role-page') !== false,
       'the CTA carries the agreed UTM link');
 check(strpos($page, 'aria-label="Breadcrumb"') !== false, 'the page carries the visible breadcrumb trail');
 check(strpos($page, '<h1') !== false && strpos($page, 'London') !== false, 'the heading names the city');

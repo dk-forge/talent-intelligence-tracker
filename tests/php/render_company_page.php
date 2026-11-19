@@ -98,8 +98,8 @@ $check(strpos($html, '<h2 class="tit-h"') === false, 'no timeline item is an h2'
 $check(strpos($html, 'disclosed funding') !== false && strpos($html, 'tit-stats-4') !== false, 'KPI tiles');
 $check(strpos($html, 'class="tit-co-follow"') !== false && strpos($html, 'type="application/rss+xml"') !== false,
        'follow card carries the RSS link');
-$check(strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent-tracker&#038;utm_medium=cta&#038;utm_campaign=company-is-hiring&#038;utm_content=blue-arbor-technologies" rel="noopener nofollow">Check my resume for free</a>') !== false
-       || strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent-tracker&amp;utm_medium=cta&amp;utm_campaign=company-is-hiring&amp;utm_content=blue-arbor-technologies" rel="noopener nofollow">Check my resume for free</a>') !== false,
+$check(strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent_tracker&#038;utm_medium=cta&#038;utm_campaign=company-is-hiring&#038;utm_content=blue-arbor-technologies" rel="noopener nofollow">Check my resume for free</a>') !== false
+       || strpos($html, 'href="https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=company-is-hiring&amp;utm_content=blue-arbor-technologies" rel="noopener nofollow">Check my resume for free</a>') !== false,
        'UTM-tagged free match check CTA');
 $check(stripos($html, 'Adapt my resume') === false, 'old adapt wording gone (DECISIONS 2026-11-17)');
 $check(strpos($html, 'Data licensed CC BY 4.0') !== false, 'licence line kept');

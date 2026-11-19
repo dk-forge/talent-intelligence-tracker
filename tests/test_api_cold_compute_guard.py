@@ -76,13 +76,17 @@ class SecondReview(unittest.TestCase):
         g = body(API, "tit_cold_compute_guard")
         self.assertLess(g.index("get_transient($key) !== false) return call_user_func($run);"),
                         g.index("tit_named_lock("))
-        self.assertIn("tit_named_lock('k|' . $key, 12)", g)
+        self.assertIn("$key_lock = tit_named_lock('k|' . $key, 2);", g)
 
     def test_four_requests_per_filter_change_fit_in_the_cap(self):
         self.assertIn("define('TIT_COLD_SLOTS', 10)", API)
 
     def test_only_the_caps_503_is_retried(self):
-        self.assertIn("!r.headers.get('Retry-After')", body(JS, "titFetch"))
+        b = body(JS, "titFetch")
+        self.assertIn("r.status === 503 && !!r.headers.get('Retry-After')", b)
+        # Host-level HTML 5xx (the DB-connection page) retries; API JSON errors do not.
+        self.assertIn("ct.indexOf('text/html') === 0", b)
+        self.assertNotIn("MAX_WAIT", JS)
 
     def test_geo_table_supersedes_and_drops_stale_answers(self):
         b = body(JS, "refreshGeo")
@@ -108,7 +112,7 @@ class Client(unittest.TestCase):
         self.assertLess(n.index("if (stateOnly === true) return;"), n.index("refreshAggregate(params)"))
 
     def test_api_fetches_retry_503_once(self):
-        self.assertIn("r.status !== 503", body(JS, "titFetch"))
+        self.assertIn("capBusy", body(JS, "titFetch"))
         self.assertNotRegex(JS, r"[^t]fetch\(TIT\.api \+ '(aggregate|query)\?")
 
 
