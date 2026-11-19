@@ -13,5 +13,18 @@ def test_scrollers_are_keyboard_reachable():
 
 def test_card_targets_meet_24px():
     css = (PLUGIN / "assets" / "dashboard.css").read_text()
-    assert ".tit-wrap .tit-watch-star { min-width:24px; min-height:24px; }" in css
+    i = css.index(".tit-wrap .tit-watch-star { min-width:24px; min-height:24px; }")
+    m = css.rfind("@media (min-width:900px) {", 0, i)
+    assert m != -1 and "}" not in css[m + len("@media (min-width:900px) {"):i].replace("*/", "")
+
+
+def test_phone_star_keeps_44px():
+    """Codex P2 on #367: the desktop rule must not shrink the phone target."""
+    css = (PLUGIN / "assets" / "dashboard.css").read_text()
+    assert ".tit-wrap .tit-watch-star { min-width:44px; min-height:44px; padding:0 8px; }" in css
+    # Every unscoped later rule for the star must not set a smaller min size.
+    tail = css[css.index(".tit-wrap .tit-watch-star { min-width:44px"):]
+    for line in tail.splitlines()[1:]:
+        if line.startswith(".tit-wrap .tit-watch-star {") and "min-" in line:
+            raise AssertionError("unscoped star size rule after the phone rule: " + line)
     assert ".tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }" in css

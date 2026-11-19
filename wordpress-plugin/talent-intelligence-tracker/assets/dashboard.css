@@ -4413,5 +4413,9 @@ html:has(.tit-main), body:has(.tit-main) {
 
 /* WCAG 2.2 2.5.8 target size (todo 1881 item 9): axe found the watch star
    and the employer name on cards under 24px at desktop widths. */
-.tit-wrap .tit-watch-star { min-width:24px; min-height:24px; }
+@media (min-width:900px) {
+  /* Desktop only: the max-width:899px rule above gives the star 44px, and an
+     unscoped rule here would override it with 24px on phones. */
+  .tit-wrap .tit-watch-star { min-width:24px; min-height:24px; }
+}
 .tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }
