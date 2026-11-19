@@ -28,9 +28,9 @@
 #
 # The apex is not on this host. It answers /robots.txt, and every other
 # unmatched path, with the same "Coming soon" page built by Cloudflare (25
-# /cf-fonts/ stylesheet references); only /blog/ routes through to Bluehost. So
+# /cf-fonts/ stylesheet references); only /blog/ routes through to the WP host (ChemiCloud). So
 # `targets: root` can never be satisfied over FTP whatever path it is given —
-# the content check would be comparing a Bluehost file against a Cloudflare
+# the content check would be comparing a WP-host file against a Cloudflare
 # response — and it refuses saying exactly that.
 #
 # The blog file lives at /public_html/AskTheRecruiter.com/blog/robots.txt. The

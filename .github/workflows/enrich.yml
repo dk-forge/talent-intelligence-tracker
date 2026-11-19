@@ -33,7 +33,7 @@ jobs:
     runs-on: [self-hosted, linux, contabo]
     # 45, raised from 30 with the reason written down (the ops alert asks for
     # exactly that or "make it fit", and this change does both). The primary fix
-    # is BATCH_SIZE 25 -> 100 in publish.py, which cuts the Bluehost round trips
+    # is BATCH_SIZE 25 -> 100 in publish.py, which cuts the WP-host round trips
     # ~4x and on its own brings the run well under 30 minutes. The extra 15
     # minutes is headroom for the shared host's variable latency and retry
     # backoff on a bad afternoon, not the fix — so a run that still hits 45 is

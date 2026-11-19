@@ -84,7 +84,8 @@ import time
 import urllib.error
 import urllib.request
 
-# Bluehost's ModSecurity blocks python-requests outright; every request to the
+# The WP host's ModSecurity blocked python-requests outright on the previous
+# host (not re-verified on ChemiCloud); every request to the
 # WP host must look like a real client. (Gotcha #1 in CLAUDE.md.)
 USER_AGENT = "TalentIntelligenceTracker/1.0 (+https://asktherecruiter.com)"
 

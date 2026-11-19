@@ -29,7 +29,7 @@ python3 ci_status.py      # the runs behind it (needs gh + network)
 
 Read `[2f] HOST` in the first one. It is the offline read of
 `data/host_status.json`, which `host-watch.yml` writes every 15 minutes from
-GitHub, not from the host, so it still answers when Bluehost does not.
+GitHub, not from the host, so it still answers when the WordPress host (ChemiCloud) does not.
 
 | What you see | What it means | Go to |
 |---|---|---|
@@ -235,7 +235,7 @@ that will tell you whether a reader is seeing the right numbers.
 
 ## 4. What this backup does NOT cover
 
-Read this section before you need it. Everything below is on Bluehost and
+Read this section before you need it. Everything below is on ChemiCloud (the WordPress host) and
 nowhere else. If the host disappears tonight, it is gone.
 
 **1. `wp_posts`: the blog. Not backed up anywhere in this repository.**
@@ -243,13 +243,13 @@ Every article on asktherecruiter.com/blog, every page, every revision, every
 category, every permalink that a search engine has indexed. This is the SEO
 asset, it is years of writing, and no part of it is in this repo or the
 sibling's. **A WordPress export (Tools, Export, All content) produces one XML
-file that covers this**, and Bluehost's own account backups cover it too. Both
+file that covers this**, and ChemiCloud's own account backups cover it too (backup schedule and retention not verified). Both
 are outside this repository and neither happens automatically today. If you do
 one thing after reading this document, do that one.
 
 **2. Uploads and media.** `wp-content/uploads/`: every image in every post,
 including the ones a post will 404 a broken image for after a restore. Not in
-any repository. Covered by a Bluehost account backup, and partly by the
+any repository. Covered by a ChemiCloud account backup (not verified), and partly by the
 WordPress export (which references the files but does not contain them).
 
 **3. The WordPress install itself.** The theme, its customisations, the other
@@ -260,14 +260,14 @@ core's `wp-block-library` handle and in neither repo, sets
 `color:#2a2a2a !important` on `.entry-content p`. The plugin's stylesheet is
 written to beat it. On a clean install that rule will not exist, the dashboard
 will still render correctly, and anybody reading `contrast_audit.py` afterwards
-will be confused. Covered by a Bluehost backup only.
+will be confused. Covered by a ChemiCloud backup only (not verified).
 
 **4. The email subscriber list, and it is not even this project's.** The digest
 signup on the dashboard is rendered by the sibling AI Layoff Tracker's plugin
 (`alt_digest_subscribe_form`, called from `includes/shortcodes.php`): one
 WordPress install, one subscriber list, one consent record per person. The
 addresses and the consent records live in the sibling's WordPress tables on
-Bluehost. **They are not in this repository, they are not in the sibling's
+ChemiCloud. **They are not in this repository, they are not in the sibling's
 repository, and they must never be put in either.** See section 6.
 
 **5. WordPress-side state this repository does not hold.** Small, and mostly
@@ -341,7 +341,7 @@ own retention rule, a decision about who may read it, and a consent record that
 travels with each address. **That decision is the owner's**, and no session
 should make it, create a destination for it, or move a single address anywhere
 in the meantime. Until then, the honest statement is: the subscriber list is
-protected by Bluehost's backups and by nothing this project controls.
+protected by ChemiCloud's backups (not verified) and by nothing this project controls.
 
 ---
 
