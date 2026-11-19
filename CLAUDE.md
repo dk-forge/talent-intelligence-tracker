@@ -9,6 +9,8 @@
 >
 > A scheduled sweep runs this order every 2 hours (GitHub steward `trig_01RLA5dqX6eshuEB4LrDZUW3`, :37 past even UTC hours). Ping the owner only when production is down, a tester draft is ready, or a decision only the owner can make is needed.
 
+> **WEB HOST = CHEMICLOUD (DK 2026-11-19).** WordPress and the plugin run on ChemiCloud (since about Aug 2026); Bluehost is not used. Never say Bluehost for current hosting; older Bluehost mentions are dated incident history. `tests/test_no_bluehost_outside_history.py` enforces it.
+
 > **WORKING RULES (DK 2026-11-18, dk-forge/todo#1940).**
 > 1. At most 4 background jobs at a time; everything else waits in dk-forge/todo in priority order.
 > 2. Every job works in its own `git worktree` under /dev/shm, never the main checkout.
@@ -148,7 +150,7 @@ still, unchanged in substance:
 - **An undeliverable alert is HELD, not lost.** `ci_alert.py` retries transient
   failures in-run, then writes it to `data/alert_outbox.json` (committed).
   `host-watch.yml` drains it every 15 minutes, and **the drain is no longer
-  gated on the host answering** — delivery has nothing to do with Bluehost now,
+  gated on the host answering** — delivery has nothing to do with the WP host now,
   and waiting for a host probe would re-couple the two. An empty outbox makes no
   request at all, which is why that tick stays free.
 - **A delivery failure is NOT a red run.** Holding exits 0. The only non-zero
@@ -963,9 +965,11 @@ Never stub a real module into `sys.modules`. The fake persists and shadows the
 real module for every test loaded afterwards, so tests pass alone and fail in
 the suite. Stub only third-party network libraries.
 
-## Bluehost / Cloudflare gotchas
+## WP host (ChemiCloud) / Cloudflare gotchas
 
-Every one of these shipped as a bug on the sibling:
+Every one of these shipped as a bug on the sibling. They were first seen on the
+previous host (before the 2026-09-08 move to ChemiCloud); not every one has been
+re-verified on ChemiCloud, so keep the guards:
 
 1. Send a browser-ish `User-Agent` on every request to the WP host —
    ModSecurity blocks `python-requests` outright.

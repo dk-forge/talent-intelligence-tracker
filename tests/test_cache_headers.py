@@ -1,6 +1,6 @@
 """The host's duplicate no-store must stay stripped.
 
-Bluehost's Apache appends its own "Cache-Control: no-cache, no-store,
+The previous host's Apache appended its own "Cache-Control: no-cache, no-store,
 must-revalidate" after PHP on every response, so the plugin's max-age=300 on
 the public endpoints is merged away and the whole cache layer is inert. The
 only place that can win is a mod_headers block in the WP root .htaccess.

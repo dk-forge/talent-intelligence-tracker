@@ -36,7 +36,7 @@ name: host-watch
 # WHY A DOWN HOST DOES NOT MAKE THIS RUN RED. A red run fires the CI failure
 # alert, which posts to /alert, which is on the host that is down — the exact
 # amplification loop this change exists to break. And a red run asserts
-# "something in this repository needs fixing", which a Bluehost outage is not.
+# "something in this repository needs fixing", which a WP-host outage is not.
 # host_watch.py exits non-zero only for its OWN failures: it cannot write the
 # ledger, the fallback channel is unusable, or the host is UP and held alerts
 # still will not deliver. Those a human can act on here.

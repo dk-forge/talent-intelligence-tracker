@@ -49,7 +49,7 @@ Two reasons, and the second is the important one.
 * A red run here would fire the CI failure alert, which would try to post to the
   down host, which would hold the alert — the amplification loop this whole
   change exists to break, re-entered through the front door.
-* A red run means "something in this repository needs fixing". Bluehost being
+* A red run means "something in this repository needs fixing". The WP host being
   down is not that. It is reported, loudly, in the ledger and on the issue and
   in ops_status; it is not pretended to be a defect in the code.
 
@@ -710,7 +710,7 @@ def main(argv=None) -> int:
     # THE DRAIN IS NO LONGER GATED ON THE HOST ANSWERING, and it must not be.
     # It was, because delivery went through `/alert` on that host, so "the host
     # just answered" was the only moment worth retrying. Mail leaves through
-    # Resend now: the held alerts have nothing to do with whether Bluehost is
+    # Resend now: the held alerts have nothing to do with whether the WP host is
     # up, and waiting for a host probe before draining would make the relay's
     # availability depend on the very thing the move was meant to decouple from.
     # So this tick drains whenever anything is held. An EMPTY outbox makes no

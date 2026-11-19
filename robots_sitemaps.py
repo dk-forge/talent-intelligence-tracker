@@ -10,7 +10,7 @@ able to break it.
 WHY THIS IS NOT AN FTP PUT
 --------------------------
 `robots.txt` is a real file on disk. Apache serves it before WordPress ever
-runs (CLAUDE.md, Bluehost gotcha 5), so no plugin, no filter and no REST route
+runs (CLAUDE.md, WP-host gotcha 5), so no plugin, no filter and no REST route
 can add a line to it — it has to be uploaded.
 
 And it is the same danger class as `.htaccess`: a truncated or mangled
@@ -59,12 +59,12 @@ The second is not a robots.txt at all, and not even the same server. The apex
 serves the same 13,181-byte "Coming soon" page for `/robots.txt`, for
 `/definitely-not-here.txt` and for every other unmatched path, and that page is
 built by **Cloudflare** — 25 of its stylesheet references are `/cf-fonts/`.
-Only `/blog/` routes through to Bluehost.
+Only `/blog/` routes through to the WordPress host (ChemiCloud).
 
 So the `root` target can never be satisfied over FTP, whatever path it is
-given: the content check would be comparing a Bluehost file against a
+given: the content check would be comparing a WP-host file against a
 Cloudflare response, and no file on the one can ever equal the other. There is
-a `/public_html/AskTheRecruiter.com/robots.txt` on Bluehost and it is served to
+a `/public_html/AskTheRecruiter.com/robots.txt` on the WP host and it is served to
 nobody. A root robots.txt has to be added wherever that Coming Soon page is
 built. **"The URL and the filesystem belong to different servers" is a failure
 mode worth naming**, and a content check that refuses it is strictly better
@@ -243,13 +243,13 @@ def default_targets() -> list[Target]:
                 "'Coming soon' page built by Cloudflare — 25 of its stylesheet "
                 "references are /cf-fonts/ — and every other unmatched apex "
                 "path returns the same bytes. Only /blog/ routes through to "
-                "Bluehost. So NO FTP PATH CAN EVER SATISFY THIS TARGET, "
+                "the WP host (ChemiCloud). So NO FTP PATH CAN EVER SATISFY THIS TARGET, "
                 "whatever it is set to: the URL and the filesystem belong to "
                 "different servers, and the content check is comparing a "
-                "Bluehost file against a Cloudflare response. A root "
+                "WP-host file against a Cloudflare response. A root "
                 "robots.txt has to be added wherever that Coming Soon page is "
                 "built, not in cPanel and not over FTP. (There IS a "
-                "/public_html/AskTheRecruiter.com/robots.txt on Bluehost. It "
+                "/public_html/AskTheRecruiter.com/robots.txt on the WP host. It "
                 "is served to nobody.)"),
         ),
         Target(

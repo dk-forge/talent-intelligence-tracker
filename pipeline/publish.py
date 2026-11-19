@@ -23,7 +23,7 @@ TIMEOUT = 30
 
 # 100, not 25. enrich_published re-sends EVERY published row that carries a
 # derived value, one HTTP POST per BATCH_SIZE rows, and the bottleneck is not
-# payload — it is the fixed per-request cost of a Bluehost round trip (TLS + WP
+# payload — it is the fixed per-request cost of a WP-host (ChemiCloud) round trip (TLS + WP
 # bootstrap, ~1-3s each). At 25 the published set had grown to enough batches
 # that the sequential POSTs ran past the enrich job's 30-minute ceiling and the
 # runner killed it mid-run. /enrich caps nothing server-side (it validates only

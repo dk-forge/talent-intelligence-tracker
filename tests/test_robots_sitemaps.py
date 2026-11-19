@@ -149,7 +149,7 @@ def test_anything_but_200_is_refused(status):
 
 
 def test_html_served_with_200_is_refused():
-    """Bluehost and Cloudflare both answer 200 with an error page. That page
+    """The WP host and Cloudflare both answer 200 with an error page. That page
     contains no Sitemap line either, but saying so as 'served HTML' is the
     message that tells a human what actually happened."""
     with pytest.raises(rs.Refusal, match="HTML"):
@@ -160,10 +160,10 @@ def test_html_served_with_200_is_refused():
 def test_the_apex_refusal_names_the_actual_reason():
     """The apex is not on this host. It answers /robots.txt — and every other
     unmatched path — with a 13,181-byte 'Coming soon' page built by Cloudflare
-    (25 /cf-fonts/ references); only /blog/ reaches Bluehost.
+    (25 /cf-fonts/ references); only /blog/ reaches the WP host (ChemiCloud).
 
     So no FTP path can ever satisfy this target: the content check would be
-    comparing a Bluehost file against a Cloudflare response. 'Served HTML' is
+    comparing a WP-host file against a Cloudflare response. 'Served HTML' is
     true and cost an hour; the refusal has to say which server and where the
     file would actually have to go."""
     with pytest.raises(rs.Refusal) as caught:
