@@ -1016,9 +1016,9 @@ $orders = array(
  * /aggregate: every click is a new param set, so a new cold compute, and the
  * PHP workers and MySQL saturate. A cache hit goes straight through. A miss
  * takes a MySQL named lock on its cache key (so one request computes and the
- * rest wait up to 10 s, then read the stored answer, because the handler
+ * rest wait up to 2 s (internal callers 12 s), then read the stored answer, because the handler
  * re-reads its own transient) and one of TIT_COLD_SLOTS slots. With no slot
- * free the request gets a 503 + Retry-After, which the dashboard retries once,
+ * free the request gets a 503 + Retry-After, which the dashboard retries (up to three times),
  * instead of queueing into a worker timeout. If the server cannot take named
  * locks, the guard steps aside and the handler runs exactly as before.
  */
@@ -1096,14 +1096,15 @@ function tit_cold_compute_guard($key, $run, $outer = true) {
             tit_named_unlock($lock);
         }
     }
-    // Wait up to 12 s, under the page's 20 s load deadline, so a waiter that
-    // times out can still answer busy and the page's one retry can land.
+    // Wait at most 2 s: a waiter holds a PHP worker and a MySQL connection,
+    // and running out of those is what produced the 500s. Past that it answers
+    // busy and the page retries (every 2-3 s, up to three times).
     // On MySQL < 5.7 / MariaDB < 10.0.2 a session holds one named lock, so
     // taking a slot drops this key lock: the cap still holds, single-flight
     // degrades to best effort.
-    $key_lock = tit_named_lock('k|' . $key, 12);
+    $key_lock = tit_named_lock('k|' . $key, 2);
     if ($key_lock === null) return call_user_func($run);
-    // Still computing after 12 s: say busy (the page retries once) rather
+    // Still computing after 2 s: say busy (the page retries) rather
     // than run the same compute a second time (Codex P2 on TIT#362).
     if ($key_lock === false) return tit_busy_response();
     tit_forget_transient_cache($key);

@@ -95,5 +95,5 @@ def test_funded_card_links_jobs_honestly():
 
 
 def test_tailor_button_links_ask_the_recruiter():
-    assert "quick-draft?utm_source=talent-tracker&amp;utm_medium=funded-card&amp;utm_campaign=tailor" in JS
+    assert "resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=funded-card" in JS
     assert ".tit-wrap .tit-tr-tailor {" in CSS

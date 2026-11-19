@@ -82,7 +82,7 @@ function tit_company_header_html($name, $status, $chips, $freshness_html = '') {
  */
 function tit_company_cta_url($name) {
     $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower((string) $name)), '-');
-    $q = array('utm_source' => 'talent-tracker', 'utm_medium' => 'cta', 'utm_campaign' => 'company-is-hiring');
+    $q = array('utm_source' => 'talent_tracker', 'utm_medium' => 'cta', 'utm_campaign' => 'company-is-hiring');
     if ($slug !== '') $q['utm_content'] = substr($slug, 0, 60);
     return 'https://asktherecruiter.com/resume-score?' . http_build_query($q, '', '&');
 }

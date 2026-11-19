@@ -200,9 +200,16 @@ function tit_funded_week_jsonld(array $f, $url) {
     ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . "</script>\n";
 }
 
-/** Where the "Tailor your resume" button goes. Attribution only, as on the card. */
-function tit_funded_tailor_url() {
-    return 'https://asktherecruiter.com/quick-draft?utm_source=talent-tracker&utm_medium=funded-week&utm_campaign=tailor';
+/**
+ * Where the card button goes: the free match check, like every other tracker
+ * CTA (todo#1881 items 1-2: one destination, one UTM scheme).
+ */
+function tit_funded_tailor_url($company = '') {
+    // The check reads no company param: the company rides in utm_content for
+    // attribution only, and the button promises nothing company-specific.
+    $slug = substr(trim(preg_replace('/[^a-z0-9]+/', '-', strtolower((string) $company)), '-'), 0, 60);
+    return 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&utm_medium=cta&utm_campaign=funded-week'
+        . ($slug !== '' ? '&utm_content=' . $slug : '');
 }
 
 /** The request's week, resolved once: the Monday, or '' for no such page. */
@@ -268,7 +275,7 @@ function tit_funded_week_render(array $f) {
             <?php if ($r['source_url'] !== '') : ?>
               <a class="tit-tr-src" href="<?php echo esc_url($r['source_url']); ?>" target="_blank" rel="noopener nofollow">Source</a>
             <?php endif; ?>
-            <a class="tit-tr-tailor" href="<?php echo esc_url(tit_funded_tailor_url()); ?>" target="_blank" rel="noopener">Tailor your resume for this company</a>
+            <a class="tit-tr-tailor" href="<?php echo esc_url(tit_funded_tailor_url($r['company'])); ?>" target="_blank" rel="noopener">Check my resume for free</a>
           </span>
         </li>
         <?php endforeach; ?>

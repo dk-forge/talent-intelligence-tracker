@@ -30,7 +30,8 @@ const TIT_ROLES_DIR_PATH = 'talent-intelligence-tracker/roles';
 const TIT_ROLES_SITEMAP_PATH = 'talent-intelligence-tracker/roles-sitemap.xml';
 const TIT_ROLE_RECENT = 12;
 const TIT_ROLE_TOP_EMPLOYERS = 8;
-const TIT_ROLE_CTA_URL = 'https://asktherecruiter.com/?utm_source=tit&utm_medium=seo&utm_campaign=whos_hiring';
+// The free match check, one UTM scheme (todo#1881 items 1-2).
+const TIT_ROLE_CTA_URL = 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&utm_medium=cta&utm_campaign=role-page';
 
 /** Reader-facing role names, keyed by the stored vocabulary (api.php). */
 function tit_role_labels() {
@@ -316,9 +317,16 @@ function tit_role_trail($current = null) {
     return $trail;
 }
 
+/**
+ * The match check reads no role parameter, so the button promises a free
+ * resume check, not a role-specific one; the lead-in names the role, and the
+ * role rides in utm_content for attribution (todo#1881 item 1).
+ */
 function tit_role_cta_html($role_name) {
-    return '<div class="tit-callout tit-role-cta"><a class="tit-btn" href="' . esc_url(TIT_ROLE_CTA_URL)
-         . '">' . esc_html(sprintf('Check your fit for %s jobs', $role_name)) . '</a></div>';
+    $slug = substr(trim(preg_replace('/[^a-z0-9]+/', '-', strtolower((string) $role_name)), '-'), 0, 60);
+    $url = TIT_ROLE_CTA_URL . ($slug !== '' ? '&utm_content=' . $slug : '');
+    return '<div class="tit-callout tit-role-cta"><p>' . esc_html(sprintf('Applying for %s jobs?', $role_name))
+         . ' <a class="tit-btn" href="' . esc_url($url) . '">Check my resume for free</a></p></div>';
 }
 
 function tit_role_render($current) {

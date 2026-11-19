@@ -2127,10 +2127,12 @@
   // after a quiet spell runs at once (first paint and a single click are not
   // delayed); calls inside REFRESH_GAP_MS collapse into one trailing run with
   // the final filters. busyBegin already aborts the request a new one replaces.
-  var REFRESH_GAP_MS = 350, REFRESH_MAX_WAIT_MS = 1000, refreshTimer = null, refreshLast = 0;
+  var REFRESH_GAP_MS = 350, REFRESH_MAX_WAIT_MS = 1500, refreshTimer = null, refreshLast = 0;
   function refresh() {
     var now = Date.now();
-    // Quiet spell, or a steady stream that has not fetched for a second.
+    // Fetch at once after a quiet spell. Inside a burst it is a trailing run,
+    // with a 1.5 s max wait so held keys or steady typing still fetch; the
+    // wait is long enough that a cancelled fetch costs little dead work.
     if (now - refreshLast >= (refreshTimer ? REFRESH_MAX_WAIT_MS : REFRESH_GAP_MS)) {
       if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
       refreshLast = now;
@@ -2269,19 +2271,37 @@
 
   // 503 + Retry-After is the server's cold-compute cap saying "not now"
   // (tit_cold_compute_guard). A few polite retries, then the caller's error path.
+  // Also retried, at most twice and with jitter: WordPress's "Error
+  // establishing a database connection" page (HTML 500). Measured 2026-11-19
+  // after 1.118.2, it is what the remaining 500s under fast clicks are: the
+  // host's MySQL connection limit. Nothing else is: a plugin fatal is also an
+  // HTML 500, a 502/504 is a slow compute, and re-running either adds load at
+  // the worst moment; any other 503 (e.g. tit_geo_unavailable) is final too.
+  var TIT_DB_ERR = /Error establishing a database connection|<title>Database Error/i;
+  function titRetryWait(r, left) {
+    if (r.status === 503 && r.headers.get('Retry-After')) {
+      return Promise.resolve(Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000);
+    }
+    var ct = r.headers.get('Content-Type') || '';
+    if (r.status !== 500 || ct.indexOf('text/html') !== 0 || left <= 1) return Promise.resolve(0);
+    return r.clone().text().then(function (t) {
+      return TIT_DB_ERR.test(t) ? 2000 + Math.floor(Math.random() * 1000) : 0;
+    }, function () { return 0; });
+  }
   function titFetch(url, opts, left) {
     if (left === undefined) left = 3;   // up to three retries, inside the 20 s deadline
     return fetch(url, opts).then(function (r) {
-      // Only the capacity cap's 503 carries Retry-After; any other 503 (e.g.
-      // tit_geo_unavailable mid-deploy) is not retried.
-      if (r.status !== 503 || !r.headers.get('Retry-After') || left <= 0) return r;
-      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 3) * 1000;
-      return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
-        if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
-        return titFetch(url, opts, left - 1);
+      if (left <= 0) return r;
+      return titRetryWait(r, left).then(function (wait) {
+        if (!wait) return r;
+        return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
+          if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
+          return titFetch(url, opts, left - 1);
+        });
       });
     });
   }
+
 
 
   var timer;
@@ -4195,7 +4215,7 @@
         (jobs ? '<a class="tit-tr-jobs" href="' + jobs + '" target="_blank" rel="noopener nofollow">' +
           (r.jobs_kind === 'board' ? 'See jobs' : 'Search jobs') + '</a>' : '') +
         (href ? '<a class="tit-tr-src" href="' + href + '" target="_blank" rel="noopener nofollow">Source</a>' : '') +
-        '<a class="tit-tr-tailor" href="' + TR_TAILOR + '" target="_blank" rel="noopener">Tailor your resume for this company</a>' +
+        '<a class="tit-tr-tailor" href="' + trTailorUrl(r.company) + '" target="_blank" rel="noopener">Check my resume for free</a>' +
         '</span></li>';
     });
     h += '</ol>';
@@ -4213,9 +4233,14 @@
   // The weekly roundup page (includes/funded_week.php), derived from the API
   // base so no markup byte is spent on it: .../blog/wp-json/talent/v1/ -> .../blog/.
   var TR_WEEK = escUrl(String(TIT.api || '').replace(/wp-json\/.*$/, '') + 'talent-intelligence-tracker/funded-this-week/');
-  // Owner-approved 2026-10-19. Quick Draft reads no company param today, so
-  // this carries attribution only; a prefill needs a small app change.
-  var TR_TAILOR = 'https://asktherecruiter.com/quick-draft?utm_source=talent-tracker&amp;utm_medium=funded-card&amp;utm_campaign=tailor';
+  // The free match check, one UTM scheme (todo#1881 items 1-2). The check
+  // reads no company param, so the company rides in utm_content for
+  // attribution only, and the button promises nothing company-specific.
+  var TR_TAILOR = 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=funded-card';
+  function trTailorUrl(company) {
+    var slug = String(company || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+    return TR_TAILOR + (slug ? '&amp;utm_content=' + slug : '');
+  }
 
   // Tapping a place applies it through the SAME controls the region strip,
   // country row and city row use, then drills one level down.

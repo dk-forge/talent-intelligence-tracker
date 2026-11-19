@@ -219,7 +219,7 @@ def test_daily_email_section():
     assert html.count("<h2") == 1 and ">Open roles now</h2>" in html
     assert html.count("<li ") <= 10
     assert "By country" in html and "By role family" in html
-    assert "utm_source=talent-tracker" in html and "utm_campaign=open-roles-daily" in html
+    assert "utm_source=talent_tracker" in html and "utm_campaign=open-roles-daily" in html
     assert "See all matches for your CV" in html and "#start-intake" in html
     assert "—" not in html + out["text"]   # no em-dashes (owner style)
 
