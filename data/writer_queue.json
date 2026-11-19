@@ -249,72 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-19T09:47:51Z",
-      "history": [
-        {
-          "at": "2026-11-19T09:42:56Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-19T09:47:51Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261119T094256Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-11-19T09:42:56Z",
-      "requested_by": "dakotta-labs",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-11T09:34:07Z",
-      "history": [
-        {
-          "at": "2026-11-11T09:34:03Z",
-          "detail": "retract two live rows the referees rejected: valuation summed as raised",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-11T09:34:07Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-11T09:35:56Z",
-          "detail": "run 42996275955",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-11T09:35:56Z",
-          "detail": "run 42996275955",
-          "event": "landed"
-        }
-      ],
-      "id": "20261111T093403Z-retract",
-      "inputs": {
-        "reason": "Amount was a valuation, not money raised (two referees agreed, 2026-11-11). The round stays listed on its other row.",
-        "signal_id": "2654e70c27de5aab326fb3acb97eaa25,e44b5e20578cbfe90998aa9a775f4e5f"
-      },
-      "landed_at": "2026-11-11T09:35:56Z",
-      "priority": 0,
-      "reason": "retract two live rows the referees rejected: valuation summed as raised",
-      "requested_at": "2026-11-11T09:34:03Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "42996275955",
-      "state": "landed",
-      "workflow": "retract.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-11T09:47:48Z",
       "history": [
         {
@@ -2582,6 +2516,44 @@
       "run_id": "44488718329",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-19T09:47:51Z",
+      "history": [
+        {
+          "at": "2026-11-19T09:42:56Z",
+          "detail": "scheduled link hygiene (40 9 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-19T09:47:51Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-19T09:51:39Z",
+          "detail": "run 44499707969",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-19T09:51:39Z",
+          "detail": "run 44499707969",
+          "event": "landed"
+        }
+      ],
+      "id": "20261119T094256Z-enrich",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-19T09:51:39Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (40 9 * * *)",
+      "requested_at": "2026-11-19T09:42:56Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "44499707969",
+      "state": "landed",
+      "workflow": "enrich.yml"
     }
   ],
   "version": 1
