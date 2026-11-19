@@ -26,9 +26,10 @@ function tit_header_cta_applies() {
 }
 
 /**
- * Two paths, one rewrite. The dashboard is a theme page, so its header is a
- * core/template-part block and this filter sees its output. Sub-pages render
- * the part through tit_render_header(), which retags its buffer directly.
+ * The filter sees every block's output, on the dashboard (a theme page) and
+ * on sub-pages (tit_render_header() renders the part through do_blocks).
+ * tit_render_header() also retags its buffer as a belt-and-braces pass; the
+ * rewrite is idempotent, so the second pass changes nothing.
  * The regex only touches an asktherecruiter.com link tagged
  * utm_source=blog&utm_medium=nav, so the block type does not matter.
  */
