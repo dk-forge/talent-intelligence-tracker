@@ -86,3 +86,26 @@ def test_handler_runs_before_the_layoff_trackers_catch_all():
     src = (PLUGIN / "includes" / "llms.php").read_text()
     assert "add_action('init', 'tit_serve_llms_txt', -1);" in src
     assert "tit_require('includes/llms.php');" in (PLUGIN / "talent-intelligence-tracker.php").read_text()
+
+
+# todo#1881 item 10: the hub's "Key numbers" block uses the SAME sentences.
+@needs_php
+def test_hub_key_numbers_block_matches_llms_txt_and_is_dated():
+    html = _php("echo tit_key_numbers_html(json_decode(%s, true));" % json.dumps(json.dumps(FACTS)))
+    txt = _txt(FACTS)
+    assert 'Key numbers (updated <time datetime="2026-10-12">October 12, 2026</time>)' in html
+    lines = _php("echo json_encode(tit_key_number_lines(json_decode(%s, true)));" % json.dumps(json.dumps(FACTS)))
+    for line in json.loads(lines):
+        assert line in txt
+        assert line.replace("%", "%") in html.replace("&#039;", "'")
+    assert 'aria-labelledby="tit-key-numbers-h"' in html
+
+
+@needs_php
+def test_hub_key_numbers_block_is_empty_without_a_corpus():
+    assert _php("echo tit_key_numbers_html(array('notable' => 0));") == ""
+
+
+def test_hub_renders_the_block_under_the_dashboard():
+    sc = (PLUGIN / "includes" / "shortcodes.php").read_text()
+    assert "$html .= tit_key_numbers_html(tit_dashboard_facts(tit_table_name()));" in sc
