@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.121.0",
+   "date": "2026-11-19",
+   "tag": "Change",
+   "text": "Company, country and industry pages now link to the same company, country or sector in our layoff tracker, where both trackers have a page for it."
+  },
+  {
    "version": "1.120.0",
    "date": "2026-11-19",
    "tag": "Fix",
