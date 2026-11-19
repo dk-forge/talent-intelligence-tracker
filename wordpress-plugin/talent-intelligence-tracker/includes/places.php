@@ -1089,7 +1089,7 @@ function tit_place_render($kind, $cell, $facts) {
 
       <h1><?php echo esc_html($heading); ?></h1>
       <?php // Tracked sign-up line inside the first screen (includes/atr_signup_cta.php);
-      // tit_render_footer() skips it for this route so it is not printed twice.
+      // the shared footer skips it for this route so it is not printed twice.
       if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('place'); ?>
 
       <?php // Visible twin of dateModified; built and escaped in includes/freshness.php.
@@ -1416,7 +1416,7 @@ function tit_places_render() {
 
       <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
       <?php // Tracked sign-up line inside the first screen (includes/atr_signup_cta.php);
-      // tit_render_footer() skips it for this route so it is not printed twice.
+      // the shared footer skips it for this route so it is not printed twice.
       if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('places'); ?>
       <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('places'); ?>
       <p class="tit-note">
