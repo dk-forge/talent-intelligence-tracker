@@ -1,0 +1,568 @@
+{
+ "ran_at": "2026-11-19T08:19:54+01:00",
+ "ran_on": "2026-11-19",
+ "plan": {
+  "cycle": 646,
+  "planned_on": "2026-11-19",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-16 against gold set 2026-10-v1",
+  "countries": [
+   {
+    "iso2": "GB",
+    "name": "United Kingdom",
+    "tier": "zero",
+    "measured": {
+     "total": 6,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "NO",
+    "name": "Norway",
+    "tier": "zero",
+    "measured": {
+     "total": 4,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "CN",
+    "name": "China",
+    "tier": "zero",
+    "measured": {
+     "total": 3,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "LT",
+    "name": "Lithuania",
+    "tier": "covered",
+    "measured": {
+     "total": 1,
+     "held": 1,
+     "held_pct": 100.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "GB",
+   "tier": "zero",
+   "measured": {
+    "total": 6,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "NO",
+   "tier": "zero",
+   "measured": {
+    "total": 4,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "CN",
+   "tier": "zero",
+   "measured": {
+    "total": 3,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "LT",
+   "tier": "covered",
+   "measured": {
+    "total": 1,
+    "held": 1,
+    "held_pct": 100.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 19,
+  "held": 6,
+  "missing": 13,
+  "unusable": 0,
+  "usable": 19
+ },
+ "by_country": {
+  "CN": {
+   "leads": 5,
+   "held": 1,
+   "missing": 4,
+   "unusable": 0
+  },
+  "NO": {
+   "leads": 5,
+   "held": 1,
+   "missing": 4,
+   "unusable": 0
+  },
+  "GB": {
+   "leads": 4,
+   "held": 1,
+   "missing": 3,
+   "unusable": 0
+  },
+  "LT": {
+   "leads": 5,
+   "held": 3,
+   "missing": 2,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0229,
+  "queries": 4,
+  "usd_per_query": 0.0057,
+  "usd_per_lead": 0.0012,
+  "usd_per_candidate_miss": 0.0018,
+  "lifetime_usd": 0.9326,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:GB",
+   "leads": 4,
+   "usd": 0.00569,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 351,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:NO",
+   "leads": 5,
+   "usd": 0.00574,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 405,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:CN",
+   "leads": 5,
+   "usd": 0.00575,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 420,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:LT",
+   "leads": 5,
+   "usd": 0.00572,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 388,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Isomorphic Labs",
+   "claimed_country": "GB",
+   "claimed_city": "London",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-17",
+   "claimed_amount": "$5bn",
+   "claimed_stage": "series_c",
+   "claimed_outlet": "City A.M.",
+   "claimed_url": "https://www.cityam.com/isomorphic-labs-raises-5bn-in-one-of-uk-techs-biggest-funding-rounds/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "6cec4c7f8d3eda2990359c0f1579258d",
+    "company": "Isomorphic Labs",
+    "pillar": "company_development",
+    "country": "GB",
+    "published_date": "2026-11-17",
+    "source_url": "https://www.fiercebiotech.com/biotech/isomorphic-labs-raises-5b-series-c-months-after-21b-round"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Digital Origin",
+   "claimed_country": "GB",
+   "claimed_city": "Northamptonshire",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-18",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Milton Keynes Chamber of Commerce",
+   "claimed_url": "https://chambermk.co.uk/member-news/digital-origin-appoints-clinton-groome-as-ceo-signalling-a-new-chapter-of-growth-and-ambition/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "EDX Medical Group plc",
+   "claimed_country": "GB",
+   "claimed_city": "Cambridge",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-17",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Investegate",
+   "claimed_url": "https://www.investegate.co.uk/index.php/announcement/rns/edx-medical-group-plc--edx/appointment-of-ceo-and-board-changes/9878207",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GB",
+   "dimension_tier": "zero",
+   "claimed_company": "Laverock Therapeutics",
+   "claimed_country": "GB",
+   "claimed_city": "London",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-16",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Cambridge Network",
+   "claimed_url": "https://www.cambridgenetwork.co.uk/news/laverock-therapeutics-appoints-parker-moss-chief-executive-officer-and-paul-j-sekhri-executive",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Nel ASA",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-21",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://markets.ft.com/data/announce/full?dockey=600-202610211535PR_NEWS_EURO_ND__EN78217-1",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Rystad Energy",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Rystad Energy",
+   "claimed_url": "https://www.rystadenergy.com/news/rystad-energy-minority-growth-investment-marlin-equity-partners-leadership-change",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Rystad Energy",
+   "claimed_country": "NO",
+   "claimed_city": "Oslo",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-07",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Rystad Energy",
+   "claimed_url": "https://www.rystadenergy.com/news/rystad-energy-minority-growth-investment-marlin-equity-partners-leadership-change",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Jenz",
+   "claimed_country": "NO",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-21",
+   "claimed_amount": "\u20ac540K",
+   "claimed_stage": "pre-seed",
+   "claimed_outlet": "Tech.eu",
+   "claimed_url": "https://tech.eu/2026/10/21/jenz-lands-eur540k-four-months-after-hackathon-win-to-streamline-retail-operations/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "NO",
+   "dimension_tier": "zero",
+   "claimed_company": "Norske tog AS",
+   "claimed_country": "NO",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-08",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Railway-News",
+   "claimed_url": "https://railway-news.com/norway-oystein-risan-steps-down-as-ceo-of-norske-tog/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "90de08bc315936169802dcef7f1c63a8",
+    "company": "Norske Tog",
+    "pillar": "leadership_change",
+    "country": "NO",
+    "published_date": "2026-10-08",
+    "source_url": "https://railway-news.com/norway-oystein-risan-steps-down-as-ceo-of-norske-tog/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "Yiren Digital Ltd.",
+   "claimed_country": "CN",
+   "claimed_city": "Beijing",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-13",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.morningstar.com/news/pr-newswire/20261013cn70744/yiren-digital-appoints-na-mei-as-acting-chief-executive-officer",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "B&K Corporation Limited",
+   "claimed_country": "CN",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-20",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Futunn Newsfile",
+   "claimed_url": "https://newsfile.futunn.com/public/NN-PersistNoticeAttachment/7781/20261020/12377356-0.PDF",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "IFBH Limited",
+   "claimed_country": "CN",
+   "claimed_city": "Shanghai",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-14",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "HKEX News",
+   "claimed_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1014/2026101400729.pdf",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "Ola Dimensions",
+   "claimed_country": "CN",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-13",
+   "claimed_amount": "hundreds of millions of RMB",
+   "claimed_stage": "angel-plus",
+   "claimed_outlet": "National Business Daily",
+   "claimed_url": "https://technode.com/2026/10/13/home-robot-startup-ola-dimensions-raises-hundreds-of-millions-of-rmb-in-fourth-funding-round/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "CN",
+   "dimension_tier": "zero",
+   "claimed_company": "DeepSeek",
+   "claimed_country": "CN",
+   "claimed_city": "Hangzhou",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-22",
+   "claimed_amount": "$15 billion",
+   "claimed_stage": "",
+   "claimed_outlet": "Bloomberg News",
+   "claimed_url": "https://www.bloomberg.com/news/articles/2026-10-22/deepseek-raises-15-billion-in-challenge-to-leading-us-labs",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "4edd63e208c8c9899856d6a77549a202",
+    "company": "DeepSeek",
+    "pillar": "how_we_work",
+    "country": "CN",
+    "published_date": "2026-09-08",
+    "source_url": "https://www.scmp.com/tech/big-tech/article/3366740/deepseek-embarks-unprecedented-hiring-spree-it-overhauls-backend-systems"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LT",
+   "dimension_tier": "covered",
+   "claimed_company": "Biomatter",
+   "claimed_country": "LT",
+   "claimed_city": "Vilnius",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-12",
+   "claimed_amount": "$18M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Startups Raised",
+   "claimed_url": "https://www.startupsraised.com/news/biomatter-raises-series-a",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "34435d7f5a8b3780ba5881545a068e09",
+    "company": "Biomatter",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-11-12",
+    "source_url": "https://www.citybiz.co/article/932515/biomatter-raises-18-million-series-a-led-by-astanor-to-expand-ai-powered-enzyme-design/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LT",
+   "dimension_tier": "covered",
+   "claimed_company": "Finbee Verslui",
+   "claimed_country": "LT",
+   "claimed_city": "Vilnius",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-21",
+   "claimed_amount": "\u20ac55M",
+   "claimed_stage": "",
+   "claimed_outlet": "Vestbee",
+   "claimed_url": "https://www.vestbee.com/insights/articles/finbee-verslui-raises-55-m",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LT",
+   "dimension_tier": "covered",
+   "claimed_company": "Finpro",
+   "claimed_country": "LT",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-28",
+   "claimed_amount": "\u20ac5 million",
+   "claimed_stage": "",
+   "claimed_outlet": "The Baltic Times",
+   "claimed_url": "https://www.baltictimes.com/lithuanian_lender_secures__5_million_in_financing_from_luxembourg_fund/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LT",
+   "dimension_tier": "covered",
+   "claimed_company": "Holo",
+   "claimed_country": "LT",
+   "claimed_city": "Vilnius",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-15",
+   "claimed_amount": "\u20ac5M",
+   "claimed_stage": "seed",
+   "claimed_outlet": "The Recursive",
+   "claimed_url": "https://www.therecursive.com/lithuanian-holo-raises-eur5m-to-put-small-business-marketing-on-autopilot/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "3cb782535cb85fde57328d0b5823c36d",
+    "company": "Holo",
+    "pillar": "company_development",
+    "country": "LT",
+    "published_date": "2026-10-15",
+    "source_url": "https://www.eu-startups.com/2026/10/vilnius-based-holo-raises-e5-million-to-put-marketing-on-autopilot-for-small-businesses/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "LT",
+   "dimension_tier": "covered",
+   "claimed_company": "Monopulse",
+   "claimed_country": "LT",
+   "claimed_city": "Vilnius",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-30",
+   "claimed_amount": "\u20ac2M",
+   "claimed_stage": "",
+   "claimed_outlet": "HansaIndex",
+   "claimed_url": "https://hansaindex.com/companies/monopulse",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "9f30041abfa0a9b6e9e62e9c9be62305",
+    "company": "Monopulse",
+    "pillar": "company_development",
+    "country": "DK",
+    "published_date": "2026-10-12",
+    "source_url": "https://www.therecursive.com/danish-lithuanian-drone-maker-monopulse-raises-eur2m-to-scale-nato-grade-uav-production/"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}
