@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.2",
+   "date": "2026-11-19",
+   "tag": "Fix",
+   "text": "Clicks on the free match check links are now counted, so we can see which tracker pages send people to Ask The Recruiter."
+  },
+  {
    "version": "1.122.1",
    "date": "2026-11-19",
    "tag": "Fix",

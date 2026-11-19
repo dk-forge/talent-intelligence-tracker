@@ -53,6 +53,14 @@
       return { name: 'watchlist_star',
                params: { action: star.getAttribute('aria-pressed') === 'true' ? 'remove' : 'add' } };
     }
+    // Sign-up CTA to the free match check (todo#2731): the same event name and
+    // params the layoff tracker sends, so GA4 counts tracker CTA clicks in one
+    // funnel step. Only the campaign slug (a closed [a-z0-9_-] set) is sent.
+    var cta = target.closest('a[href*="utm_source=talent_tracker"]');
+    if (cta) {
+      var m = /[?&]utm_campaign=([a-z0-9_-]{1,64})(?:&|#|$)/i.exec(cta.href || '');
+      return { name: 'resume_prompt_click', params: { campaign: m ? m[1] : 'unknown' } };
+    }
     var src = target.closest('.tit-card-src a');
     if (src) {
       return { name: 'outbound_source_click', params: { link_domain: hostOf(src.href) } };
