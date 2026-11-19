@@ -1101,7 +1101,10 @@ function tit_place_render($kind, $cell, $facts) {
       <?php // Tracked sign-up line inside the first screen, after the heading's own
       // freshness and follow lines (includes/atr_signup_cta.php). The footer
       // line stays too, for the reader who reaches the end on a desktop.
-      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('place_top', 'Resume check'); ?>
+      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('place_top', 'Resume check');
+      // The same country or sector in the layoff tracker (includes/cross_links.php).
+      if (function_exists('tit_cross_links_html') && $kind !== 'city')
+          echo tit_cross_links_html($kind, tit_place_slug($kind, $cell['key']), $cell['name']); ?>
 
       <?php
       /*
