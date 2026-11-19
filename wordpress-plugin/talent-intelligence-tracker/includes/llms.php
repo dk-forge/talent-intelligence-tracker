@@ -16,6 +16,61 @@
  */
 if (!defined('ABSPATH')) exit;
 
+/**
+ * PURE. The tracker's quotable figures as plain sentences, each opening with
+ * its "as of" date. ONE builder for llms.txt and the hub's "Key numbers"
+ * block (todo#1881 item 10), so the two can never print different numbers.
+ * Empty when the corpus is empty.
+ */
+function tit_key_number_lines(array $facts) {
+    $total = (int) ($facts['notable'] ?? 0);
+    $asof  = substr((string) ($facts['newest_run'] ?? ''), 0, 10);
+    if ($total <= 0 || $asof === '') return array();
+    $lines = array();
+    // view_lo/view_hi: the notable set's own bounds, the range the hub prints
+    // beside this count (span_* covers routine filings too).
+    $lo = substr((string) ($facts['view_lo'] ?? ''), 0, 10);
+    $hi = substr((string) ($facts['view_hi'] ?? ''), 0, 10);
+    $span = ($lo !== '' && $hi !== '') ? " dated $lo to $hi" : '';
+    $lines[] = "As of $asof, the Talent Intelligence Tracker by AskTheRecruiter.com holds "
+             . number_format($total) . " sourced employer signals$span.";
+    $companies = (int) ($facts['companies'] ?? 0);
+    $countries = (int) ($facts['countries'] ?? 0);
+    if ($companies > 0 && $countries > 0) {
+        // "Records from N countries", never "covering": the hub's own wording,
+        // because measured coverage varies by country.
+        $lines[] = "As of $asof, those signals name " . number_format($companies) . " employers, with records from "
+                 . number_format($countries) . " countries; measured coverage varies by country.";
+    }
+    $share = function_exists('tit_primary_source_share')
+        ? tit_primary_source_share($facts['verified'] ?? 0, $total) : null;
+    if ($share !== null) {
+        // The hub prints this share; /sources/ does not.
+        $lines[] = "As of $asof, at least $share% of them link a primary source "
+                 . "(a filing, register entry or official announcement); the rest link the news report.";
+    }
+    return $lines;
+}
+
+/**
+ * The hub's "Key numbers" block: the same sentences as llms.txt, visible,
+ * dated, and in the DOM for crawlers and answer engines (todo#1881 item 10).
+ */
+function tit_key_numbers_html(array $facts) {
+    $lines = tit_key_number_lines($facts);
+    if (!$lines) return '';
+    $asof = substr((string) ($facts['newest_run'] ?? ''), 0, 10);
+    $ts = strtotime($asof . ' 00:00:00 UTC');
+    $label = $ts ? gmdate('F j, Y', $ts) : $asof;
+    $out = '<section class="tit-key-numbers" aria-labelledby="tit-key-numbers-h">'
+         . '<h2 id="tit-key-numbers-h">Key numbers (updated <time datetime="' . esc_attr($asof) . '">'
+         . esc_html($label) . '</time>)</h2><ul>';
+    foreach ($lines as $line) $out .= '<li>' . esc_html($line) . '</li>';
+    $out .= '</ul><p>Cite as: "According to the Talent Intelligence Tracker by AskTheRecruiter.com." '
+          . '<a href="' . esc_url(home_url('/talent-intelligence-tracker/press/')) . '">Press page</a></p></section>';
+    return $out;
+}
+
 /** PURE. The llms.txt body from the facts bundle. */
 function tit_llms_txt_content(array $facts) {
     $hub = home_url('/talent-intelligence-tracker/');
@@ -23,32 +78,11 @@ function tit_llms_txt_content(array $facts) {
     $out .= "> A daily-updated, source-linked record of hiring, funding, leadership and pay signals from employers worldwide. "
           . "Each record links to the document behind it. License: CC BY 4.0. "
           . "Attribute to \"the Talent Intelligence Tracker by AskTheRecruiter.com\".\n\n";
-    $total = (int) ($facts['notable'] ?? 0);
     $asof  = substr((string) ($facts['newest_run'] ?? ''), 0, 10);
-    if ($total > 0 && $asof !== '') {
+    $lines = tit_key_number_lines($facts);
+    if ($lines) {
         $out .= "## Quotable figures (as of $asof)\n";
-        // view_lo/view_hi: the notable set's own bounds, the range the hub prints
-        // beside this count (span_* covers routine filings too).
-        $lo = substr((string) ($facts['view_lo'] ?? ''), 0, 10);
-        $hi = substr((string) ($facts['view_hi'] ?? ''), 0, 10);
-        $span = ($lo !== '' && $hi !== '') ? " dated $lo to $hi" : '';
-        $out .= "- As of $asof, the Talent Intelligence Tracker by AskTheRecruiter.com holds "
-              . number_format($total) . " sourced employer signals$span. Source: $hub\n";
-        $companies = (int) ($facts['companies'] ?? 0);
-        $countries = (int) ($facts['countries'] ?? 0);
-        if ($companies > 0 && $countries > 0) {
-            // "Records from N countries", never "covering": the hub's own wording,
-            // because measured coverage varies by country.
-            $out .= "- As of $asof, those signals name " . number_format($companies) . " employers, with records from "
-                  . number_format($countries) . " countries; measured coverage varies by country. Source: $hub\n";
-        }
-        $share = function_exists('tit_primary_source_share')
-            ? tit_primary_source_share($facts['verified'] ?? 0, $total) : null;
-        if ($share !== null) {
-            $out .= "- As of $asof, at least $share% of them link a primary source "
-                  . "(a filing, register entry or official announcement); the rest link the news report. "
-                  . "Source: $hub\n";  // the hub prints this share; /sources/ does not
-        }
+        foreach ($lines as $line) $out .= "- $line Source: $hub\n";
         $out .= "\n";
     }
     $out .= "## Key pages\n";

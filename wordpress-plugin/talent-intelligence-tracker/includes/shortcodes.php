@@ -124,6 +124,12 @@ function tit_dashboard_shortcode() {
     $html = tit_dashboard_html();
     // Tracked sign-up route (CLAUDE.md conversion rule), see includes/atr_signup_cta.php.
     if ($html !== '' && function_exists('tit_atr_cta_line_html')) $html = tit_atr_cta_line_html('tracker_home') . $html;
+    // "Key numbers (updated <date>)" under the dashboard (todo#1881 item 10):
+    // the llms.txt sentences, from the same facts bundle the hero reads.
+    if ($html !== '' && function_exists('tit_key_numbers_html') && function_exists('tit_dashboard_facts')
+        && function_exists('tit_table_name')) {
+        $html .= tit_key_numbers_html(tit_dashboard_facts(tit_table_name()));
+    }
     // Intro + FAQ (ai-layoff-tracker#446 items 2-3), copy in includes/page_faq.php.
     return function_exists('tit_page_faq_wrap_dashboard') ? tit_page_faq_wrap_dashboard($html) : $html;
 }

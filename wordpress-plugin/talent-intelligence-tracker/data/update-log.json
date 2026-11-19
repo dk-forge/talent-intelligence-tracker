@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.0",
+   "date": "2026-11-19",
+   "tag": "Change",
+   "text": "The tracker home page now ends with a dated \"Key numbers\" block: the same quotable figures, with their date, that the tracker publishes for AI search tools, plus how to cite them."
+  },
+  {
    "version": "1.121.0",
    "date": "2026-11-19",
    "tag": "Change",
