@@ -86,7 +86,8 @@ class SecondReview(unittest.TestCase):
         self.assertIn("r.status === 503 && !!r.headers.get('Retry-After')", b)
         # Host-level HTML 5xx (the DB-connection page) retries; API JSON errors do not.
         self.assertIn("ct.indexOf('text/html') === 0", b)
-        self.assertNotIn("MAX_WAIT", JS)
+        self.assertIn("r.status === 500 && ct.indexOf('text/html') === 0 && left > 1", b)  # not 502/504, at most two
+        self.assertIn("Math.random()", b)  # jitter
 
     def test_geo_table_supersedes_and_drops_stale_answers(self):
         b = body(JS, "refreshGeo")

@@ -172,6 +172,7 @@ function tit_render_header() {
     ob_start();
     block_template_part('header');
     $tit_header_html = (string) ob_get_clean();
+    if (function_exists('tit_header_cta_retag')) $tit_header_html = tit_header_cta_retag($tit_header_html);
     ob_start();
     block_template_part('footer');
     $GLOBALS['tit_prerendered_footer'] = (string) ob_get_clean();

@@ -200,7 +200,7 @@ FIXTURE = """<!doctype html>
     <ol class="tit-tr-list"><li class="tit-tr-item"><span class="tit-tr-amt">$50M</span>
     <a class="tit-tr-co" href="#">Example Co</a><span class="tit-tr-meta">Berlin, Germany · 2026-10-01</span>
     <span class="tit-tr-links"><a class="tit-tr-jobs" href="#">See jobs</a>
-    <a class="tit-tr-src" href="#">Source</a><a class="tit-tr-tailor" href="#">Check your resume fit for this company</a></span></li></ol>
+    <a class="tit-tr-src" href="#">Source</a><a class="tit-tr-tailor" href="#">Check my resume for free</a></span></li></ol>
     <button class="tit-tr-more">Show all 25 funded companies</button></section>
   <!-- The sibling emits its <style> beside the form, in the body, AFTER this
        stylesheet has loaded in the head. Reproduced in that order: the two

@@ -19,12 +19,21 @@ function tit_header_cta_retag($html) {
     );
 }
 
+/** This tracker's pages, the role routes included (tit_is_our_page omits them). */
+function tit_header_cta_applies() {
+    if (function_exists('tit_is_our_page') && tit_is_our_page()) return true;
+    return (bool) (get_query_var('tit_role') || get_query_var('tit_roles'));
+}
+
+/**
+ * Two paths, one rewrite. The dashboard is a theme page, so its header is a
+ * core/template-part block and this filter sees its output. Sub-pages render
+ * the part through tit_render_header(), which retags its buffer directly.
+ * The regex only touches an asktherecruiter.com link tagged
+ * utm_source=blog&utm_medium=nav, so the block type does not matter.
+ */
 function tit_header_cta_filter($block_content, $block) {
-    if (!function_exists('tit_is_our_page') || !tit_is_our_page()) return $block_content;
-    $name = isset($block['blockName']) ? (string) $block['blockName'] : '';
-    if (!in_array($name, array('core/navigation-link', 'core/button', 'core/navigation', 'core/template-part'), true)) {
-        return $block_content;
-    }
+    if (!tit_header_cta_applies()) return $block_content;
     return tit_header_cta_retag($block_content);
 }
 add_filter('render_block', 'tit_header_cta_filter', 20, 2);

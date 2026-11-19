@@ -2127,13 +2127,14 @@
   // after a quiet spell runs at once (first paint and a single click are not
   // delayed); calls inside REFRESH_GAP_MS collapse into one trailing run with
   // the final filters. busyBegin already aborts the request a new one replaces.
-  var REFRESH_GAP_MS = 350, refreshTimer = null, refreshLast = 0;
+  var REFRESH_GAP_MS = 350, REFRESH_MAX_WAIT_MS = 1500, refreshTimer = null, refreshLast = 0;
   function refresh() {
     var now = Date.now();
-    // Fetch at once only after a quiet spell. Inside a burst it is a pure
-    // trailing run: a fetch cancelled by the next click still costs the server
-    // its full compute, so a max-wait fetch would be dead work.
-    if (!refreshTimer && now - refreshLast >= REFRESH_GAP_MS) {
+    // Fetch at once after a quiet spell. Inside a burst it is a trailing run,
+    // with a 1.5 s max wait so held keys or steady typing still fetch; the
+    // wait is long enough that a cancelled fetch costs little dead work.
+    if (now - refreshLast >= (refreshTimer ? REFRESH_MAX_WAIT_MS : REFRESH_GAP_MS)) {
+      if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
       refreshLast = now;
       refreshNow();
       return;
@@ -2280,11 +2281,15 @@
       // WordPress's "Error establishing a database connection" page (the
       // host's MySQL connection limit), raised before any plugin code runs.
       // These are idempotent reads; an API JSON error stays final.
+      // Not 502/504: a gateway timeout on a slow compute is not helped by
+      // re-running it. Host errors get at most two retries, with jitter, so
+      // open pages do not retry in step against a host that is short of
+      // connections.
       var ct = r.headers.get('Content-Type') || '';
-      var hostErr = r.status >= 500 && r.status !== 501 && ct.indexOf('text/html') === 0;
+      var hostErr = r.status === 500 && ct.indexOf('text/html') === 0 && left > 1;
       var capBusy = r.status === 503 && !!r.headers.get('Retry-After');
       if (left <= 0 || !(hostErr || capBusy)) return r;
-      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000;
+      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000 + Math.floor(Math.random() * 1000);
       return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
         if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
         return titFetch(url, opts, left - 1);
@@ -4204,7 +4209,7 @@
         (jobs ? '<a class="tit-tr-jobs" href="' + jobs + '" target="_blank" rel="noopener nofollow">' +
           (r.jobs_kind === 'board' ? 'See jobs' : 'Search jobs') + '</a>' : '') +
         (href ? '<a class="tit-tr-src" href="' + href + '" target="_blank" rel="noopener nofollow">Source</a>' : '') +
-        '<a class="tit-tr-tailor" href="' + TR_TAILOR + '" target="_blank" rel="noopener">Check your resume fit for this company</a>' +
+        '<a class="tit-tr-tailor" href="' + trTailorUrl(r.company) + '" target="_blank" rel="noopener">Check my resume for free</a>' +
         '</span></li>';
     });
     h += '</ol>';
@@ -4222,10 +4227,14 @@
   // The weekly roundup page (includes/funded_week.php), derived from the API
   // base so no markup byte is spent on it: .../blog/wp-json/talent/v1/ -> .../blog/.
   var TR_WEEK = escUrl(String(TIT.api || '').replace(/wp-json\/.*$/, '') + 'talent-intelligence-tracker/funded-this-week/');
-  // Owner-approved 2026-10-19. Quick Draft reads no company param today, so
-  // this carries attribution only; a prefill needs a small app change.
-  // The free match check, one UTM scheme (todo#1881 items 1-2).
+  // The free match check, one UTM scheme (todo#1881 items 1-2). The check
+  // reads no company param, so the company rides in utm_content for
+  // attribution only, and the button promises nothing company-specific.
   var TR_TAILOR = 'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=cta&amp;utm_campaign=funded-card';
+  function trTailorUrl(company) {
+    var slug = String(company || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+    return TR_TAILOR + (slug ? '&amp;utm_content=' + slug : '');
+  }
 
   // Tapping a place applies it through the SAME controls the region strip,
   // country row and city row use, then drills one level down.
