@@ -20,11 +20,6 @@
       "last": 1794824115,
       "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
     },
-    "collect-structured:main:f5702fb48050491a": {
-      "first": 1794888991,
-      "last": 1794888991,
-      "subject": "CI RED: collect-structured: [guardrail] finding(s) are past their grace window. The collection itself is reported by the collect job. Answer them: python3 guardrails.py"
-    },
     "enrich:main:cd0f1a58933504d7": {
       "first": 1794909173,
       "last": 1794909173,
@@ -56,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-19T00:14:30+00:00",
+  "updated_at": "2026-11-19T04:45:26+00:00",
   "version": 1
 }
