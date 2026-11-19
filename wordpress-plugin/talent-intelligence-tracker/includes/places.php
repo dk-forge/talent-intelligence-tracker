@@ -1098,6 +1098,10 @@ function tit_place_render($kind, $cell, $facts) {
       // Email follows ride the sibling's digest (includes/follow.php); cities only.
       if ($kind === 'city' && function_exists('tit_follow_form'))
           echo tit_follow_form('city', $cell['key'], $cell['name']); ?>
+      <?php // Tracked sign-up line inside the first screen, after the heading's own
+      // freshness and follow lines (includes/atr_signup_cta.php). The footer
+      // line stays too, for the reader who reaches the end on a desktop.
+      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('place_top', 'Resume check'); ?>
 
       <?php
       /*
@@ -1413,6 +1417,9 @@ function tit_places_render() {
 
       <h1 data-tit-route-heading>Countries, Cities And Industries We Cover</h1>
       <?php if (function_exists('tit_page_faq_intro')) echo tit_page_faq_intro('places'); ?>
+      <?php // After the answer-first intro, so the first text under the H1 stays the
+      // page's own summary; still inside the first screen.
+      if (function_exists('tit_atr_cta_line_html')) echo tit_atr_cta_line_html('places_top', 'Resume check'); ?>
       <p class="tit-note">
         <?php printf(
           esc_html('%1$s of the %2$s we hold updates for have a page of their own.'),

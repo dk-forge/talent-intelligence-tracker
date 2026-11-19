@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.119.1",
+   "date": "2026-11-18",
+   "tag": "Change",
+   "text": "Company and places pages now show the free resume check link near the top, under the heading; the existing links further down stay."
+  },
+  {
    "version": "1.119.0",
    "date": "2026-11-18",
    "tag": "Change",
