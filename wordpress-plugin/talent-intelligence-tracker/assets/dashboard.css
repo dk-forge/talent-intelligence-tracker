@@ -4410,3 +4410,8 @@ html:has(.tit-main), body:has(.tit-main) {
 .tit-cards-fold-btn { font:inherit; min-height:44px; padding:8px 14px; cursor:pointer;
   border:1px solid currentColor; border-radius:999px; background:transparent; color:inherit; }
 .tit-cards-fold-btn:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+
+/* WCAG 2.2 2.5.8 target size (todo 1881 item 9): axe found the watch star
+   and the employer name on cards under 24px at desktop widths. */
+.tit-wrap .tit-watch-star { min-width:24px; min-height:24px; }
+.tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }

@@ -3952,7 +3952,9 @@ function tit_market_trend_html(array $m) {
     }
 
     ob_start(); ?>
-    <div class="tit-table-scroll tit-chart-scroll">
+    <?php // tabindex + label: it scrolls sideways on phones, so a keyboard user
+          // must be able to reach it (axe scrollable-region-focusable, todo#1881). ?>
+    <div class="tit-table-scroll tit-chart-scroll" tabindex="0" role="region" aria-label="Weekly market chart">
     <svg class="tit-market-chart" viewBox="0 0 <?php echo $w_px; ?> <?php echo $h_px; ?>"
          role="img" preserveAspectRatio="xMidYMid meet"
          aria-label="<?php echo esc_attr(($share
