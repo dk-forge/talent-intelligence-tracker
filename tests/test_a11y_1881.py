@@ -27,4 +27,5 @@ def test_phone_star_keeps_44px():
     for line in tail.splitlines()[1:]:
         if line.startswith(".tit-wrap .tit-watch-star {") and "min-" in line:
             raise AssertionError("unscoped star size rule after the phone rule: " + line)
-    assert ".tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }" in css
+    j = css.index(".tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }")
+    assert css.rfind("@media (min-width:900px) {", 0, j) > css.rfind("\n}", 0, j)  # desktop-scoped

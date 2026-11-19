@@ -4417,5 +4417,7 @@ html:has(.tit-main), body:has(.tit-main) {
   /* Desktop only: the max-width:899px rule above gives the star 44px, and an
      unscoped rule here would override it with 24px on phones. */
   .tit-wrap .tit-watch-star { min-width:24px; min-height:24px; }
+  /* Desktop only as well: on phones the existing rules size card controls to
+     44px, and an inline-block 24px box here undercut them. */
+  .tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }
 }
-.tit-wrap .tit-card-employer a { display:inline-block; min-height:24px; }
