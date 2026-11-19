@@ -56,6 +56,7 @@ recorded beside WITHDRAWN_ENGLISH_EDITIONS in that file, and
 
 from __future__ import annotations
 
+import base64
 import json
 import re
 import time
@@ -275,6 +276,13 @@ STATS = {"consent_wall": 0, "http_blocked": 0, "no_signature": 0,
 #: (`is_unresolved`), and retry on the next run.
 RESOLVE_GIVE_UP_AFTER = 40
 
+#: Consecutive HTTP 403/429/503 answers, with not one success yet this run,
+#: after which the rest of the batch is not attempted. A block is not noise:
+#: 2026-11-19 (Railway) the first 40 of 1280 were all 403/429/503, and every
+#: further request only deepens a rate limit. Items decoded offline never
+#: count towards either breaker.
+RESOLVE_GIVE_UP_AFTER_BLOCKED = 5
+
 _FAILURE_LABELS = (
     ("http_blocked", "HTTP 403/429/503"),
     ("consent_wall", "consent wall"),
@@ -292,7 +300,9 @@ def failure_breakdown() -> str:
 
 
 def resolve_all(items: list[dict], *, resolve=None,
-                give_up_after: int = RESOLVE_GIVE_UP_AFTER) -> list[dict]:
+                give_up_after: int = RESOLVE_GIVE_UP_AFTER,
+                give_up_after_blocked: int = RESOLVE_GIVE_UP_AFTER_BLOCKED,
+                ) -> list[dict]:
     """Resolve every item, giving up on the rest after a run of pure failure.
 
     The breaker only trips while nothing has resolved: once one link has come
@@ -300,21 +310,74 @@ def resolve_all(items: list[dict], *, resolve=None,
     ordinary noise that each item survives on its own.
     """
     resolve = resolve or resolve_source_url
-    out, streak, any_ok = [], 0, False
+    out, streak, blocked, any_ok = [], 0, 0, False
     for item in items:
-        if not any_ok and streak >= give_up_after:
-            if _is_google_news(item.get("discovery_url")):
+        tripped = streak >= give_up_after or blocked >= give_up_after_blocked
+        if not any_ok and tripped:
+            # The offline decode costs no request, so it still runs.
+            item = _apply_offline(item)
+            if is_unresolved(item):
                 STATS["skipped_breaker"] += 1
             out.append(item)
             continue
+        before = STATS["http_blocked"]
         item = resolve(item)
         if _is_google_news(item.get("discovery_url")):
             if is_unresolved(item):
                 streak += 1
+                blocked = blocked + 1 if STATS["http_blocked"] > before else 0
             else:
                 any_ok = True
         out.append(item)
     return out
+
+
+def decode_offline(aid: str) -> str | None:
+    """The publisher URL from an old-format article id, with no request.
+
+    Ids of the older format ("CBMi" + base64url) carry the URL in the token
+    itself: protobuf field 4 (bytes 0x08 0x13 0x22), a varint length, then the
+    URL. The newer format carries an opaque "AU_yqL..." token there instead,
+    which only batchexecute can turn into a URL; for those this returns None.
+    """
+    try:
+        raw = base64.urlsafe_b64decode(aid + "=" * (-len(aid) % 4))
+    except (ValueError, TypeError):
+        return None
+    if not raw.startswith(b"\x08\x13\x22"):
+        return None
+    pos, length, shift = 3, 0, 0
+    while pos < len(raw) and shift < 35:
+        byte = raw[pos]
+        length |= (byte & 0x7F) << shift
+        pos += 1
+        if not byte & 0x80:
+            break
+        shift += 7
+    body = raw[pos:pos + length]
+    if len(body) != length:
+        return None
+    try:
+        url = body.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        return None
+    if _is_google_news(url):
+        return None
+    return url
+
+
+def _apply_offline(item: dict) -> dict:
+    url = item.get("discovery_url") or ""
+    if (urllib.parse.urlsplit(url).hostname or "").lower() != "news.google.com":
+        return item
+    hit = decode_offline(article_id(url))
+    if hit:
+        item["source_url"] = hit
+        STATS["resolved"] += 1
+    return item
 
 
 def is_consent_wall(html: str) -> bool:
@@ -378,6 +441,13 @@ def resolve_source_url(item: dict, *, timeout: int = 20, session=None) -> dict:
     url = item.get("discovery_url") or ""
     # Hostname, not substring: "news.google.com" in a query string is not Google.
     if (urllib.parse.urlsplit(url).hostname or "").lower() != "news.google.com":
+        return item
+
+    # Old-format ids carry the URL in the token: no request, nothing to block.
+    offline = decode_offline(article_id(url))
+    if offline:
+        item["source_url"] = offline
+        STATS["resolved"] += 1
         return item
 
     http = session or requests
