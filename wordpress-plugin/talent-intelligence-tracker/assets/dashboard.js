@@ -2271,31 +2271,37 @@
 
   // 503 + Retry-After is the server's cold-compute cap saying "not now"
   // (tit_cold_compute_guard). A few polite retries, then the caller's error path.
+  // Also retried, at most twice and with jitter: WordPress's "Error
+  // establishing a database connection" page (HTML 500). Measured 2026-11-19
+  // after 1.118.2, it is what the remaining 500s under fast clicks are: the
+  // host's MySQL connection limit. Nothing else is: a plugin fatal is also an
+  // HTML 500, a 502/504 is a slow compute, and re-running either adds load at
+  // the worst moment; any other 503 (e.g. tit_geo_unavailable) is final too.
+  var TIT_DB_ERR = /Error establishing a database connection|<title>Database Error/i;
+  function titRetryWait(r, left) {
+    if (r.status === 503 && r.headers.get('Retry-After')) {
+      return Promise.resolve(Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000);
+    }
+    var ct = r.headers.get('Content-Type') || '';
+    if (r.status !== 500 || ct.indexOf('text/html') !== 0 || left <= 1) return Promise.resolve(0);
+    return r.clone().text().then(function (t) {
+      return TIT_DB_ERR.test(t) ? 2000 + Math.floor(Math.random() * 1000) : 0;
+    }, function () { return 0; });
+  }
   function titFetch(url, opts, left) {
     if (left === undefined) left = 3;   // up to three retries, inside the 20 s deadline
     return fetch(url, opts).then(function (r) {
-      // Only the capacity cap's 503 carries Retry-After; any other 503 (e.g.
-      // tit_geo_unavailable mid-deploy) is not retried.
-      // Also retried: a host-level 5xx served as an HTML page. Measured on
-      // 2026-11-19 after 1.118.2: the remaining 500s under fast clicks were
-      // WordPress's "Error establishing a database connection" page (the
-      // host's MySQL connection limit), raised before any plugin code runs.
-      // These are idempotent reads; an API JSON error stays final.
-      // Not 502/504: a gateway timeout on a slow compute is not helped by
-      // re-running it. Host errors get at most two retries, with jitter, so
-      // open pages do not retry in step against a host that is short of
-      // connections.
-      var ct = r.headers.get('Content-Type') || '';
-      var hostErr = r.status === 500 && ct.indexOf('text/html') === 0 && left > 1;
-      var capBusy = r.status === 503 && !!r.headers.get('Retry-After');
-      if (left <= 0 || !(hostErr || capBusy)) return r;
-      var wait = Math.min(5, parseInt(r.headers.get('Retry-After'), 10) || 2) * 1000 + Math.floor(Math.random() * 1000);
-      return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
-        if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
-        return titFetch(url, opts, left - 1);
+      if (left <= 0) return r;
+      return titRetryWait(r, left).then(function (wait) {
+        if (!wait) return r;
+        return new Promise(function (res) { setTimeout(res, wait); }).then(function () {
+          if (opts && opts.signal && opts.signal.aborted) throw new DOMException('aborted', 'AbortError');
+          return titFetch(url, opts, left - 1);
+        });
       });
     });
   }
+
 
 
   var timer;

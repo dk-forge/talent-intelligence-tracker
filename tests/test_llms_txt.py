@@ -18,6 +18,7 @@ STUBS = (
     "function home_url($p = '') { return 'https://example.org/blog' . $p; }\n"
     "function admin_url($p = '') { return 'https://example.org/blog/wp-admin/' . $p; }\n"
     "function esc_url($s) { return (string) $s; }\n"
+         "function esc_attr($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }\n"
     "function esc_html($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }\n"
     "function number_format_i18n($n) { return number_format($n); }\n"
     "function wp_json_encode($v, $f = 0) { return json_encode($v, $f); }\n"

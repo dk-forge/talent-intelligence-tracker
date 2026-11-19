@@ -8,6 +8,12 @@
    "text": "Every sign-up link on the hiring tracker, including the site header's, now carries one tracker tag, and the company-card buttons go to the free resume match check. The site menu's script loads again on every sub-page, and a brief database error while filtering quickly is retried instead of shown."
   },
   {
+   "version": "1.119.1",
+   "date": "2026-11-18",
+   "tag": "Change",
+   "text": "Company and places pages now show the free resume check link near the top, under the heading; the existing links further down stay."
+  },
+  {
    "version": "1.119.0",
    "date": "2026-11-18",
    "tag": "Change",

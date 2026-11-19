@@ -15,6 +15,7 @@ MOD = PLUGIN / "includes" / "atr_bar.php"
 CTA = PLUGIN / "includes" / "atr_signup_cta.php"
 STUBS = ("define('ABSPATH', '/');\n"
          "function esc_url($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }\n"
+         "function esc_attr($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }\n"
          "function add_action() {}\n")
 needs_php = pytest.mark.skipif(not shutil.which("php"), reason="UNKNOWN, NOT RUN: php not installed")
 
@@ -62,3 +63,26 @@ def test_script_is_a_file_and_storage_is_guarded():
     js = (PLUGIN / "assets" / "atr-bar.js").read_text()
     assert js.count("try{") == 2
     assert "tit_require('includes/atr_bar.php');" in (PLUGIN / "talent-intelligence-tracker.php").read_text()
+
+
+def test_top_of_page_line_on_company_and_places_pages():
+    """todo 1853 item 4: a tracked line inside the first screen, with its own
+    landmark name, without moving the footer line (no upload-order gap)."""
+    inc = PLUGIN / "includes"
+    company = (inc / "company.php").read_text()
+    i = company.index("tit_atr_cta_line_html('company_top', 'Resume check')")
+    assert i < company.index("At a glance")
+    places = (inc / "places.php").read_text()
+    j = places.index("tit_atr_cta_line_html('place_top', 'Resume check')")
+    assert places.index("tit_freshness_line($facts['span']['hi']") < j < places.index("tit_render_footer('place')")
+    k = places.index("tit_atr_cta_line_html('places_top', 'Resume check')")
+    assert places.index("tit_page_faq_intro('places')") < k < places.index("tit_render_footer('places')")
+    main = (PLUGIN / "talent-intelligence-tracker.php").read_text()
+    assert "$related !== '' && $related !== 'company' && function_exists('tit_atr_cta_line_html')" in main
+
+
+@needs_php
+def test_second_line_on_a_page_has_its_own_landmark_name():
+    top = _php("echo tit_atr_cta_line_html('place_top', 'Resume check');")
+    foot = _php("echo tit_atr_cta_line_html('place');")
+    assert 'aria-label="Resume check"' in top and 'aria-label="Resume help"' in foot

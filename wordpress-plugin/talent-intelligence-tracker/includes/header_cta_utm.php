@@ -33,7 +33,10 @@ function tit_header_cta_applies() {
  * utm_source=blog&utm_medium=nav, so the block type does not matter.
  */
 function tit_header_cta_filter($block_content, $block) {
-    if (!tit_header_cta_applies()) return $block_content;
-    return tit_header_cta_retag($block_content);
+    // Cheap test first: this runs for every block on every page.
+    if (strpos($block_content, 'utm_source=blog') === false) return $block_content;
+    static $ours = null;
+    if ($ours === null) $ours = tit_header_cta_applies();
+    return $ours ? tit_header_cta_retag($block_content) : $block_content;
 }
 add_filter('render_block', 'tit_header_cta_filter', 20, 2);

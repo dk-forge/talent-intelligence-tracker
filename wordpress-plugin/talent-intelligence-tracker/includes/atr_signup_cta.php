@@ -22,8 +22,10 @@ function tit_atr_cta_url($campaign) {
 }
 
 /** One plain line in the page flow: shows at every width, no script. */
-function tit_atr_cta_line_html($campaign) {
-    return '<aside class="tit-atr-cta" aria-label="Resume help"'
+function tit_atr_cta_line_html($campaign, $label = 'Resume help') {
+    // $label: a second line on one page (the top-of-page one) needs its own
+    // landmark name, so a screen reader's landmark list can tell them apart.
+    return '<aside class="tit-atr-cta" aria-label="' . esc_attr($label) . '"'
         . ' style="margin:1rem 0;padding:.7rem .9rem;border:1px solid rgba(127,127,127,.4);border-radius:8px;line-height:1.5">'
         . '<b>Applying for a role?</b> Check how your resume fits the job. Free, no card. '
         . '<a href="' . esc_url(tit_atr_cta_url($campaign)) . '" target="_blank" rel="noopener nofollow"'

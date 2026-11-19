@@ -39,7 +39,7 @@ echo tit_header_cta_retag('<a href="https://example.com/?utm_source=blog&amp;utm
 
 def test_header_cta_filter_only_runs_on_our_pages():
     src = (PLUGIN / "includes" / "header_cta_utm.php").read_text()
-    assert "if (!tit_header_cta_applies()) return $block_content;" in src
+    assert src.index("strpos($block_content, 'utm_source=blog')") < src.index("$ours = tit_header_cta_applies();")
     # Role routes are this tracker's pages too (tit_is_our_page omits them).
     assert "get_query_var('tit_role') || get_query_var('tit_roles')" in src
     main = (PLUGIN / "talent-intelligence-tracker.php").read_text()
