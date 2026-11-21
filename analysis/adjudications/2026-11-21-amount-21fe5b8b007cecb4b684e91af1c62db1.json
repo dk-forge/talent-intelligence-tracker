@@ -1,0 +1,66 @@
+{
+ "key": "amount/21fe5b8b007cecb4b684e91af1c62db1",
+ "label": "Anthropic $79,400,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "ipo",
+   "recommended": "edit",
+   "corrected_amount": 79400000000,
+   "corrected_basis": "ipo",
+   "confidence": 95,
+   "reasoning": "The source clearly states \"Anthropic said yesterday it raised US$79.4 billion (RM326 billion) in its historic public market debut\" and \"The company is expected to begin trading today on the Nasdaq exchange under the ticker 'ANT,' after pricing its shares at US$83.\" This is an IPO (initial public offering), not a company_raise. The money_basis vocabulary explicitly states \"ipo and public_offering: equity sold into public markets.\" The amount is correct but the basis must be changed to 'ipo'."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "ipo",
+   "recommended": "edit",
+   "corrected_amount": 79400000000,
+   "corrected_basis": "ipo",
+   "confidence": 100,
+   "reasoning": "The source states, 'Anthropic said yesterday it raised US$79.4 billion in its historic public market debut,' indicating the event is an IPO, not a private company raise."
+  }
+ },
+ "row": {
+  "company": "Anthropic",
+  "headline": "Anthropic raises US$79.4b in historic Nasdaq debut, topping SpaceX",
+  "summary": "Anthropic has raised US$79.4b.",
+  "funding_amount": "US$79.4b",
+  "funding_amount_usd": 79400000000,
+  "funding_stage": null,
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.malaymail.com/news/money/2026/11/19/anthropic-raises-us794b-in-historic-nasdaq-debut-topping-spacex/243819",
+  "source_name": "Malay Mail (Money)",
+  "published_date": "2026-11-19",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.016239,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.010179,
+  "openai/gpt-4o": 0.006059999999999999
+ },
+ "evidence_url": "https://www.malaymail.com/news/money/2026/11/19/anthropic-raises-us794b-in-historic-nasdaq-debut-topping-spacex/243819",
+ "evidence_chars": 3584,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 79400000000,
+  "corrected_basis": "ipo"
+ },
+ "note": "two-model adjudication of amount/21fe5b8b007cecb4b684e91af1c62db1, both referees say edit. corrected_amount=79400000000 corrected_basis=ipo. anthropic/claude-sonnet-4.5: The source clearly states \"Anthropic said yesterday it raised US$79.4 billion (RM326 billion) in its historic public market debut\" and \"The company is expected to begin trading today on the Nasdaq exchange under the tick; openai/gpt-4o: The source states, 'Anthropic said yesterday it raised US$79.4 billion in its historic public market debut,' indicating the event is an IPO, not a private company raise.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-21T00:34:15+00:00"
+}
