@@ -249,73 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-21T00:34:59Z",
-      "history": [
-        {
-          "at": "2026-11-21T00:34:54Z",
-          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-21T00:34:59Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261121T003454Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-11-21-amount-21fe5b8b007cecb4b684e91af1c62db1.json",
-        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
-      },
-      "priority": 0,
-      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-      "requested_at": "2026-11-21T00:34:54Z",
-      "requested_by": "github-actions[bot]",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-12T09:47:46Z",
-      "history": [
-        {
-          "at": "2026-11-12T09:42:43Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-12T09:47:46Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-12T09:51:53Z",
-          "detail": "run 43194633347",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-12T09:51:53Z",
-          "detail": "run 43194633347",
-          "event": "landed"
-        }
-      ],
-      "id": "20261112T094243Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "landed_at": "2026-11-12T09:51:53Z",
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-11-12T09:42:43Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "43194633347",
-      "state": "landed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-12T16:33:15Z",
       "history": [
         {
@@ -2583,6 +2516,46 @@
       "run_id": "44774672908",
       "state": "landed",
       "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-21T00:34:59Z",
+      "history": [
+        {
+          "at": "2026-11-21T00:34:54Z",
+          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-21T00:34:59Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-21T00:36:29Z",
+          "detail": "run 44844784948",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-21T00:36:29Z",
+          "detail": "run 44844784948",
+          "event": "landed"
+        }
+      ],
+      "id": "20261121T003454Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-11-21-amount-21fe5b8b007cecb4b684e91af1c62db1.json",
+        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
+      },
+      "landed_at": "2026-11-21T00:36:29Z",
+      "priority": 0,
+      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
+      "requested_at": "2026-11-21T00:34:54Z",
+      "requested_by": "github-actions[bot]",
+      "run_id": "44844784948",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
