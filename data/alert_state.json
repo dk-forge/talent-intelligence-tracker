@@ -20,6 +20,11 @@
       "last": 1794824115,
       "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
     },
+    "collect:main:80725902cd487116": {
+      "first": 1795387200,
+      "last": 1795387200,
+      "subject": "CI RED: collect: [publish] health not sent: 500 Server Error: Internal Server Error for url: ***/wp-json/talent/v1/health"
+    },
     "collect:main:ff39486b701e7338": {
       "first": 1795300378,
       "last": 1795300378,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-21T22:32:59+00:00",
+  "updated_at": "2026-11-22T22:40:00+00:00",
   "version": 1
 }
