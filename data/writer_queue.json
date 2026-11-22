@@ -249,77 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-22T00:56:15Z",
-      "history": [
-        {
-          "at": "2026-11-22T00:45:17Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-22T00:56:15Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-22T01:08:00Z",
-          "detail": "run 44969042143",
-          "event": "bound"
-        }
-      ],
-      "id": "20261122T004517Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-22T00:45:17Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "44969042143",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-13T15:05:30Z",
-      "history": [
-        {
-          "at": "2026-11-13T15:05:25Z",
-          "detail": "sec_form_d_bulk stale 2563h vs 2400h ceiling; dry run to see if 2026q3 data set is published",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-13T15:05:30Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-13T15:06:34Z",
-          "detail": "run 43449083495",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-13T15:06:34Z",
-          "detail": "run 43449083495",
-          "event": "landed"
-        }
-      ],
-      "id": "20261113T150525Z-backfill-funding-bulk",
-      "inputs": {
-        "dry_run": "true",
-        "quarters": "2026q3"
-      },
-      "landed_at": "2026-11-13T15:06:34Z",
-      "priority": 10,
-      "reason": "sec_form_d_bulk stale 2563h vs 2400h ceiling; dry run to see if 2026q3 data set is published",
-      "requested_at": "2026-11-13T15:05:25Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "43449083495",
-      "state": "landed",
-      "workflow": "backfill-funding-bulk.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-13T15:15:15Z",
       "history": [
         {
@@ -2590,6 +2519,44 @@
       "run_id": "44967611775",
       "state": "landed",
       "workflow": "adjudicate-rows.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-22T00:56:15Z",
+      "history": [
+        {
+          "at": "2026-11-22T00:45:17Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-22T00:56:15Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-22T01:08:00Z",
+          "detail": "run 44969042143",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-22T01:23:11Z",
+          "detail": "run 44969042143",
+          "event": "landed"
+        }
+      ],
+      "id": "20261122T004517Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-22T01:23:11Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-11-22T00:45:17Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "44969042143",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
