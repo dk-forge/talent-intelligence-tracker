@@ -313,8 +313,21 @@
       "settled_at": "2026-11-22T15:21:16+00:00",
       "settled_because": "delivered late: emailed the owner",
       "state": "delivered"
+    },
+    {
+      "attempts": 1,
+      "key": "host-unreachable:2026-11-22T16:09:59+00:00",
+      "kind": "alert",
+      "last_attempt_at": "2026-11-22T16:36:24+00:00",
+      "last_error": "raised while the host was unreachable, so it could not be sent",
+      "raised_at": "2026-11-22T16:36:24+00:00",
+      "run_url": "",
+      "scope": "host:asktherecruiter",
+      "settled_at": "2026-11-22T16:36:27+00:00",
+      "settled_because": "delivered late: emailed the owner",
+      "state": "delivered"
     }
   ],
-  "updated_at": "2026-11-22T15:21:16+00:00",
+  "updated_at": "2026-11-22T16:36:27+00:00",
   "version": 1
 }
