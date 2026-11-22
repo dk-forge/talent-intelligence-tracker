@@ -337,8 +337,8 @@ function tit_open_roles_email_section($freq, $args = array()) {
     $cv = tit_open_roles_cv_url($freq);
     $html .= '<p style="margin:14px 0 4px;"><a href="' . esc_url(call_user_func($link, $cv)) . '" style="display:inline-block;'
            . 'background:' . $acc . ';color:#ffffff;font-size:15px;font-weight:700;line-height:1.2;text-decoration:none;'
-           . 'padding:12px 18px;border-radius:6px;">See all matches for your CV</a></p>';
-    $text .= "\nSee all matches for your CV: " . $cv . "\n";
+           . 'padding:12px 18px;border-radius:6px;">See all matches for your resume</a></p>';
+    $text .= "\nSee all matches for your resume: " . $cv . "\n";
 
     return array('html' => $html, 'text' => $text, 'count' => $n);
 }

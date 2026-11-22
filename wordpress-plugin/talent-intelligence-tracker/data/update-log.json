@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.3",
+   "date": "2026-11-22",
+   "tag": "Fix",
+   "text": "Use resume in the tracker email match actions."
+  },
+  {
    "version": "1.122.2",
    "date": "2026-11-19",
    "tag": "Fix",

@@ -22,7 +22,7 @@ over 30h old: then say nothing).
 
 Daily: one "Open roles now" heading, the reader's count, counts by country
 (or by state inside the US), by city and by role family, up to 10 roles (two
-per employer at most), then the "See all matches for your CV" button to
+per employer at most), then the "See all matches for your resume" button to
 `https://asktherecruiter.com/?utm_source=talent-tracker&utm_medium=email&utm_campaign=open-roles-daily&utm_content=cv-matches#start-intake`.
 Owner ruling 2026-11-13: this target (the home page intake form, `#start-intake`)
 is correct; there is no separate sign-up page. Do not change it without asking.

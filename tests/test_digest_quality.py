@@ -173,7 +173,7 @@ class ReaderActions(unittest.TestCase):
         self.assertIn("Roles: drivers, mechanics and dispatchers", text)
         self.assertIn("Location: Jakarta, Indonesia", text)
         self.assertIn("https://asktherecruiter.com", text)
-        self.assertIn("tailor your cv", text.lower())
+        self.assertIn("tailor your resume", text.lower())
 
     def test_nothing_is_claimed_the_source_does_not_state(self):
         text = D.render(edition([CEDRA]))
