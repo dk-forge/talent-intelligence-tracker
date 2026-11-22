@@ -463,7 +463,7 @@ def render(ed: Edition) -> str:
         L.append("")
 
     if ed.featured:
-        L.append(f"Applying? Tailor your CV for any of these roles with "
+        L.append(f"Applying? Tailor your resume for any of these roles with "
                  f"Ask The Recruiter: {dq.TAILOR_CV_URL}")
 
     return "\n".join(L).rstrip() + "\n"
@@ -496,7 +496,7 @@ def _render_item(f: Featured, show_roles=False, projected=False,
     if f.iso2:
         facts.append(f"Location: {f.location}")
     if f.applications_open or f.roles_stated:
-        facts.append(f"tailor your CV: {dq.TAILOR_CV_URL}")
+        facts.append(f"tailor your resume: {dq.TAILOR_CV_URL}")
     if facts:
         lines.append("      " + " · ".join(facts))
     if f.original_note:

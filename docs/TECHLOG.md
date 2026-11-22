@@ -1,3 +1,9 @@
+## 2026-11-22 - Resume wording in tracker email match actions
+
+The open-roles email button and plain-text action say "See all matches for your resume". The offline text digest uses the same term. Destinations, tracking tags and employer job links keep their existing values. The daily headline, employer grouping and top button belong to the sibling email composer and are covered by the linked work for todo#2847.
+
+Guard: `tests/test_open_roles.py`, `tests/test_daily_digest.py`. Both new copy checks failed before the replacements. The three focused digest suites pass with PHP enabled.
+
 ## 2026-11-13 - Open roles now: titles linking to the employer's own apply page
 
 **Class:** feature (owner ruling 2026-11-13, "yes, employer links"; 2026-11-12, no public listings)

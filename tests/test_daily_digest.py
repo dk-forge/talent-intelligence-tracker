@@ -355,3 +355,10 @@ class EveryExplanatorySentenceAppearsOnce(unittest.TestCase):
         lines = self._explanatory_lines(mutated)
         self.assertNotEqual(len(lines), len(set(lines)),
                             "the guard would not notice a duplicated caption")
+
+
+def test_resume_copy_in_the_text_digest():
+    text = dd.render(edition([row(summary="Acme is hiring 100 people. Applications are open. Roles include engineers.")]))
+    assert "Tailor your resume" in text
+    assert "tailor your resume:" in text
+    assert "your CV" not in text
