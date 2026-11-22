@@ -1,0 +1,63 @@
+{
+ "key": "amount/b3741fcf92ad1b6f348f89b08366878a",
+ "label": "Anthropic $64,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "ipo",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source clearly states 'deve concluir amanhã o maior IPO da história, levantando mais de US$ 64 bilhões' (will complete tomorrow the largest IPO in history, raising over US$ 64 billion). The money_basis is correctly identified as 'ipo'. However, per rule 2, 'ipo: equity sold into public markets' is NOT summed as company_raise. IPOs are explicitly excluded from the public money raised total. The amount is stated and correct, but the basis means it must be rejected from the raise total."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "ipo",
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states 'levantar mais de US$ 64 bilhões' for the IPO, which is not a company_raise. IPO is not a basis for summing money raised according to the rules."
+  }
+ },
+ "row": {
+  "company": "Anthropic",
+  "headline": "Anthropic, the biggest IPO in history",
+  "summary": "Anthropic is expected to complete the largest IPO in history tomorrow, raising over US$ 64 billion and an additional US$ 26 billion in a private placement from seven major technology companies. Alphabet and Nvidia will be the largest investors, with US$ 10 billion each.",
+  "funding_amount": ">US$ 64 billion",
+  "funding_amount_usd": 64000000000,
+  "funding_stage": "ipo",
+  "deal_type": "ipo",
+  "money_basis": "ipo",
+  "source_url": "https://braziljournal.com/anthropic-o-maior-ipo-da-historia",
+  "source_name": "Brazil Journal",
+  "published_date": "2026-11-18",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.018508,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.011733,
+  "openai/gpt-4o": 0.006774999999999996
+ },
+ "evidence_url": "https://braziljournal.com/anthropic-o-maior-ipo-da-historia",
+ "evidence_chars": 5181,
+ "action": "reject",
+ "correction": null,
+ "note": "two-model adjudication of amount/b3741fcf92ad1b6f348f89b08366878a, both referees say reject. anthropic/claude-sonnet-4.5: The source clearly states 'deve concluir amanhã o maior IPO da história, levantando mais de US$ 64 bilhões' (will complete tomorrow the largest IPO in history, raising over US$ 64 billion). The money_basis is correctly i; openai/gpt-4o: The source states 'levantar mais de US$ 64 bilhões' for the IPO, which is not a company_raise. IPO is not a basis for summing money raised according to the rules.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-22T00:37:49+00:00"
+}

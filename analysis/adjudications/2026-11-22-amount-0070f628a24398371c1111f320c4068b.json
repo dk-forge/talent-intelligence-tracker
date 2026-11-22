@@ -1,0 +1,66 @@
+{
+ "key": "amount/0070f628a24398371c1111f320c4068b",
+ "label": "Anthropic $107,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "ipo",
+   "recommended": "edit",
+   "corrected_amount": 107000000000,
+   "corrected_basis": "ipo",
+   "confidence": 95,
+   "reasoning": "The source clearly states: \"A criadora do Claude movimentou US$ 107 bilhões (R$ 629 bilhões) com a venda de ações\" and \"faz nesta quinta-feira (19) a maior estreia de uma empresa na bolsa de valores da história.\" This is explicitly an IPO (initial public offering), not a company_raise. The funding_stage is correctly marked as 'ipo' but money_basis is incorrectly stored as 'company_raise'. Per the rules, IPO equity sold into public markets should have money_basis 'ipo', not 'company_raise'."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "ipo",
+   "recommended": "edit",
+   "corrected_amount": 107000000000,
+   "corrected_basis": "ipo",
+   "confidence": 100,
+   "reasoning": "The source states 'A criadora do Claude movimentou US$ 107 bilhões... com a venda de ações', indicating the amount is from an IPO, not a company raise."
+  }
+ },
+ "row": {
+  "company": "Anthropic",
+  "headline": "Maior IPO da história: Anthropic supera desconfiança com IA e vale mais que a SpaceX, de Ellon Musk",
+  "summary": "Anthropic, the creator of Claude, has raised US$ 107 billion, surpassing SpaceX's US$ 75 billion. The company is valued at US$ 1.5 trillion and attracts investors with strong growth, but faces billions in costs to sustain expansion.",
+  "funding_amount": "US$ 107 bilhões",
+  "funding_amount_usd": 107000000000,
+  "funding_stage": "ipo",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://convergenciadigital.com.br/mercado/maior-ipo-da-historia-anthropic-supera-desconfianca-com-ia-e-vale-mais-que-a-spacex-de-ellon-musk/",
+  "source_name": "Convergencia Digital",
+  "published_date": "2026-11-19",
+  "collector": "national_press",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.01994,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.012813,
+  "openai/gpt-4o": 0.0071275
+ },
+ "evidence_url": "https://convergenciadigital.com.br/mercado/maior-ipo-da-historia-anthropic-supera-desconfianca-com-ia-e-vale-mais-que-a-spacex-de-ellon-musk/",
+ "evidence_chars": 5212,
+ "action": "edit",
+ "correction": {
+  "corrected_amount": 107000000000,
+  "corrected_basis": "ipo"
+ },
+ "note": "two-model adjudication of amount/0070f628a24398371c1111f320c4068b, both referees say edit. corrected_amount=107000000000 corrected_basis=ipo. anthropic/claude-sonnet-4.5: The source clearly states: \"A criadora do Claude movimentou US$ 107 bilhões (R$ 629 bilhões) com a venda de ações\" and \"faz nesta quinta-feira (19) a maior estreia de uma empresa na bolsa de valores da história.\" This is; openai/gpt-4o: The source states 'A criadora do Claude movimentou US$ 107 bilhões... com a venda de ações', indicating the amount is from an IPO, not a company raise.",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-22T00:37:43+00:00"
+}
