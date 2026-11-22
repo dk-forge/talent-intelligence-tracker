@@ -20,6 +20,11 @@
       "last": 1794824115,
       "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
     },
+    "collect-national-press:main:a93b5c8cb71f9ffd": {
+      "first": 1795390630,
+      "last": 1795390630,
+      "subject": "CI RED: collect national press: PUBLISH FAILED: gave up after retries: HTTPSConnectionPool(host='asktherecruiter.com', port=443): Read timed out. (read timeout=60)"
+    },
     "collect:main:80725902cd487116": {
       "first": 1795387200,
       "last": 1795387200,
@@ -56,6 +61,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-22T22:40:00+00:00",
+  "updated_at": "2026-11-22T23:37:10+00:00",
   "version": 1
 }
