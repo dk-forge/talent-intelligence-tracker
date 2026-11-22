@@ -249,82 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-22T16:33:12Z",
-      "history": [
-        {
-          "at": "2026-11-22T16:23:31Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-22T16:33:12Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-22T16:47:47Z",
-          "detail": "run 45044485371",
-          "event": "bound"
-        }
-      ],
-      "id": "20261122T162331Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-22T16:23:31Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "45044485371",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "acknowledged": "2026-11-13T17:41:32Z",
-      "attempts": 0,
-      "dispatched_at": "2026-11-13T17:03:11Z",
-      "history": [
-        {
-          "at": "2026-11-13T16:51:41Z",
-          "detail": "first open-roles publish after the 1.115.1 deploy (owner asked to deploy and merge, 2026-11-13); ats_boards is free, no model",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-13T17:03:11Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-13T17:05:33Z",
-          "detail": "run 43468894602",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-13T17:21:23Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-11-13T17:41:32Z",
-          "detail": "Diagnosed: self-hosted runner lost communication during the new 'Publish open roles' step (run 43468894602). Collection and the DB commit had already landed; only the role snapshot was lost. Fix (polite, bounded link re-check) is PR #341; a fresh ats_boards ticket is queued after it merges. (by dakotta-labs)",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20261113T165141Z-collect-structured",
-      "inputs": {
-        "dry_run": "false",
-        "source": "ats_boards"
-      },
-      "priority": 0,
-      "reason": "first open-roles publish after the 1.115.1 deploy (owner asked to deploy and merge, 2026-11-13); ats_boards is free, no model",
-      "requested_at": "2026-11-13T16:51:41Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "43468894602",
-      "state": "failed",
-      "workflow": "collect-structured.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-13T17:21:23Z",
       "history": [
         {
@@ -2588,6 +2512,44 @@
       "run_id": "45009275578",
       "state": "landed",
       "workflow": "enrich.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-22T16:33:12Z",
+      "history": [
+        {
+          "at": "2026-11-22T16:23:31Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-22T16:33:12Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-22T16:47:47Z",
+          "detail": "run 45044485371",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-22T17:00:48Z",
+          "detail": "run 45044485371",
+          "event": "landed"
+        }
+      ],
+      "id": "20261122T162331Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-22T17:00:48Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-11-22T16:23:31Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "45044485371",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
     }
   ],
   "version": 1
