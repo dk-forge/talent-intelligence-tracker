@@ -1,7 +1,7 @@
 {
-  "_committed_at": "2026-11-22T16:35:14+00:00",
+  "_committed_at": "2026-11-22T22:40:23+00:00",
   "announced": true,
-  "consecutive_failures": 3,
+  "consecutive_failures": 4,
   "history": [
     {
       "at": "2026-07-31T01:31:33+00:00",
@@ -84,9 +84,9 @@
       "state": "down"
     }
   ],
-  "last_detail": "HTTP 500 from /wp-json/talent/v1/source-health",
+  "last_detail": "no answer from /wp-json/talent/v1/source-health: The read operation timed out",
   "last_ok_at": "2026-11-22T15:49:08+00:00",
-  "last_probe_at": "2026-11-22T16:35:14+00:00",
+  "last_probe_at": "2026-11-22T22:40:23+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -118,9 +118,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 153ms",
-      "last_ok_at": "2026-11-22T16:35:14+00:00",
-      "last_probe_at": "2026-11-22T16:35:14+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 166ms",
+      "last_ok_at": "2026-11-22T22:40:23+00:00",
+      "last_probe_at": "2026-11-22T22:40:23+00:00",
       "since": "2026-11-16T09:16:45+00:00",
       "state": "up"
     },
@@ -144,9 +144,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 142ms",
-      "last_ok_at": "2026-11-22T16:35:14+00:00",
-      "last_probe_at": "2026-11-22T16:35:14+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 123ms",
+      "last_ok_at": "2026-11-22T22:40:23+00:00",
+      "last_probe_at": "2026-11-22T22:40:23+00:00",
       "since": "2026-11-16T09:16:45+00:00",
       "state": "up"
     }
