@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "collect-national-press:main:a93b5c8cb71f9ffd": {
-      "first": 1795390630,
-      "last": 1795390630,
-      "subject": "CI RED: collect national press: PUBLISH FAILED: gave up after retries: HTTPSConnectionPool(host='asktherecruiter.com', port=443): Read timed out. (read timeout=60)"
-    },
     "extraction-benchmark:main:8b663f6538c039df": {
       "first": 1789556570,
       "last": 1789556570,
@@ -56,6 +51,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-23T22:51:48+00:00",
+  "updated_at": "2026-11-23T23:46:03+00:00",
   "version": 1
 }
