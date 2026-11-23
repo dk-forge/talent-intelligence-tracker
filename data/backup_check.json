@@ -929,6 +929,73 @@
         "source_links": 20370
       },
       "verdict": "FAIL"
+    },
+    {
+      "blob": "03ac6b92650afb9e192e0ad7b3e175e50bbe5b4c",
+      "bytes": 83558400,
+      "checked_at": "2026-11-23T10:12:27Z",
+      "checks": [
+        {
+          "check": "integrity",
+          "detail": "PRAGMA integrity_check: ok",
+          "status": "PASS"
+        },
+        {
+          "check": "core_tables",
+          "detail": "6 core table(s) present and populated",
+          "status": "PASS"
+        },
+        {
+          "check": "no_shrink",
+          "detail": "no table is smaller than it was on 2026-11-16T10:14:38Z",
+          "status": "PASS"
+        },
+        {
+          "check": "archive_disjoint",
+          "detail": "every archived row is in exactly one place",
+          "status": "PASS"
+        },
+        {
+          "check": "republishable",
+          "detail": "all 44 republished column(s) present",
+          "status": "PASS"
+        },
+        {
+          "check": "push_size",
+          "detail": "79.7 MiB of GitHub's 100 MiB per-file push limit",
+          "status": "PASS"
+        }
+      ],
+      "commit": "09eea3e232c4ec731dca0636df6716b04199ceea",
+      "files": {
+        "data/archive/signals-2026-11-16.db": {
+          "blob": "5d995628ea761e6062fdcf1d6b28b569307acc9b",
+          "bytes": 9732096,
+          "integrity": "ok"
+        },
+        "data/talent_intel.db": {
+          "blob": "03ac6b92650afb9e192e0ad7b3e175e50bbe5b4c",
+          "bytes": 83558400,
+          "integrity": "ok"
+        },
+        "data/talent_intel_cache.db": {
+          "blob": "28343501e4193c265800d72c76d4006a6efee97f",
+          "bytes": 66686976,
+          "integrity": "ok"
+        }
+      },
+      "integrity": "ok",
+      "largest_file": "data/talent_intel.db",
+      "tables": {
+        "employer_identity": 9284,
+        "funding_corroborations": 0,
+        "publish_guardrails": 106,
+        "seen_urls": 163583,
+        "signals": 52137,
+        "source_health": 1460,
+        "source_links": 21431
+      },
+      "verdict": "PASS"
     }
   ],
   "version": 1
