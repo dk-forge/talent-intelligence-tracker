@@ -1,0 +1,312 @@
+{
+ "ran_at": "2026-11-23T08:16:29+01:00",
+ "ran_on": "2026-11-23",
+ "plan": {
+  "cycle": 654,
+  "planned_on": "2026-11-23",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-16 against gold set 2026-10-v1",
+  "countries": [
+   {
+    "iso2": "CO",
+    "name": "Colombia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "DK",
+    "name": "Denmark",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "GH",
+    "name": "Ghana",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "TW",
+    "name": "Taiwan",
+    "tier": "covered",
+    "measured": {
+     "total": 1,
+     "held": 1,
+     "held_pct": 100.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "CO",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "DK",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "GH",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "TW",
+   "tier": "covered",
+   "measured": {
+    "total": 1,
+    "held": 1,
+    "held_pct": 100.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 6,
+  "held": 2,
+  "missing": 4,
+  "unusable": 0,
+  "usable": 6
+ },
+ "by_country": {
+  "DK": {
+   "leads": 2,
+   "held": 1,
+   "missing": 1,
+   "unusable": 0
+  },
+  "GH": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "SL": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "TW": {
+   "leads": 1,
+   "held": 0,
+   "missing": 1,
+   "unusable": 0
+  },
+  "CO": {
+   "leads": 1,
+   "held": 1,
+   "missing": 0,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0219,
+  "queries": 4,
+  "usd_per_query": 0.0055,
+  "usd_per_lead": 0.0037,
+  "usd_per_candidate_miss": 0.0055,
+  "lifetime_usd": 0.9545,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:CO",
+   "leads": 2,
+   "usd": 0.00549,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 161,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:DK",
+   "leads": 2,
+   "usd": 0.00551,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 180,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:GH",
+   "leads": 2,
+   "usd": 0.00549,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 152,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:TW",
+   "leads": 1,
+   "usd": 0.00542,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 85,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "CO",
+   "dimension_tier": "zero",
+   "claimed_company": "Palomma",
+   "claimed_country": "CO",
+   "claimed_city": "Medell\u00edn",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-11",
+   "claimed_amount": "$14M",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "[dp-7bf1e7] News",
+   "claimed_url": "https://news.[dp-7bf1e7].com/fintech/nubank-alum-colombia-startup-palomma-ai-rental-services/",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d57a09ab41ad8f46f098ef2042fb78ab",
+    "company": "Palomma",
+    "pillar": "company_development",
+    "country": "CO",
+    "published_date": "2026-11-12",
+    "source_url": "https://startupslatam.com/la-colombiana-palomma-levanta-us14-millones-para-construir-el-banco-de-ia-del-arriendo-en-america-latina/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "TETRAPHARM",
+   "claimed_country": "DK",
+   "claimed_city": "Copenhagen",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-09",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.prnewswire.com/news-releases/tetrapharm-appoints-rolf-sass-sorensen-as-chief-executive-officer-302903349.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "Bavarian Nordic A/S",
+   "claimed_country": "DK",
+   "claimed_city": "Copenhagen",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-19",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "GlobeNewswire via Ritzau",
+   "claimed_url": "https://via.ritzau.dk/pressemeddelelse/15166969/bavarian-nordic-as?publisherId=90446&lang=en",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "20c5af86d0e567b4827458be5ae08e65",
+    "company": "Bavarian Nordic",
+    "pillar": "leadership_change",
+    "country": "DK",
+    "published_date": "2026-09-25",
+    "source_url": "https://european-biotechnology.com/latest-news/bavarian-nordic-names-new-ceo-abivax-and-proqr-add-key-leaders/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "LB LbHAgriTech",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-06",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Startuplist.africa",
+   "claimed_url": "https://www.startuplist.africa/fundings/ghana",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Miro",
+   "claimed_country": "SL",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-22",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Africa Global Funds",
+   "claimed_url": "https://www.africaglobalfunds.com/news/private-equity/deals/miro-secures-major-new-investment-round-led-by-lagata/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "TW",
+   "dimension_tier": "covered",
+   "claimed_company": "Onward Therapeutics",
+   "claimed_country": "TW",
+   "claimed_city": "Taipei",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-17",
+   "claimed_amount": "NT$900 million",
+   "claimed_stage": "Series B",
+   "claimed_outlet": "PR Newswire",
+   "claimed_url": "https://www.fidelity.com/news/article/default/202611171800PR_NEWS_USPR_____HK99997",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  }
+ ]
+}
