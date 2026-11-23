@@ -49,3 +49,8 @@ IP/user rotation, all anonymous action hooks, expiry, cleanup, storage failure a
 refusal before work. This proves the hook/storage contract, not a live-host load
 test. CI also runs the repository suite. Revert the PR to roll back the guards;
 deactivate before removing the module to clear scheduled cleanup and counter rows.
+
+Apache cache overrides retain successful read caching. Late response-status
+expressions remove the normal Cache-Control header and set no-store, private
+in the always table for errors, including 429 and 503. Thus storage failures
+cannot become shared-cacheable after PHP has returned its refusal.

@@ -121,3 +121,37 @@ class PublicLimits(unittest.TestCase):
         self.assertEqual(nested['stored'], [])
         public = self.run_ops([{}] * 121)
         self.assertEqual(public['results'][-1]['status'], 429)
+
+    def test_apache_error_responses_cannot_receive_shared_cache_headers(self):
+        bootstrap = """define('ABSPATH', '/tmp/');
+            define('TIT_URL', '/blog/wp-content/plugins/talent-intelligence-tracker/');
+            function add_action(...$args) {}
+            function rest_url($path) { return '/blog/wp-json/' . $path; }
+            function home_url($path) { return '/blog' . $path; }
+            function wp_parse_url($url, $part) { return parse_url($url, $part); }
+        """
+        config = subprocess.run([PHP, '-r', bootstrap + 'require $argv[1]; '
+                                 + 'echo json_encode(tit_htaccess_block_lines());',
+                                 str(SITE / 'includes/htaccess.php')],
+                                check=True, text=True, capture_output=True)
+        blocks = []
+        current = None
+        for line in json.loads(config.stdout):
+            if line.startswith('<If '):
+                current = []
+            elif line == '</If>':
+                blocks.append(current)
+                current = None
+            elif current is not None and line.startswith('Header '):
+                current.append(line)
+        self.assertEqual(len(blocks), 2)
+        for block in blocks:
+            with self.subTest(block=block):
+                # Late mod_headers expressions see the final response status.
+                # Clear the normal table too, so public and private cannot coexist.
+                self.assertEqual(block[-2:], [
+                    'Header unset Cache-Control "expr=%{REQUEST_STATUS} >= 400"',
+                    'Header always set Cache-Control "no-store, private" '
+                    '"expr=%{REQUEST_STATUS} >= 400"'])
+                self.assertTrue(any(line.startswith('Header set Cache-Control "public,')
+                                    for line in block))

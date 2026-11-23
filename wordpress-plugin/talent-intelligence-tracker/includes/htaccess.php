@@ -72,6 +72,8 @@ function tit_htaccess_block_lines() {
         'Header unset Pragma',
         'Header unset Expires',
         'Header set Cache-Control "public, max-age=300, s-maxage=300, stale-while-revalidate=600"',
+        'Header unset Cache-Control "expr=%{REQUEST_STATUS} >= 400"',
+        'Header always set Cache-Control "no-store, private" "expr=%{REQUEST_STATUS} >= 400"',
         '</If>',
         '# Plugin assets are URL-fingerprinted (?ver=TIT_VERSION.filemtime), so a',
         '# year-long immutable lifetime is safe: any change mints a new URL.',
@@ -92,6 +94,8 @@ function tit_htaccess_block_lines() {
         'Header unset Pragma',
         'Header unset Expires',
         'Header set Cache-Control "public, max-age=31536000, immutable"',
+        'Header unset Cache-Control "expr=%{REQUEST_STATUS} >= 400"',
+        'Header always set Cache-Control "no-store, private" "expr=%{REQUEST_STATUS} >= 400"',
         '</If>',
         '</IfModule>',
     );
