@@ -1,3 +1,15 @@
+## 2026-11-23 - Public endpoint budgets, review only
+
+Added shared per-peer and WordPress-user limits before public REST callbacks and
+anonymous download/form actions. A named-lock-protected option counter survives
+response-cache flushes and stores only salted identifiers plus expiry/count.
+Failures stop work; the shared quota returns 429 with a retry hint. Existing tighter
+limits and signed consent withdrawal remain unchanged. No deployment, data edits,
+email sends or host configuration changes were performed.
+
+**Class:** absent-read-as-ok
+**Guard:** tests/test_public_rate_limits.py; docs/PUBLIC_ENDPOINT_LIMITS.md.
+
 ## 2026-11-23 - Weekly benchmark: landmarks 14/20 (last week 14/20), 7-night ingest health (docs only)
 
 **What.** Own benchmark is `check_landmarks.py` (set 2026-08-v1): 14 of 20 held, 6 standing gaps (Databricks, Anysphere x2, Helsing, Reflection AI, Anduril; all funding rounds with a primary press page and no row), 0 regressions. Recall gold sets unchanged since 11-15 (world 92/152, EU 29/50, US 32/52; stale, a human step by design). No ranking is claimed; no competitor was run. **Last 7 days ingest** (`ops_status.py`, 2026-11-23): 26 runs, $1.1623, 1,369 reads -> 641 rows (46%), $0.0016 per stored row; last nightly national_press 118 reads -> 61 rows ($0.0764), gdelt 6 -> 2. Latest per-collector found/stored: national_press 10,400/62, google_news 0/0, gdelt 42/2, sec_edgar 11/0, ats_boards 275/0 (1 dup, 0 rejected). **DEGRADED: google_news** (THROTTLED, 51 slices not read, found=0 on the last run) and link_check (1 source URL now resolves to a different domain). Month spend $4.54 of $8.00 (committed $4.48 of $7.11, stop line $6.40), projected $5.92, 8 days left. OpenRouter `limit_remaining` was not readable here (no `OPENROUTER_API_KEY` in this session). The host wobbled 3 times on 2026-11-22 (source-health no answer). Collection ran on schedule. No code change: the top cause (google_news slices throttled out, so fewer funding and hiring items read) is not a small fix; filed as one todo.
