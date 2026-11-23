@@ -1,7 +1,7 @@
 {
-  "_committed_at": "2026-11-23T04:49:23+00:00",
-  "announced": true,
-  "consecutive_failures": 5,
+  "_committed_at": "2026-11-23T09:21:51+00:00",
+  "announced": false,
+  "consecutive_failures": 0,
   "history": [
     {
       "at": "2026-07-31T01:31:33+00:00",
@@ -82,11 +82,16 @@
       "at": "2026-11-22T16:09:59+00:00",
       "detail": "no answer from /wp-json/talent/v1/source-health: The read operation timed out",
       "state": "down"
+    },
+    {
+      "at": "2026-11-23T09:21:51+00:00",
+      "detail": "HTTP 200 in 433ms",
+      "state": "up"
     }
   ],
-  "last_detail": "no answer from /wp-json/talent/v1/source-health: The read operation timed out",
-  "last_ok_at": "2026-11-22T15:49:08+00:00",
-  "last_probe_at": "2026-11-23T04:49:23+00:00",
+  "last_detail": "HTTP 200 in 433ms",
+  "last_ok_at": "2026-11-23T09:21:51+00:00",
+  "last_probe_at": "2026-11-23T09:21:51+00:00",
   "origins": {
     "sandbox-backend": {
       "announced": false,
@@ -118,9 +123,9 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 116ms",
-      "last_ok_at": "2026-11-23T04:49:23+00:00",
-      "last_probe_at": "2026-11-23T04:49:23+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 251ms",
+      "last_ok_at": "2026-11-23T09:21:51+00:00",
+      "last_probe_at": "2026-11-23T09:21:51+00:00",
       "since": "2026-11-16T09:16:45+00:00",
       "state": "up"
     },
@@ -144,14 +149,14 @@
           "state": "up"
         }
       ],
-      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 166ms",
-      "last_ok_at": "2026-11-23T04:49:23+00:00",
-      "last_probe_at": "2026-11-23T04:49:23+00:00",
+      "last_detail": "HTTP 200 status=ok version=v1.0.1825 in 287ms",
+      "last_ok_at": "2026-11-23T09:21:51+00:00",
+      "last_probe_at": "2026-11-23T09:21:51+00:00",
       "since": "2026-11-16T09:16:45+00:00",
       "state": "up"
     }
   },
-  "since": "2026-11-22T16:09:59+00:00",
-  "state": "down",
+  "since": "2026-11-23T09:21:51+00:00",
+  "state": "up",
   "version": 1
 }
