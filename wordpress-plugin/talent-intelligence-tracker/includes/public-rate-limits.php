@@ -67,7 +67,7 @@ function tit_public_limit_form() {
     if ($response === null) return;
     foreach ($response->get_headers() as $name => $value) header($name . ': ' . $value);
     $message = 'Please wait and try again. <p><a style="display:inline-block;padding:12px;" href="' .
-        'https://asktherecruiter.com/?start=1&amp;utm_source=talent-intelligence-tracker&amp;utm_medium=referral' .
+        'https://asktherecruiter.com/resume-score?utm_source=talent_tracker&amp;utm_medium=referral' .
         '&amp;utm_campaign=public_rate_limit#start-intake">Check my match, free</a></p>';
     wp_die($message, 'Request limit', array('response' => $response->get_status()));
 }

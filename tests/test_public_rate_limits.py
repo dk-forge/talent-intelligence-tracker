@@ -108,7 +108,7 @@ class PublicLimits(unittest.TestCase):
         self.assertEqual(result['status'], 429)
         message = result['data']['message']
         self.assertIn('Check my match, free</a>', message)
-        self.assertIn('https://asktherecruiter.com/?start=1', message)
+        self.assertIn('https://asktherecruiter.com/resume-score?utm_source=talent_tracker', message)
         for tag in ('utm_source=', 'utm_medium=', 'utm_campaign='):
             self.assertIn(tag, message)
 
