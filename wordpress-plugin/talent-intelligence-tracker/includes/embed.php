@@ -65,7 +65,7 @@ function tit_embed_document($chart_html, $caveat) {
          . '<link rel="canonical" href="' . esc_url($hub) . '">'
          . '<title>' . esc_html(TIT_EMBED_TITLE . ' · Talent Intelligence Tracker') . '</title>'
          . '<link rel="stylesheet" href="' . esc_url($css) . '">'
-         . '<style>body{margin:0;padding:8px;background:#fff}</style>'
+         . '<style>body{margin:0;padding:8px;background:#fff}.tit-embed .tit-atr-cta a{min-height:44px!important;min-width:44px}</style>'
          . '</head><body><div class="tit-wrap tit-embed">'
          . '<h2 class="tit-place-h2">' . esc_html(TIT_EMBED_TITLE) . '</h2>'
          . ($caveat !== '' ? '<p class="tit-chart-caveat">' . esc_html($caveat) . '</p>' : '')
@@ -73,6 +73,7 @@ function tit_embed_document($chart_html, $caveat) {
          . '<p class="tit-cite">Source: <a href="' . esc_url($hub)
          . '" target="_blank" rel="noopener">Talent Intelligence Tracker</a>'
          . ' · data licensed CC BY 4.0 · every update links to the document behind it.</p>'
+         . (function_exists('tit_atr_cta_line_html') ? tit_atr_cta_line_html('chart_embed') : '')
          . '</div></body></html>' . "\n";
 }
 
