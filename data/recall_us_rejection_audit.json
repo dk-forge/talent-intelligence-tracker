@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T09:30:20+01:00",
+ "generated_at": "2026-11-23T09:18:06+01:00",
  "measured_on": "2026-11-16",
  "goldset_version": "2026-10-us-v1",
  "gold_events": 52,
@@ -158,7 +158,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -177,7 +177,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -196,7 +196,7 @@
    "domain": "siliconangle.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 39,
+   "urls_fetched_from_this_domain": 60,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -215,7 +215,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -234,7 +234,7 @@
    "domain": "alleywatch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 109,
+   "urls_fetched_from_this_domain": 117,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -253,7 +253,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -272,7 +272,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -310,7 +310,7 @@
    "domain": "siliconangle.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 39,
+   "urls_fetched_from_this_domain": 60,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -329,7 +329,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -348,7 +348,7 @@
    "domain": "alleywatch.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 109,
+   "urls_fetched_from_this_domain": 117,
    "stage": "stored_unmatched",
    "cell": "New York"
   },
@@ -361,7 +361,7 @@
    "domain": "siliconangle.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 39,
+   "urls_fetched_from_this_domain": 60,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -412,7 +412,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -431,7 +431,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",

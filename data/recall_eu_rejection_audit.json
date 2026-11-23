@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T09:30:33+01:00",
+ "generated_at": "2026-11-23T09:18:19+01:00",
  "measured_on": "2026-11-16",
  "goldset_version": "2026-10-eu-v1",
  "gold_events": 50,
@@ -194,7 +194,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 323,
+   "urls_fetched_from_this_domain": 350,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -213,7 +213,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -232,7 +232,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -251,7 +251,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -270,7 +270,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -289,7 +289,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -327,7 +327,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -365,7 +365,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -384,7 +384,7 @@
    "domain": "trendingtopics.eu",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 279,
+   "urls_fetched_from_this_domain": 297,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -403,7 +403,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -422,7 +422,7 @@
    "domain": "sapo.pt",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 323,
+   "urls_fetched_from_this_domain": 350,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -441,7 +441,7 @@
    "domain": "therecursive.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 78,
+   "urls_fetched_from_this_domain": 87,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -460,7 +460,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -479,7 +479,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -498,7 +498,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -517,7 +517,7 @@
    "domain": "siliconrepublic.com",
    "domain_is_swept_feed": true,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 170,
+   "urls_fetched_from_this_domain": 180,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -536,7 +536,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -555,7 +555,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
@@ -574,7 +574,7 @@
    "domain": "prnewswire.com",
    "domain_is_swept_feed": false,
    "domain_in_catalogue": true,
-   "urls_fetched_from_this_domain": 232,
+   "urls_fetched_from_this_domain": 244,
    "live_routes": [
     "gdelt",
     "google_news",
