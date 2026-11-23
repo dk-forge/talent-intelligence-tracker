@@ -60,12 +60,17 @@
       "last": 1795417089,
       "subject": "CI RED: money-basis check: VERDICT: UNKNOWN"
     },
+    "recall:main:2b2478617855f089": {
+      "first": 1795422032,
+      "last": 1795422032,
+      "subject": "CI RED: recall: ! Seeds Fincap: API error, HTTPError: HTTP Error 500: Internal Server Error"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-23T06:58:10+00:00",
+  "updated_at": "2026-11-23T08:20:34+00:00",
   "version": 1
 }
