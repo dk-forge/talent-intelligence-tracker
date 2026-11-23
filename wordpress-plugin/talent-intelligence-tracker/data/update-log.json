@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.4",
+   "date": "2026-11-23",
+   "tag": "Fix",
+   "text": "Chart embeds include a link to the free resume match check."
+  },
+  {
    "version": "1.122.3",
    "date": "2026-11-22",
    "tag": "Fix",

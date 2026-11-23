@@ -74,3 +74,18 @@ def test_the_chart_is_the_hubs_own_and_not_a_copy():
     src = MOD.read_text()
     assert "tit_market_trend(" in src and "tit_market_trend_html(" in src
     assert "tit_notable_where()" in src
+
+
+@needs_php
+def test_embed_has_visible_tracked_free_match_cta():
+    from html import unescape
+    from urllib.parse import parse_qs, urlsplit
+
+    doc = _php("require '" + str(PLUGIN / "includes/atr_signup_cta.php")
+               + "'; echo tit_embed_document('<svg></svg>', '');")
+    assert "Check my resume" in doc and "Free, no card." in doc
+    href = doc.split('href="https://asktherecruiter.com/resume-score?', 1)[1].split('"', 1)[0]
+    query = parse_qs(urlsplit("https://asktherecruiter.com/resume-score?" + unescape(href)).query)
+    assert query == {"utm_source": ["talent_tracker"], "utm_medium": ["cta"],
+                     "utm_campaign": ["chart_embed"]}
+    assert "min-height:44px" in doc.replace(" ", "")
