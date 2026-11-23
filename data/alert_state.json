@@ -15,11 +15,6 @@
       "last": 1788728374,
       "subject": "CI RED: backfill-gnews-2026: above, then: python backfill_slices.py status"
     },
-    "backup-check:main:5ab79242728b847d": {
-      "first": 1794824115,
-      "last": 1794824115,
-      "subject": "CI RED: backup check: The committed database did not verify as a usable  backup, or could not be checked at all. Read the step above:  each line names one check and its verdict. do"
-    },
     "collect-national-press:main:a93b5c8cb71f9ffd": {
       "first": 1795390630,
       "last": 1795390630,
@@ -71,6 +66,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-23T08:20:34+00:00",
+  "updated_at": "2026-11-23T10:13:23+00:00",
   "version": 1
 }
