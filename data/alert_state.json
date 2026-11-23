@@ -55,12 +55,17 @@
       "last": 1795009327,
       "subject": "CI RED: h1b-lca: reference_store.StoreError: h1b_lca: 52252 rows is under 50% of the stored 145812; a source that shrank this far is truncated, not smaller. Nothing was overwritten"
     },
+    "money-basis-check:main:9bf73d1c21fc238e": {
+      "first": 1795417089,
+      "last": 1795417089,
+      "subject": "CI RED: money-basis check: VERDICT: UNKNOWN"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-22T23:37:10+00:00",
+  "updated_at": "2026-11-23T06:58:10+00:00",
   "version": 1
 }
