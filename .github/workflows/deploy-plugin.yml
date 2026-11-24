@@ -304,4 +304,4 @@ jobs:
           name: contrast-after-deploy
           path: contrast.json
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 3
