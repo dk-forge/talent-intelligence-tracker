@@ -1,5 +1,4 @@
 """Offline coverage for the collector's optional telemetry startup."""
-import importlib
 import sys
 from types import SimpleNamespace
 from unittest.mock import Mock
