@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.6",
+   "date": "2026-11-24",
+   "tag": "Change",
+   "text": "The tracker now names Ask The Recruiter Research as the publisher of its dataset and links to its sources."
+  },
+  {
    "version": "1.122.5",
    "date": "2026-11-23",
    "tag": "Fix",

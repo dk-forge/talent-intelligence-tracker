@@ -762,7 +762,7 @@ function tit_dashboard_html() {
         'stated_headcount=1' => 'Moves Headcount',
     );
     ?>
-    <!--
+    <?php /*
       The config also rides on the element, not only on wp_localize_script.
       Autoptimize aggregates INLINE scripts into a bundle, and our
       autoptimize_filter_js_exclude only protects assets matched by path, so
@@ -772,7 +772,7 @@ function tit_dashboard_html() {
       filter, the region strip and the quick views did nothing at all on the
       live site while looking perfectly fine. Markup cannot be reordered away
       from the element it describes.
-    -->
+    */ ?>
     <div class="tit-wrap" id="tit-dashboard"
          data-api="<?php echo esc_attr(rest_url('talent/v1/')); ?>"
          data-countries="<?php echo esc_attr(wp_json_encode(tit_country_names())); ?>"
