@@ -58,6 +58,13 @@ class PublicLimits(unittest.TestCase):
         self.assertEqual([r['status'] for r in result[121:124]], [200] * 3)
         self.assertEqual(result[124]['status'], 429)
 
+    def test_cf_header_through_a_non_cloudflare_hop_cannot_mint_quota(self):
+        hop = '100.64.0.9'  # internal hop passes client headers through untouched
+        ops = [dict(ip=hop, forwarded='198.51.100.50, 172.70.1.1', cf=f'203.0.113.{i % 250}') for i in range(121)]
+        result = self.run_ops(ops)['results']
+        self.assertEqual(sum(r['work'] for r in result), 120)
+        self.assertEqual(result[-1]['status'], 429)
+
     def test_forged_headers_from_a_non_proxy_peer_are_ignored(self):
         ops = [dict(ip='192.0.2.55', cf=f'203.0.113.{i % 250}', forwarded=f'198.51.100.{i % 250}, 172.70.1.1')
                for i in range(121)]
