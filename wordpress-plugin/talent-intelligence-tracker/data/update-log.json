@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.5",
+   "date": "2026-11-23",
+   "tag": "Fix",
+   "text": "Public tracker data requests and downloads ask you to wait when request limits are reached."
+  },
+  {
    "version": "1.122.4",
    "date": "2026-11-23",
    "tag": "Fix",
