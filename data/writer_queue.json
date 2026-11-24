@@ -249,6 +249,28 @@
   "tickets": [
     {
       "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-11-24T07:52:52Z",
+          "detail": "scheduled link hygiene (50 7 * * 2)",
+          "event": "queued"
+        }
+      ],
+      "id": "20261124T075252Z-benchmark-diff",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (50 7 * * 2)",
+      "requested_at": "2026-11-24T07:52:52Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "benchmark-diff.yml"
+    },
+    {
+      "attempts": 0,
       "dispatched_at": "2026-11-14T09:47:44Z",
       "history": [
         {
