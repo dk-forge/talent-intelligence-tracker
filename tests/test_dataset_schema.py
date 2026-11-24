@@ -103,3 +103,35 @@ def test_hub_renders_both():
     assert "tit_dataset_jsonld_html(" in src and "tit_primary_source_line_html(" in src
     main = (PLUGIN / "talent-intelligence-tracker.php").read_text()
     assert re.search(r"tit_require\('includes/dataset_schema\.php'\)", main)
+
+
+@needs_php
+@pytest.mark.parametrize("facts", [FACTS, dict(FACTS, notable=0, verified=0)],
+                         ids=["populated", "empty"])
+def test_dataset_has_research_publisher_and_sources_without_changing_creator(facts):
+    node = json.loads(_php("echo json_encode(tit_dataset_node(json_decode(%s, true)));"
+                           % json.dumps(json.dumps(facts))))
+    assert node["publisher"] == {"@type": "Organization", "name": "Ask The Recruiter Research",
+                                 "url": "https://asktherecruiter.com/"}
+    assert node["creator"]["name"] == "Ask The Recruiter"
+    assert node["isBasedOn"]["@type"] == "WebPage"
+    assert node["isBasedOn"]["name"] == "Talent Intelligence Tracker sources"
+    assert node["isBasedOn"]["url"].endswith("/talent-intelligence-tracker/sources/")
+
+
+def test_research_publisher_and_sources_are_present_without_php():
+    source = MOD.read_text()
+    assert "Ask The Recruiter Research" in source
+    assert "'publisher'" in source and "isBasedOn" in source
+    assert not re.search(r"'publisher'\s*=>\s*array\([^)]*'name'\s*=>\s*'AskTheRecruiter'",
+                         source, re.S)
+
+
+@needs_php
+def test_new_dataset_fields_remain_inside_one_jsonld_script():
+    out = _php("echo tit_dataset_jsonld_html(%s);" % _facts())
+    prefix = '<script type="application/ld+json">'
+    assert out.startswith(prefix) and out.count("</script>") == 1
+    node = json.loads(out[len(prefix):-len("</script>")])
+    assert node["publisher"]["name"] == "Ask The Recruiter Research"
+    assert node["isBasedOn"]["url"].endswith("/talent-intelligence-tracker/sources/")
