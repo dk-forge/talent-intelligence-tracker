@@ -40,6 +40,11 @@
       "last": 1795417089,
       "subject": "CI RED: money-basis check: VERDICT: UNKNOWN"
     },
+    "money-basis-check:main:dedcf2329403bf13": {
+      "first": 1795502988,
+      "last": 1795502988,
+      "subject": "CI RED: money-basis check: VERDICT: FAIL"
+    },
     "recall:main:2b2478617855f089": {
       "first": 1795422032,
       "last": 1795422032,
@@ -51,6 +56,6 @@
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-23T23:46:03+00:00",
+  "updated_at": "2026-11-24T06:49:50+00:00",
   "version": 1
 }
