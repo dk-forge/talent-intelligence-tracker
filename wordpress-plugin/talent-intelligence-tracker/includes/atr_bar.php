@@ -39,7 +39,7 @@ function tit_atr_bar_html() {
         . '@media print{.tit-atr-bar{display:none}}'
         . '</style>'
         . '<div class="tit-atr-bar" id="tit-atr-bar" role="region" aria-label="Resume help" hidden>'
-        . '<a href="' . esc_url(function_exists('tit_atr_cta_url') ? tit_atr_cta_url('sticky_bar') : 'https://asktherecruiter.com/resume-score') . '" target="_blank" rel="noopener nofollow">Check my resume, free</a>'
+        . '<a href="' . esc_url(function_exists('tit_atr_cta_url') ? tit_atr_cta_url('sticky_bar', 'sticky') : 'https://asktherecruiter.com/resume-score') . '" target="_blank" rel="noopener nofollow">Check my resume, free</a>'
         . '<button type="button" aria-label="Close" id="tit-atr-bar-close">&times;</button>'
         . '</div>';
 }

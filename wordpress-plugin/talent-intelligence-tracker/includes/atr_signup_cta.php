@@ -12,12 +12,14 @@
  */
 if (!defined('ABSPATH')) exit;
 
-function tit_atr_cta_url($campaign) {
+function tit_atr_cta_url($campaign, $placement = 'inline') {
     $campaign = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $campaign));
+    $placement = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $placement));
     return 'https://asktherecruiter.com/resume-score?' . http_build_query(array(
         'utm_source'   => 'talent_tracker',
         'utm_medium'   => 'cta',
         'utm_campaign' => $campaign !== '' ? $campaign : 'tracker',
+        'utm_content'  => $placement !== '' ? $placement : 'inline',
     ));
 }
 
@@ -28,7 +30,7 @@ function tit_atr_cta_line_html($campaign, $label = 'Resume help') {
     return '<aside class="tit-atr-cta" aria-label="' . esc_attr($label) . '"'
         . ' style="margin:1rem 0;padding:.7rem .9rem;border:1px solid rgba(127,127,127,.4);border-radius:8px;line-height:1.5">'
         . '<b>Applying for a role?</b> Check how your resume fits the job. Free, no card. '
-        . '<a href="' . esc_url(tit_atr_cta_url($campaign)) . '" target="_blank" rel="noopener nofollow"'
+        . '<a href="' . esc_url(tit_atr_cta_url($campaign, 'inline')) . '" target="_blank" rel="noopener nofollow"'
         . ' style="font-weight:600;text-decoration:underline;display:inline-block;min-height:24px">'
         . 'Check my resume</a></aside>';
 }

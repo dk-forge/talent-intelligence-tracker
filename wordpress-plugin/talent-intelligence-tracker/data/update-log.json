@@ -2,6 +2,12 @@
  "generated_from": "git history of TIT_VERSION in the plugin's main file",
  "entries": [
   {
+   "version": "1.122.7",
+   "date": "2026-11-24",
+   "tag": "Change",
+   "text": "Resume match links now identify whether they came from the page, the sticky bar or the text summary."
+  },
+  {
    "version": "1.122.6",
    "date": "2026-11-24",
    "tag": "Change",

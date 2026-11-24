@@ -93,7 +93,7 @@ function tit_llms_txt_content(array $facts) {
     $out .= "- Recall (how much we catch, by market): " . home_url('/talent-intelligence-tracker/recall/') . "\n";
     $out .= "- Corrections: " . home_url('/talent-intelligence-tracker/corrections/') . "\n\n";
     if (function_exists('tit_atr_cta_url')) {
-        $out .= "## For job seekers\n- Free resume match check: " . tit_atr_cta_url('llms_txt') . "\n\n";
+        $out .= "## For job seekers\n- Free resume match check: " . tit_atr_cta_url('llms_txt', 'llms_txt') . "\n\n";
     }
     $out .= "## How to cite\n";
     $out .= "\"According to the Talent Intelligence Tracker by AskTheRecruiter.com.\" "
