@@ -1,0 +1,65 @@
+{
+ "key": "amount/fb9c97b5af8cac2213ff3ce7729fcce1",
+ "label": "ACME Group $3,600,000,000",
+ "status": "applied",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 3600000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states: 'ACME Group has reached a final investment decision (FID) on a $3.6 billion green ammonia project in Odisha, India.' This is a project finance decision for constructing an industrial facility, not venture capital raised by the company. The $3.6 billion is the total project cost/investment for building the ammonia plant. Additionally, 'Brookfield has committed up to $600 million to support ACME's green molecules platform' - but this is separate and not the $3.6B figure. The basis should be project_finance, not company_raise."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": null,
+   "corrected_basis": "project_finance",
+   "confidence": 100,
+   "reasoning": "The source states 'ACME Group has approved a $3.6 billion green ammonia project in India,' indicating a project cost, not a company raise. The stored basis 'company_raise' is incorrect as the amount refers to a project investment, aligning with 'project_finance'."
+  }
+ },
+ "row": {
+  "company": "ACME Group",
+  "headline": "The Hydrogen Stream: China starts operating 195 km hydrogen pipeline",
+  "summary": "ACME Group has approved a $3.6 billion green ammonia project in India. Other news includes research in Chile on hydrogen production, a new hydrogen plant inaugurated by Qair in France, a new electrolyzer offering from Plug Power, and advancements in two UK hydrogen projects by Protium.",
+  "funding_amount": "$3.6 billion",
+  "funding_amount_usd": 3600000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://www.pv-magazine.com/2026/11/20/the-hydrogen-stream-china-starts-operating-195-km-hydrogen-pipeline/",
+  "source_name": "pv magazine",
+  "published_date": "2026-11-20",
+  "collector": "national_press",
+  "city": null,
+  "region": "Asia",
+  "state": null,
+  "country": "IN",
+  "hq_city": null,
+  "hq_country": null,
+  "published_at": "2026-11-23 09:14:05"
+ },
+ "cost_usd": 0.024044,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.014619,
+  "openai/gpt-4o": 0.009425
+ },
+ "evidence_url": "https://www.pv-magazine.com/2026/11/20/the-hydrogen-stream-china-starts-operating-195-km-hydrogen-pipeline/",
+ "evidence_chars": 10655,
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "project_finance"
+ },
+ "note": "two-model adjudication of amount/fb9c97b5af8cac2213ff3ce7729fcce1, both referees say edit. corrected_amount=None corrected_basis=project_finance. anthropic/claude-sonnet-4.5: The source states: 'ACME Group has reached a final investment decision (FID) on a $3.6 billion green ammonia project in Odisha, India.' This is a project finance decision for constructing an industrial facility, not vent; openai/gpt-4o: The source states 'ACME Group has approved a $3.6 billion green ammonia project in India,' indicating a project cost, not a company raise. The stored basis 'company_raise' is incorrect as the amount refers to a project i",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 1,
+ "written_at": "2026-11-24T13:50:16+00:00"
+}
