@@ -5,98 +5,85 @@
    "version": "1.122.6",
    "date": "2026-11-24",
    "tag": "Change",
-   "text": "Hiring tracker Dataset names its publisher and links its sources."
+   "text": "The tracker now names Ask The Recruiter Research as the publisher of its dataset and links to its sources."
   },
   {
    "version": "1.122.5",
-   "date": "2026-11-24",
+   "date": "2026-11-23",
    "tag": "Fix",
-   "text": "Rate limit public talent endpoints by IP and user.",
-   "pr": 376
+   "text": "Public tracker data requests and downloads ask you to wait when request limits are reached."
   },
   {
    "version": "1.122.4",
    "date": "2026-11-23",
    "tag": "Fix",
-   "text": "Chart embed keeps a tracked free-match CTA.",
-   "pr": 374
+   "text": "Chart embeds include a link to the free resume match check."
   },
   {
    "version": "1.122.3",
    "date": "2026-11-22",
    "tag": "Fix",
-   "text": "Use resume in tracker email match actions.",
-   "pr": 371
+   "text": "Use resume in the tracker email match actions."
   },
   {
    "version": "1.122.2",
    "date": "2026-11-19",
    "tag": "Fix",
-   "text": "Count clicks on the match check CTA (resume_prompt_click, 1.122.2, todo#2731).",
-   "pr": 369
+   "text": "Clicks on the free match check links are now counted, so we can see which tracker pages send people to Ask The Recruiter."
   },
   {
    "version": "1.122.1",
    "date": "2026-11-19",
    "tag": "Fix",
-   "text": "Axe failures on the hub (1.122.1, todo#1881 item 9).",
-   "pr": 367
+   "text": "The follow star and employer names on update cards are large enough to tap, and the weekly chart and totals table can be scrolled with a keyboard."
   },
   {
    "version": "1.122.0",
    "date": "2026-11-19",
    "tag": "Change",
-   "text": "Dated Key numbers block on the hub (1.122.0, todo#1881 item 10).",
-   "pr": 366
+   "text": "The tracker home page now ends with a dated \"Key numbers\" block: the same quotable figures, with their date, that the tracker publishes for AI search tools, plus how to cite them."
   },
   {
    "version": "1.121.0",
    "date": "2026-11-19",
    "tag": "Change",
-   "text": "Links to the same company, country and sector in the layoff tracker (1.121.0, todo#1881).",
-   "pr": 365
+   "text": "Company, country and industry pages now link to the same company, country or sector in our layoff tracker, where both trackers have a page for it."
   },
   {
    "version": "1.120.0",
    "date": "2026-11-19",
    "tag": "Fix",
-   "text": "One UTM scheme incl. header CTA, cards to the match check, interactivity import map (1.120.0, todo#1881).",
-   "pr": 364
+   "text": "Every sign-up link on the hiring tracker, including the site header's, now carries one tracker tag, and the company-card buttons go to the free resume match check. The site menu's script loads again on every sub-page, and a brief database error while filtering quickly is retried instead of shown."
   },
   {
    "version": "1.119.1",
-   "date": "2026-11-19",
+   "date": "2026-11-18",
    "tag": "Change",
-   "text": "Sign-up line inside the first screen of company and places pages (1.119.1, todo#1853).",
-   "pr": 363
+   "text": "Company and places pages now show the free resume check link near the top, under the heading; the existing links further down stay."
   },
   {
    "version": "1.119.0",
-   "date": "2026-11-19",
+   "date": "2026-11-18",
    "tag": "Change",
-   "text": "Hiring tracker llms.txt with dated quotable figures, phone sign-up bar (1.116.0, todo#1853).",
-   "pr": 360
+   "text": "The tracker now has its own llms.txt with dated, sourced figures, and phones get a closable bar linking to the free resume check."
   },
   {
    "version": "1.118.2",
-   "date": "2026-11-19",
+   "date": "2026-11-18",
    "tag": "Fix",
-   "text": "Stop the API 500s under fast filter clicks (1.118.2, todo#1881 item 4).",
-   "pr": 362
+   "text": "Clicking filters quickly no longer makes the tracker's data requests fail: rapid clicks are combined into one request with your final filters, and the server computes each uncached view once at a time, with a short automatic retry instead of an error when it is busy."
   },
   {
    "version": "1.118.1",
    "date": "2026-11-18",
    "tag": "Fix",
-   "text": "Non-Latin company pages 404'd (sanitised before decoding); finish line check encodes links and retries 429; issue filer from PR #4352.",
-   "pr": 357
+   "text": "Company pages for employers whose name is in a non-Latin script open again instead of showing a not-found page."
   },
   {
    "version": "1.118.0",
    "date": "2026-11-18",
-   "tag": "Fix",
-   "text": "Tracked sign-up line on every routed page, not only the dashboard and company pages.",
-   "pr": 356
+   "tag": "Change",
+   "text": "Every virtual route (places, roles, recall, corrections, press, methodology, update log, sources, every place page) now carries the tracked sign-up line, not only the dashboard and company pages."
   },
   {
    "version": "1.117.0",
