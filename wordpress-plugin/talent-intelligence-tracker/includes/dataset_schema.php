@@ -44,6 +44,10 @@ function tit_dataset_node(array $facts) {
         'license'     => 'https://creativecommons.org/licenses/by/4.0/',
         'creator'     => array('@type' => 'Organization', 'name' => 'Ask The Recruiter',
                                'url' => 'https://asktherecruiter.com/'),
+        'publisher'   => array('@type' => 'Organization', 'name' => 'Ask The Recruiter Research',
+                               'url' => 'https://asktherecruiter.com/'),
+        'isBasedOn'   => array('@type' => 'WebPage', 'name' => 'Talent Intelligence Tracker sources',
+                               'url' => home_url('/talent-intelligence-tracker/sources/')),
         'keywords'    => array('hiring', 'talent market', 'funding', 'leadership changes'),
         'spatialCoverage' => array('@type' => 'Place', 'name' => 'Worldwide'),
         'distribution' => array(array(
