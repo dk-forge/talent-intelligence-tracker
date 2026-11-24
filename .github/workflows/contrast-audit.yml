@@ -101,4 +101,4 @@ jobs:
           name: contrast-audit
           path: contrast.json
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 3

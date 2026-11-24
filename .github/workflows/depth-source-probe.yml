@@ -31,4 +31,4 @@ jobs:
         with:
           name: probe-${{ matrix.source }}
           path: probe-out
-          retention-days: 14
+          retention-days: 7
