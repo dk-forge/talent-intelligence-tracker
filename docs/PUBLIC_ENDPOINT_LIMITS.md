@@ -35,10 +35,13 @@ and its remaining rows. This is separate from the browser/client bot read budget
 The guard does not cap private ingestion routes or change the client-side
 exponential retries for authenticated WordPress reads.
 
-REMOTE_ADDR is the trusted peer identity. Forwarded and client-supplied IP headers
-are ignored. A deployment must verify that the host restores the real peer address
-when behind its trusted proxy; this code does not configure Cloudflare or the host.
-The guard bounds origin callbacks, not edge-cached responses, WordPress bootstrap
+Client identity: REMOTE_ADDR is used as-is unless it is a known proxy (published
+Cloudflare ranges, private/CGNAT/loopback hops, or ranges added through the
+tit_public_trusted_proxy_ranges filter). Only then are CF-Connecting-IP and
+X-Forwarded-For read (walked right to left past trusted hops). Forwarding headers
+from any other peer are ignored. When the client address cannot be told, the IP
+budget fails open (no block, no shared key); the signed-in-user budget still applies.
+This code does not configure Cloudflare or the host. The guard bounds origin callbacks, not edge-cached responses, WordPress bootstrap
 cost or all site traffic. No live load or production deployment is claimed.
 
 ## Validation and rollback

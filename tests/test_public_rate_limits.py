@@ -40,6 +40,39 @@ class PublicLimits(unittest.TestCase):
         self.assertNotIn('synthetic-agent', json.dumps(result['stored']))
         self.assertTrue(all(row['autoload'] == 'no' for row in result['stored']))
 
+    def test_cloudflare_proxy_peer_gives_each_visitor_their_own_quota(self):
+        edge = '172.70.1.1'  # inside a published Cloudflare range
+        ops = [dict(ip=edge, cf='203.0.113.7', forwarded='203.0.113.7')] * 121
+        ops += [dict(ip=edge, cf='203.0.113.8', forwarded='203.0.113.8')] * 5
+        result = self.run_ops(ops)['results']
+        self.assertEqual(result[120]['status'], 429)
+        self.assertEqual([r['status'] for r in result[121:]], [200] * 5)
+
+    def test_internal_hop_uses_forwarded_chain_right_to_left(self):
+        hop = '100.64.0.9'  # private proxy hop in front of the origin
+        ops = [dict(ip=hop, forwarded='198.51.100.50, 172.70.1.1')] * 121
+        ops += [dict(ip=hop, forwarded='evil-spoof, 198.51.100.51, 172.70.1.1')] * 3
+        ops += [dict(ip=hop, forwarded='9.9.9.9, 198.51.100.50, 172.70.1.1')] * 1  # forged left entry ignored
+        result = self.run_ops(ops)['results']
+        self.assertEqual(result[120]['status'], 429)
+        self.assertEqual([r['status'] for r in result[121:124]], [200] * 3)
+        self.assertEqual(result[124]['status'], 429)
+
+    def test_forged_headers_from_a_non_proxy_peer_are_ignored(self):
+        ops = [dict(ip='192.0.2.55', cf=f'203.0.113.{i % 250}', forwarded=f'198.51.100.{i % 250}, 172.70.1.1')
+               for i in range(121)]
+        result = self.run_ops(ops)['results']
+        self.assertEqual(sum(r['work'] for r in result), 120)
+        self.assertEqual(result[-1]['status'], 429)
+
+    def test_unknown_client_ip_fails_open_instead_of_sharing_one_key(self):
+        ops = [dict(ip='10.0.0.5', forwarded='')] * 130              # proxy hop, no client info
+        ops += [dict(ip='100.64.0.9', forwarded='not-an-ip')] * 130  # garbage chain
+        ops += [dict(ip='unparseable', forwarded='198.51.100.1')] * 130
+        result = self.run_ops(ops)
+        self.assertTrue(all(r['status'] == 200 for r in result['results']))
+        self.assertEqual(result['stored'], [])
+
     def test_per_user_quota_survives_peer_rotation(self):
         result = self.run_ops([dict(uid=7, ip=f'192.0.2.{i+1}') for i in range(61)])
         self.assertEqual(sum(r['work'] for r in result['results']), 60)

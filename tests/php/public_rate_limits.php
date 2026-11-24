@@ -62,6 +62,7 @@ foreach ($operations as $op) {
     $uid=$op['uid'] ?? 0; $_SERVER['REMOTE_ADDR']=$op['ip'] ?? '192.0.2.1';
     $_SERVER['HTTP_USER_AGENT']=$op['agent'] ?? 'synthetic-agent';
     $_SERVER['HTTP_X_FORWARDED_FOR']=$op['forwarded'] ?? '198.51.100.1';
+    unset($_SERVER['HTTP_CF_CONNECTING_IP']); if (isset($op['cf'])) $_SERVER['HTTP_CF_CONNECTING_IP']=$op['cf'];
     $wpdb->broken=$op['broken'] ?? false; $wpdb->write_broken=$op['write_broken'] ?? false;
     if (($op['mode'] ?? '') === 'spend') {
         $results[]=function_exists('tit_public_limit_spend') ? tit_public_limit_spend($op['identity'], 2, $op['now']) : 0;

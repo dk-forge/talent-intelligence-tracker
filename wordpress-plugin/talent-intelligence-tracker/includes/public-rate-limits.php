@@ -26,10 +26,67 @@ function tit_public_limit_spend($identity, $limit, $now = null) {
     }
 }
 
-function tit_public_limit_check() {
+/** True when $ip lies inside any of the CIDR $ranges. */
+function tit_public_ip_in_ranges($ip, $ranges) {
+    $bin = @inet_pton($ip);
+    if ($bin === false) return false;
+    foreach ($ranges as $range) {
+        [$base, $bits] = array_pad(explode('/', $range, 2), 2, null);
+        $net = @inet_pton($base);
+        if ($net === false || strlen($net) !== strlen($bin)) continue;
+        $bits = $bits === null ? strlen($bin) * 8 : (int) $bits;
+        $bytes = intdiv($bits, 8); $rest = $bits % 8;
+        if ($bytes && strncmp($bin, $net, $bytes) !== 0) continue;
+        if ($rest && ((ord($bin[$bytes]) ^ ord($net[$bytes])) >> (8 - $rest)) !== 0) continue;
+        return true;
+    }
+    return false;
+}
+
+/** Published Cloudflare edge ranges. Extend with the tit_public_trusted_proxy_ranges filter. */
+function tit_public_trusted_ranges() {
+    $cloudflare = array('173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
+        '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22',
+        '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13', '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22',
+        '2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32', '2405:8100::/32',
+        '2a06:98c0::/29', '2c0f:f248::/32');
+    $internal = array('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '100.64.0.0/10', '127.0.0.0/8',
+        '169.254.0.0/16', '::1/128', 'fc00::/7', 'fe80::/10');
+    $extra = function_exists('apply_filters') ? apply_filters('tit_public_trusted_proxy_ranges', array()) : array();
+    return array($cloudflare, array_merge($internal, is_array($extra) ? $extra : array()));
+}
+
+/**
+ * Real client address, or null when it cannot be told (callers then fail OPEN for the IP budget).
+ * Forwarding headers count ONLY when the TCP peer is a known proxy: a Cloudflare edge
+ * (CF-Connecting-IP, then X-Forwarded-For), or a private/configured hop (X-Forwarded-For
+ * walked right to left past trusted hops). Any other peer is the client; its headers are ignored.
+ */
+function tit_public_client_ip() {
     $peer = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    $peer = filter_var($peer, FILTER_VALIDATE_IP) ? inet_ntop(inet_pton($peer)) : 'unknown';
-    $budgets = array(array('ip:' . $peer, 120));
+    if (!filter_var($peer, FILTER_VALIDATE_IP)) return null;
+    $peer = inet_ntop(inet_pton($peer));
+    [$cloudflare, $internal] = tit_public_trusted_ranges();
+    $all = array_merge($cloudflare, $internal);
+    if (!tit_public_ip_in_ranges($peer, $all)) return $peer;
+    $cf = trim((string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''));
+    if ($cf !== '' && filter_var($cf, FILTER_VALIDATE_IP)) {
+        $cf = inet_ntop(inet_pton($cf));
+        if (!tit_public_ip_in_ranges($cf, $all)) return $cf;
+    }
+    $chain = array_reverse(array_map('trim', explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''))));
+    foreach ($chain as $hop) {
+        if (!filter_var($hop, FILTER_VALIDATE_IP)) return null;
+        $hop = inet_ntop(inet_pton($hop));
+        if (!tit_public_ip_in_ranges($hop, $all)) return $hop;
+    }
+    return null;
+}
+
+function tit_public_limit_check() {
+    $budgets = array();
+    $ip = tit_public_client_ip();
+    if ($ip !== null) $budgets[] = array('ip:' . $ip, 120);
     $uid = (int) get_current_user_id();
     if ($uid > 0) $budgets[] = array('user:' . $uid, 60);
     foreach ($budgets as [$identity, $limit]) {
