@@ -1,6 +1,6 @@
 {
-  "last_dispatch": "2026-11-24T09:47:34Z",
-  "last_tick": "2026-11-24T09:47:34Z",
+  "last_dispatch": "2026-11-24T13:49:33Z",
+  "last_tick": "2026-11-24T13:49:33Z",
   "orphans": [
     {
       "created_at": "2026-07-29T06:56:09Z",
@@ -247,6 +247,35 @@
     }
   ],
   "tickets": [
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-24T13:49:33Z",
+      "history": [
+        {
+          "at": "2026-11-24T13:49:29Z",
+          "detail": "money figure contradictions",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-24T13:49:33Z",
+          "detail": "",
+          "event": "dispatched"
+        }
+      ],
+      "id": "20261124T134929Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "reason": "stored amount is a valuation, project cost, purchase price or revenue figure",
+        "rows": "fb9c97b5af8cac2213ff3ce7729fcce1"
+      },
+      "priority": 0,
+      "reason": "money figure contradictions",
+      "requested_at": "2026-11-24T13:49:29Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "dispatched",
+      "workflow": "adjudicate-rows.yml"
+    },
     {
       "attempts": 0,
       "dispatched_at": "2026-11-15T05:33:28Z",
