@@ -1,0 +1,73 @@
+{
+ "key": "amount/1483595be83081dbdc445294b033044a",
+ "label": "OpenAI $30,000,000,000",
+ "status": "agree-dry-run",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source clearly states: \"The SoftBank chairman and CEO paid the last installment on his $30 billion follow-on investment in OpenAI in October. Three $10 billion payments, in April, July and October, brought SoftBank's cumulative investment in the ChatGPT creator to $64.6 billion.\" This describes $30 billion in new capital arriving at OpenAI from a private investor (SoftBank) across three installments. This is a company_raise, not a valuation or other transaction type."
+  },
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source text does not state a $30 billion company raise for OpenAI. It mentions SoftBank's cumulative investment in OpenAI and various financing activities, but not a specific $30 billion raise. The text states, 'Three $10 billion payments, in April, July and October, brought SoftBank’s cumulative investment in the ChatGPT creator to $64.6 billion.'"
+  },
+  "google/gemini-2.5-flash-lite": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "company_raise",
+   "recommended": "accept",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 100,
+   "reasoning": "The source states: \"The SoftBank chairman and CEO paid the last installment on his $30 billion follow-on investment in OpenAI in October.\" This is a new capital investment from a private investor (SoftBank) into OpenAI, fitting the definition of company_raise."
+  }
+ },
+ "row": {
+  "company": "OpenAI",
+  "headline": "How SoftBank Group CEO Masayoshi Son Funded a $30 Billion OpenAI Deal",
+  "summary": "SoftBank Group CEO Masayoshi Son was instrumental in funding a $30 billion deal for OpenAI. The specifics of Son's involvement and the deal's structure are detailed.",
+  "funding_amount": "$30 Billion",
+  "funding_amount_usd": 30000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://observer.com/2026/11/masayoshi-son-softbank-openai-investment-financing/",
+  "source_name": "observer.com",
+  "published_date": "2026-11-24",
+  "collector": "gdelt",
+  "city": null,
+  "region": null,
+  "state": null,
+  "country": null,
+  "hq_city": "San Francisco",
+  "hq_country": "US",
+  "published_at": null
+ },
+ "cost_usd": 0.021017,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.012462,
+  "openai/gpt-4o": 0.008205,
+  "google/gemini-2.5-flash-lite": 0.00035019999999999843
+ },
+ "evidence_url": "https://observer.com/2026/11/masayoshi-son-softbank-openai-investment-financing/",
+ "evidence_chars": 7477,
+ "action": "accept",
+ "correction": null,
+ "note": "three-model adjudication of amount/1483595be83081dbdc445294b033044a, two of three referees say accept. anthropic/claude-sonnet-4.5: The source clearly states: \"The SoftBank chairman and CEO paid the last installment on his $30 billion follow-on investment in OpenAI in October. Three $10 billion payments, in April, July and October, brought SoftBank's; openai/gpt-4o: The source text does not state a $30 billion company raise for OpenAI. It mentions SoftBank's cumulative investment in OpenAI and various financing activities, but not a specific $30 billion raise. The text states, 'Thre; google/gemini-2.5-flash-lite: The source states: \"The SoftBank chairman and CEO paid the last installment on his $30 billion follow-on investment in OpenAI in October.\" This is a new capital investment from a private investor (SoftBank) into OpenAI, ",
+ "who": "three-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o + google/gemini-2.5-flash-lite), two of three",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-25T00:35:57+00:00"
+}
