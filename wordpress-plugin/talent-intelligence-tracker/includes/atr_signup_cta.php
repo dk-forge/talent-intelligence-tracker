@@ -12,13 +12,17 @@
  */
 if (!defined('ABSPATH')) exit;
 
-function tit_atr_cta_url($campaign) {
+function tit_atr_cta_url($campaign, $content = '') {
     $campaign = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $campaign));
-    return 'https://asktherecruiter.com/resume-score?' . http_build_query(array(
+    $content  = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $content));
+    $query = array(
         'utm_source'   => 'talent_tracker',
         'utm_medium'   => 'cta',
         'utm_campaign' => $campaign !== '' ? $campaign : 'tracker',
-    ));
+    );
+    // Placement (inline line, sticky bar, llms.txt) so GA4 can credit a sign-up to it.
+    if ($content !== '') $query['utm_content'] = $content;
+    return 'https://asktherecruiter.com/resume-score?' . http_build_query($query);
 }
 
 /** One plain line in the page flow: shows at every width, no script. */
@@ -28,7 +32,7 @@ function tit_atr_cta_line_html($campaign, $label = 'Resume help') {
     return '<aside class="tit-atr-cta" aria-label="' . esc_attr($label) . '"'
         . ' style="margin:1rem 0;padding:.7rem .9rem;border:1px solid rgba(127,127,127,.4);border-radius:8px;line-height:1.5">'
         . '<b>Applying for a role?</b> Check how your resume fits the job. Free, no card. '
-        . '<a href="' . esc_url(tit_atr_cta_url($campaign)) . '" target="_blank" rel="noopener nofollow"'
+        . '<a href="' . esc_url(tit_atr_cta_url($campaign, 'inline')) . '" target="_blank" rel="noopener nofollow"'
         . ' style="font-weight:600;text-decoration:underline;display:inline-block;min-height:24px">'
         . 'Check my resume</a></aside>';
 }

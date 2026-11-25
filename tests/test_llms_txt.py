@@ -59,7 +59,7 @@ def test_quotable_sentences_carry_date_number_and_source():
     # the hub prints the share; /sources/ does not
     assert share.endswith("Source: https://example.org/blog/talent-intelligence-tracker/")
     assert "/talent-intelligence-tracker/methodology/" in out and "/talent-intelligence-tracker/recall/" in out
-    assert "resume-score?utm_source=talent_tracker&utm_medium=cta&utm_campaign=llms_txt" in out
+    assert "resume-score?utm_source=talent_tracker&utm_medium=cta&utm_campaign=llms_txt&utm_content=llms_txt" in out
     for line in out.splitlines():
         if line.startswith("- As of"):
             assert "Source: https://" in line
