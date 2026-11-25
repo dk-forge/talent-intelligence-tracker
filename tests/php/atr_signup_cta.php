@@ -16,6 +16,9 @@ foreach (array('—', '–', 'blind', 'honest', 'hallucinat', 'résumé', '!') a
 }
 $check(strpos(tit_atr_cta_url('Bad Campaign<x>'), 'utm_campaign=badcampaignx') !== false, 'campaign sanitised');
 $check(strpos(tit_atr_cta_url(''), 'utm_campaign=tracker') !== false, 'empty campaign defaults');
+$check(strpos(tit_atr_cta_url('x'), 'utm_content') === false, 'no content by default');
+$check(strpos(tit_atr_cta_url('x', 'Bad Content<b>'), 'utm_content=badcontentb') !== false, 'content sanitised');
+$check(strpos($html, 'utm_content=inline') !== false, 'inline line carries its placement');
 $src = file_get_contents(__DIR__ . '/../../wordpress-plugin/talent-intelligence-tracker/includes/shortcodes.php');
 $check(strpos($src, "tit_atr_cta_line_html('tracker_home')") !== false, 'dashboard carries the line');
 // Every other published page is a virtual route that closes through

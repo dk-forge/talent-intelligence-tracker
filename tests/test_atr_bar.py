@@ -52,6 +52,7 @@ def test_bar_is_tagged_closable_hidden_until_js_and_phone_only():
     # one source per tracker: the same helper as the page's sign-up line
     assert q["utm_source"] == ["talent_tracker"] and q["utm_medium"] == ["cta"]
     assert q["utm_campaign"] == ["sticky_bar"]
+    assert q["utm_content"] == ["sticky_bar"]
     # the dashboard's phone jump bar (Filters / Updates) is lifted above it
     assert "body.tit-atr-bar-on .tit-jump{bottom:calc(74px" in html
     assert 'id="tit-atr-bar-close"' in html and 'aria-label="Close"' in html

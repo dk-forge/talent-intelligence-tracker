@@ -87,5 +87,5 @@ def test_embed_has_visible_tracked_free_match_cta():
     href = doc.split('href="https://asktherecruiter.com/resume-score?', 1)[1].split('"', 1)[0]
     query = parse_qs(urlsplit("https://asktherecruiter.com/resume-score?" + unescape(href)).query)
     assert query == {"utm_source": ["talent_tracker"], "utm_medium": ["cta"],
-                     "utm_campaign": ["chart_embed"]}
+                     "utm_campaign": ["chart_embed"], "utm_content": ["inline"]}
     assert "min-height:44px" in doc.replace(" ", "")
