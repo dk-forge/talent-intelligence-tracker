@@ -1,0 +1,453 @@
+{
+ "ran_at": "2026-11-26T08:21:08+01:00",
+ "ran_on": "2026-11-26",
+ "plan": {
+  "cycle": 660,
+  "planned_on": "2026-11-26",
+  "lookback_days": 45,
+  "basis": "recall measured 2026-11-16 against gold set 2026-10-v1",
+  "countries": [
+   {
+    "iso2": "DK",
+    "name": "Denmark",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "GH",
+    "name": "Ghana",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "ID",
+    "name": "Indonesia",
+    "tier": "zero",
+    "measured": {
+     "total": 1,
+     "held": 0,
+     "held_pct": 0.0
+    }
+   },
+   {
+    "iso2": "US",
+    "name": "United States",
+    "tier": "covered",
+    "measured": {
+     "total": 24,
+     "held": 12,
+     "held_pct": 50.0
+    }
+   }
+  ],
+  "industries": [],
+  "industry_sweep_reason": "the full sweep already ran this month",
+  "query_count": 4,
+  "estimated_usd": 0.08,
+  "leads_per_query": 8
+ },
+ "queries_asked": [
+  {
+   "dimension": "country",
+   "key": "DK",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "GH",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "ID",
+   "tier": "zero",
+   "measured": {
+    "total": 1,
+    "held": 0,
+    "held_pct": 0.0
+   }
+  },
+  {
+   "dimension": "country",
+   "key": "US",
+   "tier": "covered",
+   "measured": {
+    "total": 24,
+    "held": 12,
+    "held_pct": 50.0
+   }
+  }
+ ],
+ "counts": {
+  "leads": 13,
+  "held": 5,
+  "missing": 8,
+  "unusable": 0,
+  "usable": 13
+ },
+ "by_country": {
+  "DK": {
+   "leads": 3,
+   "held": 0,
+   "missing": 3,
+   "unusable": 0
+  },
+  "GH": {
+   "leads": 3,
+   "held": 0,
+   "missing": 3,
+   "unusable": 0
+  },
+  "ID": {
+   "leads": 3,
+   "held": 2,
+   "missing": 1,
+   "unusable": 0
+  },
+  "US": {
+   "leads": 4,
+   "held": 3,
+   "missing": 1,
+   "unusable": 0
+  }
+ },
+ "by_industry": {},
+ "cost": {
+  "run_usd": 0.0224,
+  "queries": 4,
+  "usd_per_query": 0.0056,
+  "usd_per_lead": 0.0017,
+  "usd_per_candidate_miss": 0.0028,
+  "lifetime_usd": 0.9769,
+  "confirmed_misses_lifetime": 0,
+  "usd_per_confirmed_miss": null,
+  "confirmed_miss_note": "a confirmed miss is a stored record the chase found from a lead \u2014 not a lead, and never the model's own claim"
+ },
+ "diagnostics": [
+  {
+   "query": "country:DK",
+   "leads": 3,
+   "usd": 0.00558,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 245,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:GH",
+   "leads": 3,
+   "usd": 0.00558,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 242,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:ID",
+   "leads": 4,
+   "usd": 0.00563,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 333,
+   "completion_tokens": 293,
+   "finish_reason": "stop"
+  },
+  {
+   "query": "country:US",
+   "leads": 4,
+   "usd": 0.00563,
+   "model": "perplexity/sonar",
+   "prompt_tokens": 334,
+   "completion_tokens": 292,
+   "finish_reason": "stop"
+  }
+ ],
+ "leads": [
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "idverde Denmark",
+   "claimed_country": "DK",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-04",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "idverde",
+   "claimed_url": "https://idverde.com/news/carsten-ullits-olesen-appointed-ceo-of-idverde-denmark/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "LEMAN Denmark",
+   "claimed_country": "DK",
+   "claimed_city": "Copenhagen",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-23",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "LEMAN",
+   "claimed_url": "https://leman.com/news-and-insights/jannik-lenthe-olesen-ceo-denmark-coo-road/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "DK",
+   "dimension_tier": "zero",
+   "claimed_company": "Arp-Hansen Hotel Group A/S",
+   "claimed_country": "DK",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Arp-Hansen Hotel Group",
+   "claimed_url": "https://www.arp-hansen.com/about-arp-hansen-hotel-group/press-releases-press-kit/appointment-of-new-ceo-and-executive-vice-chairman-at-arp-hansen-hotel-group",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Affinity Africa",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-24",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Affinity Africa",
+   "claimed_url": "https://www.affinityafrica.com/news/affinity-africa-strengthens-leadership-team-to-fuel-next-phase-of-growth/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Ghana EXIM Bank",
+   "claimed_country": "GH",
+   "claimed_city": "Accra",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-16",
+   "claimed_amount": "$12m",
+   "claimed_stage": "",
+   "claimed_outlet": "MyJoyOnline",
+   "claimed_url": "https://www.myjoyonline.com/ghana-exim-bank-commits-12m-to-nadkansco-cashew-processing-factory-sylvester-mensah/",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "GH",
+   "dimension_tier": "zero",
+   "claimed_company": "Ghana Bauxite Company Limited",
+   "claimed_country": "GH",
+   "claimed_city": "",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-23",
+   "claimed_amount": "$250 million",
+   "claimed_stage": "",
+   "claimed_outlet": "AllAfrica",
+   "claimed_url": "https://allafrica.com/stories/202611230261.html",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ID",
+   "dimension_tier": "zero",
+   "claimed_company": "99 Group",
+   "claimed_country": "ID",
+   "claimed_city": "Jakarta",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-11-18",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "DealStreetAsia",
+   "claimed_url": "https://www.dealstreetasia.com/stories/people-digest-99-group-t-rowe-price-501296",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d089c289355273252be2041f3fe9b76b",
+    "company": "99 Group",
+    "pillar": "leadership_change",
+    "country": null,
+    "published_date": "2026-11-17",
+    "source_url": "https://e27.co/99-groups-founder-steps-back-as-a-former-banker-takes-the-wheel-of-southeast-asias-leading-proptech-20261117/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ID",
+   "dimension_tier": "zero",
+   "claimed_company": "The Seed",
+   "claimed_country": "ID",
+   "claimed_city": "",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-01",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/executives/seed-hired-32dd",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "ID",
+   "dimension_tier": "zero",
+   "claimed_company": "Danantara Indonesia",
+   "claimed_country": "ID",
+   "claimed_city": "Jakarta",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-11-25",
+   "claimed_amount": "Rp162 trillion",
+   "claimed_stage": "",
+   "claimed_outlet": "ANTARA",
+   "claimed_url": "https://en.antaranews.com/news/445415/danantara-invests-rp162-trillion-across-energy-food-and-hajj-sectors",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c9cc7ffa43339039542a92353ba30d1d",
+    "company": "Danantara",
+    "pillar": "how_we_work",
+    "country": "ID",
+    "published_date": "2026-10-19",
+    "source_url": "https://www.cnbcindonesia.com/tech/20261019175427-37-777620/danantara-kumpulkan-ceo-teknologi-global-di-jakarta"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Bedrock Robotics",
+   "claimed_country": "US",
+   "claimed_city": "San Francisco",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-26",
+   "claimed_amount": "$600M",
+   "claimed_stage": "series_c",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-10-26",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "c9165d9525fbb23018226bbc7193654d",
+    "company": "Bedrock Robotics",
+    "pillar": "company_development",
+    "country": null,
+    "published_date": "2026-10-26",
+    "source_url": "https://fomoera.com/bedrock-robotics-ronda-serie-c/"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Ant International\u2019s Alipay+",
+   "claimed_country": "US",
+   "claimed_city": "New York",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-16",
+   "claimed_amount": "$1.20B",
+   "claimed_stage": "series_a",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-10-12",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "805205f4604ab4c0f7dd4a6447859820",
+    "company": "Ant Group",
+    "pillar": "how_we_work",
+    "country": "SG",
+    "published_date": "2026-09-02",
+    "source_url": "https://www.edb.gov.sg/en/news-and-insights/fintech-giant-ant-group-opens-new-office-in-singapore-set-to-expand-offerings"
+   },
+   "why": "we already hold this employer inside the date window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Clean Power Alliance",
+   "claimed_country": "US",
+   "claimed_city": "Los Angeles",
+   "claimed_signal_type": "funding",
+   "claimed_event_date": "2026-10-19",
+   "claimed_amount": "$1.40B",
+   "claimed_stage": "seed",
+   "claimed_outlet": "Fundz",
+   "claimed_url": "https://app.fundz.net/funding-rounds/2026-10-19",
+   "claimed_industry": "",
+   "verdict": "MISSING",
+   "matched": null,
+   "why": "no row for this employer in the window"
+  },
+  {
+   "dimension": "country",
+   "dimension_key": "US",
+   "dimension_tier": "covered",
+   "claimed_company": "Boston Dynamics",
+   "claimed_country": "US",
+   "claimed_city": "Waltham",
+   "claimed_signal_type": "leadership",
+   "claimed_event_date": "2026-10-20",
+   "claimed_amount": "",
+   "claimed_stage": "",
+   "claimed_outlet": "Manufacturing Digital",
+   "claimed_url": "https://manufacturingdigital.com/news/manufacturing-executive-appointments-in-october-2026",
+   "claimed_industry": "",
+   "verdict": "HELD",
+   "matched": {
+    "signal_id": "d0eb962e4af309c11aa98fa9a993359b",
+    "company": "Boston Dynamics",
+    "pillar": "leadership_change",
+    "country": "US",
+    "published_date": "2026-10-07",
+    "source_url": "https://www.usine-digitale.fr/intelligence-artificielle/robotique/boston-dynamics-choisit-rohit-prasad-ex-responsable-du-laboratoire-agi-damazon-comme-nouveau-ceo.BHDG2O5LE5A77MBWMRAWDKVQW4.html"
+   },
+   "why": "we already hold this employer inside the date window"
+  }
+ ]
+}
