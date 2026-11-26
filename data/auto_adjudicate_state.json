@@ -26,7 +26,7 @@
    "last": "AGREE"
   },
   "amount/36bb444b6c194f8277b2b71bd17a76ed": {
-   "asks": 1,
+   "asks": 2,
    "last": "anthropic/claude-sonnet-4.5: verdict, openai/gpt-4o: low_confidence"
   },
   "amount/43f02665d63c6918f451a5bea1cc9d63": {
@@ -130,7 +130,7 @@
   }
  },
  "last_run": {
-  "at": "2026-11-26T00:35:05+00:00",
+  "at": "2026-11-26T06:24:44+00:00",
   "referee_answers": {
    "budget_stop": 0,
    "low_confidence": 1,
@@ -143,7 +143,7 @@
  "months": {
   "2026-09": 0.0,
   "2026-10": 0.35092,
-  "2026-11": 0.160705
+  "2026-11": 0.173892
  },
  "version": 1
 }

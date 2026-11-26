@@ -44,9 +44,9 @@
   "anthropic/claude-sonnet-4.5": 0.008277,
   "openai/gpt-4o": 0.004910000000000001
  },
- "evidence_url": "https://endpoints.news/sanofi-makes-a-huge-bet-on-life-after-dupixent/",
+ "evidence_url": "https://web.archive.org/web/20261126011935/https://endpoints.news/sanofi-makes-a-huge-bet-on-life-after-dupixent/",
  "evidence_chars": 1489,
  "action": "keep",
  "correction": null,
- "written_at": "2026-11-26T00:35:14+00:00"
+ "written_at": "2026-11-26T06:24:53+00:00"
 }
