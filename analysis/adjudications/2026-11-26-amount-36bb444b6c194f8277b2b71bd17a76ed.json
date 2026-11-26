@@ -1,0 +1,52 @@
+{
+ "key": "amount/36bb444b6c194f8277b2b71bd17a76ed",
+ "label": "Sanofi $41,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": false,
+   "money_basis": null,
+   "recommended": "reject",
+   "corrected_amount": null,
+   "corrected_basis": null,
+   "confidence": 95,
+   "reasoning": "The source text is truncated and does not contain the $41 billion figure mentioned in the summary. The visible text only states 'Shares in the French drugmaker jumped more than 10% on Tuesday as investors and analysts cheered the audacity…' but is cut off before explaining what the $41B represents. Without the full article text stating this is new capital raised from investors (company_raise), I cannot verify the amount or basis. The article appears to be paywalled."
+  },
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Sanofi",
+  "headline": "Sanofi makes a huge bet on life after Dupixent",
+  "summary": "Sanofi's stock price increased by over 10% after CEO Belén Garijo announced a $41 billion investment. Investors and analysts reacted positively to this strategic move.",
+  "funding_amount": "$41 billion",
+  "funding_amount_usd": 41000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://endpoints.news/sanofi-makes-a-huge-bet-on-life-after-dupixent/",
+  "source_name": "Endpoints News",
+  "published_date": "2026-11-24",
+  "collector": "national_press",
+  "city": null,
+  "region": "Europe",
+  "state": null,
+  "country": "FR",
+  "hq_city": "Paris",
+  "hq_country": "FR",
+  "published_at": null
+ },
+ "cost_usd": 0.013187,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.008277,
+  "openai/gpt-4o": 0.004910000000000001
+ },
+ "evidence_url": "https://endpoints.news/sanofi-makes-a-huge-bet-on-life-after-dupixent/",
+ "evidence_chars": 1489,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-11-26T00:35:14+00:00"
+}
