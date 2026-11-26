@@ -14,7 +14,7 @@
    "corrected_amount": null,
    "corrected_basis": null,
    "confidence": 95,
-   "reasoning": "The source text is truncated and does not contain the $41 billion figure mentioned in the summary. The visible text only states 'Shares in the French drugmaker jumped more than 10% on Tuesday as investors and analysts cheered the audacity…' but is cut off before explaining what the $41B represents. Without the full article text stating this is new capital raised from investors (company_raise), I cannot verify the amount or basis. The article appears to be paywalled."
+   "reasoning": "The source text is truncated and does not contain the $41 billion figure mentioned in the summary. The visible text only states 'Shares in the French drugmaker jumped more than 10% on Tuesday as investors and analysts cheered the audacity…' but is cut off before any funding details. Without access to the full article content that states what the $41 billion represents (investment, acquisition, valuation, etc.), I cannot verify this is a company_raise or any other money_basis. Must reject."
   },
   "openai/gpt-4o": null
  },
@@ -39,14 +39,14 @@
   "hq_country": "FR",
   "published_at": null
  },
- "cost_usd": 0.013187,
+ "cost_usd": 0.013277,
  "cost_by_referee": {
-  "anthropic/claude-sonnet-4.5": 0.008277,
+  "anthropic/claude-sonnet-4.5": 0.008367,
   "openai/gpt-4o": 0.004910000000000001
  },
  "evidence_url": "https://web.archive.org/web/20261126011935/https://endpoints.news/sanofi-makes-a-huge-bet-on-life-after-dupixent/",
  "evidence_chars": 1489,
  "action": "keep",
  "correction": null,
- "written_at": "2026-11-26T06:24:53+00:00"
+ "written_at": "2026-11-26T12:20:45+00:00"
 }
