@@ -40,12 +40,17 @@
       "last": 1795422032,
       "subject": "CI RED: recall: ! Seeds Fincap: API error, HTTPError: HTTP Error 500: Internal Server Error"
     },
+    "rendered-contrast-audit:main:ec17321195fc0507": {
+      "first": 1795784934,
+      "last": 1795784934,
+      "subject": "CI RED: Rendered contrast audit: [2419:2419:1127/130632.514419:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedeskt"
+    },
     "spend-ceiling:2026-08": {
       "first": 1787880119,
       "last": 1787880119,
       "subject": "Spend is at the monthly allowance"
     }
   },
-  "updated_at": "2026-11-27T02:54:13+00:00",
+  "updated_at": "2026-11-27T13:08:55+00:00",
   "version": 1
 }
