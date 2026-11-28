@@ -1,7 +1,7 @@
 {
  "key": "amount/1f3fb01f8e960c3928f698dc1fa43b14",
  "label": "Abu Dhabi National Oil Company $150,000,000,000",
- "status": "unknown",
+ "status": "agree-dry-run",
  "referees": [
   "anthropic/claude-sonnet-4.5",
   "openai/gpt-4o"
@@ -14,9 +14,17 @@
    "corrected_amount": 150000000000,
    "corrected_basis": "project_finance",
    "confidence": 95,
-   "reasoning": "The source states: \"In November 2025, the company's board of directors...approved its five-year business plan and capital expenditure program, allocating AED551 billion ($150 billion) for the period from 2026 to 2030.\" This is a capital expenditure program for infrastructure projects, not new capital raised from private investors. The $150B represents ADNOC's own planned spending on projects and operations. This fits 'project_finance' (capital allocated to projects/assets) rather than 'company_raise' (external investment received)."
+   "reasoning": "The source states: \"In November 2025, the company's board of directors...approved its five-year business plan and capital expenditure program, allocating AED551 billion ($150 billion) for the period from 2026 to 2030.\" This is a capital expenditure program for infrastructure projects, not new capital raised from private investors or venture lenders. It represents planned spending on energy infrastructure and projects, which falls under project_finance, not company_raise."
   },
-  "openai/gpt-4o": null
+  "openai/gpt-4o": {
+   "amount_stated_for_this_event": false,
+   "money_basis": "outbound_investment",
+   "recommended": "edit",
+   "corrected_amount": null,
+   "corrected_basis": "outbound_investment",
+   "confidence": 95,
+   "reasoning": "The source text states 'allocating AED551 billion ($150 billion) for the period from 2026 to 2030' as part of an investment plan, which indicates outbound investment by ADNOC, not a company raise. This does not meet the criteria for 'company_raise' as it is not new capital arriving at ADNOC from investors."
+  }
  },
  "row": {
   "company": "Abu Dhabi National Oil Company",
@@ -39,14 +47,19 @@
   "hq_country": "AE",
   "published_at": null
  },
- "cost_usd": 0.025056,
+ "cost_usd": 0.024746,
  "cost_by_referee": {
-  "anthropic/claude-sonnet-4.5": 0.015093,
-  "openai/gpt-4o": 0.009962500000000001
+  "anthropic/claude-sonnet-4.5": 0.014763,
+  "openai/gpt-4o": 0.0099825
  },
  "evidence_url": "https://economymiddleeast.com/news/adnoc-celebrates-55-years-of-powering-uae-growth-as-it-advances-150-billion-investment-plan-through-2030/?utm_source=rss&utm_medium=rss&utm_campaign=adnoc-celebrates-55-years-of-powering-uae-growth-as-it-advances-150-billion-investment-plan-through-2030",
  "evidence_chars": 12000,
- "action": "keep",
- "correction": null,
- "written_at": "2026-11-28T00:33:40+00:00"
+ "action": "edit",
+ "correction": {
+  "corrected_basis": "pledge"
+ },
+ "note": "two-model adjudication of amount/1f3fb01f8e960c3928f698dc1fa43b14, both referees say edit. corrected_amount=None corrected_basis=pledge. anthropic/claude-sonnet-4.5: The source states: \"In November 2025, the company's board of directors...approved its five-year business plan and capital expenditure program, allocating AED551 billion ($150 billion) for the period from 2026 to 2030.\" T; openai/gpt-4o: The source text states 'allocating AED551 billion ($150 billion) for the period from 2026 to 2030' as part of an investment plan, which indicates outbound investment by ADNOC, not a company raise. This does not meet the ",
+ "who": "two-model adjudication (anthropic/claude-sonnet-4.5 + openai/gpt-4o)",
+ "ledger_rows_changed": 0,
+ "written_at": "2026-11-28T06:22:10+00:00"
 }
