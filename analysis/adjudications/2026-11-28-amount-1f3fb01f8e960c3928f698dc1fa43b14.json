@@ -1,0 +1,52 @@
+{
+ "key": "amount/1f3fb01f8e960c3928f698dc1fa43b14",
+ "label": "Abu Dhabi National Oil Company $150,000,000,000",
+ "status": "unknown",
+ "referees": [
+  "anthropic/claude-sonnet-4.5",
+  "openai/gpt-4o"
+ ],
+ "verdicts": {
+  "anthropic/claude-sonnet-4.5": {
+   "amount_stated_for_this_event": true,
+   "money_basis": "project_finance",
+   "recommended": "edit",
+   "corrected_amount": 150000000000,
+   "corrected_basis": "project_finance",
+   "confidence": 95,
+   "reasoning": "The source states: \"In November 2025, the company's board of directors...approved its five-year business plan and capital expenditure program, allocating AED551 billion ($150 billion) for the period from 2026 to 2030.\" This is a capital expenditure program for infrastructure projects, not new capital raised from private investors. The $150B represents ADNOC's own planned spending on projects and operations. This fits 'project_finance' (capital allocated to projects/assets) rather than 'company_raise' (external investment received)."
+  },
+  "openai/gpt-4o": null
+ },
+ "row": {
+  "company": "Abu Dhabi National Oil Company",
+  "headline": "ADNOC celebrates 55 years of powering UAE growth as it advances $150 billion investment plan through 2030",
+  "summary": "Abu Dhabi National Oil Company (ADNOC) is celebrating 55 years of contributing to the UAE's economic development by transforming natural resources into long-term economic value. The company is advancing a $150 billion investment plan through 2030, focusing on energy infrastructure, national talent, industrial capabilities, and advanced technologies.",
+  "funding_amount": "$150 billion",
+  "funding_amount_usd": 150000000000,
+  "funding_stage": "other",
+  "deal_type": null,
+  "money_basis": "company_raise",
+  "source_url": "https://economymiddleeast.com/news/adnoc-celebrates-55-years-of-powering-uae-growth-as-it-advances-150-billion-investment-plan-through-2030/?utm_source=rss&utm_medium=rss&utm_campaign=adnoc-celebrates-55-years-of-powering-uae-growth-as-it-advances-150-billion-investment-plan-through-2030",
+  "source_name": "Economy Middle East",
+  "published_date": "2026-11-27",
+  "collector": "national_press",
+  "city": null,
+  "region": "Middle East",
+  "state": null,
+  "country": "AE",
+  "hq_city": "Abu Dhabi",
+  "hq_country": "AE",
+  "published_at": null
+ },
+ "cost_usd": 0.025056,
+ "cost_by_referee": {
+  "anthropic/claude-sonnet-4.5": 0.015093,
+  "openai/gpt-4o": 0.009962500000000001
+ },
+ "evidence_url": "https://economymiddleeast.com/news/adnoc-celebrates-55-years-of-powering-uae-growth-as-it-advances-150-billion-investment-plan-through-2030/?utm_source=rss&utm_medium=rss&utm_campaign=adnoc-celebrates-55-years-of-powering-uae-growth-as-it-advances-150-billion-investment-plan-through-2030",
+ "evidence_chars": 12000,
+ "action": "keep",
+ "correction": null,
+ "written_at": "2026-11-28T00:33:40+00:00"
+}
