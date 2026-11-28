@@ -249,81 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-28T00:53:23Z",
-      "history": [
-        {
-          "at": "2026-11-28T00:42:08Z",
-          "detail": "scheduled link hygiene (20 */8 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-28T00:53:23Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-28T01:05:59Z",
-          "detail": "run 46090293232",
-          "event": "bound"
-        }
-      ],
-      "id": "20261128T004208Z-archive-sources",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (20 */8 * * *)",
-      "requested_at": "2026-11-28T00:42:08Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "46090293232",
-      "state": "dispatched",
-      "workflow": "archive-sources.yml"
-    },
-    {
-      "acknowledged": "2026-11-18T19:58:05Z",
-      "attempts": 0,
-      "dispatched_at": "2026-11-18T09:48:12Z",
-      "history": [
-        {
-          "at": "2026-11-18T09:42:51Z",
-          "detail": "scheduled link hygiene (40 9 * * *)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-18T09:48:12Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-18T09:53:14Z",
-          "detail": "run 44279347791",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-18T09:53:14Z",
-          "detail": "conclusion failure",
-          "event": "failed"
-        },
-        {
-          "at": "2026-11-18T19:58:05Z",
-          "detail": "failed only on the overdue guardrail findings, now answered (vehicle_name rejected, Builders Vision retracted 2026-11-18); next scheduled enrich covers it (by dakotta-labs)",
-          "event": "acknowledged"
-        }
-      ],
-      "id": "20261118T094251Z-enrich",
-      "inputs": {
-        "dry_run": "false"
-      },
-      "priority": 0,
-      "reason": "scheduled link hygiene (40 9 * * *)",
-      "requested_at": "2026-11-18T09:42:51Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "44279347791",
-      "state": "failed",
-      "workflow": "enrich.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-18T16:33:29Z",
       "history": [
         {
@@ -2574,6 +2499,44 @@
       "requested_at": "2026-11-27T16:25:28Z",
       "requested_by": "dakotta-labs",
       "run_id": "46034625687",
+      "state": "landed",
+      "workflow": "archive-sources.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-28T00:53:23Z",
+      "history": [
+        {
+          "at": "2026-11-28T00:42:08Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-28T00:53:23Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-28T01:05:59Z",
+          "detail": "run 46090293232",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-28T01:20:29Z",
+          "detail": "run 46090293232",
+          "event": "landed"
+        }
+      ],
+      "id": "20261128T004208Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "landed_at": "2026-11-28T01:20:29Z",
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-11-28T00:42:08Z",
+      "requested_by": "dakotta-labs",
+      "run_id": "46090293232",
       "state": "landed",
       "workflow": "archive-sources.yml"
     }
