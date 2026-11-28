@@ -249,75 +249,6 @@
   "tickets": [
     {
       "attempts": 0,
-      "dispatched_at": "2026-11-28T06:22:52Z",
-      "history": [
-        {
-          "at": "2026-11-28T06:22:50Z",
-          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-28T06:22:52Z",
-          "detail": "",
-          "event": "dispatched"
-        }
-      ],
-      "id": "20261128T062250Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "false",
-        "from_spec": "analysis/adjudications/2026-11-28-amount-1f3fb01f8e960c3928f698dc1fa43b14.json",
-        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
-      },
-      "priority": 0,
-      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
-      "requested_at": "2026-11-28T06:22:50Z",
-      "requested_by": "github-actions[bot]",
-      "run_id": null,
-      "state": "dispatched",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
-      "dispatched_at": "2026-11-18T19:39:44Z",
-      "history": [
-        {
-          "at": "2026-11-18T19:39:40Z",
-          "detail": "red CI: overdue vehicle_name finding (dry run)",
-          "event": "queued"
-        },
-        {
-          "at": "2026-11-18T19:39:44Z",
-          "detail": "",
-          "event": "dispatched"
-        },
-        {
-          "at": "2026-11-18T19:40:39Z",
-          "detail": "run 44382593884",
-          "event": "bound"
-        },
-        {
-          "at": "2026-11-18T19:40:39Z",
-          "detail": "run 44382593884",
-          "event": "landed"
-        }
-      ],
-      "id": "20261118T193940Z-adjudicate-rows",
-      "inputs": {
-        "dry_run": "true",
-        "note": "Form D for 316 High Street, LLC (CIK 2147257) read 2026-11-18: single-property LLC named for its street address, one manager/member as sole officer, 7 investors, revenue declined. A real-estate holding vehicle, not an employer raising money. Rejected; never published.",
-        "reject_keys": "vehicle_name/2483d0ff45f877febdc39e7df685f668"
-      },
-      "landed_at": "2026-11-18T19:40:39Z",
-      "priority": 0,
-      "reason": "red CI: overdue vehicle_name finding (dry run)",
-      "requested_at": "2026-11-18T19:39:40Z",
-      "requested_by": "dakotta-labs",
-      "run_id": "44382593884",
-      "state": "landed",
-      "workflow": "adjudicate-rows.yml"
-    },
-    {
-      "attempts": 0,
       "dispatched_at": "2026-11-18T19:40:39Z",
       "history": [
         {
@@ -2568,6 +2499,46 @@
       "run_id": "46112664042",
       "state": "landed",
       "workflow": "link-check.yml"
+    },
+    {
+      "attempts": 0,
+      "dispatched_at": "2026-11-28T06:22:52Z",
+      "history": [
+        {
+          "at": "2026-11-28T06:22:50Z",
+          "detail": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
+          "event": "queued"
+        },
+        {
+          "at": "2026-11-28T06:22:52Z",
+          "detail": "",
+          "event": "dispatched"
+        },
+        {
+          "at": "2026-11-28T06:24:23Z",
+          "detail": "run 46116337753",
+          "event": "bound"
+        },
+        {
+          "at": "2026-11-28T06:24:23Z",
+          "detail": "run 46116337753",
+          "event": "landed"
+        }
+      ],
+      "id": "20261128T062250Z-adjudicate-rows",
+      "inputs": {
+        "dry_run": "false",
+        "from_spec": "analysis/adjudications/2026-11-28-amount-1f3fb01f8e960c3928f698dc1fa43b14.json",
+        "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)"
+      },
+      "landed_at": "2026-11-28T06:24:23Z",
+      "priority": 0,
+      "reason": "auto-adjudicate: two referees agreed on 1 guardrail finding(s)",
+      "requested_at": "2026-11-28T06:22:50Z",
+      "requested_by": "github-actions[bot]",
+      "run_id": "46116337753",
+      "state": "landed",
+      "workflow": "adjudicate-rows.yml"
     }
   ],
   "version": 1
