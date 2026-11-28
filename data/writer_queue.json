@@ -248,6 +248,28 @@
   ],
   "tickets": [
     {
+      "attempts": 0,
+      "dispatched_at": null,
+      "history": [
+        {
+          "at": "2026-11-28T00:42:08Z",
+          "detail": "scheduled link hygiene (20 */8 * * *)",
+          "event": "queued"
+        }
+      ],
+      "id": "20261128T004208Z-archive-sources",
+      "inputs": {
+        "dry_run": "false"
+      },
+      "priority": 0,
+      "reason": "scheduled link hygiene (20 */8 * * *)",
+      "requested_at": "2026-11-28T00:42:08Z",
+      "requested_by": "dakotta-labs",
+      "run_id": null,
+      "state": "queued",
+      "workflow": "archive-sources.yml"
+    },
+    {
       "acknowledged": "2026-11-18T19:58:05Z",
       "attempts": 0,
       "dispatched_at": "2026-11-18T09:48:12Z",
